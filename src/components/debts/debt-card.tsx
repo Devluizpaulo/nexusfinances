@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -14,6 +15,16 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Progress } from '@/components/ui/progress';
 import {
   Table,
@@ -27,11 +38,11 @@ import { Badge } from '@/components/ui/badge';
 import { format, isPast, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, orderBy, doc, writeBatch } from 'firebase/firestore';
+import { collection, query, orderBy, doc, writeBatch, getDocs } from 'firebase/firestore';
 import type { Debt, Installment } from '@/lib/types';
 import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Check } from 'lucide-react';
+import { Check, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const formatCurrency = (amount: number) => {
@@ -46,6 +57,7 @@ interface DebtCardProps {
 }
 
 export function DebtCard({ debt }: DebtCardProps) {
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
@@ -91,6 +103,45 @@ export function DebtCard({ debt }: DebtCardProps) {
     }
   };
 
+  const handleDeleteDebt = async () => {
+    if (!user || !firestore) {
+        toast({ variant: "destructive", title: "Erro", description: "Você não está autenticado." });
+        return;
+    }
+
+    const debtRef = doc(firestore, `users/${user.uid}/debts`, debt.id);
+    const installmentsColRef = collection(debtRef, 'installments');
+
+    try {
+        const batch = writeBatch(firestore);
+
+        // Delete all installments in the subcollection
+        const installmentsSnapshot = await getDocs(installmentsColRef);
+        installmentsSnapshot.forEach((doc) => {
+            batch.delete(doc.ref);
+        });
+
+        // Delete the main debt document
+        batch.delete(debtRef);
+
+        await batch.commit();
+
+        toast({
+            title: 'Dívida Excluída',
+            description: `A dívida "${debt.name}" e todas as suas parcelas foram removidas.`,
+        });
+    } catch (error) {
+        console.error("Error deleting debt: ", error);
+        toast({
+            variant: 'destructive',
+            title: 'Erro ao excluir dívida',
+            description: 'Não foi possível remover a dívida. Tente novamente.',
+        });
+    }
+    setIsDeleteDialogOpen(false);
+  };
+
+
   const getInstallmentStatus = (installment: Installment) => {
     if (installment.status === 'paid') {
       return { text: 'Pago', variant: 'paid' };
@@ -102,94 +153,123 @@ export function DebtCard({ debt }: DebtCardProps) {
   };
 
   const paidAmount = debt.paidAmount || 0;
-  const progress = (paidAmount / debt.totalAmount) * 100;
+  const progress = debt.totalAmount > 0 ? (paidAmount / debt.totalAmount) * 100 : 100;
   const isPaid = paidAmount >= debt.totalAmount;
 
   return (
-    <Card className={cn(isPaid ? 'border-green-300 bg-green-50/50' : '')}>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>{debt.name}</CardTitle>
-          {isPaid && <Badge className="bg-green-100 text-green-800">Quitada</Badge>}
-        </div>
-        <CardDescription>Credor: {debt.creditor}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Pago</span>
-            <span>{formatCurrency(paidAmount)}</span>
+    <>
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Você tem certeza absoluta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Isso excluirá permanentemente a dívida <strong>{debt.name}</strong> e todas as suas parcelas associadas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteDebt} className="bg-destructive hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Card className={cn(isPaid ? 'border-green-300 bg-green-50/50' : '')}>
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle>{debt.name}</CardTitle>
+              <CardDescription>Credor: {debt.creditor}</CardDescription>
+            </div>
+             <div className="flex items-center gap-2">
+               {isPaid && <Badge className="bg-green-100 text-green-800">Quitada</Badge>}
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsDeleteDialogOpen(true)}>
+                    <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                    <span className="sr-only">Excluir Dívida</span>
+                </Button>
+            </div>
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Total</span>
-            <span>{formatCurrency(debt.totalAmount)}</span>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Pago</span>
+              <span>{formatCurrency(paidAmount)}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Total</span>
+              <span>{formatCurrency(debt.totalAmount)}</span>
+            </div>
+            <Progress value={progress} className="h-2" />
+            <p className="text-right text-xs text-muted-foreground">
+              {progress > 100 ? 100 : progress.toFixed(0)}% pago
+            </p>
           </div>
-          <Progress value={progress} className="h-2" />
-          <p className="text-right text-xs text-muted-foreground">
-            {progress > 100 ? 100 : progress.toFixed(0)}% pago
-          </p>
-        </div>
-      </CardContent>
-      {!isPaid && (
-        <CardFooter>
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="installments">
-              <AccordionTrigger>Ver Parcelas</AccordionTrigger>
-              <AccordionContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>#</TableHead>
-                      <TableHead>Vencimento</TableHead>
-                      <TableHead>Valor</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Ação</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {(installmentsData || []).map((installment) => {
-                      const status = getInstallmentStatus(installment);
-                      return (
-                        <TableRow key={installment.id}>
-                          <TableCell>{installment.installmentNumber}</TableCell>
-                          <TableCell>
-                            {format(parseISO(installment.dueDate), 'PPP', { locale: ptBR })}
-                          </TableCell>
-                          <TableCell>{formatCurrency(installment.amount)}</TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={status.variant === 'paid' ? 'secondary' : 'default'}
-                              className={cn({
-                                'bg-green-100 text-green-800': status.variant === 'paid',
-                                'bg-yellow-100 text-yellow-800': status.variant === 'unpaid',
-                                'bg-red-100 text-red-800 font-semibold': status.variant === 'overdue',
-                              })}
-                            >
-                              {status.text}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {installment.status === 'unpaid' && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handlePayInstallment(installment)}
+        </CardContent>
+        {!isPaid && (
+          <CardFooter>
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="installments">
+                <AccordionTrigger>Ver Parcelas</AccordionTrigger>
+                <AccordionContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>#</TableHead>
+                        <TableHead>Vencimento</TableHead>
+                        <TableHead>Valor</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Ação</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {(installmentsData || []).map((installment) => {
+                        const status = getInstallmentStatus(installment);
+                        return (
+                          <TableRow key={installment.id}>
+                            <TableCell>{installment.installmentNumber}</TableCell>
+                            <TableCell>
+                              {format(parseISO(installment.dueDate), 'PPP', { locale: ptBR })}
+                            </TableCell>
+                            <TableCell>{formatCurrency(installment.amount)}</TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={status.variant === 'paid' ? 'secondary' : 'default'}
+                                className={cn({
+                                  'bg-green-100 text-green-800': status.variant === 'paid',
+                                  'bg-yellow-100 text-yellow-800': status.variant === 'unpaid',
+                                  'bg-red-100 text-red-800 font-semibold': status.variant === 'overdue',
+                                })}
                               >
-                                <Check className="mr-2 h-4 w-4" />
-                                Pagar
-                              </Button>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </CardFooter>
-      )}
-    </Card>
+                                {status.text}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {installment.status === 'unpaid' && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handlePayInstallment(installment)}
+                                >
+                                  <Check className="mr-2 h-4 w-4" />
+                                  Pagar
+                                </Button>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </CardFooter>
+        )}
+      </Card>
+    </>
   );
 }
+
+    
