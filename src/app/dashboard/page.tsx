@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { KpiCard } from '@/components/dashboard/kpi-card';
-import { Banknote, Landmark, CreditCard, Wallet, Loader2 } from 'lucide-react';
+import { Banknote, Landmark, CreditCard, Scale, Loader2 } from 'lucide-react';
 import { IncomeExpenseChart } from '@/components/dashboard/income-expense-chart';
 import { ExpenseCategoryChart } from '@/components/dashboard/expense-category-chart';
 import { AiInsights } from '@/components/dashboard/ai-insights';
@@ -76,11 +76,14 @@ export default function DashboardPage() {
   }, [allIncomeData, allExpenseData]);
 
 
-  const { totalIncome, totalExpenses, totalDebt, savings, spendingByCategory } = useMemo(() => {
+  const { totalIncome, totalExpenses, totalDebt, balance, spendingByCategory } = useMemo(() => {
     const totalIncome = incomeData?.reduce((sum, t) => sum + t.amount, 0) || 0;
     const totalExpenses = expenseData?.reduce((sum, t) => sum + t.amount, 0) || 0;
     const totalDebt = debtData?.reduce((sum, d) => sum + (d.totalAmount - (d.paidAmount || 0)), 0) || 0;
-    const savings = totalIncome - totalExpenses;
+    
+    const allTimeIncome = allIncomeData?.reduce((sum, t) => sum + t.amount, 0) || 0;
+    const allTimeExpenses = allExpenseData?.reduce((sum, t) => sum + t.amount, 0) || 0;
+    const balance = allTimeIncome - allTimeExpenses;
 
     const spendingByCategory = expenseData?.reduce((acc, t) => {
         if (!acc[t.category]) {
@@ -90,8 +93,8 @@ export default function DashboardPage() {
         return acc;
       }, {} as Record<string, number>) || {};
 
-    return { totalIncome, totalExpenses, totalDebt, savings, spendingByCategory };
-  }, [incomeData, expenseData, debtData]);
+    return { totalIncome, totalExpenses, totalDebt, balance, spendingByCategory };
+  }, [incomeData, expenseData, debtData, allIncomeData, allExpenseData]);
 
 
   const formatCurrency = (amount: number) => {
@@ -105,7 +108,7 @@ export default function DashboardPage() {
     income: totalIncome,
     expenses: totalExpenses,
     debts: totalDebt,
-    savings: savings,
+    savings: totalIncome - totalExpenses,
     spendingByCategory: spendingByCategory,
     savingsGoals: { 'Carro Novo': 25000, 'Férias': 5000 },
   };
@@ -171,10 +174,10 @@ export default function DashboardPage() {
             description={`Despesas totais ${descriptionPeriod}`}
           />
           <KpiCard
-            title="Economias"
-            value={formatCurrency(savings)}
-            icon={Wallet}
-            description={`Renda menos despesas ${descriptionPeriod}`}
+            title="Balanço Geral"
+            value={formatCurrency(balance)}
+            icon={Scale}
+            description="Balanço total de todas as transações"
           />
           <KpiCard
             title="Dívida Pendente"
