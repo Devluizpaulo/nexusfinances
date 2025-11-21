@@ -4,15 +4,16 @@ import React, { DependencyList, createContext, useContext, ReactNode, useMemo, u
 import { FirebaseApp } from 'firebase/app';
 import { Firestore, doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { FirebaseStorage } from 'firebase/storage';
-import { Auth, User, onAuthStateChanged } from 'firebase/auth';
+import { Auth, User, onAuthStateChanged, UserMetadata } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 
 // Extends the default Firebase User type to include our custom fields
-export interface AppUser extends User {
+export interface AppUser extends Omit<User, 'metadata'> {
   firstName?: string;
   lastName?: string;
   phoneNumber?: string;
   role?: 'user' | 'superadmin';
+  metadata: UserMetadata;
 }
 
 // Internal state for user authentication, using our extended AppUser

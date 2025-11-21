@@ -41,7 +41,7 @@ export const columns: ColumnDef<AppUser>[] = [
     }
   },
   {
-    accessorKey: "registrationDate",
+    accessorKey: "metadata.creationTime",
     header: ({ column }) => {
       return (
         <Button
@@ -54,9 +54,9 @@ export const columns: ColumnDef<AppUser>[] = [
       )
     },
     cell: ({ row }) => {
-        const regDate = row.original.metadata.creationTime;
-        if (!regDate) return "N/A";
-        const date = new Date(regDate)
+        const creationTime = row.original.metadata?.creationTime;
+        if (!creationTime) return "N/A";
+        const date = new Date(creationTime)
         return <div className="pl-4">{format(date, "PPP", { locale: ptBR })}</div>
     }
   },
