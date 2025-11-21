@@ -41,13 +41,14 @@ export function DataTableRowActions({
   const userToDelete = row.original;
 
   const handleDelete = () => {
-    if (!user) {
+    if (!user || !firestore) {
       toast({ variant: "destructive", title: "Erro", description: "Você não está autenticado." });
       return;
     }
     
     if (user.uid === userToDelete.uid) {
       toast({ variant: "destructive", title: "Ação não permitida", description: "Você não pode excluir sua própria conta." });
+      setIsDeleteDialogOpen(false);
       return;
     }
 
@@ -69,7 +70,7 @@ export function DataTableRowActions({
             <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
             <AlertDialogDescription>
               Esta ação não pode ser desfeita. Isso excluirá permanentemente o usuário
-              e todos os seus dados associados.
+              e todos os seus dados associados do Firestore. A exclusão da conta de autenticação requer uma Cloud Function.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
