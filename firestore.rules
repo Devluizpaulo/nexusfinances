@@ -46,6 +46,13 @@ service cloud.firestore {
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
+    
+    /**
+     * Returns true if the user is a superadmin.
+     */
+    function isSuperAdmin() {
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superadmin';
+    }
 
     /**
      * Returns true if the user is the owner and the document already exists.
@@ -105,15 +112,15 @@ service cloud.firestore {
      * @principle Enforces self-creation and ownership. Users can manage their own profile but cannot see or interact with others'.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false;
+      allow get: if isOwner(userId) || isSuperAdmin();
+      allow list: if isSuperAdmin();
       allow create: if isOwner(userId) && request.resource.data.id == userId;
       allow update: if isExistingOwner(userId) 
                       && request.resource.data.id == resource.data.id
                       && request.resource.data.firstName is string
                       && request.resource.data.lastName is string
                       && (request.resource.data.phoneNumber == null || request.resource.data.phoneNumber is string);
-      allow delete: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId) || isSuperAdmin();
 
       /**
        * @description Secures a user's private income entries.
@@ -123,7 +130,7 @@ service cloud.firestore {
        * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
        */
       match /incomes/{incomeId} {
-        allow get, list: if isOwner(userId);
+        allow get, list: if isOwner(userId) || isSuperAdmin();
         allow create: if isCreatingOwnData(userId);
         allow update: if isExistingOwner(userId) && isOwnerFieldImmutable();
         allow delete: if isExistingOwner(userId);
@@ -137,7 +144,7 @@ service cloud.firestore {
        * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
        */
       match /expenses/{expenseId} {
-        allow get, list: if isOwner(userId);
+        allow get, list: if isOwner(userId) || isSuperAdmin();
         allow create: if isCreatingOwnData(userId);
         allow update: if isExistingOwner(userId) && isOwnerFieldImmutable();
         allow delete: if isExistingOwner(userId);
@@ -151,7 +158,7 @@ service cloud.firestore {
        * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
        */
       match /debts/{debtId} {
-        allow get, list: if isOwner(userId);
+        allow get, list: if isOwner(userId) || isSuperAdmin();
         allow create: if isCreatingOwnData(userId);
         allow update: if isExistingOwner(userId) && isOwnerFieldImmutable();
         allow delete: if isExistingOwner(userId);
@@ -164,10 +171,10 @@ service cloud.firestore {
          * @principle Enforces ownership by looking up the parent debt document. Validates relational integrity with the parent debt.
          */
         match /installments/{installmentId} {
-          allow get, list: if isOwnerOfParentDebt(userId, debtId);
+          allow get, list: if isOwnerOfParentDebt(userId, debtId) || isSuperAdmin();
           allow create: if isOwnerOfParentDebt(userId, debtId) && isCreatingValidInstallment(debtId);
-          allow update: if isOwnerOfParentDebt(userId, debtId) && resource != null && isDebtFieldImmutable();
-          allow delete: if isOwnerOfParentDebt(userId, debtId) && resource != null;
+          allow update: if (isOwnerOfParentDebt(userId, debtId) && resource != null && isDebtFieldImmutable()) || isSuperAdmin();
+          allow delete: if (isOwnerOfParentDebt(userId, debtId) && resource != null) || isSuperAdmin();
         }
       }
       
@@ -179,7 +186,7 @@ service cloud.firestore {
        * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
        */
       match /goals/{goalId} {
-        allow get, list: if isOwner(userId);
+        allow get, list: if isOwner(userId) || isSuperAdmin();
         allow create: if isCreatingOwnData(userId);
         allow update: if isExistingOwner(userId) && isOwnerFieldImmutable();
         allow delete: if isExistingOwner(userId);
@@ -187,5 +194,3 @@ service cloud.firestore {
     }
   }
 }
-
-    

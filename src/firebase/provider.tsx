@@ -12,6 +12,7 @@ export interface AppUser extends User {
   firstName?: string;
   lastName?: string;
   phoneNumber?: string;
+  role?: 'user' | 'superadmin';
 }
 
 // Internal state for user authentication, using our extended AppUser
@@ -98,6 +99,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
               firstName: firestoreData.firstName,
               lastName: firestoreData.lastName,
               phoneNumber: firestoreData.phoneNumber,
+              role: firestoreData.role,
             };
           } else {
             const nameParts = (firebaseUser.displayName || firebaseUser.email || '').split(' ');
@@ -111,13 +113,15 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
               registrationDate: serverTimestamp(),
               firstName: firstName,
               lastName: lastName,
-              phoneNumber: firebaseUser.phoneNumber || ''
+              phoneNumber: firebaseUser.phoneNumber || '',
+              role: 'user', // Default role
             }, { merge: true });
              appUser = {
                 ...appUser,
                 firstName,
                 lastName,
-                phoneNumber: firebaseUser.phoneNumber || ''
+                phoneNumber: firebaseUser.phoneNumber || '',
+                role: 'user',
             };
           }
           setUserAuthState({ user: appUser, isUserLoading: false, userError: null });
@@ -216,5 +220,3 @@ export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | 
   
   return memoized;
 }
-
-    
