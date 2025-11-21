@@ -21,7 +21,7 @@ export function AiInsights({ financialData }: { financialData: FinancialInsights
       const result = await generateFinancialInsights(financialData);
       setInsights(result);
     } catch (e) {
-      setError('Failed to generate insights. Please try again.');
+      setError('Falha ao gerar insights. Por favor, tente novamente.');
       console.error(e);
     } finally {
       setIsLoading(false);
@@ -36,8 +36,8 @@ export function AiInsights({ financialData }: { financialData: FinancialInsights
                 <Wand2 className="h-6 w-6 text-primary" />
             </div>
             <div>
-                <CardTitle>Educational Financial Insights</CardTitle>
-                <CardDescription>Get AI-powered insights and recommendations based on your financial data.</CardDescription>
+                <CardTitle>Insights Financeiros Educacionais</CardTitle>
+                <CardDescription>Obtenha insights e recomendações com tecnologia de IA com base em seus dados financeiros.</CardDescription>
             </div>
         </div>
       </CardHeader>
@@ -51,17 +51,17 @@ export function AiInsights({ financialData }: { financialData: FinancialInsights
           </div>
         ) : error ? (
           <Alert variant="destructive">
-            <AlertTitle>Error</AlertTitle>
+            <AlertTitle>Erro</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         ) : insights ? (
           <div className="space-y-4 text-sm">
             <div>
-              <h3 className="font-semibold text-base">Summary</h3>
+              <h3 className="font-semibold text-base">Resumo</h3>
               <p className="text-muted-foreground">{insights.summary}</p>
             </div>
             <div>
-              <h3 className="font-semibold text-base">Insights & Recommendations</h3>
+              <h3 className="font-semibold text-base">Insights e Recomendações</h3>
               <ul className="list-disc space-y-2 pl-5 text-muted-foreground">
                 {insights.insights.map((insight, index) => (
                   <li key={index}>{insight}</li>
@@ -72,11 +72,11 @@ export function AiInsights({ financialData }: { financialData: FinancialInsights
         ) : (
           <div className="flex flex-col items-center justify-center space-y-4 rounded-lg border-2 border-dashed border-border bg-transparent p-8 text-center">
             <p className="text-sm text-muted-foreground">
-              Click the button to generate your personalized financial report.
+              Clique no botão para gerar seu relatório financeiro personalizado.
             </p>
             <Button onClick={handleGenerateInsights} disabled={isLoading}>
               <Wand2 className="mr-2" />
-              Generate Insights
+              Gerar Insights
             </Button>
           </div>
         )}
@@ -85,7 +85,7 @@ export function AiInsights({ financialData }: { financialData: FinancialInsights
         <CardFooter>
             <Button onClick={handleGenerateInsights} variant="outline" size="sm">
                 <Wand2 className="mr-2 h-4 w-4"/>
-                Regenerate
+                Gerar Novamente
             </Button>
         </CardFooter>
       )}

@@ -11,12 +11,12 @@ export default function ExpensesPage() {
   return (
     <>
       <PageHeader 
-        title="Expenses"
-        description="Track and manage all your expenses."
+        title="Despesas"
+        description="Acompanhe e gerencie todas as suas despesas."
       >
         <Button>
             <PlusCircle className="mr-2 h-4 w-4"/>
-            Add Expense
+            Adicionar Despesa
         </Button>
       </PageHeader>
       <DataTable columns={columns} data={expenseData} />

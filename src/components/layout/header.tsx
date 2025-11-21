@@ -6,11 +6,11 @@ import { usePathname } from 'next/navigation';
 import { useSidebar } from '../ui/sidebar';
 
 const getTitle = (pathname: string) => {
-    if (pathname.startsWith('/dashboard')) return 'Dashboard';
-    if (pathname.startsWith('/income')) return 'Income';
-    if (pathname.startsWith('/expenses')) return 'Expenses';
-    if (pathname.startsWith('/debts')) return 'Debts';
-    return 'Nexus Finances';
+    if (pathname.startsWith('/dashboard')) return 'Painel';
+    if (pathname.startsWith('/income')) return 'Renda';
+    if (pathname.startsWith('/expenses')) return 'Despesas';
+    if (pathname.startsWith('/debts')) return 'Dívidas';
+    return 'Nexus Finanças';
 }
 
 export function Header() {
@@ -23,14 +23,14 @@ export function Header() {
       <div className="flex items-center gap-4">
         <Button onClick={toggleSidebar} variant="ghost" size="icon" className="md:hidden">
             <PanelLeft />
-            <span className="sr-only">Toggle Sidebar</span>
+            <span className="sr-only">Alternar Barra Lateral</span>
         </Button>
         <h1 className="text-xl font-semibold">{title}</h1>
       </div>
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="icon">
             <Bell />
-            <span className="sr-only">Notifications</span>
+            <span className="sr-only">Notificações</span>
         </Button>
       </div>
     </header>

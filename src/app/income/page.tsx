@@ -12,12 +12,12 @@ export default function IncomePage() {
   return (
     <>
       <PageHeader 
-        title="Income"
-        description="Track and manage all your income sources."
+        title="Renda"
+        description="Acompanhe e gerencie todas as suas fontes de renda."
       >
         <Button>
             <PlusCircle className="mr-2 h-4 w-4"/>
-            Add Income
+            Adicionar Renda
         </Button>
       </PageHeader>
       <DataTable columns={columns} data={incomeData} />

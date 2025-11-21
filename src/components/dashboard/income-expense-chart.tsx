@@ -11,21 +11,22 @@ import {
 } from '@/components/ui/chart';
 import type { Transaction } from '@/lib/types';
 import { format, startOfMonth, parseISO } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const chartConfig = {
   income: {
-    label: 'Income',
+    label: 'Renda',
     color: 'hsl(var(--chart-1))',
   },
   expenses: {
-    label: 'Expenses',
+    label: 'Despesas',
     color: 'hsl(var(--chart-2))',
   },
 };
 
 export function IncomeExpenseChart({ transactions }: { transactions: Transaction[] }) {
   const monthlyData = transactions.reduce((acc, transaction) => {
-    const month = format(startOfMonth(parseISO(transaction.date)), 'MMM yyyy');
+    const month = format(startOfMonth(parseISO(transaction.date)), 'MMM yyyy', { locale: ptBR });
     if (!acc[month]) {
       acc[month] = { month, income: 0, expenses: 0 };
     }
@@ -42,7 +43,7 @@ export function IncomeExpenseChart({ transactions }: { transactions: Transaction
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Income vs. Expenses</CardTitle>
+        <CardTitle>Renda vs. Despesas</CardTitle>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
@@ -55,9 +56,9 @@ export function IncomeExpenseChart({ transactions }: { transactions: Transaction
               axisLine={false}
             />
              <YAxis
-              tickFormatter={(value) => `$${value / 1000}k`}
+              tickFormatter={(value) => `R$${Number(value) / 1000}k`}
             />
-            <ChartTooltip content={<ChartTooltipContent />} />
+            <ChartTooltip content={<ChartTooltipContent formatter={(value) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value as number)} />} />
             <ChartLegend content={<ChartLegendContent />} />
             <Bar dataKey="income" fill="var(--color-income)" radius={4} />
             <Bar dataKey="expenses" fill="var(--color-expenses)" radius={4} />

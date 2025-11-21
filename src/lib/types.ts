@@ -27,26 +27,26 @@ export type Installment = {
 };
 
 export const expenseCategories = [
-  'Groceries',
-  'Utilities',
-  'Rent/Mortgage',
-  'Transportation',
-  'Entertainment',
-  'Healthcare',
-  'Subscriptions',
-  'Shopping',
-  'Other',
+  'Mercado',
+  'Contas',
+  'Aluguel/Hipoteca',
+  'Transporte',
+  'Lazer',
+  'Saúde',
+  'Assinaturas',
+  'Compras',
+  'Outros',
 ] as const;
 
 export type ExpenseCategory = typeof expenseCategories[number];
 
 export const incomeCategories = [
-  'Salary',
+  'Salário',
   'Freelance',
-  'Commission',
-  'Investment',
-  'Gift',
-  'Other',
+  'Comissão',
+  'Investimento',
+  'Presente',
+  'Outros',
 ] as const;
 
 export type IncomeCategory = typeof incomeCategories[number];

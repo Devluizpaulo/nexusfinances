@@ -20,9 +20,9 @@ export default function DashboardPage() {
   const savings = totalIncome - totalExpenses;
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'BRL',
     }).format(amount);
   };
 
@@ -42,35 +42,35 @@ export default function DashboardPage() {
     debts: totalDebt,
     savings: savings,
     spendingByCategory: spendingByCategory,
-    savingsGoals: { 'New Car': 25000, 'Vacation': 5000 },
+    savingsGoals: { 'Carro Novo': 25000, 'Férias': 5000 },
   };
 
   return (
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <KpiCard
-          title="Total Income"
+          title="Renda Total"
           value={formatCurrency(totalIncome)}
           icon={Landmark}
-          description="Total income this period"
+          description="Renda total neste período"
         />
         <KpiCard
-          title="Total Expenses"
+          title="Despesas Totais"
           value={formatCurrency(totalExpenses)}
           icon={CreditCard}
-          description="Total expenses this period"
+          description="Despesas totais neste período"
         />
         <KpiCard
-          title="Savings"
+          title="Economias"
           value={formatCurrency(savings)}
           icon={Wallet}
-          description="Income minus expenses"
+          description="Renda menos despesas"
         />
         <KpiCard
-          title="Outstanding Debt"
+          title="Dívida Pendente"
           value={formatCurrency(totalDebt)}
           icon={Banknote}
-          description="Total remaining debt balance"
+          description="Saldo devedor total restante"
         />
       </div>
 

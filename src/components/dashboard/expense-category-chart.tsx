@@ -20,30 +20,30 @@ import * as React from 'react';
 
 const chartConfig = {
   amount: {
-    label: 'Amount',
+    label: 'Valor',
   },
-  groceries: {
-    label: 'Groceries',
+  mercado: {
+    label: 'Mercado',
     color: 'hsl(var(--chart-1))',
   },
-  utilities: {
-    label: 'Utilities',
+  contas: {
+    label: 'Contas',
     color: 'hsl(var(--chart-2))',
   },
-  rent: {
-    label: 'Rent/Mortgage',
+  'aluguel/hipoteca': {
+    label: 'Aluguel/Hipoteca',
     color: 'hsl(var(--chart-3))',
   },
-  transportation: {
-    label: 'Transportation',
+  transporte: {
+    label: 'Transporte',
     color: 'hsl(var(--chart-4))',
   },
-  entertainment: {
-    label: 'Entertainment',
+  lazer: {
+    label: 'Lazer',
     color: 'hsl(var(--chart-5))',
   },
-  other: {
-    label: 'Other',
+  outros: {
+    label: 'Outros',
     color: 'hsl(var(--muted))',
   },
 };
@@ -52,7 +52,7 @@ export function ExpenseCategoryChart({ transactions }: { transactions: Transacti
   const expenseData = transactions
     .filter((t) => t.type === 'expense')
     .reduce((acc, t) => {
-      const key = t.category.toLowerCase().replace('/','');
+      const key = t.category.toLowerCase().replace('/','').replace(' ', '');
       if (!acc[key]) {
         acc[key] = { name: t.category, value: 0, fill: `var(--color-${key})` };
       }
@@ -66,8 +66,8 @@ export function ExpenseCategoryChart({ transactions }: { transactions: Transacti
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Expenses by Category</CardTitle>
-        <CardDescription>A breakdown of your spending.</CardDescription>
+        <CardTitle>Despesas por Categoria</CardTitle>
+        <CardDescription>Uma análise detalhada de seus gastos.</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer
@@ -77,7 +77,18 @@ export function ExpenseCategoryChart({ transactions }: { transactions: Transacti
           <PieChart>
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent hideLabel />}
+              content={<ChartTooltipContent hideLabel formatter={(value, name, props) => {
+                const formattedValue = new Intl.NumberFormat("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                }).format(value as number);
+                return (
+                  <div className="flex flex-col">
+                    <span>{props.payload.name}</span>
+                    <span className="font-bold">{formattedValue}</span>
+                  </div>
+                );
+              }}/>}
             />
             <Pie
               data={chartData}
