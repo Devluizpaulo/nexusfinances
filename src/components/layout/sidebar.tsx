@@ -36,7 +36,11 @@ export function AppSidebar() {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-    } catch (error) {
+    } catch (error: any) {
+      // Don't log an error if the user closes the sign-in popup.
+      if (error.code === 'auth/popup-closed-by-user') {
+        return;
+      }
       console.error("Erro no login com Google:", error);
     }
   };
