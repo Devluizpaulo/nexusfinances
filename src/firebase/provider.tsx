@@ -2,7 +2,7 @@
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { Firestore, doc, setDoc, getDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { FirebaseStorage } from 'firebase/storage';
 import { Auth, User, onAuthStateChanged, UserMetadata } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
@@ -13,6 +13,7 @@ export interface AppUser extends Omit<User, 'metadata'> {
   lastName?: string;
   phoneNumber?: string;
   role?: 'user' | 'superadmin';
+  registrationDate?: Timestamp | string;
   metadata: UserMetadata;
 }
 
@@ -101,17 +102,19 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
               lastName: firestoreData.lastName,
               phoneNumber: firestoreData.phoneNumber,
               role: firestoreData.role,
+              registrationDate: firestoreData.registrationDate,
             };
           } else {
             const nameParts = (firebaseUser.displayName || firebaseUser.email || '').split(' ');
             const firstName = nameParts[0];
             const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+            const registrationDate = serverTimestamp();
              await setDoc(userDocRef, {
               id: firebaseUser.uid,
               displayName: firebaseUser.displayName || `${firstName} ${lastName}`.trim(),
               email: firebaseUser.email,
               photoURL: firebaseUser.photoURL,
-              registrationDate: serverTimestamp(),
+              registrationDate: registrationDate,
               firstName: firstName,
               lastName: lastName,
               phoneNumber: firebaseUser.phoneNumber || '',
@@ -123,6 +126,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                 lastName,
                 phoneNumber: firebaseUser.phoneNumber || '',
                 role: 'user',
+                registrationDate: registrationDate,
             };
           }
           setUserAuthState({ user: appUser, isUserLoading: false, userError: null });

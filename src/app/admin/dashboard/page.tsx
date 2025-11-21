@@ -43,7 +43,7 @@ export default function AdminDashboardPage() {
       if (!u.registrationDate) return false;
       
       // Firestore Timestamps can be objects, so we need to convert them
-      const creationDate = (u.registrationDate as any).toDate ? (u.registrationDate as any).toDate() : new Date(u.registrationDate as string);
+      const creationDate = (u.registrationDate as Timestamp).toDate ? (u.registrationDate as Timestamp).toDate() : new Date(u.registrationDate as string);
       
       return creationDate > thirtyDaysAgo;
     }).length;
