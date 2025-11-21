@@ -1,17 +1,142 @@
 'use client';
 
-import { useUser } from '@/firebase';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { useUser, useAuth } from '@/firebase';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useToast } from '@/hooks/use-toast';
+import { updateProfile, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
+import { doc, updateDoc } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { useState } from 'react';
+
+
+const profileFormSchema = z.object({
+  displayName: z.string().min(3, 'O nome deve ter pelo menos 3 caracteres.'),
+});
+
+const passwordFormSchema = z.object({
+  currentPassword: z.string().min(1, 'A senha atual é obrigatória.'),
+  newPassword: z.string().regex(/^\d{6}$/, 'A nova senha deve conter exatamente 6 dígitos numéricos.'),
+  confirmPassword: z.string(),
+}).refine(data => data.newPassword === data.confirmPassword, {
+  message: 'As novas senhas não coincidem.',
+  path: ['confirmPassword'],
+});
+
+type ProfileFormValues = z.infer<typeof profileFormSchema>;
+type PasswordFormValues = z.infer<typeof passwordFormSchema>;
+
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
+  const auth = useAuth();
+  const firestore = useFirestore();
+  const { toast } = useToast();
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [passwordFormData, setPasswordFormData] = useState<PasswordFormValues | null>(null);
+
+  const profileForm = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileFormSchema),
+    values: {
+      displayName: user?.displayName || '',
+    },
+  });
+
+  const passwordForm = useForm<PasswordFormValues>({
+    resolver: zodResolver(passwordFormSchema),
+    defaultValues: {
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    },
+  });
+
+  const onProfileSubmit = async (values: ProfileFormValues) => {
+    if (!user || !firestore) return;
+    try {
+      await updateProfile(user, { displayName: values.displayName });
+      const userDocRef = doc(firestore, 'users', user.uid);
+      await updateDoc(userDocRef, { displayName: values.displayName });
+      toast({
+        title: 'Perfil Atualizado!',
+        description: 'Seu nome foi alterado com sucesso.',
+      });
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: 'destructive',
+        title: 'Erro ao atualizar perfil',
+        description: 'Não foi possível salvar as alterações. Tente novamente.',
+      });
+    }
+  };
+
+  const onPasswordSubmit = async (values: PasswordFormValues) => {
+     if (!user || !user.email) return;
+
+    const isGoogleUser = user.providerData.some(provider => provider.providerId === 'google.com');
+    if (isGoogleUser) {
+        toast({
+            variant: "destructive",
+            title: "Ação não permitida",
+            description: "Você não pode alterar a senha de uma conta logada com o Google.",
+        });
+        return;
+    }
+     
+    setPasswordFormData(values);
+    setIsPasswordDialogOpen(true);
+  };
+  
+  const handleConfirmPasswordChange = async () => {
+    if (!auth || !user || !user.email || !passwordFormData) return;
+    
+    setIsPasswordDialogOpen(false);
+    
+    try {
+        const credential = EmailAuthProvider.credential(user.email, passwordFormData.currentPassword);
+        await reauthenticateWithCredential(user, credential);
+        
+        await updatePassword(user, passwordFormData.newPassword);
+        
+        toast({
+            title: "Senha alterada!",
+            description: "Sua senha foi atualizada com sucesso.",
+        });
+        passwordForm.reset();
+
+    } catch (error: any) {
+        let description = 'Ocorreu um erro ao alterar sua senha.';
+        if (error.code === 'auth/wrong-password') {
+            description = 'A senha atual está incorreta. Tente novamente.';
+        }
+        console.error("Password change error:", error);
+        toast({
+            variant: "destructive",
+            title: "Erro ao alterar senha",
+            description,
+        });
+    }
+    setPasswordFormData(null);
+  }
 
   if (isUserLoading) {
     return (
@@ -20,9 +145,28 @@ export default function ProfilePage() {
       </div>
     );
   }
+  
+  const isGoogleUser = user?.providerData.some(provider => provider.providerId === 'google.com');
 
   return (
     <>
+       <AlertDialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmação de Segurança</AlertDialogTitle>
+            <AlertDialogDescription>
+              Para sua segurança, por favor, confirme sua senha atual para prosseguir com a alteração.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPasswordFormData(null)}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmPasswordChange}>
+              Confirmar e Alterar Senha
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <PageHeader title="Perfil & Configuração" description="Gerencie suas informações de conta e preferências." />
       <div className="space-y-6">
         <Card>
@@ -30,51 +174,106 @@ export default function ProfilePage() {
             <CardTitle>Informações do Perfil</CardTitle>
             <CardDescription>Estes são os detalhes da sua conta.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-4">
-              <Avatar className="h-16 w-16">
-                <AvatarImage src={user?.photoURL || undefined} />
-                <AvatarFallback>{user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
-              </Avatar>
-              <div>
-                <Button variant="outline">Mudar foto</Button>
-                <p className="text-xs text-muted-foreground mt-2">JPG, GIF ou PNG. 1MB max.</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="displayName">Nome</Label>
-                <Input id="displayName" defaultValue={user?.displayName || ''} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" defaultValue={user?.email || ''} readOnly disabled />
-              </div>
-            </div>
-            <Button>Salvar Alterações</Button>
-          </CardContent>
+          <Form {...profileForm}>
+            <form onSubmit={profileForm.handleSubmit(onProfileSubmit)}>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-16 w-16">
+                    <AvatarImage src={user?.photoURL || undefined} />
+                    <AvatarFallback>{user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <Button type="button" variant="outline" disabled>Mudar foto</Button>
+                    <p className="text-xs text-muted-foreground mt-2">JPG, GIF ou PNG. 1MB max.</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <FormField
+                    control={profileForm.control}
+                    name="displayName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nome</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input id="email" defaultValue={user?.email || ''} readOnly disabled />
+                  </div>
+                </div>
+                <Button type="submit" disabled={profileForm.formState.isSubmitting}>
+                   {profileForm.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Salvar Alterações
+                </Button>
+              </CardContent>
+            </form>
+          </Form>
         </Card>
 
         <Card>
           <CardHeader>
             <CardTitle>Segurança</CardTitle>
             <CardDescription>Altere sua senha.</CardDescription>
+             {isGoogleUser && (
+                <p className="pt-2 text-sm text-muted-foreground">
+                  Você está logado com o Google. A alteração de senha deve ser feita através da sua conta Google.
+                </p>
+            )}
           </CardHeader>
-          <CardContent className="space-y-4">
-             <div className="space-y-2">
-                <Label htmlFor="current-password">Senha Atual</Label>
-                <Input id="current-password" type="password" />
-              </div>
-               <div className="space-y-2">
-                <Label htmlFor="new-password">Nova Senha</Label>
-                <Input id="new-password" type="password" />
-              </div>
-               <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
-                <Input id="confirm-password" type="password" />
-              </div>
-             <Button>Alterar Senha</Button>
-          </CardContent>
+           <Form {...passwordForm}>
+            <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)}>
+              <CardContent className="space-y-4">
+                <FormField
+                  control={passwordForm.control}
+                  name="currentPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Senha Atual</FormLabel>
+                      <FormControl>
+                        <Input type="password" {...field} disabled={isGoogleUser || passwordForm.formState.isSubmitting} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={passwordForm.control}
+                  name="newPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nova Senha</FormLabel>
+                      <FormControl>
+                        <Input type="password" {...field} disabled={isGoogleUser || passwordForm.formState.isSubmitting} maxLength={6} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={passwordForm.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirmar Nova Senha</FormLabel>
+                      <FormControl>
+                        <Input type="password" {...field} disabled={isGoogleUser || passwordForm.formState.isSubmitting} maxLength={6} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <Button type="submit" disabled={isGoogleUser || passwordForm.formState.isSubmitting}>
+                    {passwordForm.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Alterar Senha
+                </Button>
+              </CardContent>
+            </form>
+          </Form>
         </Card>
       </div>
     </>
