@@ -1,23 +1,61 @@
+'use client';
+
+import { useMemo } from 'react';
 import { KpiCard } from '@/components/dashboard/kpi-card';
-import { mockTransactions, mockDebts } from '@/lib/data';
-import { Banknote, Landmark, CreditCard, Wallet } from 'lucide-react';
+import { Banknote, Landmark, CreditCard, Wallet, Loader2 } from 'lucide-react';
 import { IncomeExpenseChart } from '@/components/dashboard/income-expense-chart';
 import { ExpenseCategoryChart } from '@/components/dashboard/expense-category-chart';
 import { AiInsights } from '@/components/dashboard/ai-insights';
 import type { FinancialInsightsInput } from '@/ai/flows/financial-insights-generator';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query } from 'firebase/firestore';
+import type { Transaction, Debt } from '@/lib/types';
 
 export default function DashboardPage() {
-  const totalIncome = mockTransactions
-    .filter((t) => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0);
+  const firestore = useFirestore();
+  const { user, isUserLoading } = useUser();
 
-  const totalExpenses = mockTransactions
-    .filter((t) => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0);
+  const transactionsQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(collection(firestore, `users/${user.uid}/incomes`));
+  }, [firestore, user]);
+
+  const expensesQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(collection(firestore, `users/${user.uid}/expenses`));
+  }, [firestore, user]);
   
-  const totalDebt = mockDebts.reduce((sum, d) => sum + (d.totalAmount - d.paidAmount), 0);
-  
-  const savings = totalIncome - totalExpenses;
+  const debtsQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(collection(firestore, `users/${user.uid}/debts`));
+  }, [firestore, user]);
+
+  const { data: incomeData, isLoading: isIncomeLoading } = useCollection<Transaction>(transactionsQuery);
+  const { data: expenseData, isLoading: isExpensesLoading } = useCollection<Transaction>(expensesQuery);
+  const { data: debtData, isLoading: isDebtsLoading } = useCollection<Debt>(debtsQuery);
+
+  const allTransactions = useMemo(() => {
+    return [...(incomeData || []), ...(expenseData || [])];
+  }, [incomeData, expenseData]);
+
+
+  const { totalIncome, totalExpenses, totalDebt, savings, spendingByCategory } = useMemo(() => {
+    const totalIncome = incomeData?.reduce((sum, t) => sum + t.amount, 0) || 0;
+    const totalExpenses = expenseData?.reduce((sum, t) => sum + t.amount, 0) || 0;
+    const totalDebt = debtData?.reduce((sum, d) => sum + (d.totalAmount - (d.paidAmount || 0)), 0) || 0;
+    const savings = totalIncome - totalExpenses;
+
+    const spendingByCategory = expenseData?.reduce((acc, t) => {
+        if (!acc[t.category]) {
+          acc[t.category] = 0;
+        }
+        acc[t.category] += t.amount;
+        return acc;
+      }, {} as Record<string, number>) || {};
+
+    return { totalIncome, totalExpenses, totalDebt, savings, spendingByCategory };
+  }, [incomeData, expenseData, debtData]);
+
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -25,17 +63,7 @@ export default function DashboardPage() {
       currency: 'BRL',
     }).format(amount);
   };
-
-  const spendingByCategory = mockTransactions
-    .filter((t) => t.type === 'expense')
-    .reduce((acc, t) => {
-      if (!acc[t.category]) {
-        acc[t.category] = 0;
-      }
-      acc[t.category] += t.amount;
-      return acc;
-    }, {} as Record<string, number>);
-
+  
   const financialData: FinancialInsightsInput = {
     income: totalIncome,
     expenses: totalExpenses,
@@ -44,6 +72,16 @@ export default function DashboardPage() {
     spendingByCategory: spendingByCategory,
     savingsGoals: { 'Carro Novo': 25000, 'Férias': 5000 },
   };
+
+  const isLoading = isUserLoading || isIncomeLoading || isExpensesLoading || isDebtsLoading;
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -76,10 +114,10 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <div className="lg:col-span-3">
-          <IncomeExpenseChart transactions={mockTransactions} />
+          <IncomeExpenseChart transactions={allTransactions} />
         </div>
         <div className="lg:col-span-2">
-          <ExpenseCategoryChart transactions={mockTransactions} />
+          <ExpenseCategoryChart transactions={expenseData || []} />
         </div>
       </div>
 

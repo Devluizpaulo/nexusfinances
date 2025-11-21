@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/chart';
 import type { Transaction } from '@/lib/types';
 import * as React from 'react';
+import { useMemo } from 'react';
 
 const chartConfig = {
   amount: {
@@ -49,7 +50,8 @@ const chartConfig = {
 };
 
 export function ExpenseCategoryChart({ transactions }: { transactions: Transaction[] }) {
-  const expenseData = transactions
+  const chartData = useMemo(() => {
+    const expenseData = transactions
     .filter((t) => t.type === 'expense')
     .reduce((acc, t) => {
       const key = t.category.toLowerCase().replace('/','').replace(' ', '');
@@ -60,8 +62,8 @@ export function ExpenseCategoryChart({ transactions }: { transactions: Transacti
       return acc;
     }, {} as Record<string, { name: string; value: number; fill: string }>);
 
-  const chartData = Object.values(expenseData);
-  const totalExpenses = chartData.reduce((acc, curr) => acc + curr.value, 0);
+    return Object.values(expenseData);
+  }, [transactions]);
 
   return (
     <Card>
@@ -70,6 +72,7 @@ export function ExpenseCategoryChart({ transactions }: { transactions: Transacti
         <CardDescription>Uma análise detalhada de seus gastos.</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
+      {chartData.length > 0 ? (
         <ChartContainer
           config={chartConfig}
           className="mx-auto aspect-square max-h-[300px]"
@@ -103,6 +106,11 @@ export function ExpenseCategoryChart({ transactions }: { transactions: Transacti
             />
           </PieChart>
         </ChartContainer>
+      ) : (
+        <div className="flex h-[300px] w-full items-center justify-center text-muted-foreground">
+          Nenhuma despesa para exibir.
+        </div>
+      )}
       </CardContent>
     </Card>
   );

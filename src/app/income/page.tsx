@@ -1,26 +1,59 @@
-import { mockTransactions } from "@/lib/data"
-import { Transaction } from "@/lib/types"
-import { DataTable } from "@/components/data-table/data-table"
-import { columns } from "./columns"
-import { PageHeader } from "@/components/page-header"
-import { Button } from "@/components/ui/button"
-import { PlusCircle } from "lucide-react"
+'use client';
+
+import { useState } from 'react';
+import { collection, query, orderBy } from 'firebase/firestore';
+import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { DataTable } from '@/components/data-table/data-table';
+import { columns } from './columns';
+import { PageHeader } from '@/components/page-header';
+import { Button } from '@/components/ui/button';
+import { PlusCircle, Loader2 } from 'lucide-react';
+import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
+import { incomeCategories, type Transaction } from '@/lib/types';
 
 export default function IncomePage() {
-  const incomeData = mockTransactions.filter((t) => t.type === 'income')
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const firestore = useFirestore();
+  const { user, isUserLoading } = useUser();
+
+  const incomeQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(
+      collection(firestore, `users/${user.uid}/incomes`),
+      orderBy('date', 'desc')
+    );
+  }, [firestore, user]);
+
+  const { data: incomeData, isLoading: isIncomeLoading } = useCollection<Transaction>(incomeQuery);
+
+  const isLoading = isUserLoading || isIncomeLoading;
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <>
-      <PageHeader 
+      <AddTransactionSheet
+        isOpen={isSheetOpen}
+        onClose={() => setIsSheetOpen(false)}
+        transactionType="income"
+        categories={incomeCategories}
+      />
+      <PageHeader
         title="Renda"
         description="Acompanhe e gerencie todas as suas fontes de renda."
       >
-        <Button>
-            <PlusCircle className="mr-2 h-4 w-4"/>
-            Adicionar Renda
+        <Button onClick={() => setIsSheetOpen(true)} disabled={!user}>
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Adicionar Renda
         </Button>
       </PageHeader>
-      <DataTable columns={columns} data={incomeData} />
+      <DataTable columns={columns} data={incomeData || []} />
     </>
-  )
+  );
 }

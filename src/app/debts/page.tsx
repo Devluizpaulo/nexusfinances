@@ -1,7 +1,9 @@
+'use client';
+
+import { useState } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
-import { mockDebts } from '@/lib/data';
+import { PlusCircle, Loader2 } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -28,6 +30,10 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query } from 'firebase/firestore';
+import type { Debt } from '@/lib/types';
+
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('pt-BR', {
@@ -37,17 +43,38 @@ const formatCurrency = (amount: number) => {
 };
 
 export default function DebtsPage() {
+  const firestore = useFirestore();
+  const { user, isUserLoading } = useUser();
+
+  const debtsQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(collection(firestore, `users/${user.uid}/debts`));
+  }, [firestore, user]);
+
+  const { data: debtData, isLoading: isDebtsLoading } = useCollection<Debt>(debtsQuery);
+  
+  const isLoading = isUserLoading || isDebtsLoading;
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <>
       <PageHeader title="Dívidas" description="Gerencie seus empréstimos e parcelamentos.">
-        <Button>
+        <Button disabled>
           <PlusCircle className="mr-2 h-4 w-4" />
           Adicionar Dívida
         </Button>
       </PageHeader>
       <div className="grid gap-6 md:grid-cols-2">
-        {mockDebts.map((debt) => {
-          const progress = (debt.paidAmount / debt.totalAmount) * 100;
+        {(debtData || []).map((debt) => {
+          const paidAmount = debt.paidAmount || 0;
+          const progress = (paidAmount / debt.totalAmount) * 100;
           return (
             <Card key={debt.id}>
               <CardHeader>
@@ -58,7 +85,7 @@ export default function DebtsPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Pago</span>
-                    <span>{formatCurrency(debt.paidAmount)}</span>
+                    <span>{formatCurrency(paidAmount)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Total</span>
@@ -85,7 +112,7 @@ export default function DebtsPage() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {debt.installments.map((installment) => (
+                          {(debt.installments || []).map((installment) => (
                             <TableRow key={installment.id}>
                               <TableCell>
                                 {installment.installmentNumber}
