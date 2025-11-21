@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { KpiCard } from '@/components/dashboard/kpi-card';
 import { Banknote, Landmark, CreditCard, Wallet, Loader2 } from 'lucide-react';
 import { IncomeExpenseChart } from '@/components/dashboard/income-expense-chart';
@@ -12,8 +12,12 @@ import { collection, query } from 'firebase/firestore';
 import type { Transaction, Debt } from '@/lib/types';
 import { useManageRecurrences } from '@/hooks/useManageRecurrences';
 import { OverdueDebtsCard } from '@/components/dashboard/overdue-debts-card';
+import { DateRangePicker } from '@/components/dashboard/date-range-picker';
+import { startOfMonth, endOfMonth, parseISO, format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 export default function DashboardPage() {
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
   useManageRecurrences();
@@ -33,13 +37,32 @@ export default function DashboardPage() {
     return query(collection(firestore, `users/${user.uid}/debts`));
   }, [firestore, user]);
 
-  const { data: incomeData, isLoading: isIncomeLoading } = useCollection<Transaction>(transactionsQuery);
-  const { data: expenseData, isLoading: isExpensesLoading } = useCollection<Transaction>(expensesQuery);
+  const { data: allIncomeData, isLoading: isIncomeLoading } = useCollection<Transaction>(transactionsQuery);
+  const { data: allExpenseData, isLoading: isExpensesLoading } = useCollection<Transaction>(expensesQuery);
   const { data: debtData, isLoading: isDebtsLoading } = useCollection<Debt>(debtsQuery);
+  
+  const { incomeData, expenseData } = useMemo(() => {
+    const start = startOfMonth(selectedDate);
+    const end = endOfMonth(selectedDate);
+    
+    const filterByMonth = (data: Transaction[] | null) => {
+        if (!data) return [];
+        return data.filter(t => {
+            const transactionDate = parseISO(t.date);
+            return transactionDate >= start && transactionDate <= end;
+        });
+    }
+
+    return {
+        incomeData: filterByMonth(allIncomeData),
+        expenseData: filterByMonth(allExpenseData)
+    };
+}, [selectedDate, allIncomeData, allExpenseData]);
+
 
   const allTransactions = useMemo(() => {
-    return [...(incomeData || []), ...(expenseData || [])];
-  }, [incomeData, expenseData]);
+    return [...(allIncomeData || []), ...(allExpenseData || [])];
+  }, [allIncomeData, allExpenseData]);
 
 
   const { totalIncome, totalExpenses, totalDebt, savings, spendingByCategory } = useMemo(() => {
@@ -77,6 +100,7 @@ export default function DashboardPage() {
   };
 
   const isLoading = isUserLoading || isIncomeLoading || isExpensesLoading || isDebtsLoading;
+  const descriptionPeriod = `em ${format(selectedDate, 'MMMM/yyyy', { locale: ptBR })}`;
 
   if (isLoading) {
     return (
@@ -88,6 +112,10 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <div className="flex justify-center">
+        <DateRangePicker date={selectedDate} onDateChange={setSelectedDate} />
+      </div>
+
        <OverdueDebtsCard debts={debtData || []} />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -95,19 +123,19 @@ export default function DashboardPage() {
           title="Renda Total"
           value={formatCurrency(totalIncome)}
           icon={Landmark}
-          description="Renda total neste período"
+          description={`Renda total ${descriptionPeriod}`}
         />
         <KpiCard
           title="Despesas Totais"
           value={formatCurrency(totalExpenses)}
           icon={CreditCard}
-          description="Despesas totais neste período"
+          description={`Despesas totais ${descriptionPeriod}`}
         />
         <KpiCard
           title="Economias"
           value={formatCurrency(savings)}
           icon={Wallet}
-          description="Renda menos despesas"
+          description={`Renda menos despesas ${descriptionPeriod}`}
         />
         <KpiCard
           title="Dívida Pendente"
