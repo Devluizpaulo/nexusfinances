@@ -46,6 +46,11 @@ export function AppSidebar() {
     }
   };
 
+  const getFirstName = (displayName: string | null | undefined) => {
+    if (!displayName) return 'Usuário';
+    return displayName.split(' ')[0];
+  }
+
   const renderUserContent = () => {
     if (isUserLoading) {
         return (
@@ -67,9 +72,9 @@ export function AppSidebar() {
                             <AvatarImage src={user?.photoURL || undefined} alt="Avatar do usuário"/>
                             <AvatarFallback>{user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
                         </Avatar>
-                        <div className={cn("flex flex-col items-start", state === "collapsed" && "hidden")}>
-                            <span className="font-semibold text-sm">{user?.displayName || 'Usuário'}</span>
-                            <span className="text-xs text-muted-foreground">{user?.email}</span>
+                        <div className={cn("flex flex-col items-start overflow-hidden", state === "collapsed" && "hidden")}>
+                            <span className="font-semibold text-sm truncate">{getFirstName(user?.displayName)}</span>
+                            <span className="text-xs text-muted-foreground truncate">{user?.email}</span>
                         </div>
                     </Button>
                 </DropdownMenuTrigger>
