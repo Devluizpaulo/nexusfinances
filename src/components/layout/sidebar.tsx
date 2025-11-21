@@ -7,9 +7,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '../ui/button';
 import { useSidebar } from '../ui/sidebar';
 import { cn } from '@/lib/utils';
-import { useUser, initiateAnonymousSignIn, useAuth } from '@/firebase';
-import { useEffect } from 'react';
-import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
+import { useUser, useAuth } from '@/firebase';
+import { signOut } from 'firebase/auth';
 
 const menuItems = [
   { href: '/dashboard', label: 'Painel', icon: LayoutDashboard },
@@ -24,26 +23,6 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
-
-  useEffect(() => {
-    if (!isUserLoading && !user) {
-      initiateAnonymousSignIn(auth);
-    }
-  }, [isUserLoading, user, auth]);
-
-  const handleGoogleSignIn = async () => {
-    if (!auth) return;
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (error: any) {
-      // Don't log an error if the user closes the sign-in popup.
-      if (error.code === 'auth/popup-closed-by-user') {
-        return;
-      }
-      console.error("Erro no login com Google:", error);
-    }
-  };
 
   const handleSignOut = async () => {
     if (!auth) return;
@@ -62,19 +41,6 @@ export function AppSidebar() {
                  <div className={cn("flex flex-col", state === "collapsed" && "hidden")}>
                     <span className="font-semibold text-sm">Carregando...</span>
                 </div>
-            </div>
-        )
-    }
-
-    if (user?.isAnonymous) {
-        return (
-             <div className={cn("p-2", state === "collapsed" && "p-0")}>
-                <Button variant="outline" className="w-full" onClick={handleGoogleSignIn}>
-                    <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
-                        <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 21.5 174.4 58.9L359.7 127.4c-27.8-26.2-63.5-42.6-111.7-42.6-88.5 0-160.9 72.4-160.9 161.2s72.4 161.2 160.9 161.2c38.3 0 71.3-12.8 96.2-34.4 22.1-19.1 33.4-44.9 36.8-74.6H248V261.8h239.2z"></path>
-                    </svg>
-                    <span className={cn(state === "collapsed" && "hidden")}>Entrar com Google</span>
-                </Button>
             </div>
         )
     }

@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
-import { AppSidebar } from "@/components/layout/sidebar";
-import { Header } from "@/components/layout/header";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 
@@ -39,15 +36,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <FirebaseClientProvider>
-            <SidebarProvider>
-              <AppSidebar />
-              <SidebarInset>
-                <Header />
-                <main className="flex-1 overflow-y-auto p-4 lg:p-6">
-                  {children}
-                </main>
-              </SidebarInset>
-            </SidebarProvider>
+            {children}
           </FirebaseClientProvider>
         </ThemeProvider>
         <Toaster />
