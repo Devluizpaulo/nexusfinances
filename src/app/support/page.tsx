@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useUser } from '@/firebase';
-import { Mail, MessageSquare } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
 import { Faq } from '@/components/support/faq';
 
 export default function SupportPage() {
@@ -52,16 +52,6 @@ export default function SupportPage() {
             <CardDescription>Outras formas de entrar em contato.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-start gap-4 rounded-md border p-4">
-              <Mail className="mt-1 h-5 w-5 shrink-0 text-primary" />
-              <div>
-                <h3 className="font-semibold">Email</h3>
-                <p className="text-sm text-muted-foreground">Para dúvidas gerais, envie um email para:</p>
-                <a href="mailto:suporte@nexusfinancas.com" className="text-sm text-primary underline">
-                  suporte@nexusfinancas.com
-                </a>
-              </div>
-            </div>
             <div className="flex items-start gap-4 rounded-md border p-4">
               <MessageSquare className="mt-1 h-5 w-5 shrink-0 text-primary" />
               <div>
