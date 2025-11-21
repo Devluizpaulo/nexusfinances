@@ -29,6 +29,15 @@ export type Installment = {
   status: 'paid' | 'unpaid' | 'overdue';
 };
 
+export type Goal = {
+  id: string;
+  name: string;
+  targetAmount: number;
+  currentAmount: number;
+  targetDate?: string; // ISO string, optional
+  userId?: string;
+};
+
 export const expenseCategories = [
   'Mercado',
   'Contas',
@@ -53,3 +62,4 @@ export const incomeCategories = [
 ] as const;
 
 export type IncomeCategory = typeof incomeCategories[number];
+    
