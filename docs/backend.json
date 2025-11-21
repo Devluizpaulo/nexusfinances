@@ -70,8 +70,7 @@
         },
         "recurrenceSchedule": {
           "type": "string",
-          "description": "Schedule for recurring income (e.g., monthly, weekly).",
-          "format": "date-time"
+          "description": "Schedule for recurring income (e.g., monthly, weekly)."
         }
       },
       "required": [
@@ -116,8 +115,7 @@
         },
         "recurrenceSchedule": {
           "type": "string",
-          "description": "Schedule for recurring expense (e.g., monthly, weekly).",
-          "format": "date-time"
+          "description": "Schedule for recurring expense (e.g., monthly, weekly)."
         }
       },
       "required": [

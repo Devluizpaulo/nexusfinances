@@ -10,10 +10,12 @@ import type { FinancialInsightsInput } from '@/ai/flows/financial-insights-gener
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query } from 'firebase/firestore';
 import type { Transaction, Debt } from '@/lib/types';
+import { useManageRecurrences } from '@/hooks/useManageRecurrences';
 
 export default function DashboardPage() {
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
+  useManageRecurrences();
 
   const transactionsQuery = useMemoFirebase(() => {
     if (!user) return null;
