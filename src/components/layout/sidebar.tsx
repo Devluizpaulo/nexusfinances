@@ -51,7 +51,7 @@ export function AppSidebar() {
                 <div className="flex items-center gap-3">
                     <Avatar className="size-9">
                         <AvatarImage src={user?.photoURL || undefined} alt="Avatar do usuário"/>
-                        <AvatarFallback>{user?.email?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
+                        <AvatarFallback>{user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
                     </Avatar>
                     <div className={cn("flex flex-col", state === "collapsed" && "hidden")}>
                         <span className="font-semibold text-sm">{user?.displayName || 'Usuário'}</span>
@@ -96,3 +96,4 @@ export function AppSidebar() {
     </Sidebar>
   );
 }
+    
