@@ -68,8 +68,6 @@ export default function AdminPage() {
         // A production-grade solution would use Firebase Admin SDK in a Cloud Function
         // to create users without affecting the admin's session.
         // We are simulating the creation locally for demonstration purposes.
-
-        const tempAppName = 'temp-admin-creation';
         
         // This is a local simulation. It won't actually create a user in your main project's auth.
         // To properly implement this, you would need a backend endpoint (Cloud Function)
@@ -117,8 +115,7 @@ export default function AdminPage() {
         title: "Acesso Negado",
         description: "Você não tem permissão para acessar esta página.",
     });
-    redirect('/dashboard');
-    return null;
+    return redirect('/dashboard');
   }
 
   return (
@@ -131,8 +128,8 @@ export default function AdminPage() {
         <CardHeader>
           <CardTitle>Cadastrar Novo Super Admin</CardTitle>
           <CardDescription>
-            Este formulário criará um novo usuário com privilégios de super
-            administrador.
+            Este formulário (simulado) criaria um novo usuário com privilégios de super
+            administrador. Em produção, use uma Cloud Function.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -192,7 +189,7 @@ export default function AdminPage() {
                 {isLoading && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Criar Super Admin
+                Criar Super Admin (Simulação)
               </Button>
             </form>
           </Form>
