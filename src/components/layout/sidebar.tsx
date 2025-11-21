@@ -1,12 +1,14 @@
 'use client';
 import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from '@/components/ui/sidebar';
-import { LayoutDashboard, Landmark, CreditCard, Banknote, DollarSign } from 'lucide-react';
+import { LayoutDashboard, Landmark, CreditCard, Banknote, DollarSign, Loader2 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '../ui/button';
 import { useSidebar } from '../ui/sidebar';
 import { cn } from '@/lib/utils';
+import { useUser, initiateAnonymousSignIn, useAuth } from '@/firebase';
+import { useEffect } from 'react';
 
 const menuItems = [
   { href: '/dashboard', label: 'Painel', icon: LayoutDashboard },
@@ -18,6 +20,14 @@ const menuItems = [
 export function AppSidebar() {
   const pathname = usePathname();
   const { state } = useSidebar();
+  const { user, isUserLoading } = useUser();
+  const auth = useAuth();
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      initiateAnonymousSignIn(auth);
+    }
+  }, [isUserLoading, user, auth]);
 
   return (
     <Sidebar variant="sidebar" collapsible="icon">
@@ -43,13 +53,17 @@ export function AppSidebar() {
         </SidebarMenu>
         <SidebarFooter className={cn("transition-transform duration-200", state === "collapsed" && "p-1")}>
              <div className="flex items-center gap-3 p-2 rounded-md bg-secondary">
-                <Avatar className="size-9">
-                    <AvatarImage src="https://picsum.photos/seed/user/40/40" alt="Avatar do usuário"/>
-                    <AvatarFallback>U</AvatarFallback>
-                </Avatar>
+                {isUserLoading ? (
+                  <Loader2 className="size-9 animate-spin" />
+                ) : (
+                  <Avatar className="size-9">
+                      <AvatarImage src={user?.photoURL || undefined} alt="Avatar do usuário"/>
+                      <AvatarFallback>{user?.isAnonymous ? 'A' : (user?.email?.charAt(0)?.toUpperCase() || 'U')}</AvatarFallback>
+                  </Avatar>
+                )}
                 <div className={cn("flex flex-col", state === "collapsed" && "hidden")}>
-                    <span className="font-semibold text-sm">Usuário Demo</span>
-                    <span className="text-xs text-muted-foreground">usuario@example.com</span>
+                    <span className="font-semibold text-sm">{isUserLoading ? 'Carregando...' : (user?.isAnonymous ? 'Usuário Anônimo' : (user?.displayName || 'Usuário'))}</span>
+                    <span className="text-xs text-muted-foreground">{!isUserLoading && !user?.isAnonymous ? user?.email : ''}</span>
                 </div>
             </div>
         </SidebarFooter>

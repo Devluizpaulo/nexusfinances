@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { AppSidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { FirebaseClientProvider } from "@/firebase/client-provider";
 
 export const metadata: Metadata = {
   title: "Nexus Finanças",
@@ -30,15 +31,17 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <SidebarProvider>
-          <AppSidebar />
-          <SidebarInset>
-            <Header />
-            <main className="flex-1 overflow-y-auto p-4 lg:p-6">
-              {children}
-            </main>
-          </SidebarInset>
-        </SidebarProvider>
+        <FirebaseClientProvider>
+          <SidebarProvider>
+            <AppSidebar />
+            <SidebarInset>
+              <Header />
+              <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+                {children}
+              </main>
+            </SidebarInset>
+          </SidebarProvider>
+        </FirebaseClientProvider>
         <Toaster />
       </body>
     </html>

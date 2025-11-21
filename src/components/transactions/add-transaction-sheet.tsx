@@ -1,5 +1,13 @@
 'use client';
 
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { formatISO, format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { collection, doc } from 'firebase/firestore';
+import { useFirestore, useUser, addDocumentNonBlocking } from '@/firebase';
+import { cn } from '@/lib/utils';
 import {
   Sheet,
   SheetContent,
@@ -7,9 +15,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import {
   Form,
   FormControl,
@@ -34,10 +39,8 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { cn } from '@/lib/utils';
 import { Textarea } from '../ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
   date: z.date({
@@ -73,10 +76,37 @@ export function AddTransactionSheet({
     },
   });
 
+  const firestore = useFirestore();
+  const { user } = useUser();
+  const { toast } = useToast();
+
   const onSubmit = (values: TransactionFormValues) => {
-    console.log(values);
-    // TODO: Handle form submission to add the new transaction
-    // For now, we just log and close
+    if (!user) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro de autenticação',
+        description: 'Você precisa estar logado para adicionar uma transação.',
+      });
+      return;
+    }
+    
+    const collectionPath = `users/${user.uid}/${transactionType}s`;
+    const transactionData = {
+      ...values,
+      date: formatISO(values.date),
+      userId: user.uid,
+      type: transactionType,
+      isRecurring: false, // Por enquanto, não suportamos recorrência
+    };
+
+    addDocumentNonBlocking(collection(firestore, collectionPath), transactionData);
+
+    toast({
+      title: 'Transação salva!',
+      description: `Sua ${transactionType === 'income' ? 'renda' : 'despesa'} foi adicionada com sucesso.`,
+    });
+    
+    form.reset();
     onClose();
   };
 
@@ -189,7 +219,7 @@ export function AddTransactionSheet({
             />
             <Button
               type="submit"
-              disabled={form.formState.isSubmitting}
+              disabled={form.formState.isSubmitting || !user}
               className="w-full"
             >
               {form.formState.isSubmitting && (
