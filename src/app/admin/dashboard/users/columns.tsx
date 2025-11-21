@@ -41,7 +41,7 @@ export const columns: ColumnDef<AppUser>[] = [
     }
   },
   {
-    accessorKey: "metadata.creationTime",
+    accessorKey: "registrationDate",
     header: ({ column }) => {
       return (
         <Button
@@ -54,9 +54,12 @@ export const columns: ColumnDef<AppUser>[] = [
       )
     },
     cell: ({ row }) => {
-        const creationTime = row.original.metadata?.creationTime;
-        if (!creationTime) return "N/A";
-        const date = new Date(creationTime)
+        const registrationDate = row.original.registrationDate;
+        if (!registrationDate) return "N/A";
+        
+        // Firestore Timestamps can be objects with toDate(), or ISO strings
+        const date = (registrationDate as any).toDate ? (registrationDate as any).toDate() : new Date(registrationDate as string);
+
         return <div className="pl-4">{format(date, "PPP", { locale: ptBR })}</div>
     }
   },
