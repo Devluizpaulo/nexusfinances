@@ -115,11 +115,12 @@ service cloud.firestore {
       allow get: if isOwner(userId) || isSuperAdmin();
       allow list: if isSuperAdmin();
       allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId) 
+      allow update: if (isExistingOwner(userId) 
                       && request.resource.data.id == resource.data.id
                       && request.resource.data.firstName is string
                       && request.resource.data.lastName is string
-                      && (request.resource.data.phoneNumber == null || request.resource.data.phoneNumber is string);
+                      && (request.resource.data.phoneNumber == null || request.resource.data.phoneNumber is string))
+                      || (isSuperAdmin() && request.resource.data.id == resource.data.id);
       allow delete: if isExistingOwner(userId) || isSuperAdmin();
 
       /**

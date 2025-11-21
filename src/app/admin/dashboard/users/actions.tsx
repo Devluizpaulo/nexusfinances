@@ -1,7 +1,7 @@
 "use client"
 
 import { Row } from "@tanstack/react-table"
-import { MoreHorizontal, Pen, Trash2 } from "lucide-react"
+import { MoreHorizontal, Pen, Trash2, ShieldCheck, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useState } from "react"
 import { doc } from "firebase/firestore"
-import { useFirestore, useUser, deleteDocumentNonBlocking } from "@/firebase"
+import { useFirestore, useUser, deleteDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase"
 import { useToast } from "@/hooks/use-toast"
 import type { AppUser } from "@/firebase"
 
@@ -33,12 +33,14 @@ interface DataTableRowActionsProps {
 export function DataTableRowActions({
   row,
 }: DataTableRowActionsProps) {
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
 
-  const userToDelete = row.original;
+  const userToModify = row.original;
+  const newRole = userToModify.role === 'superadmin' ? 'user' : 'superadmin';
 
   const handleDelete = () => {
     if (!user || !firestore) {
@@ -46,20 +48,42 @@ export function DataTableRowActions({
       return;
     }
     
-    if (user.uid === userToDelete.uid) {
+    if (user.uid === userToModify.uid) {
       toast({ variant: "destructive", title: "Ação não permitida", description: "Você não pode excluir sua própria conta." });
       setIsDeleteDialogOpen(false);
       return;
     }
 
-    const docRef = doc(firestore, `users`, userToDelete.uid);
+    const docRef = doc(firestore, `users`, userToModify.uid);
     deleteDocumentNonBlocking(docRef);
 
     toast({
       title: "Usuário excluído",
-      description: `O usuário "${userToDelete.displayName}" foi removido.`,
+      description: `O usuário "${userToModify.displayName}" foi removido.`,
     });
     setIsDeleteDialogOpen(false)
+  }
+  
+  const handleChangeRole = () => {
+     if (!user || !firestore) {
+      toast({ variant: "destructive", title: "Erro", description: "Você não está autenticado." });
+      return;
+    }
+    
+    if (user.uid === userToModify.uid) {
+      toast({ variant: "destructive", title: "Ação não permitida", description: "Você não pode alterar sua própria função." });
+      setIsRoleDialogOpen(false);
+      return;
+    }
+
+    const docRef = doc(firestore, `users`, userToModify.uid);
+    updateDocumentNonBlocking(docRef, { role: newRole });
+
+    toast({
+      title: "Função Alterada",
+      description: `O usuário "${userToModify.displayName}" agora é ${newRole}.`,
+    });
+    setIsRoleDialogOpen(false)
   }
 
   return (
@@ -82,6 +106,23 @@ export function DataTableRowActions({
         </AlertDialogContent>
       </AlertDialog>
 
+      <AlertDialog open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Alteração de Função</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você tem certeza que deseja alterar a função de "{userToModify.displayName}" para {newRole}?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleChangeRole}>
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
@@ -92,15 +133,23 @@ export function DataTableRowActions({
             <span className="sr-only">Abrir menu</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-[160px]">
+        <DropdownMenuContent align="end" className="w-[200px]">
           <DropdownMenuItem disabled>
             <Pen className="mr-2 h-3.5 w-3.5" />
-            Editar
+            Editar Perfil
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setIsRoleDialogOpen(true)}>
+            {newRole === 'superadmin' ? (
+                <ShieldCheck className="mr-2 h-3.5 w-3.5" />
+            ) : (
+                <User className="mr-2 h-3.5 w-3.5" />
+            )}
+            Alterar para {newRole}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-red-600">
             <Trash2 className="mr-2 h-3.5 w-3.5" />
-            Excluir
+            Excluir Usuário
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
