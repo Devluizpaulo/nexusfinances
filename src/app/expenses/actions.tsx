@@ -29,11 +29,13 @@ import type { Transaction } from "@/lib/types"
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
   transactionType: "income" | "expense"
+  onEdit: (transaction: TData) => void;
 }
 
 export function DataTableRowActions<TData>({
   row,
-  transactionType
+  transactionType,
+  onEdit,
 }: DataTableRowActionsProps<TData>) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const firestore = useFirestore();
@@ -90,12 +92,12 @@ export function DataTableRowActions<TData>({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[160px]">
-          <DropdownMenuItem disabled>
+          <DropdownMenuItem onClick={() => onEdit(row.original)}>
             <Pen className="mr-2 h-3.5 w-3.5" />
             Editar
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)}>
+          <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-red-600">
             <Trash2 className="mr-2 h-3.5 w-3.5" />
             Excluir
           </DropdownMenuItem>

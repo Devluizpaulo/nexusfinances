@@ -9,7 +9,11 @@ import { ptBR } from "date-fns/locale"
 import { Badge } from "@/components/ui/badge"
 import { DataTableRowActions } from "./actions"
 
-export const columns: ColumnDef<Transaction>[] = [
+type ColumnsProps = {
+  onEdit: (transaction: Transaction) => void;
+}
+
+export const columns = ({ onEdit }: ColumnsProps): ColumnDef<Transaction>[] => [
   {
     accessorKey: "date",
     header: ({ column }) => {
@@ -64,6 +68,6 @@ export const columns: ColumnDef<Transaction>[] = [
   },
   {
     id: "actions",
-    cell: ({ row }) => <DataTableRowActions row={row} transactionType="expense" />,
+    cell: ({ row }) => <DataTableRowActions row={row} transactionType="expense" onEdit={onEdit} />,
   },
 ]

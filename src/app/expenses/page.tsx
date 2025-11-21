@@ -13,6 +13,8 @@ import { expenseCategories, type Transaction } from '@/lib/types';
 
 export default function ExpensesPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
 
@@ -26,6 +28,16 @@ export default function ExpensesPage() {
 
   const { data: expenseData, isLoading: isExpensesLoading } = useCollection<Transaction>(expensesQuery);
 
+  const handleOpenSheet = (transaction: Transaction | null = null) => {
+    setEditingTransaction(transaction);
+    setIsSheetOpen(true);
+  };
+
+  const handleCloseSheet = () => {
+    setIsSheetOpen(false);
+    setEditingTransaction(null);
+  };
+  
   const isLoading = isUserLoading || isExpensesLoading;
 
   if (isLoading) {
@@ -40,20 +52,21 @@ export default function ExpensesPage() {
     <>
       <AddTransactionSheet
         isOpen={isSheetOpen}
-        onClose={() => setIsSheetOpen(false)}
+        onClose={handleCloseSheet}
         transactionType="expense"
         categories={expenseCategories}
+        transaction={editingTransaction}
       />
       <PageHeader
         title="Despesas"
         description="Acompanhe e gerencie todas as suas despesas."
       >
-        <Button onClick={() => setIsSheetOpen(true)} disabled={!user}>
+        <Button onClick={() => handleOpenSheet()} disabled={!user}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Adicionar Despesa
         </Button>
       </PageHeader>
-      <DataTable columns={columns} data={expenseData || []} />
+      <DataTable columns={columns({ onEdit: handleOpenSheet })} data={expenseData || []} />
     </>
   );
 }

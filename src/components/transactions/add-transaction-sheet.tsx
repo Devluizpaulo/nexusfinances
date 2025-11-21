@@ -1,12 +1,13 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { formatISO, format } from 'date-fns';
+import { formatISO, format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { collection } from 'firebase/firestore';
-import { useFirestore, useUser, addDocumentNonBlocking } from '@/firebase';
+import { collection, doc } from 'firebase/firestore';
+import { useFirestore, useUser, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
 import { cn } from '@/lib/utils';
 import {
   Sheet,
@@ -42,6 +43,7 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
+import type { Transaction } from '@/lib/types';
 
 const formSchema = z.object({
   date: z.date({
@@ -60,6 +62,7 @@ type AddTransactionSheetProps = {
   onClose: () => void;
   transactionType: 'income' | 'expense';
   categories: readonly string[];
+  transaction?: Transaction | null;
 };
 
 export function AddTransactionSheet({
@@ -67,6 +70,7 @@ export function AddTransactionSheet({
   onClose,
   transactionType,
   categories,
+  transaction,
 }: AddTransactionSheetProps) {
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(formSchema),
@@ -83,12 +87,30 @@ export function AddTransactionSheet({
   const { user } = useUser();
   const { toast } = useToast();
 
+  useEffect(() => {
+    if (isOpen && transaction) {
+      form.reset({
+        ...transaction,
+        date: parseISO(transaction.date),
+      });
+    } else if (isOpen) {
+      form.reset({
+        description: '',
+        amount: 0,
+        category: '',
+        date: new Date(),
+        isRecurring: false,
+      });
+    }
+  }, [isOpen, transaction, form]);
+
+
   const onSubmit = (values: TransactionFormValues) => {
     if (!user) {
       toast({
         variant: 'destructive',
         title: 'Erro de autenticação',
-        description: 'Você precisa estar logado para adicionar uma transação.',
+        description: 'Você precisa estar logado para gerenciar transações.',
       });
       return;
     }
@@ -96,26 +118,35 @@ export function AddTransactionSheet({
     const collectionName = transactionType === 'income' ? 'incomes' : 'expenses';
     const collectionPath = `users/${user.uid}/${collectionName}`;
     
-    const transactionData = {
+    const dataToSave = {
       ...values,
       date: formatISO(values.date),
       userId: user.uid,
       type: transactionType,
     };
 
-    addDocumentNonBlocking(collection(firestore, collectionPath), transactionData);
-
-    toast({
-      title: 'Transação salva!',
-      description: `Sua ${transactionType === 'income' ? 'renda' : 'despesa'} foi adicionada com sucesso.`,
-    });
+    if (transaction) {
+      // Editing existing transaction
+      const docRef = doc(firestore, collectionPath, transaction.id);
+      setDocumentNonBlocking(docRef, dataToSave, { merge: true });
+      toast({
+        title: 'Transação atualizada!',
+        description: `Sua ${transactionType === 'income' ? 'renda' : 'despesa'} foi atualizada com sucesso.`,
+      });
+    } else {
+      // Adding new transaction
+      addDocumentNonBlocking(collection(firestore, collectionPath), dataToSave);
+      toast({
+        title: 'Transação salva!',
+        description: `Sua ${transactionType === 'income' ? 'renda' : 'despesa'} foi adicionada com sucesso.`,
+      });
+    }
     
-    form.reset();
     onClose();
   };
 
-  const title = transactionType === 'income' ? 'Adicionar Renda' : 'Adicionar Despesa';
-  const description = transactionType === 'income' ? 'Adicione uma nova entrada de renda.' : 'Adicione uma nova saída para suas despesas.';
+  const title = transaction ? `Editar ${transactionType === 'income' ? 'Renda' : 'Despesa'}` : `Adicionar ${transactionType === 'income' ? 'Renda' : 'Despesa'}`;
+  const description = transaction ? 'Modifique os detalhes da sua transação.' : `Adicione uma nova ${transactionType === 'income' ? 'entrada de renda' : 'saída para suas despesas'}.`;
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -202,7 +233,7 @@ export function AddTransactionSheet({
                   <FormLabel>Categoria</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    value={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -249,7 +280,7 @@ export function AddTransactionSheet({
               {form.formState.isSubmitting && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              Salvar Transação
+              {transaction ? 'Salvar Alterações' : 'Salvar Transação'}
             </Button>
           </form>
         </Form>

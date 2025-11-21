@@ -13,6 +13,8 @@ import { incomeCategories, type Transaction } from '@/lib/types';
 
 export default function IncomePage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
 
@@ -25,6 +27,16 @@ export default function IncomePage() {
   }, [firestore, user]);
 
   const { data: incomeData, isLoading: isIncomeLoading } = useCollection<Transaction>(incomeQuery);
+
+  const handleOpenSheet = (transaction: Transaction | null = null) => {
+    setEditingTransaction(transaction);
+    setIsSheetOpen(true);
+  };
+
+  const handleCloseSheet = () => {
+    setIsSheetOpen(false);
+    setEditingTransaction(null);
+  };
 
   const isLoading = isUserLoading || isIncomeLoading;
 
@@ -40,20 +52,21 @@ export default function IncomePage() {
     <>
       <AddTransactionSheet
         isOpen={isSheetOpen}
-        onClose={() => setIsSheetOpen(false)}
+        onClose={handleCloseSheet}
         transactionType="income"
         categories={incomeCategories}
+        transaction={editingTransaction}
       />
       <PageHeader
         title="Renda"
         description="Acompanhe e gerencie todas as suas fontes de renda."
       >
-        <Button onClick={() => setIsSheetOpen(true)} disabled={!user}>
+        <Button onClick={() => handleOpenSheet()} disabled={!user}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Adicionar Renda
         </Button>
       </PageHeader>
-      <DataTable columns={columns} data={incomeData || []} />
+      <DataTable columns={columns({ onEdit: handleOpenSheet })} data={incomeData || []} />
     </>
   );
 }
