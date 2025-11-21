@@ -2,10 +2,11 @@
 
 import { ColumnDef } from "@tanstack/react-table"
 import { Transaction } from "@/lib/types"
-import { ArrowUpDown } from "lucide-react"
+import { ArrowUpDown, CheckCircle, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { format } from "date-fns"
 import { ptBR } from 'date-fns/locale';
+import { Badge } from "@/components/ui/badge";
 
 export const columns: ColumnDef<Transaction>[] = [
   {
@@ -33,6 +34,19 @@ export const columns: ColumnDef<Transaction>[] = [
   {
     accessorKey: "category",
     header: "Categoria",
+    cell: ({ row }) => {
+      return <Badge variant="outline">{row.getValue("category")}</Badge>
+    }
+  },
+  {
+    accessorKey: "isRecurring",
+    header: "Recorrente",
+    cell: ({ row }) => {
+      const isRecurring = row.getValue("isRecurring")
+      const Icon = isRecurring ? CheckCircle : XCircle
+      const color = isRecurring ? "text-green-500" : "text-red-500"
+      return <Icon className={`mx-auto h-5 w-5 ${color}`} />
+    }
   },
   {
     accessorKey: "amount",

@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { formatISO, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { collection, doc } from 'firebase/firestore';
+import { collection } from 'firebase/firestore';
 import { useFirestore, useUser, addDocumentNonBlocking } from '@/firebase';
 import { cn } from '@/lib/utils';
 import {
@@ -18,6 +18,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -39,7 +40,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Textarea } from '../ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
@@ -49,6 +50,7 @@ const formSchema = z.object({
   description: z.string().min(1, 'A descrição é obrigatória.'),
   amount: z.coerce.number().positive('O valor deve ser positivo.'),
   category: z.string().min(1, 'A categoria é obrigatória.'),
+  isRecurring: z.boolean().default(false),
 });
 
 type TransactionFormValues = z.infer<typeof formSchema>;
@@ -73,6 +75,7 @@ export function AddTransactionSheet({
       amount: 0,
       category: '',
       date: new Date(),
+      isRecurring: false,
     },
   });
 
@@ -90,13 +93,14 @@ export function AddTransactionSheet({
       return;
     }
     
-    const collectionPath = `users/${user.uid}/${transactionType}s`;
+    const collectionName = transactionType === 'income' ? 'incomes' : 'expenses';
+    const collectionPath = `users/${user.uid}/${collectionName}`;
+    
     const transactionData = {
       ...values,
       date: formatISO(values.date),
       userId: user.uid,
       type: transactionType,
-      isRecurring: false, // Por enquanto, não suportamos recorrência
     };
 
     addDocumentNonBlocking(collection(firestore, collectionPath), transactionData);
@@ -115,14 +119,40 @@ export function AddTransactionSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent>
+      <SheetContent className="overflow-y-auto">
         <SheetHeader>
           <SheetTitle>{title}</SheetTitle>
           <SheetDescription>{description}</SheetDescription>
         </SheetHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4 space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4 space-y-6">
             <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Descrição</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex: Salário, Compras do mês" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="amount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Valor (R$)</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="0,00" {...field} step="0.01" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
               control={form.control}
               name="date"
               render={({ field }) => (
@@ -166,32 +196,6 @@ export function AddTransactionSheet({
             />
             <FormField
               control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descrição</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Ex: Compras do mês" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Valor (R$)</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="0,00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
               name="category"
               render={({ field }) => (
                 <FormItem>
@@ -217,6 +221,26 @@ export function AddTransactionSheet({
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="isRecurring"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                  <div className="space-y-0.5">
+                    <FormLabel>Recorrente</FormLabel>
+                    <FormDescription>
+                      Esta transação se repete mensalmente.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
             <Button
               type="submit"
               disabled={form.formState.isSubmitting || !user}
@@ -231,5 +255,70 @@ export function AddTransactionSheet({
         </Form>
       </SheetContent>
     </Sheet>
-  );
-}
+  </change>
+  <change>
+    <file>src/app/expenses/columns.tsx</file>
+    <content><![CDATA["use client"
+
+import { ColumnDef } from "@tanstack/react-table"
+import { Transaction } from "@/lib/types"
+import { ArrowUpDown, CheckCircle, XCircle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { format } from "date-fns"
+import { ptBR } from "date-fns/locale"
+import { Badge } from "@/components/ui/badge"
+
+export const columns: ColumnDef<Transaction>[] = [
+  {
+    accessorKey: "date",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Data
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+    cell: ({ row }) => {
+        const date = new Date(row.getValue("date"))
+        return <div className="pl-4">{format(date, "PPP", { locale: ptBR })}</div>
+    }
+  },
+  {
+    accessorKey: "description",
+    header: "Descrição",
+  },
+  {
+    accessorKey: "category",
+    header: "Categoria",
+    cell: ({ row }) => {
+      return <Badge variant="outline">{row.getValue("category")}</Badge>
+    }
+  },
+  {
+    accessorKey: "isRecurring",
+    header: "Recorrente",
+    cell: ({ row }) => {
+      const isRecurring = row.getValue("isRecurring")
+      const Icon = isRecurring ? CheckCircle : XCircle
+      const color = isRecurring ? "text-green-500" : "text-red-500"
+      return <Icon className={`mx-auto h-5 w-5 ${color}`} />
+    }
+  },
+  {
+    accessorKey: "amount",
+    header: () => <div className="text-right">Valor</div>,
+    cell: ({ row }) => {
+      const amount = parseFloat(row.getValue("amount"))
+      const formatted = new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      }).format(amount)
+
+      return <div className="text-right font-medium">{formatted}</div>
+    },
+  },
+]
