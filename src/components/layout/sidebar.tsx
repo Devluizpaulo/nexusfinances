@@ -1,6 +1,6 @@
 'use client';
-import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from '@/components/ui/sidebar';
-import { LayoutDashboard, Landmark, CreditCard, Banknote, DollarSign, Loader2, Target, LogOut } from 'lucide-react';
+import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator } from '@/components/ui/sidebar';
+import { LayoutDashboard, Landmark, CreditCard, Banknote, DollarSign, Loader2, Target, LogOut, UserCircle, LifeBuoy } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -9,13 +9,26 @@ import { useSidebar } from '../ui/sidebar';
 import { cn } from '@/lib/utils';
 import { useUser, useAuth } from '@/firebase';
 import { signOut } from 'firebase/auth';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
-const menuItems = [
+
+const mainMenuItems = [
   { href: '/dashboard', label: 'Painel', icon: LayoutDashboard },
   { href: '/income', label: 'Renda', icon: Landmark },
   { href: '/expenses', label: 'Despesas', icon: CreditCard },
   { href: '/debts', label: 'Dívidas', icon: Banknote },
   { href: '/goals', label: 'Metas', icon: Target },
+];
+
+const secondaryMenuItems = [
+    { href: '/support', label: 'Suporte', icon: LifeBuoy },
 ];
 
 export function AppSidebar() {
@@ -47,21 +60,34 @@ export function AppSidebar() {
 
     if(user) {
         return (
-            <div className="flex w-full items-center justify-between p-2 rounded-md bg-secondary">
-                <div className="flex items-center gap-3">
-                    <Avatar className="size-9">
-                        <AvatarImage src={user?.photoURL || undefined} alt="Avatar do usuário"/>
-                        <AvatarFallback>{user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
-                    </Avatar>
-                    <div className={cn("flex flex-col", state === "collapsed" && "hidden")}>
-                        <span className="font-semibold text-sm">{user?.displayName || 'Usuário'}</span>
-                        <span className="text-xs text-muted-foreground">{user?.email}</span>
-                    </div>
-                </div>
-                 <Button variant="ghost" size="icon" className={cn("w-8 h-8", state === "collapsed" && "hidden")} onClick={handleSignOut}>
-                    <LogOut className="w-4 h-4"/>
-                </Button>
-            </div>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className={cn("w-full justify-start items-center gap-3 p-2 h-auto", state === "collapsed" && "px-2 w-auto h-12 justify-center")}>
+                        <Avatar className="size-9">
+                            <AvatarImage src={user?.photoURL || undefined} alt="Avatar do usuário"/>
+                            <AvatarFallback>{user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
+                        </Avatar>
+                        <div className={cn("flex flex-col items-start", state === "collapsed" && "hidden")}>
+                            <span className="font-semibold text-sm">{user?.displayName || 'Usuário'}</span>
+                            <span className="text-xs text-muted-foreground">{user?.email}</span>
+                        </div>
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="right" align="start" className="w-56">
+                    <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <Link href="/profile">
+                        <DropdownMenuItem>
+                            <UserCircle className="mr-2" />
+                            <span>Perfil & Configuração</span>
+                        </DropdownMenuItem>
+                    </Link>
+                    <DropdownMenuItem onClick={handleSignOut}>
+                        <LogOut className="mr-2" />
+                        <span>Sair</span>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
         )
     }
 
@@ -79,7 +105,7 @@ export function AppSidebar() {
             </Button>
         </SidebarHeader>
         <SidebarMenu className="flex-1">
-            {menuItems.map((item) => (
+            {mainMenuItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label}>
                         <Link href={item.href}>
@@ -90,10 +116,22 @@ export function AppSidebar() {
                 </SidebarMenuItem>
             ))}
         </SidebarMenu>
-        <SidebarFooter className={cn("transition-transform duration-200 p-2", state === "collapsed" && "p-1")}>
+        <SidebarFooter className={cn("flex flex-col gap-1 transition-transform duration-200 p-2", state === "collapsed" && "p-1")}>
+            <SidebarMenu>
+                 {secondaryMenuItems.map((item) => (
+                    <SidebarMenuItem key={item.href}>
+                        <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label}>
+                            <Link href={item.href}>
+                                <item.icon />
+                                <span>{item.label}</span>
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                ))}
+            </SidebarMenu>
+            <SidebarSeparator />
              {renderUserContent()}
         </SidebarFooter>
     </Sidebar>
   );
 }
-    
