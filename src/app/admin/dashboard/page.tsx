@@ -12,6 +12,8 @@ import { KpiCard } from '@/components/dashboard/kpi-card';
 import { Users, UserPlus, DollarSign, Activity, Loader2 } from 'lucide-react';
 import { useMemo } from 'react';
 import { subDays } from 'date-fns';
+import type { Log } from '@/lib/types';
+import { LogsTable } from './logs/logs-table';
 
 export default function AdminDashboardPage() {
   const { user } = useUser();
@@ -22,8 +24,14 @@ export default function AdminDashboardPage() {
     if (!firestore) return null;
     return query(collection(firestore, `users`), orderBy('registrationDate', 'desc'));
   }, [firestore]);
+  
+  const logsQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, `logs`), orderBy('timestamp', 'desc'));
+  }, [firestore]);
 
   const { data: usersData, isLoading: isUsersLoading } = useCollection<AppUser>(usersQuery);
+  const { data: logsData, isLoading: isLogsLoading } = useCollection<Log>(logsQuery);
 
   const { totalUsers, newUsersLast30Days } = useMemo(() => {
     if (!usersData) return { totalUsers: 0, newUsersLast30Days: 0 };
@@ -53,8 +61,10 @@ export default function AdminDashboardPage() {
   }
 
   const formatNumber = (num: number) => new Intl.NumberFormat('pt-BR').format(num);
+  
+  const isLoading = isUsersLoading || isLogsLoading;
 
-  if (isUsersLoading) {
+  if (isLoading) {
      return (
       <div className="flex h-full items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -95,17 +105,7 @@ export default function AdminDashboardPage() {
           <UsersTable usersData={usersData || []} />
         </TabsContent>
         <TabsContent value="logs">
-          <Card>
-            <CardHeader>
-              <CardTitle>Logs do Sistema</CardTitle>
-              <CardDescription>
-                Atividades recentes e eventos importantes do sistema.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p>Funcionalidades de logs serão implementadas aqui.</p>
-            </CardContent>
-          </Card>
+          <LogsTable logsData={logsData || []} />
         </TabsContent>
         <TabsContent value="support">
           <Card>

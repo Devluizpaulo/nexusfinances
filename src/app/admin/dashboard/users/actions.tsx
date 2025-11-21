@@ -25,6 +25,7 @@ import { doc } from "firebase/firestore"
 import { useFirestore, useUser, deleteDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase"
 import { useToast } from "@/hooks/use-toast"
 import type { AppUser } from "@/firebase"
+import { logEvent } from "@/lib/logger"
 
 interface DataTableRowActionsProps {
   row: Row<AppUser>
@@ -56,6 +57,13 @@ export function DataTableRowActions({
 
     const docRef = doc(firestore, `users`, userToModify.uid);
     deleteDocumentNonBlocking(docRef);
+    
+    logEvent(firestore, {
+        level: 'warn',
+        message: `O usuário "${userToModify.displayName}" (ID: ${userToModify.uid}) foi excluído.`,
+        createdBy: user.uid,
+        createdByName: user.displayName || 'Admin',
+    });
 
     toast({
       title: "Usuário excluído",
@@ -78,6 +86,13 @@ export function DataTableRowActions({
 
     const docRef = doc(firestore, `users`, userToModify.uid);
     updateDocumentNonBlocking(docRef, { role: newRole });
+
+    logEvent(firestore, {
+        level: 'info',
+        message: `A função do usuário "${userToModify.displayName}" foi alterada para ${newRole}.`,
+        createdBy: user.uid,
+        createdByName: user.displayName || 'Admin',
+    });
 
     toast({
       title: "Função Alterada",

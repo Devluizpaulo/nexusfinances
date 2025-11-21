@@ -38,6 +38,15 @@ export type Goal = {
   userId?: string;
 };
 
+export type Log = {
+    id: string;
+    timestamp: any; // Can be Firestore Timestamp
+    level: 'info' | 'warn' | 'error';
+    message: string;
+    createdBy: string;
+    createdByName: string;
+}
+
 export const expenseCategories = [
   'Mercado',
   'Contas',

@@ -9,7 +9,7 @@
  *
  * Key Security Decisions:
  * - User Privacy: Listing users from the top-level `/users` collection is strictly forbidden to protect user privacy.
- * - Strict Ownership: All read and write operations are gated by checking if the authenticated user's ID matches
+ * - Strict Ownership: All read and write operations are gated by checking if the authenticated user's UID matches
  *   the `{userId}` in the document path.
  * - Default Deny: Access is implicitly denied unless an explicit `allow` rule grants it.
  * - No Anonymous Access: All data is private, requiring users to be authenticated for any operation.
@@ -192,6 +192,20 @@ service cloud.firestore {
         allow update: if isExistingOwner(userId) && isOwnerFieldImmutable();
         allow delete: if isExistingOwner(userId);
       }
+    }
+    
+    /**
+     * @description Manages system log entries.
+     * @path /logs/{logId}
+     * @allow (read) Superadmins can read all logs.
+     * @allow (create) Any authenticated user can create a log entry. This is to allow client-side logging.
+     * @deny (update, delete) Logs are immutable.
+     * @principle Segregates logs and restricts access. Reading is for admins, creation is open for event capture.
+     */
+    match /logs/{logId} {
+        allow get, list: if isSuperAdmin();
+        allow create: if isSignedIn() && request.resource.data.createdBy == request.auth.uid;
+        allow update, delete: if false;
     }
   }
 }
