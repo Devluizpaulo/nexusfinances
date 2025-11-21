@@ -10,12 +10,12 @@ import { collection, doc } from 'firebase/firestore';
 import { useFirestore, useUser, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
 import { cn } from '@/lib/utils';
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
@@ -44,14 +44,15 @@ import { Calendar } from '@/components/ui/calendar';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import type { Transaction } from '@/lib/types';
+import { Textarea } from '../ui/textarea';
 
 const formSchema = z.object({
+  category: z.string().min(1, 'A categoria é obrigatória.'),
+  amount: z.coerce.number().positive('O valor deve ser positivo.'),
   date: z.date({
     required_error: 'A data é obrigatória.',
   }),
-  description: z.string().min(1, 'A descrição é obrigatória.'),
-  amount: z.coerce.number().positive('O valor deve ser positivo.'),
-  category: z.string().min(1, 'A categoria é obrigatória.'),
+  description: z.string().optional(),
   isRecurring: z.boolean().default(false),
 });
 
@@ -91,6 +92,7 @@ export function AddTransactionSheet({
     if (isOpen && transaction) {
       form.reset({
         ...transaction,
+        description: transaction.description || '',
         date: parseISO(transaction.date),
       });
     } else if (isOpen) {
@@ -149,23 +151,37 @@ export function AddTransactionSheet({
   const description = transaction ? 'Modifique os detalhes da sua transação.' : `Adicione uma nova ${transactionType === 'income' ? 'entrada de renda' : 'saída para suas despesas'}.`;
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>{title}</SheetTitle>
-          <SheetDescription>{description}</SheetDescription>
-        </SheetHeader>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4 space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4 space-y-4">
             <FormField
               control={form.control}
-              name="description"
+              name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Descrição</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: Salário, Compras do mês" {...field} />
-                  </FormControl>
+                  <FormLabel>Categoria</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma categoria" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -213,9 +229,6 @@ export function AddTransactionSheet({
                         mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
-                        disabled={(date) =>
-                          date > new Date() || date < new Date('1900-01-01')
-                        }
                         initialFocus
                         locale={ptBR}
                       />
@@ -227,27 +240,13 @@ export function AddTransactionSheet({
             />
             <FormField
               control={form.control}
-              name="category"
+              name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Categoria</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma categoria" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>Descrição (Opcional)</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Ex: Salário da empresa, compra do mês no mercado X..." {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -260,7 +259,7 @@ export function AddTransactionSheet({
                   <div className="space-y-0.5">
                     <FormLabel>Recorrente</FormLabel>
                     <FormDescription>
-                      Esta transação se repete mensalmente.
+                      Esta transação se repetirá todo mês.
                     </FormDescription>
                   </div>
                   <FormControl>
@@ -284,7 +283,7 @@ export function AddTransactionSheet({
             </Button>
           </form>
         </Form>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }

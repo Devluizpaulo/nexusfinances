@@ -7,10 +7,9 @@ import {
   query,
   where,
   getDocs,
-  Timestamp,
 } from 'firebase/firestore';
 import { useFirestore, useUser, addDocumentNonBlocking } from '@/firebase';
-import { startOfMonth, endOfMonth, formatISO, setDate, parseISO } from 'date-fns';
+import { startOfMonth, endOfMonth, formatISO, setDate, parseISO, isSameMonth } from 'date-fns';
 import type { Transaction } from '@/lib/types';
 
 const LAST_CHECK_KEY = 'recurrencesLastCheck';
@@ -22,27 +21,26 @@ export function useManageRecurrences() {
   const manageRecurrences = useCallback(async () => {
     if (!user || !firestore) return;
 
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
+    const now = new Date();
+    // Use a format like 'YYYY-MM' to check once per month.
+    const currentMonthStr = formatISO(now, { representation: 'date' }).substring(0, 7); 
 
-    // Check if we've already run this process today
     const lastCheck = localStorage.getItem(LAST_CHECK_KEY);
-    if (lastCheck === todayStr) {
+    if (lastCheck === currentMonthStr) {
       return;
     }
 
-    const now = new Date();
     const startOfCurrentMonth = startOfMonth(now);
     const endOfCurrentMonth = endOfMonth(now);
 
     const processRecurrence = async (type: 'incomes' | 'expenses') => {
       // 1. Get all recurring templates for the type
-      const recurringQuery = query(
+      const recurringTemplatesQuery = query(
         collection(firestore, `users/${user.uid}/${type}`),
         where('isRecurring', '==', true)
       );
 
-      // 2. Get all transactions for the current month
+      // 2. Get all transactions for the current month to check against
       const monthQuery = query(
         collection(firestore, `users/${user.uid}/${type}`),
         where('date', '>=', formatISO(startOfCurrentMonth)),
@@ -50,7 +48,7 @@ export function useManageRecurrences() {
       );
 
       const [recurringSnapshot, monthSnapshot] = await Promise.all([
-        getDocs(recurringQuery),
+        getDocs(recurringTemplatesQuery),
         getDocs(monthQuery),
       ]);
       
@@ -62,27 +60,38 @@ export function useManageRecurrences() {
           .map(t => t.recurringSourceId)
       );
       
-      // 4. Create transactions that are missing
+      // 4. Create transactions that are missing for the current month
       for (const doc of recurringSnapshot.docs) {
         const templateId = doc.id;
-        
-        if (!existingRecurringSourceIds.has(templateId)) {
-          const template = doc.data() as Transaction;
-          const originalDate = parseISO(template.date);
-          const newDate = setDate(startOfCurrentMonth, originalDate.getDate());
+        const template = doc.data() as Transaction;
+        const templateDate = parseISO(template.date);
 
-          const newTransaction = {
-            ...template,
-            date: formatISO(newDate),
-            // Important: This is a generated instance of a recurring transaction, 
-            // so it is NOT recurring itself.
-            isRecurring: false, 
-            // Link back to the original recurring template
-            recurringSourceId: templateId, 
-          };
-          // a fire-and-forget operation
-          addDocumentNonBlocking(collection(firestore, `users/${user.uid}/${type}`), newTransaction);
+        // Skip if a transaction from this template has already been created this month
+        if (existingRecurringSourceIds.has(templateId)) {
+            continue;
         }
+
+        // Only create if the template's original date is not in the current month
+        // This prevents duplicating the very first entry.
+        if (isSameMonth(templateDate, now)) {
+            continue;
+        }
+
+        const newDate = setDate(now, templateDate.getDate());
+        
+        // Ensure newDate is within the current month, otherwise cap at the end of month.
+        if (newDate.getMonth() !== now.getMonth()) {
+            newDate.setDate(endOfCurrentMonth.getDate());
+        }
+
+        const newTransaction: Omit<Transaction, 'id'> = {
+          ...template,
+          date: formatISO(newDate),
+          isRecurring: false, // CRITICAL: The generated instance is not a recurring template
+          recurringSourceId: templateId, // Link back to the original template
+        };
+        
+        addDocumentNonBlocking(collection(firestore, `users/${user.uid}/${type}`), newTransaction);
       }
     };
 
@@ -91,12 +100,15 @@ export function useManageRecurrences() {
         processRecurrence('expenses')
     ]);
 
-    // Mark that we've run the process for today
-    localStorage.setItem(LAST_CHECK_KEY, todayStr);
+    // Mark that we've run the process for this month
+    localStorage.setItem(LAST_CHECK_KEY, currentMonthStr);
 
   }, [user, firestore]);
 
   useEffect(() => {
-    manageRecurrences();
-  }, [manageRecurrences]);
+    // We only need to run this when the user is available.
+    if(user) {
+        manageRecurrences();
+    }
+  }, [manageRecurrences, user]);
 }
