@@ -5,11 +5,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useAuth, useFirestore, useUser } from '@/firebase';
-import {
-  createUserWithEmailAndPassword,
-  updateProfile,
-} from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { PageHeader } from '@/components/page-header';
 import {
@@ -57,55 +52,29 @@ export default function AdminPage() {
   const handleAdminRegister = async (values: RegisterValues) => {
     if (!auth || !firestore) return;
 
-    // This is a placeholder; in a real app, you'd create a separate auth instance
-    // or use a cloud function to register users without signing them in immediately.
-    // For this example, we'll just show a toast and log. A real implementation is complex.
+    setIsLoading(true);
+    
+    // NOTE: This approach has a major flaw for this use case:
+    // createUserWithEmailAndPassword also signs in the new user in the CURRENT session,
+    // which is not what we want for an admin panel.
+    // A production-grade solution would use Firebase Admin SDK in a Cloud Function
+    // to create users without affecting the admin's session.
+    // We are simulating the creation locally for demonstration purposes.
+    
+    toast({
+        title: 'Simulação de Criação de Admin',
+        description: `Em um ambiente de produção, uma Cloud Function seria chamada para criar o usuário ${values.email} com a role de superadmin.`,
+    });
 
-    try {
-        // NOTE: This approach has a major flaw for this use case:
-        // createUserWithEmailAndPassword also signs in the new user in the CURRENT session,
-        // which is not what we want for an admin panel.
-        // A production-grade solution would use Firebase Admin SDK in a Cloud Function
-        // to create users without affecting the admin's session.
-        // We are simulating the creation locally for demonstration purposes.
-        
-        // This is a local simulation. It won't actually create a user in your main project's auth.
-        // To properly implement this, you would need a backend endpoint (Cloud Function)
-        // that uses the Firebase Admin SDK.
-         toast({
-            title: 'Simulação de Criação de Admin',
-            description: `Em um ambiente de produção, uma Cloud Function seria chamada para criar o usuário ${values.email} com a role de superadmin.`,
-        });
-
-        console.log("Simulating Super Admin Creation:", {
-            email: values.email,
-            name: values.name,
-            role: 'superadmin'
-        });
-
-        // Here is how you WOULD save the user data to Firestore if the user was created.
-        // const newUserId = "some-user-id-from-admin-sdk";
-        // const userDocRef = doc(firestore, 'users', newUserId);
-        // await setDoc(userDocRef, {
-        //     id: newUserId,
-        //     displayName: values.name,
-        //     email: values.email,
-        //     registrationDate: serverTimestamp(),
-        //     role: 'superadmin',
-        // });
-
-        registerForm.reset();
-
-    } catch (error: any) {
-        console.error('Erro no cadastro de Admin:', error);
-        toast({
-            variant: "destructive",
-            title: "Erro no Cadastro",
-            description: "Não foi possível criar a conta de administrador.",
-        });
-    } finally {
-        setIsLoading(false);
-    }
+    console.log("Simulating Super Admin Creation:", {
+        email: values.email,
+        name: values.name,
+        role: 'superadmin'
+    });
+    
+    // Reset form after "simulation"
+    registerForm.reset();
+    setIsLoading(false);
   };
 
   // Redirect if not a superadmin
@@ -129,7 +98,7 @@ export default function AdminPage() {
           <CardTitle>Cadastrar Novo Super Admin</CardTitle>
           <CardDescription>
             Este formulário (simulado) criaria um novo usuário com privilégios de super
-            administrador. Em produção, use uma Cloud Function.
+            administrador. Em um ambiente de produção, esta operação deve ser feita via Cloud Function.
           </CardDescription>
         </CardHeader>
         <CardContent>
