@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Bell, PanelLeft } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '../ui/sidebar';
+import { ThemeToggle } from '../theme-toggle';
 
 const getTitle = (pathname: string) => {
     if (pathname.startsWith('/dashboard')) return 'Painel';
@@ -29,6 +30,7 @@ export function Header() {
         <h1 className="text-xl font-semibold">{title}</h1>
       </div>
       <div className="flex items-center gap-2">
+        <ThemeToggle />
         <Button variant="ghost" size="icon">
             <Bell />
             <span className="sr-only">Notificações</span>
