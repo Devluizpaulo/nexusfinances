@@ -64,6 +64,7 @@ export default function LoginPage() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('login');
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
 
   const loginForm = useForm<LoginValues>({
@@ -78,11 +79,10 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     if (!auth) return;
-    setIsLoading(true);
+    setIsGoogleLoading(true);
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
-      // Create user document in Firestore if it's a new user
       if (firestore && result.user) {
         const userRef = doc(firestore, "users", result.user.uid);
         await setDoc(userRef, { 
@@ -102,7 +102,7 @@ export default function LoginPage() {
         });
       }
     } finally {
-        setIsLoading(false);
+        setIsGoogleLoading(false);
     }
   };
   
@@ -182,7 +182,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-      <div className="mb-6 flex flex-col items-center text-center">
+      <div className="mb-8 flex flex-col items-center text-center">
          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
           <DollarSign className="h-8 w-8" />
         </div>
@@ -235,7 +235,7 @@ export default function LoginPage() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full" disabled={isLoading || !auth}>
+                  <Button type="submit" className="w-full" disabled={isLoading || isGoogleLoading || !auth}>
                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Entrar com Email
                   </Button>
@@ -247,7 +247,7 @@ export default function LoginPage() {
                   <span className="w-full border-t" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">
+                  <span className="bg-card px-2 text-muted-foreground">
                     Ou continue com
                   </span>
                 </div>
@@ -257,12 +257,12 @@ export default function LoginPage() {
                 variant="outline"
                 onClick={handleGoogleSignIn}
                 className="w-full"
-                disabled={isLoading || !auth}
+                disabled={isLoading || isGoogleLoading || !auth}
               >
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                 <svg className="mr-2 h-5 w-5" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+                {isGoogleLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> :
+                 <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
                     <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 21.5 174.4 58.9L359.7 127.4c-27.8-26.2-63.5-42.6-111.7-42.6-88.5 0-160.9 72.4-160.9 161.2s72.4 161.2 160.9 161.2c38.3 0 71.3-12.8 96.2-34.4 22.1-19.1 33.4-44.9 36.8-74.6H248V261.8h239.2z"></path>
-                 </svg>
+                 </svg>}
                 Google
               </Button>
             </CardContent>
@@ -317,7 +317,7 @@ export default function LoginPage() {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full" disabled={isLoading || !auth}>
+                  <Button type="submit" className="w-full" disabled={isLoading || isGoogleLoading || !auth}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Criar Conta
                   </Button>
@@ -330,4 +330,3 @@ export default function LoginPage() {
     </div>
   );
 }
-    
