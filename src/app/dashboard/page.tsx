@@ -9,18 +9,29 @@ import { AiInsights } from '@/components/dashboard/ai-insights';
 import type { FinancialInsightsInput } from '@/ai/flows/financial-insights-generator';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query } from 'firebase/firestore';
-import type { Transaction, Debt } from '@/lib/types';
+import type { Transaction, Debt, Goal, IncomeCategory, ExpenseCategory } from '@/lib/types';
 import { useManageRecurrences } from '@/hooks/useManageRecurrences';
 import { OverdueDebtsCard } from '@/components/dashboard/overdue-debts-card';
 import { DateRangePicker } from '@/components/dashboard/date-range-picker';
 import { startOfMonth, endOfMonth, parseISO, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { QuickActions } from '@/components/dashboard/quick-actions';
+import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
+import { AddDebtSheet } from '@/components/debts/add-debt-sheet';
+import { AddGoalSheet } from '@/components/goals/add-goal-sheet';
+import { incomeCategories, expenseCategories } from '@/lib/types';
+
 
 export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
   useManageRecurrences();
+
+  const [isIncomeSheetOpen, setIsIncomeSheetOpen] = useState(false);
+  const [isExpenseSheetOpen, setIsExpenseSheetOpen] = useState(false);
+  const [isDebtSheetOpen, setIsDebtSheetOpen] = useState(false);
+  const [isGoalSheetOpen, setIsGoalSheetOpen] = useState(false);
 
   const transactionsQuery = useMemoFirebase(() => {
     if (!user) return null;
@@ -111,52 +122,81 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-center">
-        <DateRangePicker date={selectedDate} onDateChange={setSelectedDate} />
-      </div>
-
-       <OverdueDebtsCard debts={debtData || []} />
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <KpiCard
-          title="Renda Total"
-          value={formatCurrency(totalIncome)}
-          icon={Landmark}
-          description={`Renda total ${descriptionPeriod}`}
-        />
-        <KpiCard
-          title="Despesas Totais"
-          value={formatCurrency(totalExpenses)}
-          icon={CreditCard}
-          description={`Despesas totais ${descriptionPeriod}`}
-        />
-        <KpiCard
-          title="Economias"
-          value={formatCurrency(savings)}
-          icon={Wallet}
-          description={`Renda menos despesas ${descriptionPeriod}`}
-        />
-        <KpiCard
-          title="Dívida Pendente"
-          value={formatCurrency(totalDebt)}
-          icon={Banknote}
-          description="Saldo devedor total restante"
-        />
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-        <div className="lg:col-span-3">
-          <IncomeExpenseChart transactions={allTransactions} />
+    <>
+      <AddTransactionSheet
+        isOpen={isIncomeSheetOpen}
+        onClose={() => setIsIncomeSheetOpen(false)}
+        transactionType="income"
+        categories={incomeCategories}
+      />
+      <AddTransactionSheet
+        isOpen={isExpenseSheetOpen}
+        onClose={() => setIsExpenseSheetOpen(false)}
+        transactionType="expense"
+        categories={expenseCategories}
+      />
+      <AddDebtSheet
+        isOpen={isDebtSheetOpen}
+        onClose={() => setIsDebtSheetOpen(false)}
+      />
+      <AddGoalSheet
+        isOpen={isGoalSheetOpen}
+        onClose={() => setIsGoalSheetOpen(false)}
+      />
+      <div className="space-y-6">
+        <div className="flex justify-center">
+          <DateRangePicker date={selectedDate} onDateChange={setSelectedDate} />
         </div>
-        <div className="lg:col-span-2">
-          <ExpenseCategoryChart transactions={expenseData || []} />
+
+        <QuickActions
+          onAddIncome={() => setIsIncomeSheetOpen(true)}
+          onAddExpense={() => setIsExpenseSheetOpen(true)}
+          onAddDebt={() => setIsDebtSheetOpen(true)}
+          onAddGoal={() => setIsGoalSheetOpen(true)}
+        />
+
+        <OverdueDebtsCard debts={debtData || []} />
+
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <KpiCard
+            title="Renda Total"
+            value={formatCurrency(totalIncome)}
+            icon={Landmark}
+            description={`Renda total ${descriptionPeriod}`}
+          />
+          <KpiCard
+            title="Despesas Totais"
+            value={formatCurrency(totalExpenses)}
+            icon={CreditCard}
+            description={`Despesas totais ${descriptionPeriod}`}
+          />
+          <KpiCard
+            title="Economias"
+            value={formatCurrency(savings)}
+            icon={Wallet}
+            description={`Renda menos despesas ${descriptionPeriod}`}
+          />
+          <KpiCard
+            title="Dívida Pendente"
+            value={formatCurrency(totalDebt)}
+            icon={Banknote}
+            description="Saldo devedor total restante"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+          <div className="lg:col-span-3">
+            <IncomeExpenseChart transactions={allTransactions} />
+          </div>
+          <div className="lg:col-span-2">
+            <ExpenseCategoryChart transactions={expenseData || []} />
+          </div>
+        </div>
+
+        <div>
+          <AiInsights financialData={financialData} />
         </div>
       </div>
-
-      <div>
-        <AiInsights financialData={financialData} />
-      </div>
-    </div>
+    </>
   );
 }
