@@ -103,25 +103,7 @@ export default function AdminDashboardPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="prose prose-sm max-w-full text-foreground/80">
-                <p>Uma funcionalidade de logs robusta requer um backend para capturar e armazenar eventos de forma segura.</p>
-                <p>
-                  A abordagem ideal seria usar o{' '}
-                  <strong>Cloud Functions for Firebase</strong> para escutar eventos importantes no aplicativo, como:
-                </p>
-                <ul>
-                  <li>Novos cadastros de usuários.</li>
-                  <li>Logins bem-sucedidos e falhas de login.</li>
-                  <li>Modificações de dados críticos (ex: alteração de função de usuário).</li>
-                  <li>Exclusão de usuários ou outros dados importantes.</li>
-                  <li>Erros inesperados no sistema.</li>
-                </ul>
-                <p>
-                  Esses eventos seriam salvos em uma coleção separada no Firestore (ex: <code>/logs</code>)
-                  com regras de segurança que permitem apenas a criação pelo backend e a leitura pelo administrador.
-                  Esta aba então exibiria esses logs em tempo real para monitoramento.
-                </p>
-              </div>
+              <p>Funcionalidades de logs serão implementadas aqui.</p>
             </CardContent>
           </Card>
         </TabsContent>
