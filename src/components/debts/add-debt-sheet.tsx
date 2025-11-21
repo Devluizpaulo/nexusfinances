@@ -9,12 +9,12 @@ import { collection, doc, writeBatch } from 'firebase/firestore';
 import { useFirestore, useUser } from '@/firebase';
 import { cn } from '@/lib/utils';
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
@@ -131,14 +131,14 @@ export function AddDebtSheet({ isOpen, onClose }: AddDebtSheetProps) {
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>Adicionar Nova Dívida</SheetTitle>
-          <SheetDescription>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Adicionar Nova Dívida</DialogTitle>
+          <DialogDescription>
             Cadastre um novo empréstimo ou compra parcelada. As parcelas serão geradas automaticamente.
-          </SheetDescription>
-        </SheetHeader>
+          </DialogDescription>
+        </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4 space-y-6">
             <FormField
@@ -244,7 +244,7 @@ export function AddDebtSheet({ isOpen, onClose }: AddDebtSheetProps) {
             </Button>
           </form>
         </Form>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }

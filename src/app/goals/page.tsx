@@ -44,7 +44,13 @@ export default function GoalsPage() {
   return (
     <>
       <AddGoalSheet isOpen={isAddGoalSheetOpen} onClose={() => setIsAddGoalSheetOpen(false)} />
-      <AddContributionSheet isOpen={isAddContributionSheetOpen} onClose={() => setIsAddContributionSheetOpen(false)} goal={selectedGoal} />
+      {selectedGoal && (
+          <AddContributionSheet 
+            isOpen={isAddContributionSheetOpen} 
+            onClose={() => setIsAddContributionSheetOpen(false)} 
+            goal={selectedGoal} 
+          />
+      )}
       <PageHeader title="Metas Financeiras" description="Defina e acompanhe sua reserva de emergência e metas de investimento.">
         <Button onClick={() => setIsAddGoalSheetOpen(true)} disabled={!user}>
           <PlusCircle className="mr-2 h-4 w-4" />

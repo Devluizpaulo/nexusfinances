@@ -6,12 +6,12 @@ import * as z from 'zod';
 import { collection } from 'firebase/firestore';
 import { useFirestore, useUser, addDocumentNonBlocking } from '@/firebase';
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
@@ -92,14 +92,14 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>Adicionar Nova Meta Financeira</SheetTitle>
-          <SheetDescription>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Adicionar Nova Meta Financeira</DialogTitle>
+          <DialogDescription>
             Defina um objetivo e acompanhe seu progresso.
-          </SheetDescription>
-        </SheetHeader>
+          </DialogDescription>
+        </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4 space-y-6">
             <FormField
@@ -156,8 +156,7 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
             </Button>
           </form>
         </Form>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }
-    

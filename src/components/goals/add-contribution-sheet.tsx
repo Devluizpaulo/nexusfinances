@@ -7,12 +7,12 @@ import { doc } from 'firebase/firestore';
 import { useFirestore, useUser, updateDocumentNonBlocking } from '@/firebase';
 import type { Goal } from '@/lib/types';
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Form,
   FormControl,
@@ -93,14 +93,14 @@ export function AddContributionSheet({ isOpen, onClose, goal }: AddContributionS
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>Adicionar Aporte para "{goal?.name}"</SheetTitle>
-          <SheetDescription>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Adicionar Aporte para "{goal?.name}"</DialogTitle>
+          <DialogDescription>
             Registre um novo valor para se aproximar da sua meta.
-          </SheetDescription>
-        </SheetHeader>
+          </DialogDescription>
+        </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4 space-y-6">
             <FormField
@@ -128,7 +128,7 @@ export function AddContributionSheet({ isOpen, onClose, goal }: AddContributionS
             </Button>
           </form>
         </Form>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }
