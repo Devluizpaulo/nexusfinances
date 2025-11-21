@@ -1,0 +1,175 @@
+/**
+ * Core Philosophy: This ruleset enforces a strict user-ownership model for a personal finance application.
+ * Each user can only access and manage their own financial data (profiles, incomes, expenses, debts). There
+ * is no concept of shared or public data.
+ *
+ * Data Structure: All data is hierarchically organized under the `/users/{userId}` collection. This structural
+ * segregation ensures that a user's entire data tree, including subcollections for incomes, expenses, and debts,
+ * is logically and securely isolated. This design simplifies security rules by allowing path-based ownership checks.
+ *
+ * Key Security Decisions:
+ * - User Privacy: Listing users from the top-level `/users` collection is strictly forbidden to protect user privacy.
+ * - Strict Ownership: All read and write operations are gated by checking if the authenticated user's ID matches
+ *   the `{userId}` in the document path.
+ * - Default Deny: Access is implicitly denied unless an explicit `allow` rule grants it.
+ * - No Anonymous Access: All data is private, requiring users to be authenticated for any operation.
+ *
+ * Denormalization for Authorization: To ensure performant and secure rules, an ownership field (e.g., `userId`)
+ * is denormalized onto every document in the user's subcollections (incomes, expenses, debts). This allows rules
+ * to validate ownership directly from the document being accessed, avoiding slow and costly `get()` calls to parent
+ * documents. For `create` operations, rules ensure this `userId` field is set correctly, and for `update` operations,
+ * rules ensure it cannot be changed.
+ *
+ * Structural Segregation: All user-specific financial data is placed in subcollections under their main user
+ * document. This is a secure and performant pattern that prevents data leakage and simplifies queries, as any
+ * query within a user's data tree is inherently scoped to that user.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ----------------------------------------------------------------------
+    // Helper Functions
+    // ----------------------------------------------------------------------
+
+    /**
+     * Returns true if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Returns true if the authenticated user's UID matches the provided userId.
+     * This is the primary function for enforcing data ownership.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Returns true if the user is the owner and the document already exists.
+     * Used for safe update and delete operations.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * Validates that a user is creating data for themselves and that the
+     * denormalized `userId` field in the document correctly matches their UID.
+     */
+    function isCreatingOwnData(userId) {
+      return isOwner(userId) && request.resource.data.userId == userId;
+    }
+
+    /**
+     * Enforces immutability of the critical `userId` ownership field during updates.
+     */
+    function isOwnerFieldImmutable() {
+      return request.resource.data.userId == resource.data.userId;
+    }
+
+    /**
+     * Checks ownership of a parent debt document by performing a `get` call.
+     * This is necessary for securing nested subcollections like `installments`
+     * that might not have a denormalized `userId` field.
+     */
+    function isOwnerOfParentDebt(userId, debtId) {
+      return isOwner(userId) && get(/databases/$(database)/documents/users/$(userId)/debts/$(debtId)).data.userId == userId;
+    }
+    
+    /**
+     * Validates that an installment is being created with the correct debtId.
+     */
+    function isCreatingValidInstallment(debtId) {
+      return request.resource.data.debtId == debtId;
+    }
+
+    /**
+     * Enforces immutability of the critical `debtId` relational field during updates.
+     */
+    function isDebtFieldImmutable() {
+        return request.resource.data.debtId == resource.data.debtId;
+    }
+
+    // ----------------------------------------------------------------------
+    // Collection Rules
+    // ----------------------------------------------------------------------
+
+    /**
+     * @description Manages access to user profile documents.
+     * @path /users/{userId}
+     * @allow (create) A new user (auth.uid: 'user123') creating their own profile document at `/users/user123`.
+     * @deny (list) Any user attempting to list all documents in the `/users` collection.
+     * @principle Enforces self-creation and ownership. Users can manage their own profile but cannot see or interact with others'.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Secures a user's private income entries.
+     * @path /users/{userId}/incomes/{incomeId}
+     * @allow (create) User 'user123' creating an income document at `/users/user123/incomes/inc456` with `userId: 'user123'` in the body.
+     * @deny (read) User 'user789' attempting to read an income document at `/users/user123/incomes/inc456`.
+     * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
+     */
+    match /users/{userId}/incomes/{incomeId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isCreatingOwnData(userId);
+      allow update: if isExistingOwner(userId) && isOwnerFieldImmutable();
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Secures a user's private expense entries.
+     * @path /users/{userId}/expenses/{expenseId}
+     * @allow (list) User 'user123' listing all their expenses under `/users/user123/expenses`.
+     * @deny (update) User 'user789' attempting to modify an expense at `/users/user123/expenses/exp789`.
+     * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
+     */
+    match /users/{userId}/expenses/{expenseId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isCreatingOwnData(userId);
+      allow update: if isExistingOwner(userId) && isOwnerFieldImmutable();
+      allow delete: if isExistingOwner(userId);
+    }
+
+    /**
+     * @description Secures a user's private debt information.
+     * @path /users/{userId}/debts/{debtId}
+     * @allow (delete) User 'user123' deleting a debt at `/users/user123/debts/debtABC`.
+     * @deny (create) An anonymous user attempting to create a debt document.
+     * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
+     */
+    match /users/{userId}/debts/{debtId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isCreatingOwnData(userId);
+      allow update: if isExistingOwner(userId) && isOwnerFieldImmutable();
+      allow delete: if isExistingOwner(userId);
+
+      /**
+       * @description Secures installment payments for a user's debt.
+       * @path /users/{userId}/debts/{debtId}/installments/{installmentId}
+       * @allow (read) User 'user123' reading an installment at `/users/user123/debts/debtABC/installments/inst1`.
+       * @deny (read) User 'user789' attempting to read an installment, even if they know the full path, because the parent debt check will fail.
+       * @principle Enforces ownership by looking up the parent debt document. Validates relational integrity with the parent debt.
+       */
+      match /installments/{installmentId} {
+        allow get: if isOwnerOfParentDebt(userId, debtId);
+        allow list: if isOwnerOfParentDebt(userId, debtId);
+        allow create: if isOwnerOfParentDebt(userId, debtId) && isCreatingValidInstallment(debtId);
+        allow update: if isOwnerOfParentDebt(userId, debtId) && resource != null && isDebtFieldImmutable();
+        allow delete: if isOwnerOfParentDebt(userId, debtId) && resource != null;
+      }
+    }
+  }
+}
