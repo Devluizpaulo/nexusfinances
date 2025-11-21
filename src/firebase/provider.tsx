@@ -6,27 +6,31 @@ import { Firestore, doc, setDoc, getDoc, serverTimestamp } from 'firebase/firest
 import { FirebaseStorage } from 'firebase/storage';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
-import type { UserHookResult } from './auth/use-user';
 
+// Extends the default Firebase User type to include our custom fields
+export interface AppUser extends User {
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
+}
 
-// Internal state for user authentication
+// Internal state for user authentication, using our extended AppUser
 interface UserAuthState {
-  user: User | null;
+  user: AppUser | null;
   isUserLoading: boolean;
   userError: Error | null;
 }
 
 // Combined state for the Firebase context
 export interface FirebaseContextState {
-  areServicesAvailable: boolean; // True if core services (app, firestore, auth instance) are provided
+  areServicesAvailable: boolean;
   firebaseApp: FirebaseApp | null;
   firestore: Firestore | null;
-  auth: Auth | null; // The Auth service instance
+  auth: Auth | null;
   storage: FirebaseStorage | null;
-  // User authentication state
-  user: User | null;
-  isUserLoading: boolean; // True during initial auth check
-  userError: Error | null; // Error from auth listener
+  user: AppUser | null;
+  isUserLoading: boolean;
+  userError: Error | null;
 }
 
 // Return type for useFirebase()
@@ -35,7 +39,7 @@ export interface FirebaseServicesAndUser {
   firestore: Firestore;
   auth: Auth;
   storage: FirebaseStorage;
-  user: User | null;
+  user: AppUser | null;
   isUserLoading: boolean;
   userError: Error | null;
 }
@@ -71,39 +75,63 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
   // Effect to subscribe to Firebase auth state changes
   useEffect(() => {
-    if (!auth) { // If no Auth service instance, cannot determine user state
+    if (!auth) {
       setUserAuthState({ user: null, isUserLoading: false, userError: new Error("Auth service not provided.") });
       return;
     }
 
-    setUserAuthState({ user: null, isUserLoading: true, userError: null }); // Reset on auth instance change
+    setUserAuthState({ user: null, isUserLoading: true, userError: null });
 
     const unsubscribe = onAuthStateChanged(
       auth,
-      async (firebaseUser) => { // Auth state determined
-        if (firebaseUser && firestore) {
-          // Check if user document exists, if not, create it
+      async (firebaseUser) => {
+        if (firebaseUser) {
           const userDocRef = doc(firestore, 'users', firebaseUser.uid);
           const userDocSnap = await getDoc(userDocRef);
-          if (!userDocSnap.exists()) {
+
+          let appUser: AppUser = { ...firebaseUser };
+
+          if (userDocSnap.exists()) {
+            const firestoreData = userDocSnap.data();
+            appUser = {
+              ...appUser,
+              firstName: firestoreData.firstName,
+              lastName: firestoreData.lastName,
+              phoneNumber: firestoreData.phoneNumber,
+            };
+          } else {
+            const nameParts = (firebaseUser.displayName || firebaseUser.email || '').split(' ');
+            const firstName = nameParts[0];
+            const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
              await setDoc(userDocRef, {
               id: firebaseUser.uid,
-              displayName: firebaseUser.displayName || firebaseUser.email,
+              displayName: firebaseUser.displayName || `${firstName} ${lastName}`.trim(),
               email: firebaseUser.email,
               photoURL: firebaseUser.photoURL,
               registrationDate: serverTimestamp(),
+              firstName: firstName,
+              lastName: lastName,
+              phoneNumber: firebaseUser.phoneNumber || ''
             }, { merge: true });
+             appUser = {
+                ...appUser,
+                firstName,
+                lastName,
+                phoneNumber: firebaseUser.phoneNumber || ''
+            };
           }
+          setUserAuthState({ user: appUser, isUserLoading: false, userError: null });
+        } else {
+            setUserAuthState({ user: null, isUserLoading: false, userError: null });
         }
-        setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
       },
-      (error) => { // Auth listener error
+      (error) => {
         console.error("FirebaseProvider: onAuthStateChanged error:", error);
         setUserAuthState({ user: null, isUserLoading: false, userError: error });
       }
     );
-    return () => unsubscribe(); // Cleanup
-  }, [auth, firestore]); // Depends on the auth and firestore instances
+    return () => unsubscribe();
+  }, [auth, firestore]);
 
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {
@@ -188,3 +216,5 @@ export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | 
   
   return memoized;
 }
+
+    

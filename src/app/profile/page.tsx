@@ -30,7 +30,9 @@ import { Label } from '@/components/ui/label';
 
 
 const profileFormSchema = z.object({
-  displayName: z.string().min(3, 'O nome deve ter pelo menos 3 caracteres.'),
+  firstName: z.string().min(1, 'O nome é obrigatório.'),
+  lastName: z.string().min(1, 'O sobrenome é obrigatório.'),
+  phoneNumber: z.string().optional(),
 });
 
 const passwordFormSchema = z.object({
@@ -60,7 +62,9 @@ export default function ProfilePage() {
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     values: {
-      displayName: user?.displayName || '',
+      firstName: user?.firstName || '',
+      lastName: user?.lastName || '',
+      phoneNumber: user?.phoneNumber || '',
     },
   });
 
@@ -74,16 +78,22 @@ export default function ProfilePage() {
   });
 
   const onProfileSubmit = async (values: ProfileFormValues) => {
-    if (!user || !firestore) return;
+    if (!user || !firestore || !auth.currentUser) return;
+
+    const { firstName, lastName } = values;
+    const displayName = `${firstName} ${lastName}`.trim();
+    
     try {
-      if (auth.currentUser) {
-        await updateProfile(auth.currentUser, { displayName: values.displayName });
-      }
+      // Update Auth profile
+      await updateProfile(auth.currentUser, { displayName });
+      
+      // Update Firestore document
       const userDocRef = doc(firestore, 'users', user.uid);
-      await updateDoc(userDocRef, { displayName: values.displayName });
+      await updateDoc(userDocRef, { ...values, displayName });
+
       toast({
         title: 'Perfil Atualizado!',
-        description: 'Seu nome foi alterado com sucesso.',
+        description: 'Suas informações foram salvas com sucesso.',
       });
     } catch (error) {
       console.error(error);
@@ -236,7 +246,7 @@ export default function ProfilePage() {
                 <div className="flex items-center gap-4">
                   <Avatar className="h-16 w-16">
                     <AvatarImage src={user?.photoURL || undefined} />
-                    <AvatarFallback>{user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
+                    <AvatarFallback>{user?.firstName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
                   </Avatar>
                   <div>
                     <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/png, image/jpeg, image/gif" hidden/>
@@ -248,12 +258,25 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <FormField
+                   <FormField
                     control={profileForm.control}
-                    name="displayName"
+                    name="firstName"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Nome</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                   <FormField
+                    control={profileForm.control}
+                    name="lastName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Sobrenome</FormLabel>
                         <FormControl>
                           <Input {...field} />
                         </FormControl>
@@ -265,6 +288,19 @@ export default function ProfilePage() {
                     <Label htmlFor="email">Email</Label>
                     <Input id="email" defaultValue={user?.email || ''} readOnly disabled />
                   </div>
+                   <FormField
+                    control={profileForm.control}
+                    name="phoneNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Celular</FormLabel>
+                        <FormControl>
+                          <Input {...field} type="tel" placeholder="(00) 00000-0000" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
                 <Button type="submit" disabled={profileForm.formState.isSubmitting}>
                    {profileForm.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -339,3 +375,5 @@ export default function ProfilePage() {
     </>
   );
 }
+
+    

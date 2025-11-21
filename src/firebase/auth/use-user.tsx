@@ -1,9 +1,9 @@
 'use client';
 import { useFirebase } from '@/firebase/provider';
-import type { User } from 'firebase/auth';
+import type { AppUser } from '@/firebase/provider';
 
 export interface UserHookResult {
-  user: User | null;
+  user: AppUser | null;
   isUserLoading: boolean;
   userError: Error | null;
 }
@@ -17,3 +17,5 @@ export const useUser = (): UserHookResult => {
   const { user, isUserLoading, userError } = useFirebase();
   return { user, isUserLoading, userError };
 };
+
+    
