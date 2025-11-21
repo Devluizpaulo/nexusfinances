@@ -1,0 +1,250 @@
+'use client';
+
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { formatISO, addMonths } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { collection, doc, writeBatch } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
+import { cn } from '@/lib/utils';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { CalendarIcon, Loader2 } from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { useToast } from '@/hooks/use-toast';
+import { format } from 'date-fns';
+
+const formSchema = z.object({
+  name: z.string().min(1, 'O nome da dívida é obrigatório.'),
+  creditor: z.string().min(1, 'O credor é obrigatório.'),
+  totalAmount: z.coerce.number().positive('O valor total deve ser positivo.'),
+  numberOfInstallments: z.coerce.number().int().min(1, 'Deve haver pelo menos uma parcela.'),
+  startDate: z.date({ required_error: 'A data da primeira parcela é obrigatória.' }),
+});
+
+type DebtFormValues = z.infer<typeof formSchema>;
+
+type AddDebtSheetProps = {
+  isOpen: boolean;
+  onClose: () => void;
+};
+
+export function AddDebtSheet({ isOpen, onClose }: AddDebtSheetProps) {
+  const form = useForm<DebtFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: '',
+      creditor: '',
+      totalAmount: 0,
+      numberOfInstallments: 1,
+      startDate: new Date(),
+    },
+  });
+
+  const firestore = useFirestore();
+  const { user } = useUser();
+  const { toast } = useToast();
+
+  const onSubmit = async (values: DebtFormValues) => {
+    if (!user || !firestore) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro de autenticação',
+        description: 'Você precisa estar logado para adicionar uma dívida.',
+      });
+      return;
+    }
+
+    try {
+      const batch = writeBatch(firestore);
+      
+      const debtsColRef = collection(firestore, `users/${user.uid}/debts`);
+      const newDebtRef = doc(debtsColRef);
+      
+      const debtData = {
+        id: newDebtRef.id,
+        name: values.name,
+        creditor: values.creditor,
+        totalAmount: values.totalAmount,
+        paidAmount: 0,
+        userId: user.uid,
+      };
+
+      batch.set(newDebtRef, debtData);
+
+      const installmentAmount = values.totalAmount / values.numberOfInstallments;
+      const installmentsColRef = collection(newDebtRef, 'installments');
+
+      for (let i = 0; i < values.numberOfInstallments; i++) {
+        const installmentRef = doc(installmentsColRef);
+        const installmentData = {
+          id: installmentRef.id,
+          debtId: newDebtRef.id,
+          installmentNumber: i + 1,
+          amount: installmentAmount,
+          dueDate: formatISO(addMonths(values.startDate, i)),
+          status: 'unpaid',
+        };
+        batch.set(installmentRef, installmentData);
+      }
+
+      await batch.commit();
+
+      toast({
+        title: 'Dívida adicionada!',
+        description: `${values.name} foi adicionada com sucesso, com ${values.numberOfInstallments} parcelas.`,
+      });
+
+      form.reset();
+      onClose();
+
+    } catch (error) {
+      console.error("Error adding debt: ", error);
+      toast({
+        variant: 'destructive',
+        title: 'Oh, não! Algo deu errado.',
+        description: 'Não foi possível adicionar a dívida. Por favor, tente novamente.',
+      });
+    }
+  };
+
+  return (
+    <Sheet open={isOpen} onOpenChange={onClose}>
+      <SheetContent className="overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>Adicionar Nova Dívida</SheetTitle>
+          <SheetDescription>
+            Cadastre um novo empréstimo ou compra parcelada. As parcelas serão geradas automaticamente.
+          </SheetDescription>
+        </SheetHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4 space-y-6">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome da Dívida</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex: Financiamento do Carro" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="creditor"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Credor</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex: Banco XYZ" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="totalAmount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Valor Total (R$)</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="0,00" {...field} step="0.01" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="numberOfInstallments"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Número de Parcelas</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="12" {...field} step="1" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="startDate"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Data da Primeira Parcela</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={'outline'}
+                          className={cn(
+                            'w-full pl-3 text-left font-normal',
+                            !field.value && 'text-muted-foreground'
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, 'PPP', { locale: ptBR })
+                          ) : (
+                            <span>Escolha uma data</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        initialFocus
+                        locale={ptBR}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button
+              type="submit"
+              disabled={form.formState.isSubmitting || !user}
+              className="w-full"
+            >
+              {form.formState.isSubmitting && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Salvar Dívida e Gerar Parcelas
+            </Button>
+          </form>
+        </Form>
+      </SheetContent>
+    </Sheet>
+  );
+}

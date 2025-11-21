@@ -7,6 +7,7 @@ export type Transaction = {
   category: string; // e.g., 'Salary', 'Groceries'
   isRecurring: boolean;
   userId?: string;
+  recurringSourceId?: string;
 };
 
 export type Debt = {
@@ -15,7 +16,7 @@ export type Debt = {
   totalAmount: number;
   paidAmount: number;
   creditor: string;
-  installments: Installment[];
+  installments?: Installment[]; // This can be optional if we fetch them separately
   userId?: string;
 };
 
