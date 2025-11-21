@@ -1,6 +1,6 @@
 'use client';
 import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from '@/components/ui/sidebar';
-import { LayoutDashboard, Landmark, CreditCard, Banknote, DollarSign, Loader2 } from 'lucide-react';
+import { LayoutDashboard, Landmark, CreditCard, Banknote, DollarSign, Loader2, Target } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -15,6 +15,7 @@ const menuItems = [
   { href: '/income', label: 'Renda', icon: Landmark },
   { href: '/expenses', label: 'Despesas', icon: CreditCard },
   { href: '/debts', label: 'Dívidas', icon: Banknote },
+  { href: '/goals', label: 'Metas', icon: Target },
 ];
 
 export function AppSidebar() {

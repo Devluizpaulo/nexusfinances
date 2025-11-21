@@ -10,6 +10,7 @@ const getTitle = (pathname: string) => {
     if (pathname.startsWith('/income')) return 'Renda';
     if (pathname.startsWith('/expenses')) return 'Despesas';
     if (pathname.startsWith('/debts')) return 'Dívidas';
+    if (pathname.startsWith('/goals')) return 'Metas';
     return 'Nexus Finanças';
 }
 
