@@ -164,7 +164,7 @@ export function AddTransactionSheet({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
@@ -267,7 +267,7 @@ export function AddTransactionSheet({
               control={form.control}
               name="isRecurring"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg bg-muted p-3">
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border bg-muted p-3">
                   <div className="space-y-0.5">
                     <FormLabel>Recorrente</FormLabel>
                     <FormDescription>
