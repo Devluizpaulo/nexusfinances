@@ -110,13 +110,48 @@ export default function AdminDashboardPage() {
         <TabsContent value="support">
           <Card>
             <CardHeader>
-              <CardTitle>Tickets de Suporte</CardTitle>
+              <CardTitle>Tickets de Suporte & Chat</CardTitle>
               <CardDescription>
-                Gerencie as solicitações de suporte dos usuários.
+                Gerencie as solicitações e conversas com os usuários.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p>Funcionalidades de suporte serão implementadas aqui.</p>
+              <div className="prose prose-sm max-w-full text-foreground/80">
+                <p>A implementação de um sistema de suporte com tickets e chat requer uma arquitetura bem definida para funcionar de forma eficiente e segura.</p>
+                <p>
+                  Os próximos passos para implementar esta funcionalidade seriam:
+                </p>
+                <ol>
+                  <li>
+                    <strong>Modelagem de Dados no Firestore:</strong>
+                    <ul>
+                      <li>Criar uma coleção <code>/tickets</code> para armazenar os chamados. Cada documento teria o ID do usuário, o status (aberto, pendente, fechado), o assunto e a data de criação.</li>
+                      <li>Dentro de cada ticket, criar uma subcoleção <code>/messages</code> para armazenar a troca de mensagens entre o usuário e o suporte.</li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Lógica de Backend com Cloud Functions:</strong>
+                    <ul>
+                      <li>Criar uma função que é acionada quando um novo ticket é criado para notificar os administradores (via e-mail ou outro meio).</li>
+                      <li>Implementar uma função para ser acionada quando uma nova mensagem é adicionada a um ticket, notificando a outra parte (usuário ou admin).</li>
+                    </ul>
+                  </li>
+                   <li>
+                    <strong>Desenvolvimento da Interface:</strong>
+                    <ul>
+                        <li>Nesta aba, criar uma interface para você, administrador, visualizar a lista de tickets, filtrá-los por status e responder às mensagens.</li>
+                        <li>Na área do usuário (na página de Suporte já existente), criar a interface para que ele possa abrir um novo ticket e acompanhar o andamento dos seus chamados.</li>
+                    </ul>
+                  </li>
+                  <li>
+                    <strong>Atualizar Regras de Segurança:</strong>
+                    <ul>
+                        <li>Modificar o <code>firestore.rules</code> para garantir que um usuário só possa criar e visualizar seus próprios tickets, enquanto administradores possam acessar todos.</li>
+                    </ul>
+                  </li>
+                </ol>
+                <p>Essa abordagem cria um sistema de suporte escalável e seguro, separando as responsabilidades entre o cliente e o servidor.</p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
