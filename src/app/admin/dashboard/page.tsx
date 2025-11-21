@@ -109,11 +109,27 @@ export default function AdminDashboardPage() {
             <CardHeader>
               <CardTitle>Logs do Sistema</CardTitle>
               <CardDescription>
-                Atividades recentes e eventos do sistema.
+                Atividades recentes e eventos importantes do sistema.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p>Funcionalidades de logs serão implementadas aqui. Isso exigirá um sistema de backend para registrar eventos importantes, como logins, falhas e modificações de dados.</p>
+              <div className="prose prose-sm text-foreground/80">
+                <p>Uma funcionalidade de logs será implementada aqui.</p>
+                <p>
+                  Para um sistema de logs robusto, a melhor abordagem seria usar o{' '}
+                  <strong>Cloud Functions for Firebase</strong> para capturar eventos importantes, como:
+                </p>
+                <ul>
+                  <li>Novos cadastros de usuários.</li>
+                  <li>Logins bem-sucedidos e falhas de login.</li>
+                  <li>Modificações de dados críticos (ex: alteração de função de usuário).</li>
+                  <li>Exclusão de usuários ou outros dados importantes.</li>
+                </ul>
+                <p>
+                  Esses eventos seriam salvos em uma coleção separada no Firestore (ex: <code>/logs</code>)
+                  e então exibidos aqui nesta aba em tempo real para monitoramento.
+                </p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
