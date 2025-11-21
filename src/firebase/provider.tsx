@@ -2,7 +2,7 @@
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, setDoc, getDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { Firestore, doc, setDoc, getDoc, serverTimestamp, Timestamp, FieldValue } from 'firebase/firestore';
 import { FirebaseStorage } from 'firebase/storage';
 import { Auth, User, onAuthStateChanged, UserMetadata } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
@@ -11,9 +11,9 @@ import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 export interface AppUser extends Omit<User, 'metadata'> {
   firstName?: string;
   lastName?: string;
-  phoneNumber?: string;
+  phoneNumber?: string | null;
   role?: 'user' | 'superadmin';
-  registrationDate?: Timestamp | string;
+  registrationDate?: Timestamp | string | FieldValue;
   metadata: UserMetadata;
 }
 
