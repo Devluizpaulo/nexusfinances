@@ -3,19 +3,18 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useUser, useAuth } from '@/firebase';
+import { useUser, useAuth, useFirestore, useStorage } from '@/firebase';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { updateProfile, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,7 +25,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { Label } from '@/components/ui/label';
 
 
 const profileFormSchema = z.object({
@@ -50,9 +50,12 @@ export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
   const firestore = useFirestore();
+  const storage = useStorage();
   const { toast } = useToast();
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [passwordFormData, setPasswordFormData] = useState<PasswordFormValues | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -89,6 +92,56 @@ export default function ProfilePage() {
         title: 'Erro ao atualizar perfil',
         description: 'Não foi possível salvar as alterações. Tente novamente.',
       });
+    }
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user || !storage) return;
+
+    if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+      toast({
+        variant: 'destructive',
+        title: 'Formato de arquivo inválido',
+        description: 'Por favor, selecione um arquivo JPG, PNG ou GIF.',
+      });
+      return;
+    }
+     if (file.size > 1 * 1024 * 1024) { // 1MB limit
+      toast({
+        variant: 'destructive',
+        title: 'Arquivo muito grande',
+        description: 'A imagem deve ter no máximo 1MB.',
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    const storageRef = ref(storage, `profile-pictures/${user.uid}`);
+
+    try {
+      await uploadBytes(storageRef, file);
+      const photoURL = await getDownloadURL(storageRef);
+
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, { photoURL });
+      }
+      const userDocRef = doc(firestore, 'users', user.uid);
+      await updateDoc(userDocRef, { photoURL });
+      
+      toast({
+        title: 'Foto de perfil atualizada!',
+        description: 'Sua nova foto já está visível.',
+      });
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Erro no upload',
+        description: 'Não foi possível salvar sua foto de perfil. Tente novamente.',
+      });
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -186,7 +239,11 @@ export default function ProfilePage() {
                     <AvatarFallback>{user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <Button type="button" variant="outline" disabled>Mudar foto</Button>
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/png, image/jpeg, image/gif" hidden/>
+                    <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
+                        {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                        Mudar foto
+                    </Button>
                     <p className="text-xs text-muted-foreground mt-2">JPG, GIF ou PNG. 1MB max.</p>
                   </div>
                 </div>

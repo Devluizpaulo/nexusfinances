@@ -4,6 +4,8 @@ import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
+import { getStorage, type FirebaseStorage } from 'firebase/storage';
+
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase() {
@@ -35,10 +37,12 @@ export function initializeFirebase() {
 export function getSdks(firebaseApp: FirebaseApp) {
   const firestore = getFirestore(firebaseApp);
   const auth = getAuth(firebaseApp);
+  const storage = getStorage(firebaseApp);
   return {
     firebaseApp,
     auth,
     firestore,
+    storage,
   };
 }
 

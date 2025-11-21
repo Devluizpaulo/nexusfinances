@@ -19,6 +19,11 @@
           "description": "Email address of the user.",
           "format": "email"
         },
+        "photoURL": {
+          "type": "string",
+          "description": "URL of the user's profile picture.",
+          "format": "uri"
+        },
         "registrationDate": {
           "type": "string",
           "description": "Date and time the user registered.",
