@@ -8,7 +8,7 @@ import { Auth, User, onAuthStateChanged, UserMetadata } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 
 // Extends the default Firebase User type to include our custom fields
-export interface AppUser extends Omit<User, 'metadata'> {
+export interface AppUser extends Omit<User, 'metadata' | 'phoneNumber'> {
   firstName?: string;
   lastName?: string;
   phoneNumber?: string | null;
