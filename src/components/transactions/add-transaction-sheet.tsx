@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -87,6 +87,18 @@ export function AddTransactionSheet({
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
+
+  const allCategories = useMemo(() => {
+    const customCategories = transactionType === 'income' 
+      ? user?.customIncomeCategories 
+      : user?.customExpenseCategories;
+    
+    // Use a Set to ensure uniqueness
+    const combined = new Set([...categories, ...(customCategories || [])]);
+
+    return Array.from(combined);
+  }, [categories, user, transactionType]);
+
 
   useEffect(() => {
     if (isOpen && transaction) {
@@ -175,7 +187,7 @@ export function AddTransactionSheet({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {categories.map((category) => (
+                      {allCategories.map((category) => (
                         <SelectItem key={category} value={category}>
                           {category}
                         </SelectItem>

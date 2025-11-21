@@ -5,15 +5,15 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useUser, useAuth, useFirestore, useStorage } from '@/firebase';
 import { PageHeader } from '@/components/page-header';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus, Trash2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { updateProfile, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import {
   AlertDialog,
@@ -27,6 +27,9 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useState, useRef } from 'react';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { incomeCategories, expenseCategories } from '@/lib/types';
 
 
 const profileFormSchema = z.object({
@@ -58,6 +61,8 @@ export default function ProfilePage() {
   const [passwordFormData, setPasswordFormData] = useState<PasswordFormValues | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [newIncomeCategory, setNewIncomeCategory] = useState('');
+  const [newExpenseCategory, setNewExpenseCategory] = useState('');
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -84,10 +89,7 @@ export default function ProfilePage() {
     const displayName = `${firstName} ${lastName}`.trim();
     
     try {
-      // Update Auth profile
       await updateProfile(auth.currentUser, { displayName });
-      
-      // Update Firestore document
       const userDocRef = doc(firestore, 'users', user.uid);
       await updateDoc(userDocRef, { ...values, displayName });
 
@@ -110,19 +112,11 @@ export default function ProfilePage() {
     if (!file || !user || !storage) return;
 
     if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
-      toast({
-        variant: 'destructive',
-        title: 'Formato de arquivo inválido',
-        description: 'Por favor, selecione um arquivo JPG, PNG ou GIF.',
-      });
+      toast({ variant: 'destructive', title: 'Formato de arquivo inválido', description: 'Por favor, selecione um arquivo JPG, PNG ou GIF.' });
       return;
     }
      if (file.size > 1 * 1024 * 1024) { // 1MB limit
-      toast({
-        variant: 'destructive',
-        title: 'Arquivo muito grande',
-        description: 'A imagem deve ter no máximo 1MB.',
-      });
+      toast({ variant: 'destructive', title: 'Arquivo muito grande', description: 'A imagem deve ter no máximo 1MB.' });
       return;
     }
 
@@ -139,17 +133,10 @@ export default function ProfilePage() {
       const userDocRef = doc(firestore, 'users', user.uid);
       await updateDoc(userDocRef, { photoURL });
       
-      toast({
-        title: 'Foto de perfil atualizada!',
-        description: 'Sua nova foto já está visível.',
-      });
+      toast({ title: 'Foto de perfil atualizada!', description: 'Sua nova foto já está visível.' });
     } catch (error) {
       console.error('Error uploading profile picture:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Erro no upload',
-        description: 'Não foi possível salvar sua foto de perfil. Tente novamente.',
-      });
+      toast({ variant: 'destructive', title: 'Erro no upload', description: 'Não foi possível salvar sua foto de perfil. Tente novamente.' });
     } finally {
       setIsUploading(false);
     }
@@ -160,11 +147,7 @@ export default function ProfilePage() {
 
     const isGoogleUser = user.providerData.some(provider => provider.providerId === 'google.com');
     if (isGoogleUser) {
-        toast({
-            variant: "destructive",
-            title: "Ação não permitida",
-            description: "Você não pode alterar a senha de uma conta logada com o Google.",
-        });
+        toast({ variant: "destructive", title: "Ação não permitida", description: "Você não pode alterar a senha de uma conta logada com o Google." });
         return;
     }
      
@@ -180,13 +163,9 @@ export default function ProfilePage() {
     try {
         const credential = EmailAuthProvider.credential(auth.currentUser.email, passwordFormData.currentPassword);
         await reauthenticateWithCredential(auth.currentUser, credential);
-        
         await updatePassword(auth.currentUser, passwordFormData.newPassword);
         
-        toast({
-            title: "Senha alterada!",
-            description: "Sua senha foi atualizada com sucesso.",
-        });
+        toast({ title: "Senha alterada!", description: "Sua senha foi atualizada com sucesso." });
         passwordForm.reset();
 
     } catch (error: any) {
@@ -195,14 +174,48 @@ export default function ProfilePage() {
             description = 'A senha atual está incorreta. Tente novamente.';
         }
         console.error("Password change error:", error);
-        toast({
-            variant: "destructive",
-            title: "Erro ao alterar senha",
-            description,
-        });
+        toast({ variant: "destructive", title: "Erro ao alterar senha", description });
     }
     setPasswordFormData(null);
   }
+
+  const handleAddCategory = async (type: 'income' | 'expense') => {
+    const category = type === 'income' ? newIncomeCategory : newExpenseCategory;
+    if (!user || !firestore || !category.trim()) return;
+
+    const fieldToUpdate = type === 'income' ? 'customIncomeCategories' : 'customExpenseCategories';
+    const userDocRef = doc(firestore, 'users', user.uid);
+
+    try {
+      await updateDoc(userDocRef, {
+        [fieldToUpdate]: arrayUnion(category.trim())
+      });
+      toast({ title: 'Categoria Adicionada!', description: `"${category.trim()}" foi adicionada.` });
+      if (type === 'income') setNewIncomeCategory('');
+      else setNewExpenseCategory('');
+    } catch (error) {
+      console.error(error);
+      toast({ variant: "destructive", title: "Erro", description: "Não foi possível adicionar a categoria." });
+    }
+  };
+
+  const handleRemoveCategory = async (type: 'income' | 'expense', category: string) => {
+    if (!user || !firestore) return;
+
+    const fieldToUpdate = type === 'income' ? 'customIncomeCategories' : 'customExpenseCategories';
+    const userDocRef = doc(firestore, 'users', user.uid);
+
+    try {
+      await updateDoc(userDocRef, {
+        [fieldToUpdate]: arrayRemove(category)
+      });
+      toast({ title: 'Categoria Removida!', description: `"${category}" foi removida.` });
+    } catch (error) {
+      console.error(error);
+      toast({ variant: "destructive", title: "Erro", description: "Não foi possível remover a categoria." });
+    }
+  };
+
 
   if (isUserLoading) {
     return (
@@ -313,6 +326,71 @@ export default function ProfilePage() {
 
         <Card>
           <CardHeader>
+            <CardTitle>Gerenciar Categorias</CardTitle>
+            <CardDescription>Adicione ou remova categorias de renda e despesa.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-4">
+              <h3 className="font-medium">Categorias de Renda</h3>
+              <div className="flex items-center gap-2">
+                <Input value={newIncomeCategory} onChange={(e) => setNewIncomeCategory(e.target.value)} placeholder="Nova categoria de renda" />
+                <Button onClick={() => handleAddCategory('income')} size="icon" disabled={!newIncomeCategory.trim()}><Plus className="h-4 w-4" /></Button>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">Categorias Padrão</p>
+                <div className="flex flex-wrap gap-2">
+                  {incomeCategories.map(cat => <Badge key={cat} variant="secondary">{cat}</Badge>)}
+                </div>
+              </div>
+              <Separator />
+               <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">Suas Categorias</p>
+                <div className="flex flex-wrap gap-2">
+                  {user?.customIncomeCategories?.map(cat => (
+                    <Badge key={cat} variant="outline" className="group">
+                      {cat}
+                      <button onClick={() => handleRemoveCategory('income', cat)} className="ml-2 opacity-50 group-hover:opacity-100 transition-opacity">
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                  {(user?.customIncomeCategories?.length || 0) === 0 && <p className="text-xs text-muted-foreground">Nenhuma categoria personalizada.</p>}
+                </div>
+              </div>
+            </div>
+             <div className="space-y-4">
+              <h3 className="font-medium">Categorias de Despesa</h3>
+               <div className="flex items-center gap-2">
+                <Input value={newExpenseCategory} onChange={(e) => setNewExpenseCategory(e.target.value)} placeholder="Nova categoria de despesa" />
+                <Button onClick={() => handleAddCategory('expense')} size="icon" disabled={!newExpenseCategory.trim()}><Plus className="h-4 w-4" /></Button>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">Categorias Padrão</p>
+                <div className="flex flex-wrap gap-2">
+                  {expenseCategories.map(cat => <Badge key={cat} variant="secondary">{cat}</Badge>)}
+                </div>
+              </div>
+              <Separator />
+               <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">Suas Categorias</p>
+                <div className="flex flex-wrap gap-2">
+                  {user?.customExpenseCategories?.map(cat => (
+                    <Badge key={cat} variant="outline" className="group">
+                      {cat}
+                       <button onClick={() => handleRemoveCategory('expense', cat)} className="ml-2 opacity-50 group-hover:opacity-100 transition-opacity">
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                   {(user?.customExpenseCategories?.length || 0) === 0 && <p className="text-xs text-muted-foreground">Nenhuma categoria personalizada.</p>}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Segurança</CardTitle>
             <CardDescription>Altere sua senha.</CardDescription>
              {isGoogleUser && (
@@ -375,5 +453,3 @@ export default function ProfilePage() {
     </>
   );
 }
-
-    

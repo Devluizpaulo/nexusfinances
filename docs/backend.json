@@ -48,6 +48,20 @@
             "user",
             "superadmin"
           ]
+        },
+        "customIncomeCategories": {
+            "type": "array",
+            "description": "Custom income categories defined by the user.",
+            "items": {
+                "type": "string"
+            }
+        },
+        "customExpenseCategories": {
+            "type": "array",
+            "description": "Custom expense categories defined by the user.",
+            "items": {
+                "type": "string"
+            }
         }
       },
       "required": [

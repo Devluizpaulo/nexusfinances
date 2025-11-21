@@ -15,6 +15,8 @@ export interface AppUser extends Omit<User, 'metadata' | 'phoneNumber'> {
   role?: 'user' | 'superadmin';
   registrationDate?: Timestamp | string | FieldValue;
   metadata: UserMetadata;
+  customIncomeCategories?: string[];
+  customExpenseCategories?: string[];
 }
 
 // Internal state for user authentication, using our extended AppUser
@@ -92,7 +94,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
           const userDocRef = doc(firestore, 'users', firebaseUser.uid);
           const userDocSnap = await getDoc(userDocRef);
 
-          let appUser: AppUser = { ...firebaseUser };
+          let appUser: AppUser = { ...firebaseUser, phoneNumber: firebaseUser.phoneNumber };
 
           if (userDocSnap.exists()) {
             const firestoreData = userDocSnap.data();
@@ -103,6 +105,8 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
               phoneNumber: firestoreData.phoneNumber,
               role: firestoreData.role,
               registrationDate: firestoreData.registrationDate,
+              customIncomeCategories: firestoreData.customIncomeCategories,
+              customExpenseCategories: firestoreData.customExpenseCategories,
             };
           } else {
             const nameParts = (firebaseUser.displayName || firebaseUser.email || '').split(' ');
