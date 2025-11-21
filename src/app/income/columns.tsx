@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { format } from "date-fns"
 import { ptBR } from 'date-fns/locale';
 import { Badge } from "@/components/ui/badge";
+import { DataTableRowActions } from "@/app/expenses/actions"
 
 export const columns: ColumnDef<Transaction>[] = [
   {
@@ -60,5 +61,9 @@ export const columns: ColumnDef<Transaction>[] = [
 
       return <div className="text-right font-medium">{formatted}</div>
     },
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => <DataTableRowActions row={row} transactionType="income" />,
   },
 ]

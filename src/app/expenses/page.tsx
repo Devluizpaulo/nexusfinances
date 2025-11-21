@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { collection, query, where, orderBy } from 'firebase/firestore';
+import { useState } from 'react';
+import { collection, query, orderBy } from 'firebase/firestore';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { DataTable } from '@/components/data-table/data-table';
 import { columns } from './columns';
