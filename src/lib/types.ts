@@ -1,0 +1,52 @@
+export type Transaction = {
+  id: string;
+  type: 'income' | 'expense';
+  amount: number;
+  date: string; // ISO string
+  description: string;
+  category: string; // e.g., 'Salary', 'Groceries'
+  isRecurring: boolean;
+};
+
+export type Debt = {
+  id: string;
+  name: string;
+  totalAmount: number;
+  paidAmount: number;
+  creditor: string;
+  installments: Installment[];
+};
+
+export type Installment = {
+  id: string;
+  debtId: string;
+  installmentNumber: number;
+  amount: number;
+  dueDate: string; // ISO string
+  status: 'paid' | 'unpaid';
+};
+
+export const expenseCategories = [
+  'Groceries',
+  'Utilities',
+  'Rent/Mortgage',
+  'Transportation',
+  'Entertainment',
+  'Healthcare',
+  'Subscriptions',
+  'Shopping',
+  'Other',
+] as const;
+
+export type ExpenseCategory = typeof expenseCategories[number];
+
+export const incomeCategories = [
+  'Salary',
+  'Freelance',
+  'Commission',
+  'Investment',
+  'Gift',
+  'Other',
+] as const;
+
+export type IncomeCategory = typeof incomeCategories[number];
