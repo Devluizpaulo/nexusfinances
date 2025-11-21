@@ -24,14 +24,15 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
+import { format, isPast, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, orderBy, doc, updateDoc, writeBatch } from 'firebase/firestore';
+import { collection, query, orderBy, doc, writeBatch } from 'firebase/firestore';
 import type { Debt, Installment } from '@/lib/types';
 import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Check } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('pt-BR', {
@@ -90,12 +91,22 @@ export function DebtCard({ debt }: DebtCardProps) {
     }
   };
 
+  const getInstallmentStatus = (installment: Installment) => {
+    if (installment.status === 'paid') {
+      return { text: 'Pago', variant: 'paid' };
+    }
+    if (isPast(parseISO(installment.dueDate))) {
+      return { text: 'Vencida', variant: 'overdue' };
+    }
+    return { text: 'Pendente', variant: 'unpaid' };
+  };
+
   const paidAmount = debt.paidAmount || 0;
   const progress = (paidAmount / debt.totalAmount) * 100;
   const isPaid = paidAmount >= debt.totalAmount;
 
   return (
-    <Card className={isPaid ? 'border-green-300 bg-green-50/50' : ''}>
+    <Card className={cn(isPaid ? 'border-green-300 bg-green-50/50' : '')}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>{debt.name}</CardTitle>
@@ -136,39 +147,42 @@ export function DebtCard({ debt }: DebtCardProps) {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {(installmentsData || []).map((installment) => (
-                      <TableRow key={installment.id}>
-                        <TableCell>{installment.installmentNumber}</TableCell>
-                        <TableCell>
-                          {format(new Date(installment.dueDate), 'PPP', { locale: ptBR })}
-                        </TableCell>
-                        <TableCell>{formatCurrency(installment.amount)}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={installment.status === 'paid' ? 'secondary' : 'default'}
-                            className={
-                              installment.status === 'paid'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-red-100 text-red-800'
-                            }
-                          >
-                            {installment.status === 'paid' ? 'pago' : 'não pago'}
-                          </Badge>
-                        </TableCell>
-                         <TableCell className="text-right">
-                          {installment.status === 'unpaid' && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handlePayInstallment(installment)}
+                    {(installmentsData || []).map((installment) => {
+                      const status = getInstallmentStatus(installment);
+                      return (
+                        <TableRow key={installment.id}>
+                          <TableCell>{installment.installmentNumber}</TableCell>
+                          <TableCell>
+                            {format(parseISO(installment.dueDate), 'PPP', { locale: ptBR })}
+                          </TableCell>
+                          <TableCell>{formatCurrency(installment.amount)}</TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={status.variant === 'paid' ? 'secondary' : 'default'}
+                              className={cn({
+                                'bg-green-100 text-green-800': status.variant === 'paid',
+                                'bg-yellow-100 text-yellow-800': status.variant === 'unpaid',
+                                'bg-red-100 text-red-800 font-semibold': status.variant === 'overdue',
+                              })}
                             >
-                              <Check className="mr-2 h-4 w-4" />
-                              Pagar
-                            </Button>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                              {status.text}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {installment.status === 'unpaid' && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handlePayInstallment(installment)}
+                              >
+                                <Check className="mr-2 h-4 w-4" />
+                                Pagar
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </AccordionContent>

@@ -26,7 +26,7 @@ export type Installment = {
   installmentNumber: number;
   amount: number;
   dueDate: string; // ISO string
-  status: 'paid' | 'unpaid';
+  status: 'paid' | 'unpaid' | 'overdue';
 };
 
 export const expenseCategories = [

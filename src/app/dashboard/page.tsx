@@ -11,6 +11,7 @@ import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebas
 import { collection, query } from 'firebase/firestore';
 import type { Transaction, Debt } from '@/lib/types';
 import { useManageRecurrences } from '@/hooks/useManageRecurrences';
+import { OverdueDebtsCard } from '@/components/dashboard/overdue-debts-card';
 
 export default function DashboardPage() {
   const firestore = useFirestore();
@@ -87,6 +88,8 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+       <OverdueDebtsCard debts={debtData || []} />
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           title="Renda Total"
