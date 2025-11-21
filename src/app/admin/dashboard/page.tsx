@@ -69,15 +69,14 @@ export default function AdminDashboardPage() {
         description="Gerencie usuários, visualize estatísticas e configure o sistema."
       />
       <Tabs defaultValue="overview">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
           <TabsTrigger value="users">Usuários</TabsTrigger>
           <TabsTrigger value="logs">Logs</TabsTrigger>
           <TabsTrigger value="support">Suporte</TabsTrigger>
-          <TabsTrigger value="monetization">Monetização</TabsTrigger>
         </TabsList>
         <TabsContent value="overview">
-           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+           <div className="grid gap-4 md:grid-cols-2">
               <KpiCard
                 title="Total de Usuários"
                 value={formatNumber(totalUsers)}
@@ -89,18 +88,6 @@ export default function AdminDashboardPage() {
                 value={`+${formatNumber(newUsersLast30Days)}`}
                 icon={UserPlus}
                 description="Novos usuários nos últimos 30 dias."
-              />
-              <KpiCard
-                title="Receita (Placeholder)"
-                value="R$ 0,00"
-                icon={DollarSign}
-                description="Receita total gerada (funcionalidade futura)."
-              />
-              <KpiCard
-                title="Usuários Ativos (Placeholder)"
-                value="0"
-                icon={Activity}
-                description="Usuários ativos na última semana (funcionalidade futura)."
               />
             </div>
         </TabsContent>
