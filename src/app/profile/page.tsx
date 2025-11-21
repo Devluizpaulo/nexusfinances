@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
@@ -72,7 +73,9 @@ export default function ProfilePage() {
   const onProfileSubmit = async (values: ProfileFormValues) => {
     if (!user || !firestore) return;
     try {
-      await updateProfile(user, { displayName: values.displayName });
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, { displayName: values.displayName });
+      }
       const userDocRef = doc(firestore, 'users', user.uid);
       await updateDoc(userDocRef, { displayName: values.displayName });
       toast({
@@ -107,15 +110,15 @@ export default function ProfilePage() {
   };
   
   const handleConfirmPasswordChange = async () => {
-    if (!auth || !user || !user.email || !passwordFormData) return;
+    if (!auth || !auth.currentUser || !auth.currentUser.email || !passwordFormData) return;
     
     setIsPasswordDialogOpen(false);
     
     try {
-        const credential = EmailAuthProvider.credential(user.email, passwordFormData.currentPassword);
-        await reauthenticateWithCredential(user, credential);
+        const credential = EmailAuthProvider.credential(auth.currentUser.email, passwordFormData.currentPassword);
+        await reauthenticateWithCredential(auth.currentUser, credential);
         
-        await updatePassword(user, passwordFormData.newPassword);
+        await updatePassword(auth.currentUser, passwordFormData.newPassword);
         
         toast({
             title: "Senha alterada!",
