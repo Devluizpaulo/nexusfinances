@@ -7,14 +7,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useUser } from '@/firebase';
-import { Info, Mail, MessageSquare } from 'lucide-react';
+import { Mail, MessageSquare } from 'lucide-react';
+import { Faq } from '@/components/support/faq';
 
 export default function SupportPage() {
   const { user } = useUser();
 
   return (
     <>
-      <PageHeader title="Suporte" description="Precisa de ajuda? Entre em contato conosco." />
+      <PageHeader title="Suporte & FAQ" description="Precisa de ajuda? Encontre respostas ou entre em contato conosco." />
       <div className="grid gap-8 md:grid-cols-2">
         <Card>
           <CardHeader>
@@ -69,16 +70,11 @@ export default function SupportPage() {
                 <Button variant="outline" className="mt-2">Iniciar Chat</Button>
               </div>
             </div>
-             <div className="flex items-start gap-4 rounded-md border p-4">
-              <Info className="mt-1 h-5 w-5 shrink-0 text-primary" />
-              <div>
-                <h3 className="font-semibold">Base de Conhecimento</h3>
-                <p className="text-sm text-muted-foreground">Encontre respostas para as perguntas mais frequentes.</p>
-                 <Button variant="outline" className="mt-2">Acessar FAQ</Button>
-              </div>
-            </div>
           </CardContent>
         </Card>
+      </div>
+      <div className="mt-8">
+        <Faq />
       </div>
     </>
   );
