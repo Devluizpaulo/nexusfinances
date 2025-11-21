@@ -37,9 +37,10 @@ const formatCurrency = (amount: number) => {
 
 interface GoalCardProps {
   goal: Goal;
+  onAddContribution: (goal: Goal) => void;
 }
 
-export function GoalCard({ goal }: GoalCardProps) {
+export function GoalCard({ goal, onAddContribution }: GoalCardProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const firestore = useFirestore();
   const { user } = useUser();
@@ -118,7 +119,7 @@ export function GoalCard({ goal }: GoalCardProps) {
           </div>
         </CardContent>
         <CardFooter>
-            <Button variant="outline" className="w-full" disabled>
+            <Button variant="outline" className="w-full" onClick={() => onAddContribution(goal)} disabled={isCompleted}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Adicionar Aporte
             </Button>

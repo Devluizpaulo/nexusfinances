@@ -9,9 +9,13 @@ import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebas
 import type { Goal } from '@/lib/types';
 import { AddGoalSheet } from '@/components/goals/add-goal-sheet';
 import { GoalCard } from '@/components/goals/goal-card';
+import { AddContributionSheet } from '@/components/goals/add-contribution-sheet';
 
 export default function GoalsPage() {
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isAddGoalSheetOpen, setIsAddGoalSheetOpen] = useState(false);
+  const [isAddContributionSheetOpen, setIsAddContributionSheetOpen] = useState(false);
+  const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
+
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
 
@@ -22,6 +26,11 @@ export default function GoalsPage() {
 
   const { data: goalData, isLoading: isGoalsLoading } = useCollection<Goal>(goalsQuery);
   
+  const handleOpenContributionSheet = (goal: Goal) => {
+    setSelectedGoal(goal);
+    setIsAddContributionSheetOpen(true);
+  };
+
   const isLoading = isUserLoading || isGoalsLoading;
 
   if (isLoading) {
@@ -34,16 +43,17 @@ export default function GoalsPage() {
   
   return (
     <>
-      <AddGoalSheet isOpen={isSheetOpen} onClose={() => setIsSheetOpen(false)} />
+      <AddGoalSheet isOpen={isAddGoalSheetOpen} onClose={() => setIsAddGoalSheetOpen(false)} />
+      <AddContributionSheet isOpen={isAddContributionSheetOpen} onClose={() => setIsAddContributionSheetOpen(false)} goal={selectedGoal} />
       <PageHeader title="Metas Financeiras" description="Defina e acompanhe sua reserva de emergência e metas de investimento.">
-        <Button onClick={() => setIsSheetOpen(true)} disabled={!user}>
+        <Button onClick={() => setIsAddGoalSheetOpen(true)} disabled={!user}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Adicionar Meta
         </Button>
       </PageHeader>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {(goalData || []).map((goal) => (
-          <GoalCard key={goal.id} goal={goal} />
+          <GoalCard key={goal.id} goal={goal} onAddContribution={handleOpenContributionSheet} />
         ))}
       </div>
        {(!goalData || goalData.length === 0) && !isLoading && (
@@ -52,7 +62,7 @@ export default function GoalsPage() {
             <p className="mt-2 text-sm text-muted-foreground">
               Comece adicionando uma nova meta para ver seu progresso aqui.
             </p>
-            <Button className="mt-4" onClick={() => setIsSheetOpen(true)}>
+            <Button className="mt-4" onClick={() => setIsAddGoalSheetOpen(true)}>
               <PlusCircle className="mr-2 h-4 w-4" />
               Adicionar Primeira Meta
             </Button>
