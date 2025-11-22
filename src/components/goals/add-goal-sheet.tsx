@@ -25,6 +25,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { CurrencyInput } from '../ui/currency-input';
 
 const formSchema = z.object({
   name: z.string().min(1, 'O nome da meta é obrigatório.'),
@@ -122,7 +123,10 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
                 <FormItem>
                   <FormLabel>Valor Alvo (R$)</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="10000,00" {...field} step="0.01" />
+                    <CurrencyInput
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -135,7 +139,10 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
                 <FormItem>
                   <FormLabel>Valor Inicial (R$)</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="0,00" {...field} step="0.01" />
+                     <CurrencyInput
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    />
                   </FormControl>
                   <FormDescription>
                     Quanto você já tem guardado para esta meta?

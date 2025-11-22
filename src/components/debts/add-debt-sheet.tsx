@@ -35,6 +35,7 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { CurrencyInput } from '../ui/currency-input';
 
 const formSchema = z.object({
   name: z.string().min(1, 'O nome da dívida é obrigatório.'),
@@ -174,7 +175,10 @@ export function AddDebtSheet({ isOpen, onClose }: AddDebtSheetProps) {
                 <FormItem>
                   <FormLabel>Valor Total (R$)</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="0,00" {...field} step="0.01" />
+                    <CurrencyInput
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

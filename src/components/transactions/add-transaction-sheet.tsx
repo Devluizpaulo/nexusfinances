@@ -25,7 +25,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -45,6 +44,7 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import type { Transaction } from '@/lib/types';
 import { Textarea } from '../ui/textarea';
+import { CurrencyInput } from '../ui/currency-input';
 
 const formSchema = z.object({
   category: z.string().min(1, 'A categoria é obrigatória.'),
@@ -171,7 +171,7 @@ export function AddTransactionSheet({
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4 space-y-4">
-            <FormField
+             <FormField
               control={form.control}
               name="category"
               render={({ field }) => (
@@ -205,7 +205,10 @@ export function AddTransactionSheet({
                 <FormItem>
                   <FormLabel>Valor (R$)</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="0,00" {...field} step="0.01" />
+                    <CurrencyInput
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

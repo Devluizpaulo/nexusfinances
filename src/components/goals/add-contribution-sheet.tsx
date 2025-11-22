@@ -21,11 +21,11 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect } from 'react';
+import { CurrencyInput } from '../ui/currency-input';
 
 const formSchema = z.object({
   amount: z.coerce.number().positive('O valor do aporte deve ser positivo.'),
@@ -110,7 +110,10 @@ export function AddContributionSheet({ isOpen, onClose, goal }: AddContributionS
                 <FormItem>
                   <FormLabel>Valor do Aporte (R$)</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="100,00" {...field} step="0.01" />
+                    <CurrencyInput
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
