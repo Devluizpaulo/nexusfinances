@@ -33,6 +33,8 @@ export type Installment = {
 export type Goal = {
   id: string;
   name: string;
+  description?: string;
+  category: string;
   targetAmount: number;
   currentAmount: number;
   targetDate?: string; // ISO string, optional
@@ -72,4 +74,16 @@ export const incomeCategories = [
 ] as const;
 
 export type IncomeCategory = typeof incomeCategories[number];
-    
+
+export const goalCategories = [
+    'Reserva de Emergência',
+    'Viagem',
+    'Carro',
+    'Casa',
+    'Eletrônicos',
+    'Educação',
+    'Aposentadoria',
+    'Outros'
+] as const;
+
+export type GoalCategory = typeof goalCategories[number];

@@ -24,9 +24,12 @@ import { useFirestore, useUser, deleteDocumentNonBlocking } from '@/firebase';
 import type { Goal } from '@/lib/types';
 import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2 } from 'lucide-react';
+import { PlusCircle, Trash2, Calendar, Tag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { doc } from 'firebase/firestore';
+import { format, parseISO } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Badge } from '../ui/badge';
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('pt-BR', {
@@ -87,19 +90,27 @@ export function GoalCard({ goal, onAddContribution }: GoalCardProps) {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Card className={cn("flex flex-col", isCompleted ? 'border-green-300 bg-green-50/50' : '')}>
+      <Card className={cn("flex flex-col", isCompleted ? 'border-green-300 bg-green-50/50 dark:border-green-800 dark:bg-green-900/20' : '')}>
         <CardHeader>
           <div className="flex items-start justify-between">
             <div>
               <CardTitle>{goal.name}</CardTitle>
-              {isCompleted && (
-                <CardDescription className="font-semibold text-green-600">Objetivo Atingido!</CardDescription>
-              )}
+              {isCompleted ? (
+                <CardDescription className="font-semibold text-green-600 dark:text-green-400">Objetivo Atingido!</CardDescription>
+              ) : goal.targetDate ? (
+                 <div className="flex items-center text-xs text-muted-foreground mt-1">
+                    <Calendar className="mr-1.5 h-3 w-3" />
+                    <span>{`Até ${format(parseISO(goal.targetDate), 'PPP', { locale: ptBR })}`}</span>
+                 </div>
+              ) : null}
             </div>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsDeleteDialogOpen(true)}>
-                <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                <span className="sr-only">Excluir Item</span>
-            </Button>
+            <div className="flex items-center gap-1">
+              {goal.category && <Badge variant="secondary">{goal.category}</Badge>}
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsDeleteDialogOpen(true)}>
+                  <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                  <span className="sr-only">Excluir Item</span>
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="flex-grow">
@@ -128,4 +139,3 @@ export function GoalCard({ goal, onAddContribution }: GoalCardProps) {
     </>
   );
 }
-    
