@@ -6,7 +6,7 @@ import { educationTracks, journeyLevels } from '@/lib/education-data';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '../ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
-import { Button } from '../ui/button';
+import { Button, buttonVariants } from '../ui/button';
 import Link from 'next/link';
 
 export function EducationLevelBadge() {
