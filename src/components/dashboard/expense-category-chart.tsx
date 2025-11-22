@@ -21,10 +21,16 @@ import type { Transaction } from '@/lib/types';
 import * as React from 'react';
 import { useMemo } from 'react';
 
+type ChartDataItem = {
+  name: string;
+  value: number;
+  percentage: string;
+};
+
 export function ExpenseCategoryChart({ transactions }: { transactions: Transaction[] }) {
   const { chartData, chartConfig } = useMemo(() => {
     if (!transactions || transactions.length === 0) {
-      return { chartData: [], chartConfig: {} };
+      return { chartData: [] as ChartDataItem[], chartConfig: {} as ChartConfig };
     }
 
     const expenseByCat = transactions
@@ -36,17 +42,16 @@ export function ExpenseCategoryChart({ transactions }: { transactions: Transacti
         acc[t.category] += t.amount;
         return acc;
       }, {} as Record<string, number>);
-
+      
     const total = Object.values(expenseByCat).reduce((sum, amount) => sum + amount, 0);
-    
-    const chartData = Object.entries(expenseByCat).map(([category, amount]) => ({
+
+    const data: ChartDataItem[] = Object.entries(expenseByCat).map(([category, amount]) => ({
         name: category,
         value: amount,
-        percentage: total > 0 ? ((amount / total) * 100).toFixed(0) : 0,
+        percentage: total > 0 ? ((amount / total) * 100).toFixed(0) : '0',
     }));
 
-
-    const config: ChartConfig = chartData.reduce((acc, item, index) => {
+    const config: ChartConfig = data.reduce((acc, item, index) => {
       const palette = [
         'hsl(var(--chart-1))',
         'hsl(var(--chart-2))',
@@ -61,7 +66,7 @@ export function ExpenseCategoryChart({ transactions }: { transactions: Transacti
       return acc;
     }, {} as ChartConfig);
 
-    return { chartData, chartConfig };
+    return { chartData: data, chartConfig: config };
   }, [transactions]);
 
 
@@ -122,5 +127,3 @@ export function ExpenseCategoryChart({ transactions }: { transactions: Transacti
     </Card>
   );
 }
-
-
