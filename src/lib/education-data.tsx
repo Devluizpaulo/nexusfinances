@@ -93,11 +93,12 @@ export const calculateScore = (income: number, expenses: number, debts: Debt[], 
     
     const totalDebtAmount = debts.reduce((sum, d) => sum + d.totalAmount, 0);
     const totalPaidAmount = debts.reduce((sum, d) => sum + (d.paidAmount || 0), 0);
-    const debtProgress = totalDebtAmount > 0 ? totalPaidAmount / totalDebtAmount : 1;
+    // Only consider debt progress if there are debts
+    const debtProgress = totalDebtAmount > 0 ? totalPaidAmount / totalDebtAmount : 0;
     const mission3 = {
       id: 'm3',
       description: `Pagar mais de 50% do total de dívidas (${(debtProgress * 100).toFixed(0)}% pago)`,
-      isCompleted: debtProgress > 0.5,
+      isCompleted: totalDebtAmount > 0 && debtProgress > 0.5,
       points: 25,
     };
     maxScore += mission3.points;
