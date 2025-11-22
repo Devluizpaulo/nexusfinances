@@ -124,16 +124,16 @@ export const educationTracks: EducationTrack[] = [
         title: 'Entendendo sua Mente: Por que evitamos olhar?',
         points: [
           {
-            title: '**Dinheiro é 80% comportamento.** Suas decisões são movidas por emoções, não por planilhas.',
-            details: 'Lidar com dinheiro é lidar com comportamento. É sobre as emoções, os impulsos e as crenças que guiam suas decisões no piloto automático.\n\nSua relação com as finanças não depende de ser um gênio da matemática, mas sim de reconhecer seus próprios gatilhos emocionais. Quando você entende por que compra para aliviar o estresse ou por que adia olhar o extrato por medo, o peso da culpa diminui. E a mudança começa.\n\nEducar-se financeiramente é, antes de tudo, autoconhecimento. É aprender a identificar o momento exato do impulso, diferenciar uma necessidade real de uma carência emocional e transformar um “preciso ter agora” em “posso decidir com calma”.\n\nQuando você domina seus comportamentos, os números finalmente começam a fazer sentido. A saúde financeira vira consequência, não esforço. Você recupera o controle, ganha liberdade e o dinheiro volta a ser uma ferramenta — não um inimigo.'
+            title: '**Dinheiro é 80% comportamento, 20% matemática.**',
+            details: `Falar de finanças quase nunca é falar de números. É falar de *emoções*, *impulsos*, crenças da infância e hábitos que repetimos no piloto automático.\n\nA maior parte das decisões que tomamos com dinheiro nasce muito antes de pegar a calculadora: nasce quando sentimos ansiedade, tédio, medo de perder algo ou vontade de compensar um dia ruim.\n\nPerceber isso muda tudo.\n\nQuando você entende que sua relação com o dinheiro não depende de ser um gênio da matemática, mas de reconhecer seus próprios gatilhos, o peso da culpa diminui. E a mudança começa.\n\nEducar-se financeiramente é, antes de tudo, autoconhecimento. É aprender a identificar o momento exato do impulso, diferenciar necessidade de carência e transformar “preciso comprar agora” em “posso decidir com calma”.\n\nQuando você domina seus comportamentos, os números finalmente fazem sentido. E a saúde financeira vira consequência, não esforço.`
           },
           {
-            title: '**Não existe "certo ou errado", só o "próximo passo":** A comparação com outras pessoas é paralisante. Sua jornada é única.',
-            details: 'A vida financeira do seu amigo, do seu vizinho ou de um influenciador não é a sua. Cada pessoa tem um contexto, uma história e desafios diferentes. O objetivo aqui não é julgar seu passado ou se comparar, mas sim iluminar o caminho para a *sua* próxima decisão, por menor que ela seja. O que importa é o movimento.'
+            title: '**O "próximo passo" é mais importante que a perfeição.**',
+            details: 'A vida financeira de outras pessoas não é a sua. Cada um tem uma história, um contexto e desafios únicos. Comparar-se com os outros só serve para paralisar.\n\nO objetivo aqui não é julgar seu passado ou se medir pela régua de ninguém, mas sim iluminar o caminho para a *sua próxima pequena decisão*. O que importa é o movimento, não a velocidade.'
           },
           {
-            title: '**Culpa paralisa, contexto liberta:** Sentir culpa por dívidas ou gastos passados nos impede de agir.',
-            details: 'A culpa nos prende ao passado e consome a energia que precisamos para construir o futuro. Em vez de se culpar, olhe para o "contexto": o que estava acontecendo na sua vida quando aquela dívida surgiu? Foi uma emergência? Um momento de vulnerabilidade? Transformar culpa em aprendizado é o que nos coloca em movimento.'
+            title: '**A culpa paralisa. O contexto liberta.**',
+            details: 'Sentir culpa por dívidas ou gastos passados nos prende ao passado e consome a energia que precisamos para construir o futuro.\n\nEm vez de se culpar, olhe para o "contexto": o que estava acontecendo na sua vida quando aquela dívida surgiu? Foi uma emergência? Um momento de vulnerabilidade? Transformar culpa em aprendizado é o que nos coloca de volta no controle.'
           }
         ]
       },
@@ -143,21 +143,21 @@ export const educationTracks: EducationTrack[] = [
           {
             title: 'Reconte a História das suas Dívidas',
             description: 'Para cada dívida que você cadastrar, escreva a sua história.',
-            details: 'Para cada dívida que você cadastrar, pare e pense: por que ela surgiu? Foi uma emergência, um impulso, uma necessidade? Como você se sentiu ao fazê-la? Escrever essa pequena história transforma números frios em narrativas de vida, e isso te dá poder e clareza sobre seus próprios padrões.'
+            details: 'Ao cadastrar uma dívida, pare e pense: por que ela surgiu? Foi uma emergência, um impulso, uma necessidade? Como você se sentiu ao fazê-la? Escrever essa pequena história transforma números frios em narrativas de vida, e isso te dá poder e clareza sobre seus próprios padrões.'
           },
           {
             title: 'O Mapa Emocional do seu Dinheiro',
             description: 'Ao olhar seu extrato ou suas metas, anote as emoções que surgem.',
-            details: 'Ao olhar seu extrato, sua fatura do cartão ou suas metas, quais emoções surgem? Ansiedade? Esperança? Medo? Vergonha? Anote. Criar esse "mapa emocional" ajuda a identificar quais áreas da sua vida financeira precisam de mais atenção e carinho. Ele será sua bússola.'
+            details: 'Abra seu extrato, a fatura do cartão ou suas metas. O que você sente? Ansiedade? Esperança? Medo? Vergonha? Anote. Criar esse "mapa emocional" ajuda a identificar quais áreas da sua vida financeira precisam de mais atenção e cuidado. Ele será sua bússola.'
           }
         ]
       },
       microHabits: {
         title: 'Micro-hábitos: Pequenas Vitórias Diárias',
         habits: [
-          '**Olhar o saldo da conta 1x por dia:** Sem julgamento. Apenas olhe. O objetivo é remover o medo e a surpresa, transformando o ato em algo banal e sob seu controle.',
-          '**Registrar UM gasto do seu dia:** Não precisa ser tudo. Comece com um. O cafezinho, o almoço. O objetivo aqui é criar o músculo da consistência, não a perfeição.',
-          '**Escolher uma pequena tarefa financeira:** Encontrar a última fatura de um cartão, separar os comprovantes da semana, pesquisar o telefone do seu gerente. Uma pequena ação quebra a inércia.'
+          '**Olhar o saldo da conta 1x por dia.** Sem julgamento. Apenas olhe. O objetivo é remover o medo e a surpresa, transformando o ato em algo normal e sob seu controle.',
+          '**Registrar UM gasto do seu dia.** Não precisa ser tudo. Comece com um. O cafezinho, o almoço. O objetivo aqui é criar o músculo da consistência, não a perfeição.',
+          '**Escolher uma pequena tarefa financeira.** Encontrar a última fatura de um cartão, separar os comprovantes da semana, pesquisar o telefone do seu gerente. Uma pequena ação quebra a inércia e a procrastinação.'
         ]
       },
       narrative: {
@@ -195,16 +195,16 @@ export const educationTracks: EducationTrack[] = [
         title: 'O Cartão e seu Cérebro: A Ilusão do Plástico',
         points: [
           {
-            title: '**A ilusão do "dinheiro de mentira":** Passar um plástico não ativa os mesmos centros de dor no cérebro que entregar dinheiro vivo.',
-            details: 'Essa desconexão facilita gastos excessivos porque não sentimos a "dor" da perda imediata. O dinheiro se torna abstrato, um número na tela, e perdemos a noção do seu valor real. O objetivo é reconectar você ao valor do seu dinheiro.'
+            title: '**A ilusão do "dinheiro de mentira".**',
+            details: 'Nosso cérebro não sente o mesmo impacto ao passar um plástico e ao entregar notas de dinheiro. Essa desconexão emocional torna muito mais fácil gastar sem perceber o peso da decisão.\n\nO dinheiro se torna um número abstrato na tela, e a "dor" da perda só chega no fim do mês. Nosso objetivo aqui é reconectar você ao valor real do seu dinheiro, mesmo usando o cartão.'
           },
           {
-            title: '**"Meu limite é minha renda":** É comum incorporarmos o limite do cartão como uma extensão do nosso salário.',
-            details: 'Psicologicamente, vemos aquele limite como um dinheiro que "temos", quando na verdade ele é um empréstimo pré-aprovado com juros altíssimos. É uma armadilha perigosa que nos leva a viver um padrão de vida que não podemos sustentar.'
+            title: '**A armadilha do "meu limite é minha renda".**',
+            details: 'É comum e perigoso pensar no limite do cartão como uma extensão do nosso salário. Psicologicamente, vemos aquele limite como um dinheiro que "temos", quando na verdade ele é um empréstimo pré-aprovado com juros altíssimos.\n\nEssa mentalidade nos leva a viver um padrão de vida que não podemos sustentar. É uma das armadilhas mais comuns para o endividamento.'
           },
           {
-            title: '**A tirania das "parcelinhas":** O cérebro adora a recompensa imediata de uma compra. Parcelar minimiza a percepção do custo total.',
-            details: 'Pagar "só R$50 por mês" parece inofensivo, mas ao somar várias parcelas, comprometemos nossa renda futura por meses ou anos. Isso cria uma bola de neve que nos deixa sem fôlego para lidar com imprevistos ou aproveitar oportunidades.'
+            title: '**A tirania das "parcelinhas".**',
+            details: 'O cérebro ama a recompensa imediata de uma compra. Parcelar minimiza a percepção do custo total e nos dá a sensação de que "cabe no bolso".\n\nPagar "só R$ 50 por mês" parece inofensivo, mas ao somar várias parcelas, comprometemos nossa renda futura por meses ou anos. Isso cria uma bola de neve que nos deixa sem fôlego para lidar com imprevistos ou aproveitar oportunidades.'
           }
         ]
       },
@@ -214,21 +214,21 @@ export const educationTracks: EducationTrack[] = [
           {
             title: 'Viagem no Tempo dos Juros',
             description: 'Use nossa calculadora para ver o futuro da sua fatura se pagar só o mínimo.',
-            details: 'Use nossa calculadora para ver uma simulação de como sua fatura atual se parecerá em 3, 6 e 12 meses se você pagar apenas o mínimo. Ver essa "realidade alternativa" é um poderoso choque de realidade que te fará nunca mais querer entrar no rotativo.'
+            details: 'Use nossa calculadora para uma simulação chocante: veja como sua fatura atual se parecerá em 3, 6 e 12 meses se você pagar apenas o valor mínimo. Ver essa "realidade alternativa" em números é um poderoso antídoto contra a tentação do rotativo.'
           },
           {
             title: 'O Memorial dos Juros Pagos',
             description: 'Estime quanto você já pagou de juros do rotativo na sua vida.',
-            details: 'Mesmo que de forma aproximada, some os juros que você já pagou em faturas passadas. Ver o número total materializa o custo invisível e fortalece sua decisão de mudar. Pense em tudo o que você poderia ter feito com esse dinheiro.'
+            details: 'Mesmo que seja uma estimativa, some os juros que você já pagou em faturas passadas. Olhe para esse número total. O que você poderia ter feito com esse dinheiro? Esse exercício materializa o custo invisível e fortalece sua decisão de mudar.'
           },
         ]
       },
       microHabits: {
         title: 'Micro-hábitos para o Controle Total',
         habits: [
-          '**Instituir o "Dia Sem Cartão":** Um dia fixo da semana (ex: toda quarta-feira) onde você se desafia a não usar o cartão para nada. Isso treina sua consciência sobre a dependência dele.',
-          '**Pagar o mínimo nunca mais:** Este app não te dará a opção de calcular o pagamento mínimo. A regra é clara: o mínimo é uma armadilha. A meta é sempre o pagamento total.',
-          '**Pagar a fatura assim que ela fecha:** Em vez de esperar o vencimento, pague a fatura assim que ela fechar. Isso te dá uma noção mais clara do "estrago" do mês e libera sua mente.'
+          '**Institua o "Dia Sem Cartão".** Um dia fixo da semana (ex: toda quarta-feira) onde você se desafia a não usar o cartão para nada. Isso treina sua consciência sobre a dependência dele.',
+          '**Pague a fatura assim que ela fechar.** Em vez de esperar o vencimento, pague a fatura assim que ela fechar. Isso te dá uma noção mais clara do "estrago" do mês e libera sua mente para o próximo ciclo.',
+          '**Pagar o mínimo, nunca mais.** Este app não te dará a opção de calcular o pagamento mínimo. A regra é clara: o mínimo é uma armadilha. A meta é sempre o pagamento total.'
         ]
       },
       narrative: {
@@ -267,16 +267,16 @@ export const educationTracks: EducationTrack[] = [
         title: 'A Psicologia da Dívida Pessoal',
         points: [
           {
-            title: '**Ameaça à "tribo":** Nosso cérebro interpreta a dívida como uma ameaça ao nosso lugar no "grupo social".',
-            details: 'Para nosso cérebro primitivo, pertencer a um grupo é uma questão de sobrevivência. Uma dívida com um amigo ou parente é vista como uma falha que pode nos excluir desse grupo, gerando um estresse profundo e um medo quase irracional de abandono.'
+            title: '**A dívida como ameaça à nossa "tribo".**',
+            details: 'Nosso cérebro primitivo interpreta uma dívida com amigos ou família como uma ameaça à nossa posição no "grupo social". Pertencer a um grupo é uma questão de sobrevivência, e a dívida pode gerar um medo quase irracional de exclusão e abandono.'
           },
           {
-            title: '**O peso da decepção:** O medo de ter decepcionado quem confiou em nós pode ser maior do que a própria dívida.',
-            details: 'Muitas vezes, não é o dinheiro que nos paralisa, mas a sensação de que quebramos a confiança de alguém importante. Esse sentimento pode ser tão avassalador que nos impede de tomar a atitude mais simples e eficaz: conversar.'
+            title: '**O peso da decepção é maior que o da dívida.**',
+            details: 'Muitas vezes, o que nos paralisa não é o valor em si, mas a sensação de que quebramos a confiança de alguém importante. Esse sentimento pode ser tão avassalador que nos impede de tomar a atitude mais simples e eficaz: conversar.'
           },
           {
-            title: '**O orgulho como barreira:** A dificuldade em admitir a vulnerabilidade e negociar um novo prazo vem do orgulho ferido.',
-            details: 'Pedir mais tempo ou admitir que não consegue pagar como combinado pode parecer uma admissão de fracasso. Essa barreira de orgulho nos impede de tomar a atitude mais inteligente, que é comunicar-se abertamente e mostrar que você se importa.'
+            title: '**O orgulho como barreira para a solução.**',
+            details: 'Pedir mais tempo ou admitir que não consegue pagar como combinado pode parecer uma admissão de fracasso. Essa barreira de orgulho nos impede de tomar a atitude mais inteligente, que é comunicar-se abertamente e mostrar que você se importa em resolver a situação.'
           }
         ]
       },
@@ -291,16 +291,16 @@ export const educationTracks: EducationTrack[] = [
           {
             title: 'Guia de Conversa Empática',
             description: 'Use nosso passo a passo para iniciar uma conversa honesta e produtiva.',
-            details: 'Preparamos um roteiro para você: 1) Comece reconhecendo a dívida e a demora. Ex: "Sei que estou demorando para te pagar e queria conversar sobre isso". 2) Assuma a responsabilidade, sem desculpas. 3) Apresente um plano, mesmo que com valores pequenos. Ex: "Posso te pagar R$50 por mês a partir de agora". 4) Pergunte se o plano é viável para a pessoa e mostre que a opinião dela importa.'
+            details: 'Preparamos um roteiro simples para você: 1) Comece reconhecendo a dívida e a demora. Ex: *"Sei que estou demorando para te pagar e queria conversar sobre isso"*. 2) Assuma a responsabilidade, sem desculpas. 3) Apresente um plano, mesmo que com valores pequenos. Ex: *"Posso te pagar R$ 50 por mês a partir de agora"*. 4) Pergunte se o plano é viável para a pessoa e mostre que a opinião dela importa.'
           },
         ]
       },
       microHabits: {
         title: 'Pequenos Passos para Reconstruir a Confiança',
         habits: [
-          '**Faça um pagamento simbólico:** Mesmo R$10 ou R$20 por semana mostram movimento e comprometimento. A ação quebra a sensação de estagnação para você e para quem espera.',
-          '**Envie uma atualização proativa:** A cada marco atingido (ex: "Consegui guardar R$50 para te pagar este mês"), envie uma pequena mensagem. A proatividade reduz a ansiedade de quem espera.',
-          '**Registre suas emoções:** Anote como se sentiu antes e depois de cada contato ou pagamento. Você verá sua confiança e alívio crescerem com o tempo.'
+          '**Faça um pagamento simbólico.** Mesmo R$ 10 ou R$ 20 por semana mostram movimento e comprometimento. A ação quebra a sensação de estagnação para você e para quem espera.',
+          '**Envie uma atualização proativa.** A cada pequeno progresso (ex: "Consegui guardar R$ 50 para te pagar este mês"), envie uma mensagem curta. A proatividade reduz a ansiedade de quem espera.',
+          '**Registre suas emoções.** Anote como se sentiu antes e depois de cada contato ou pagamento. Você verá sua confiança e alívio crescerem com o tempo.'
         ]
       },
       narrative: {
@@ -338,16 +338,16 @@ export const educationTracks: EducationTrack[] = [
         title: 'A Psicologia do Longo Prazo',
         points: [
           {
-            title: '**A "eternidade" da dívida:** Prazos de 20 ou 30 anos são tão longos que nosso cérebro tem dificuldade em processá-los.',
-            details: 'Isso nos faz focar apenas na parcela mensal, que parece caber no orçamento, mas perdemos a noção do custo total absurdo dos juros ao longo de décadas. O objetivo é trazer essa visão de longo prazo para o presente.'
+            title: '**A "eternidade" da dívida.**',
+            details: 'Prazos de 20 ou 30 anos são tão longos que nosso cérebro tem dificuldade em processá-los. Isso nos faz focar apenas na parcela mensal, que parece caber no orçamento, mas perdemos a noção do custo total absurdo dos juros ao longo de décadas.\n\nO objetivo é trazer essa visão de longo prazo para o presente.'
           },
           {
-            title: '**Desmotivação pelos juros:** No início de um financiamento, é frustrante ver que a maior parte da sua parcela paga juros.',
-            details: 'É comum sentir que "não sai do lugar". Nos primeiros anos, muito pouco do que você paga vai para abater a dívida de fato. Entender que esse é o funcionamento normal do sistema (juros sobre saldo devedor) é o primeiro passo para querer mudar o jogo a seu favor.'
+            title: '**A frustração dos juros no início.**',
+            details: 'No começo de um financiamento, é desanimador ver que a maior parte da sua parcela vai para pagar juros, e não a dívida em si. É comum sentir que "não sai do lugar".\n\nEntender que essa é a dinâmica normal do sistema (juros sobre saldo devedor) é o primeiro passo para querer virar o jogo a seu favor.'
           },
           {
-            title: '**A barreira da antecipação:** A ideia de "pagar a mais" parece impossível para quem já está com o orçamento apertado.',
-            details: 'Muitos pensam que só vale a pena amortizar com valores altos, como um 13º salário. Vamos quebrar essa barreira mostrando o poder de pequenas antecipações e como até R$50 a mais por mês podem fazer uma diferença gigantesca no final.'
+            title: '**A barreira mental da antecipação.**',
+            details: 'A ideia de "pagar a mais" (amortizar) parece impossível para quem já está com o orçamento apertado. Muitos pensam que só vale a pena fazer isso com valores altos, como um 13º salário.\n\nVamos quebrar essa barreira mostrando o poder de pequenas antecipações e como até R$ 50 a mais por mês podem fazer uma diferença gigantesca no final.'
           }
         ]
       },
@@ -357,21 +357,21 @@ export const educationTracks: EducationTrack[] = [
           {
             title: 'Anatomia da sua Parcela',
             description: 'Veja um gráfico que mostra, para sua próxima parcela, quanto é juros e quanto é amortização.',
-            details: 'Essa clareza é transformadora. Você vai entender visualmente que os juros são o "aluguel" do dinheiro, e a amortização é o que de fato compra sua liberdade. O objetivo é maximizar a amortização.'
+            details: 'Essa clareza é transformadora. Você vai entender visualmente que os juros são o "aluguel" do dinheiro, e a amortização é o que de fato compra sua liberdade. O objetivo é sempre maximizar a amortização.'
           },
           {
             title: 'O Simulador de Amortização',
             description: 'Use nossa ferramenta para descobrir o impacto real de antecipar parcelas.',
-            details: 'Veja quantos meses (ou anos!) você pode eliminar e quanto dinheiro em juros vai economizar ao pagar R$100, R$500 ou R$1000 a mais. A maioria das pessoas se choca ao ver que pode economizar dezenas de milhares de reais.'
+            details: 'Veja quantos meses (ou anos!) você pode eliminar e quanto dinheiro em juros vai economizar ao pagar R$ 100, R$ 500 ou R$ 1000 a mais. A maioria das pessoas se choca ao ver que pode economizar dezenas de milhares de reais.'
           },
         ]
       },
       microHabits: {
         title: 'Pequenos Hábitos, Grande Impacto',
         habits: [
-          '**Crie o "cofrinho da amortização":** Guarde pequenos valores que "sobram" (R$5, R$10) em uma meta específica. No fim do mês, use esse valor para antecipar parte de uma parcela.',
-          '**Revisão anual do contrato:** Uma vez por ano, revise as condições do seu contrato. As taxas de juros do mercado podem ter caído, e uma portabilidade de crédito pode ser vantajosa.',
-          '**Ative um alerta de vencimento:** Programe um alerta para 5 dias antes do vencimento da parcela. Isso te dá tempo para se organizar e evita multas por atraso.'
+          '**Crie o "cofrinho da amortização".** Guarde pequenos valores que "sobram" (R$ 5, R$ 10) em uma meta específica. No fim do mês, use esse valor para antecipar parte de uma parcela.',
+          '**Revisão anual do contrato.** Uma vez por ano, revise as condições do seu contrato. As taxas de juros do mercado podem ter caído, e uma portabilidade de crédito pode ser vantajosa.',
+          '**Ative um alerta de vencimento.** Programe um alerta para 5 dias antes do vencimento da parcela. Isso te dá tempo para se organizar e evita multas por atraso.'
         ]
       },
       narrative: {
@@ -410,16 +410,16 @@ export const educationTracks: EducationTrack[] = [
         title: 'A Armadilha do Alívio Imediato',
         points: [
           {
-            title: '**Alívio rápido, prisão duradoura:** O cérebro ama soluções rápidas. O acesso fácil ao limite gera um alívio momentâneo da ansiedade financeira.',
-            details: 'Esse alívio imediato, no entanto, cria um problema muito maior no futuro com juros altíssimos, gerando um ciclo vicioso de dependência. Você "apaga um incêndio" com gasolina.'
+            title: '**Alívio rápido, prisão duradoura.**',
+            details: 'O cérebro ama soluções rápidas. O acesso fácil ao limite do cheque especial gera um alívio momentâneo da ansiedade financeira.\n\nEsse alívio imediato, no entanto, cria um problema muito maior no futuro com juros altíssimos, gerando um ciclo vicioso de dependência. É como "apagar um incêndio" com gasolina.'
           },
           {
-            title: '**A intimidação bancária:** A linguagem complexa e a posição de "autoridade" do gerente muitas vezes nos fazem sentir impotentes para negociar.',
-            details: 'Termos como "taxa de encargos", "IOF" e a postura formal do banco podem nos intimidar. O objetivo desta trilha é te empoderar com conhecimento para que você possa conversar de igual para igual.'
+            title: '**A intimidação bancária.**',
+            details: 'A linguagem complexa e a posição de "autoridade" do gerente muitas vezes nos fazem sentir impotentes para negociar. Termos como "taxa de encargos", "IOF" e a postura formal do banco podem nos intimidar.\n\nO objetivo desta trilha é te empoderar com conhecimento para que você possa conversar de igual para igual.'
           },
           {
-            title: '**Dependência psicológica:** O cérebro se acostuma com o "dinheiro extra" do limite.',
-            details: 'A simples ideia de viver apenas com o próprio salário pode gerar uma ansiedade que nos mantém presos ao ciclo, mesmo sabendo que é prejudicial. É preciso um esforço consciente para "desmamar" o cérebro desse dinheiro fácil e caro.'
+            title: '**A dependência psicológica do "dinheiro extra".**',
+            details: 'O cérebro se acostuma a contar com o limite como parte da renda. A simples ideia de viver apenas com o próprio salário pode gerar uma ansiedade que nos mantém presos ao ciclo, mesmo sabendo que é prejudicial.\n\nÉ preciso um esforço consciente para "desmamar" o cérebro desse dinheiro fácil e caro.'
           }
         ]
       },
@@ -441,9 +441,9 @@ export const educationTracks: EducationTrack[] = [
       microHabits: {
         title: 'Pequenos Passos para a Liberdade',
         habits: [
-          '**A meta de "zerar o especial":** Organize-se para que sua conta fique positiva (mesmo que com R$1) pelo menos um dia no mês. Isso quebra o ciclo de juros contínuos.',
-          '**Crie uma "mini-reserva anticrise":** Comece uma meta de economia com R$ 50 ou R$ 100. Ter esse pequeno valor disponível é o primeiro passo para não precisar recorrer ao limite na próxima emergência.',
-          '**Defina uma meta de comportamento:** Em vez de focar apenas em dinheiro, estabeleça metas como "ficar 10 dias seguidos sem usar o limite do cheque especial".'
+          '**A meta de "zerar o especial".** Organize-se para que sua conta fique positiva (mesmo que com R$ 1) pelo menos um dia no mês. Isso quebra o ciclo de juros contínuos.',
+          '**Crie uma "mini-reserva anticrise".** Comece uma meta de economia com R$ 50 ou R$ 100. Ter esse pequeno valor disponível é o primeiro passo para não precisar recorrer ao limite na próxima emergência.',
+          '**Defina uma meta de comportamento.** Em vez de focar apenas em dinheiro, estabeleça metas como "ficar 10 dias seguidos sem usar o limite do cheque especial".'
         ]
       },
       narrative: {
@@ -481,16 +481,16 @@ export const educationTracks: EducationTrack[] = [
         title: 'A Mente Organizada: Menos Ansiedade, Mais Controle',
         points: [
           {
-            title: '**Do caos à clareza:** A ansiedade financeira vem da falta de visibilidade, não da falta de dinheiro.',
-            details: 'Não saber para onde o dinheiro está indo é assustador. Organizar, mesmo que de forma imperfeita, devolve a sensação de controle e reduz drasticamente o estresse. Clareza é poder.'
+            title: '**A ansiedade vem da falta de clareza, não da falta de dinheiro.**',
+            details: 'Não saber para onde o dinheiro está indo é assustador. O desconhecido gera ansiedade. Organizar, mesmo que de forma imperfeita no início, devolve a sensação de controle e reduz drasticamente o estresse.\n\nClareza é poder.'
           },
           {
-            title: '**O poder das pequenas vitórias:** Um hábito duradouro nasce da repetição de ações leves, não de um grande esforço inicial.',
-            details: 'É mais eficaz organizar por 3 minutos todos os dias do que tentar passar 8 horas organizando tudo de uma vez. A consistência de pequenas ações cria um momentum que um grande esforço isolado não consegue.'
+            title: '**O poder das pequenas vitórias.**',
+            details: 'Um hábito duradouro nasce da repetição de ações leves, não de um grande esforço inicial. É mais eficaz organizar por 3 minutos todos os dias do que tentar passar 8 horas organizando tudo de uma vez no fim de semana.\n\nA consistência de pequenas ações cria um *momentum* que um grande esforço isolado não consegue.'
           },
           {
-            title: '**Categorizar é entender:** Ao dar um "nome" (categoria) aos seus gastos, você começa a entender os gatilhos por trás deles.',
-            details: 'Gastar com "Lazer" é diferente de gastar com "Comida por impulso". Categorizar seus gastos não é apenas para gerar gráficos bonitos; é para entender seu próprio comportamento e tomar decisões mais conscientes.'
+            title: '**Categorizar é entender, não julgar.**',
+            details: 'Ao dar um "nome" (categoria) aos seus gastos, você começa a entender os gatilhos por trás deles. Gastar com "Lazer" é diferente de gastar com "Comida por impulso".\n\nCategorizar seus gastos não é para gerar gráficos bonitos; é para entender seu próprio comportamento e tomar decisões mais conscientes.'
           }
         ]
       },
@@ -512,9 +512,9 @@ export const educationTracks: EducationTrack[] = [
       microHabits: {
         title: 'A Rotina de 3 Minutos para a Paz Financeira',
         habits: [
-          '**Dedique 3 minutos por dia:** No final do dia ou no início da manhã, abra o app e registre os gastos do dia anterior. É rápido e cria um poderoso hábito de consciência.',
-          '**Revisão semanal de 5 minutos:** Uma vez por semana, use 5 minutos para olhar o gráfico de categorias. Identifique o maior gasto e pense se ele está alinhado com suas prioridades. Sem julgamento, apenas observação.',
-          '**Liste suas 3 prioridades do mês:** No início de cada mês, escreva suas 3 principais metas financeiras. Pode ser "Não usar o cheque especial", "Guardar R$100" ou "Pagar a fatura total do cartão". Isso dá um foco claro para suas decisões.'
+          '**Dedique 3 minutos por dia.** No final do dia ou no início da manhã, abra o app e registre os gastos do dia anterior. É rápido e cria um poderoso hábito de consciência.',
+          '**Revisão semanal de 5 minutos.** Uma vez por semana, use 5 minutos para olhar o gráfico de categorias. Identifique o maior gasto e pense se ele está alinhado com suas prioridades. Sem julgamento, apenas observação.',
+          '**Liste suas 3 prioridades do mês.** No início de cada mês, escreva suas 3 principais metas financeiras. Pode ser "Não usar o cheque especial", "Guardar R$ 100" ou "Pagar a fatura total do cartão". Isso dá um foco claro para suas decisões.'
         ]
       },
       narrative: {
@@ -552,16 +552,16 @@ export const educationTracks: EducationTrack[] = [
         title: 'A Mentalidade da Prosperidade Sustentável',
         points: [
           {
-            title: '**Visão de futuro:** Prosperidade não é ter muito dinheiro, é ter clareza do que você quer que o dinheiro construa.',
-            details: 'É usar seus recursos para realizar seus valores e viver uma vida alinhada com o que é importante para você. O dinheiro se torna uma ferramenta para construir, não uma fonte de estresse.'
+            title: '**Visão de futuro: prosperidade é clareza.**',
+            details: 'Prosperidade não é sobre ter muito dinheiro, é sobre saber exatamente o que você quer que seu dinheiro construa. É usar seus recursos para viver uma vida alinhada com seus valores, onde o dinheiro se torna uma ferramenta para construir, não uma fonte de estresse.'
           },
           {
-            title: '**Metas com alma:** "Juntar R$ 10.000" é uma meta fria. "Guardar R$ 10.000 para a viagem em família" tem alma.',
-            details: 'Conectar suas metas a emoções e desejos reais é o que te mantém motivado no longo prazo. Dê um propósito ao seu dinheiro, e você terá muito mais disciplina para guardá-lo.'
+            title: '**Metas com alma movem montanhas.**',
+            details: '"Juntar R$ 10.000" é uma meta fria. "Guardar R$ 10.000 para a viagem em família" tem alma e propósito.\n\nConectar suas metas a emoções e desejos reais é o que te mantém motivado no longo prazo. Dê um porquê ao seu dinheiro, e você terá muito mais disciplina para guardá-lo.'
           },
           {
-            title: '**Consistência suave:** A estabilidade financeira não vem de picos de sacrifício, mas da consistência de bons hábitos.',
-            details: 'É como uma planta que você rega um pouco todo dia, em vez de afogá-la uma vez por mês. Pequenos aportes consistentes em suas metas são mais poderosos do que grandes sacrifícios esporádicos.'
+            title: '**Consistência suave, não sacrifício extremo.**',
+            details: 'A estabilidade financeira não vem de picos de sacrifício, mas da consistência de bons hábitos. É como uma planta que você rega um pouco todo dia, em vez de afogá-la uma vez por mês.\n\nPequenos aportes consistentes em suas metas são mais poderosos do que grandes sacrifícios esporádicos.'
           }
         ]
       },
@@ -571,7 +571,7 @@ export const educationTracks: EducationTrack[] = [
           {
             title: 'Crie Metas de Vida, não apenas de Dinheiro',
             description: 'Use a seção "Reservas" do app para criar metas que tenham um propósito claro.',
-            details: 'Em vez de "Reserva", crie "Reserva para tranquilidade" ou "Fundo de liberdade para mudar de carreira". Dê nome aos seus sonhos e transforme-os em projetos financeiros.'
+            details: 'Em vez de "Reserva", crie "Reserva para tranquilidade" ou "Fundo de liberdade para mudar de carreira". Dê nome aos seus sonhos e transforme-os em projetos financeiros concretos.'
           },
           {
             title: 'Simule sua Fortaleza Financeira',
@@ -583,14 +583,14 @@ export const educationTracks: EducationTrack[] = [
       microHabits: {
         title: 'Hábitos de Manutenção e Crescimento',
         habits: [
-          '**Revisão mensal das metas:** Uma vez por mês, reserve 10 minutos para olhar suas metas. Elas ainda fazem sentido? Os valores precisam de ajuste? Crie novas se sentir necessidade.',
-          '**Pague-se primeiro:** Assim que seu salário ou renda entrar na conta, a primeira "conta" a ser paga é o aporte para suas metas de economia. Automatize isso se possível. O que sobra é o que você tem para gastar.',
-          '**Celebre as pequenas vitórias:** Completou 10% de uma meta? Se dê um pequeno agrado (que não comprometa o orçamento). Comemorar os marcos reforça o hábito e a motivação.'
+          '**Revisão mensal das metas.** Uma vez por mês, reserve 10 minutos para olhar suas metas. Elas ainda fazem sentido? Os valores precisam de ajuste? Crie novas se sentir necessidade.',
+          '**Pague-se primeiro.** Assim que sua renda entrar na conta, a primeira "conta" a ser paga é o aporte para suas metas de economia. Automatize isso se possível. O que sobra é o que você tem para gastar.',
+          '**Celebre as pequenas vitórias.** Completou 10% de uma meta? Se dê um pequeno agrado (que não comprometa o orçamento). Comemorar os marcos reforça o hábito e a motivação.'
         ]
       },
       narrative: {
         title: 'O Horizonte Aberto',
-        description: 'Se antes você estava em uma névoa ou em um labirinto, agora você chegou a um campo aberto com um horizonte vasto à sua frente. Cada meta que você cria é um destino diferente que você pode escolher alcançar. Sua jornada mudou de fase: de sobrevivência e reparo para uma fase de criação e construção. O dinheiro deixou de ser um problema e se tornou um aliado.'
+        description: 'Se antes você estava em uma névoa ou em um labirinto, agora você chegou a um campo aberto com um horizonte vasto à sua frente. Cada meta que você cria é um destino diferente que você pode escolher alcançar. Sua jornada mudou de fase: de sobrevivência e reparo para uma fase de criação e construção. O dinheiro deixou de ser um problema e se tornou seu principal aliado.'
       },
       finalQuiz: {
         title: 'Teste seu Conhecimento',
