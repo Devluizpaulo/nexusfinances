@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -13,10 +14,10 @@ import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { doc, arrayUnion } from 'firebase/firestore';
+import { doc, arrayUnion, updateDoc } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore, updateDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
 import type { EducationTrack } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -195,32 +196,43 @@ const FinalQuizModule = ({ module, track, user, onQuizComplete }: { module: any,
     }
   }, [isCompleted]);
 
-  const handleQuizSubmit = (e: React.FormEvent) => {
+  const handleQuizSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !firestore) {
       toast({ variant: 'destructive', title: 'Erro', description: 'Você precisa estar logado para salvar seu progresso.' });
       return;
     }
-
+    
     setShowQuizResult(true);
 
     const correctAnswers = module.questions.filter(
       (q: any, index: number) => quizAnswers[index] === q.correctAnswer
     ).length;
+
     const totalQuestions = module.questions.length;
     const score = (correctAnswers / totalQuestions) * 100;
-
+    
     if (score > 50) {
         if(!isCompleted) {
             const userDocRef = doc(firestore, 'users', user.uid);
-            updateDocumentNonBlocking(userDocRef, {
-              completedTracks: arrayUnion(track.slug)
-            });
-            toast({
-              title: "Trilha Concluída!",
-              description: `Parabéns! Você concluiu a trilha "${track.title}".`,
-              className: "bg-emerald-100 border-emerald-300 text-emerald-800 dark:bg-emerald-800/50 dark:border-emerald-700 dark:text-emerald-200"
-            });
+            try {
+              await updateDoc(userDocRef, {
+                  completedTracks: arrayUnion(track.slug)
+              });
+              toast({
+                title: "Trilha Concluída!",
+                description: `Parabéns! Você concluiu a trilha "${track.title}".`,
+                className: "bg-emerald-100 border-emerald-300 text-emerald-800 dark:bg-emerald-800/50 dark:border-emerald-700 dark:text-emerald-200"
+              });
+            } catch (error) {
+              console.error("Error updating user document:", error);
+               toast({
+                variant: "destructive",
+                title: "Erro ao salvar progresso",
+                description: "Não foi possível registrar sua conquista. Tente novamente.",
+              });
+               return; // Stop execution if saving fails
+            }
         }
         onQuizComplete();
     } else {
