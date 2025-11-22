@@ -93,16 +93,19 @@ export const calculateScore = (income: number, expenses: number, debts: Debt[], 
     
     const totalDebtAmount = debts.reduce((sum, d) => sum + d.totalAmount, 0);
     const totalPaidAmount = debts.reduce((sum, d) => sum + (d.paidAmount || 0), 0);
-    // Only consider debt progress if there are debts
     const debtProgress = totalDebtAmount > 0 ? totalPaidAmount / totalDebtAmount : 0;
+    
     const mission3 = {
       id: 'm3',
       description: `Pagar mais de 50% do total de dívidas (${(debtProgress * 100).toFixed(0)}% pago)`,
       isCompleted: totalDebtAmount > 0 && debtProgress > 0.5,
       points: 25,
     };
-    maxScore += mission3.points;
-    if (mission3.isCompleted) score += mission3.points;
+    if (totalDebtAmount > 0) {
+        maxScore += mission3.points;
+        if (mission3.isCompleted) score += mission3.points;
+    }
+
 
     const mission4 = {
         id: 'm4',
@@ -143,7 +146,7 @@ export const educationTracks: EducationTrack[] = [
   {
     slug: 'credit-card',
     title: 'Cartão de Crédito: A Bola de Neve',
-    description: 'Entenda os juros rotativos e como sair do ciclo vicioso.',
+    description: 'Aprenda a dominar o rotativo do cartão com um plano de ação claro e uma calculadora para entender o real custo dos juros.',
     icon: Banknote,
     color: 'text-red-500',
     bgColor: 'bg-red-50 dark:bg-red-900/20',
@@ -211,7 +214,7 @@ export const educationTracks: EducationTrack[] = [
   {
     slug: 'financing',
     title: 'Financiamentos (Carro, Casa)',
-    description: 'Aprenda sobre amortização e como antecipar parcelas.',
+    description: 'Descubra o que é amortização e use nosso simulador para ver quanto tempo e dinheiro você pode economizar ao antecipar parcelas.',
     icon: Landmark,
     color: 'text-blue-500',
     bgColor: 'bg-blue-50 dark:bg-blue-900/20',
@@ -275,7 +278,7 @@ export const educationTracks: EducationTrack[] = [
    {
     slug: 'negotiation-scripts',
     title: 'Scripts de Negociação',
-    description: 'Modelos prontos para conversar com credores e conseguir acordos.',
+    description: 'Receba modelos de texto prontos para usar em conversas com bancos e credores, aumentando sua confiança para conseguir um bom acordo.',
     icon: HeartHandshake,
     color: 'text-teal-500',
     bgColor: 'bg-teal-50 dark:bg-teal-900/20',
@@ -342,7 +345,7 @@ export const educationTracks: EducationTrack[] = [
    {
     slug: 'daily-habits',
     title: 'Construindo Hábitos: Pequenas Vitórias',
-    description: 'Use o app para criar hábitos que transformam sua vida financeira.',
+    description: 'Transforme a organização financeira em um hábito com missões diárias e semanais que te mantêm no controle e motivado.',
     icon: Sparkles,
     color: 'text-violet-500',
     bgColor: 'bg-violet-50 dark:bg-violet-900/20',
@@ -409,7 +412,7 @@ export const educationTracks: EducationTrack[] = [
   {
     slug: 'bank-debts',
     title: 'Dívidas Bancárias (Cheque Especial)',
-    description: 'Estratégias para negociar e sair do cheque especial.',
+    description: 'Entenda por que o cheque especial é tão perigoso e siga um plano de ação para sair do vermelho e nunca mais voltar.',
     icon: PiggyBank,
     color: 'text-amber-500',
     bgColor: 'bg-amber-50 dark:bg-amber-900/20',
@@ -472,7 +475,7 @@ export const educationTracks: EducationTrack[] = [
   {
     slug: 'daily-bills',
     title: 'Contas do Dia a Dia',
-    description: 'Técnicas para organizar e priorizar contas de consumo.',
+    description: 'Aprenda a organizar suas contas de consumo (água, luz, internet), priorizar pagamentos e usar a automação para evitar multas.',
     icon: Receipt,
     color: 'text-cyan-500',
     bgColor: 'bg-cyan-50 dark:bg-cyan-900/20',
