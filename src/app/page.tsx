@@ -18,7 +18,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { AdSenseScript } from '@/components/ads/AdSenseScript';
+import AdBanner from '@/components/ads/AdBanner';
 
 function ClientRoot() {
   const { user, isUserLoading } = useUser();
@@ -73,7 +73,7 @@ function ClientRoot() {
       <main>
         {/* Ad container for verification */}
         <div style={{ display: 'none' }}>
-            <AdSenseScript adSlot="5124339999" />
+            <AdBanner />
         </div>
 
         {/* Hero Section */}

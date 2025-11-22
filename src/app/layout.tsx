@@ -19,6 +19,12 @@ export default function RootLayout({
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <meta name="google-adsense-account" content="ca-pub-5750464088623363" />
+        <Script
+            async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5750464088623363"
+            crossOrigin="anonymous"
+            strategy="beforeInteractive"
+          />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
@@ -42,12 +48,6 @@ export default function RootLayout({
           </FirebaseClientProvider>
         </ThemeProvider>
         <Toaster />
-        <Script
-            async
-            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5750464088623363"
-            crossOrigin="anonymous"
-            strategy="afterInteractive"
-          />
       </body>
     </html>
   );
