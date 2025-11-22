@@ -15,7 +15,9 @@ import {
 } from "@/components/ui/accordion"
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Input } from '@/components/ui/input';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 function ClientRoot() {
   const { user, isUserLoading } = useUser();
@@ -45,6 +47,12 @@ function ClientRoot() {
     );
   }
 
+  const heroImage = PlaceHolderImages.find(p => p.id === 'lp-hero');
+  const feature1Image = PlaceHolderImages.find(p => p.id === 'lp-feature-1');
+  const feature2Image = PlaceHolderImages.find(p => p.id === 'lp-feature-2');
+  const feature3Image = PlaceHolderImages.find(p => p.id === 'lp-feature-3');
+
+
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <header className="sticky top-0 z-50 border-b bg-background/80 px-4 py-3 backdrop-blur-sm md:px-6">
@@ -63,37 +71,50 @@ function ClientRoot() {
 
       <main>
         {/* Hero Section */}
-        <section className="border-b py-20 text-center md:py-32">
-          <div className="container mx-auto px-4">
-            <h1 className="text-4xl font-bold tracking-tight md:text-6xl">
-              Diga adeus às planilhas.
-            </h1>
-            <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-              Assuma o controle da sua vida financeira com uma ferramenta simples, visual e feita para você. Chega de fórmulas e abas confusas.
-            </p>
-            <div className="mt-8 flex justify-center">
-              <form onSubmit={(e) => { e.preventDefault(); handleStart(); }} className="flex w-full max-w-md flex-col items-center gap-2 sm:flex-row">
-                  <Input
-                    type="email"
-                    placeholder="seu@email.com"
-                    className="h-12 flex-1 rounded-lg px-4 text-base"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                  <Button
-                    type="submit"
-                    size="lg"
-                    className="h-12 w-full bg-gradient-to-r from-primary to-accent text-white hover:opacity-90 sm:w-auto"
-                  >
-                    Começar Agora
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </form>
+        <section className="relative border-b bg-gradient-to-br from-primary/10 via-background to-background py-20 md:py-28">
+            <div className="container mx-auto grid grid-cols-1 items-center gap-12 px-4 md:grid-cols-2">
+                <div className="text-center md:text-left">
+                    <h1 className="text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl">
+                      Diga adeus às planilhas.
+                    </h1>
+                    <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground md:mx-0">
+                      Assuma o controle da sua vida financeira com uma ferramenta simples, visual e feita para você. Chega de fórmulas e abas confusas.
+                    </p>
+                    <div className="mt-8 flex justify-center md:justify-start">
+                      <form onSubmit={(e) => { e.preventDefault(); handleStart(); }} className="flex w-full max-w-md flex-col items-center gap-2 sm:flex-row">
+                          <Input
+                            type="email"
+                            placeholder="seu@email.com"
+                            className="h-12 flex-1 rounded-lg px-4 text-base"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                          />
+                          <Button
+                            type="submit"
+                            size="lg"
+                            className="h-12 w-full bg-primary text-white hover:bg-primary/90 sm:w-auto"
+                          >
+                            Começar Agora
+                            <ArrowRight className="ml-2 h-5 w-5" />
+                          </Button>
+                        </form>
+                    </div>
+                    <p className="mt-4 text-xs text-muted-foreground">
+                      Cadastro rápido. Sem cartão de crédito.
+                    </p>
+                </div>
+                 {heroImage && (
+                    <div className="relative h-64 w-full md:h-full">
+                        <Image
+                            src={heroImage.imageUrl}
+                            alt={heroImage.description}
+                            fill
+                            className="rounded-xl object-cover shadow-2xl"
+                            data-ai-hint={heroImage.imageHint}
+                        />
+                    </div>
+                )}
             </div>
-             <p className="mt-4 text-xs text-muted-foreground">
-              Cadastro rápido. Sem cartão de crédito.
-            </p>
-          </div>
         </section>
 
         {/* Features Section */}
@@ -105,34 +126,55 @@ function ClientRoot() {
                         Centralize suas finanças e tome decisões mais inteligentes.
                     </p>
                 </div>
-                <div className="mt-12 grid gap-8 md:grid-cols-3">
-                    <div className="flex flex-col items-center text-center">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-                            <BarChart3 className="h-6 w-6" />
+                <div className="mt-16 grid gap-16">
+                  {feature1Image && (
+                    <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-2 md:gap-12">
+                        <div className="relative h-64 w-full">
+                             <Image src={feature1Image.imageUrl} alt={feature1Image.description} fill className="rounded-lg object-cover" data-ai-hint={feature1Image.imageHint} />
                         </div>
-                        <h3 className="mt-4 text-xl font-semibold">Visão Clara</h3>
-                        <p className="mt-2 text-muted-foreground">
-                            Com dashboards e gráficos intuitivos, você entende para onde seu dinheiro está indo em segundos.
-                        </p>
-                    </div>
-                    <div className="flex flex-col items-center text-center">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-                            <Wallet className="h-6 w-6" />
+                        <div>
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                <BarChart3 className="h-6 w-6" />
+                            </div>
+                            <h3 className="mt-4 text-2xl font-semibold">Visão Clara</h3>
+                            <p className="mt-2 text-muted-foreground">
+                                Com dashboards e gráficos intuitivos, você entende para onde seu dinheiro está indo em segundos. Chega de decifrar tabelas.
+                            </p>
                         </div>
-                        <h3 className="mt-4 text-xl font-semibold">Controle Total</h3>
-                        <p className="mt-2 text-muted-foreground">
-                            Registre rendas, despesas e dívidas em um só lugar. Organize tudo com categorias personalizadas.
-                        </p>
                     </div>
-                    <div className="flex flex-col items-center text-center">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-                            <Target className="h-6 w-6" />
+                  )}
+                   {feature2Image && (
+                     <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-2 md:gap-12">
+                        <div className="md:order-2 relative h-64 w-full">
+                            <Image src={feature2Image.imageUrl} alt={feature2Image.description} fill className="rounded-lg object-cover" data-ai-hint={feature2Image.imageHint} />
                         </div>
-                        <h3 className="mt-4 text-xl font-semibold">Metas Inteligentes</h3>
-                        <p className="mt-2 text-muted-foreground">
-                            Crie objetivos de economia e investimento, acompanhe o progresso e veja suas metas se tornarem realidade.
-                        </p>
+                        <div className="md:order-1">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                <Wallet className="h-6 w-6" />
+                            </div>
+                            <h3 className="mt-4 text-2xl font-semibold">Controle Total</h3>
+                            <p className="mt-2 text-muted-foreground">
+                                Registre rendas, despesas e dívidas em um só lugar. Organize tudo com categorias personalizadas e veja seu balanço em tempo real.
+                            </p>
+                        </div>
                     </div>
+                   )}
+                   {feature3Image && (
+                    <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-2 md:gap-12">
+                        <div className="relative h-64 w-full">
+                            <Image src={feature3Image.imageUrl} alt={feature3Image.description} fill className="rounded-lg object-cover" data-ai-hint={feature3Image.imageHint} />
+                        </div>
+                        <div>
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                <Target className="h-6 w-6" />
+                            </div>
+                            <h3 className="mt-4 text-2xl font-semibold">Metas Inteligentes</h3>
+                            <p className="mt-2 text-muted-foreground">
+                                Crie objetivos de economia e investimento, acompanhe o progresso e veja suas metas se tornarem realidade mais rápido.
+                            </p>
+                        </div>
+                    </div>
+                   )}
                 </div>
             </div>
         </section>
