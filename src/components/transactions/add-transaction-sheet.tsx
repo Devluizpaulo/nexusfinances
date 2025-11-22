@@ -309,7 +309,7 @@ export function AddTransactionSheet({
               control={form.control}
               name="isRecurring"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border bg-secondary p-3">
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border bg-muted/50 p-3">
                   <div className="space-y-0.5">
                     <FormLabel>Recorrente</FormLabel>
                     <FormDescription>
