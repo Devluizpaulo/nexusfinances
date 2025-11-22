@@ -7,7 +7,7 @@ import { educationTracks } from '@/lib/education-data';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { HelpCircle, Target, BookCopy, Zap, Check, Lightbulb, Brain, HandHeart, Mountain } from 'lucide-react';
+import { Check, Lightbulb, Brain, HandHeart, Mountain, Target, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -18,28 +18,33 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, updateDocumentNonBlocking } from '@/firebase';
 import type { EducationTrack } from '@/lib/types';
+import { Separator } from '@/components/ui/separator';
 
 // Helper Functions
-function parseMarkdown(text: string): React.ReactNode {
-  if (!text) return null;
+function parseMarkdown(text: string): React.ReactNode[] {
+  if (!text) return [];
+
+  const paragraphs = text.split('\n').filter(p => p.trim() !== '');
   
-  const boldRegex = /\*\*(.*?)\*\*/g;
-  const italicRegex = /\*(.*?)\*/g;
+  return paragraphs.map((paragraph, pIndex) => {
+    const boldRegex = /\*\*(.*?)\*\*/g;
+    const italicRegex = /\*(.*?)\*/g;
 
-  const nodes = text.split(boldRegex).map((part, index) => {
-    if (index % 2 !== 0) { // It's a bold part
-      return <strong key={`bold-${index}`}>{part}</strong>;
-    }
-    
-    return part.split(italicRegex).map((subPart, subIndex) => {
-      if (subIndex % 2 !== 0) { // It's an italic part
-        return <em key={`italic-${index}-${subIndex}`}>{subPart}</em>;
+    const nodes = paragraph.split(boldRegex).map((part, index) => {
+      if (index % 2 !== 0) { // It's a bold part
+        return <strong key={`bold-${pIndex}-${index}`}>{part}</strong>;
       }
-      return subPart;
+      
+      return part.split(italicRegex).map((subPart, subIndex) => {
+        if (subIndex % 2 !== 0) { // It's an italic part
+          return <em key={`italic-${pIndex}-${index}-${subIndex}`}>{subPart}</em>;
+        }
+        return subPart;
+      });
     });
-  });
 
-  return <>{nodes}</>;
+    return <p key={`p-${pIndex}`} className="mb-4 last:mb-0">{nodes}</p>;
+  });
 }
 
 
@@ -266,12 +271,20 @@ export default function EducationTrackPage() {
     notFound();
   }
 
+  const Icon = track.icon;
+
   return (
     <>
       <Dialog open={!!modalContent} onOpenChange={() => setModalContent(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{modalContent?.title ? parseMarkdown(modalContent.title) : ''}</DialogTitle>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader className="mb-4">
+            <div className="flex items-center gap-4 mb-4">
+                <div className={cn("flex h-12 w-12 items-center justify-center rounded-lg", track.bgColor)}>
+                    <Icon className={cn("h-7 w-7", track.color)} />
+                </div>
+                <DialogTitle className="text-xl leading-snug">{modalContent?.title ? parseMarkdown(modalContent.title) : ''}</DialogTitle>
+            </div>
+            <Separator />
           </DialogHeader>
           <div className="prose prose-sm max-w-none text-foreground dark:prose-invert">
             {parseMarkdown(modalContent?.details || '')}
@@ -294,7 +307,7 @@ export default function EducationTrackPage() {
         <PracticalExperiencesModule content={track.content.practicalExperiences} onExperienceClick={setModalContent} />
         <MicroHabitsModule content={track.content.microHabits} />
         <NarrativeModule content={track.content.narrative} />
-        <ToolModule content={track.content} />
+        {track.content.tool && <ToolModule content={track.content} />}
         <FinalQuizModule track={track} user={user} />
       </div>
     </>
