@@ -16,6 +16,8 @@ import {
   type GetFinancialInsightsOutput
 } from '@/lib/types';
 
+export type { GetFinancialInsightsInput, GetFinancialInsightsOutput };
+
 export async function getFinancialInsights(input: GetFinancialInsightsInput): Promise<GetFinancialInsightsOutput> {
   return getFinancialInsightsFlow(input);
 }

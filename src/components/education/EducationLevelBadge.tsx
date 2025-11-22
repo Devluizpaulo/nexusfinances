@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
 import { useMemo } from 'react';
 import { useUser } from '@/firebase';
-import { educationTracks, journeyLevels } from '@/lib/education-data';
+import { journeyLevels } from '@/lib/education-data';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '../ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
@@ -15,7 +15,7 @@ export function EducationLevelBadge() {
   const completedTracksCount = useMemo(() => user?.completedTracks?.length || 0, [user?.completedTracks]);
 
   const { currentLevel } = useMemo(() => {
-    const totalTracks = educationTracks.length;
+    const totalTracks = journeyLevels.length;
     if (totalTracks === 0) {
       return { currentLevel: journeyLevels[0] };
     }
