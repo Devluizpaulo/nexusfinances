@@ -5,23 +5,23 @@ const now = new Date();
 
 export const mockTransactions: Transaction[] = [
   // Rendas
-  { id: '1', type: 'income', amount: 4500, date: formatISO(subMonths(now, 2)), description: 'Salário Mensal', category: 'Salário', isRecurring: true },
-  { id: '2', type: 'income', amount: 4500, date: formatISO(subMonths(now, 1)), description: 'Salário Mensal', category: 'Salário', isRecurring: true },
-  { id: '3', type: 'income', amount: 4500, date: formatISO(now), description: 'Salário Mensal', category: 'Salário', isRecurring: true },
-  { id: '4', type: 'income', amount: 750, date: formatISO(subMonths(now, 1)), description: 'Projeto Freelance', category: 'Freelance', isRecurring: false },
+  { id: '1', type: 'income', amount: 4500, date: formatISO(subMonths(now, 2)), description: 'Salário Mensal', category: 'Salário', isRecurring: true, status: 'paid' },
+  { id: '2', type: 'income', amount: 4500, date: formatISO(subMonths(now, 1)), description: 'Salário Mensal', category: 'Salário', isRecurring: true, status: 'paid' },
+  { id: '3', type: 'income', amount: 4500, date: formatISO(now), description: 'Salário Mensal', category: 'Salário', isRecurring: true, status: 'paid' },
+  { id: '4', type: 'income', amount: 750, date: formatISO(subMonths(now, 1)), description: 'Projeto Freelance', category: 'Freelance', isRecurring: false, status: 'paid' },
 
   // Despesas
-  { id: '5', type: 'expense', amount: 1200, date: formatISO(subMonths(now, 2)), description: 'Aluguel', category: 'Aluguel/Hipoteca', isRecurring: true },
-  { id: '6', type: 'expense', amount: 1200, date: formatISO(subMonths(now, 1)), description: 'Aluguel', category: 'Aluguel/Hipoteca', isRecurring: true },
-  { id: '7', type: 'expense', amount: 1200, date: formatISO(now), description: 'Aluguel', category: 'Aluguel/Hipoteca', isRecurring: true },
-  { id: '8', type: 'expense', amount: 450, date: formatISO(subMonths(now, 1)), description: 'Compras de mercado', category: 'Mercado', isRecurring: false },
-  { id: '9', type: 'expense', amount: 150, date: formatISO(subMonths(now, 1)), description: 'Contas da casa', category: 'Contas', isRecurring: true },
-  { id: '10', type: 'expense', amount: 80, date: formatISO(subMonths(now, 1)), description: 'Jantar com amigos', category: 'Lazer', isRecurring: false },
-  { id: '11', type: 'expense', amount: 15.99, date: formatISO(subMonths(now, 1)), description: 'Serviço de Streaming', category: 'Assinaturas', isRecurring: true },
-  { id: '12', type: 'expense', amount: 480, date: formatISO(now), description: 'Compras de mercado', category: 'Mercado', isRecurring: false },
-  { id: '13', type: 'expense', amount: 160, date: formatISO(now), description: 'Contas da casa', category: 'Contas', isRecurring: true },
-  { id: '14', type: 'expense', amount: 15.99, date: formatISO(now), description: 'Serviço de Streaming', category: 'Assinaturas', isRecurring: true },
-  { id: '15', type: 'expense', amount: 250, date: formatISO(now), description: 'Sapatos novos', category: 'Compras', isRecurring: false },
+  { id: '5', type: 'expense', amount: 1200, date: formatISO(subMonths(now, 2)), description: 'Aluguel', category: 'Aluguel/Hipoteca', isRecurring: true, status: 'paid' },
+  { id: '6', type: 'expense', amount: 1200, date: formatISO(subMonths(now, 1)), description: 'Aluguel', category: 'Aluguel/Hipoteca', isRecurring: true, status: 'paid' },
+  { id: '7', type: 'expense', amount: 1200, date: formatISO(now), description: 'Aluguel', category: 'Aluguel/Hipoteca', isRecurring: true, status: 'paid' },
+  { id: '8', type: 'expense', amount: 450, date: formatISO(subMonths(now, 1)), description: 'Compras de mercado', category: 'Mercado', isRecurring: false, status: 'paid' },
+  { id: '9', type: 'expense', amount: 150, date: formatISO(subMonths(now, 1)), description: 'Contas da casa', category: 'Contas', isRecurring: true, status: 'paid' },
+  { id: '10', type: 'expense', amount: 80, date: formatISO(subMonths(now, 1)), description: 'Jantar com amigos', category: 'Lazer', isRecurring: false, status: 'paid' },
+  { id: '11', type: 'expense', amount: 15.99, date: formatISO(subMonths(now, 1)), description: 'Serviço de Streaming', category: 'Assinaturas', isRecurring: true, status: 'paid' },
+  { id: '12', type: 'expense', amount: 480, date: formatISO(now), description: 'Compras de mercado', category: 'Mercado', isRecurring: false, status: 'paid' },
+  { id: '13', type: 'expense', amount: 160, date: formatISO(now), description: 'Contas da casa', category: 'Contas', isRecurring: true, status: 'paid' },
+  { id: '14', type: 'expense', amount: 15.99, date: formatISO(now), description: 'Serviço de Streaming', category: 'Assinaturas', isRecurring: true, status: 'paid' },
+  { id: '15', type: 'expense', amount: 250, date: formatISO(now), description: 'Sapatos novos', category: 'Compras', isRecurring: false, status: 'paid' },
 ];
 
 export const mockDebts: Debt[] = [
