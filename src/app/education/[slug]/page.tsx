@@ -7,7 +7,7 @@ import { educationTracks } from '@/lib/education-data';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Check, Lightbulb, Brain, HandHeart, Mountain, Target, Zap, CheckCircle2, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Check, Lightbulb, Brain, HandHeart, Mountain, Target, Zap, CheckCircle2, ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -23,30 +23,43 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 // Helper Functions
-function parseMarkdown(text: string): React.ReactNode[] {
-  if (!text) return [];
+function parseMarkdown(text: string): React.ReactNode {
+  if (!text) return null;
 
   const paragraphs = text.split('\n').filter(p => p.trim() !== '');
   
   return paragraphs.map((paragraph, pIndex) => {
-    const boldRegex = /\*\*(.*?)\*\*/g;
-    const italicRegex = /\*(.*?)\*/g;
+    const parts: React.ReactNode[] = [];
+    let lastIndex = 0;
 
-    const nodes = paragraph.split(boldRegex).map((part, index) => {
-      if (index % 2 !== 0) { // It's a bold part
-        return <strong key={`bold-${pIndex}-${index}`}>{part}</strong>;
+    // Regex for bold and italic
+    const regex = /(\*\*(.*?)\*\*)|(\*(.*?)\*)/g;
+    let match;
+
+    while ((match = regex.exec(paragraph)) !== null) {
+      // Add text before the match
+      if (match.index > lastIndex) {
+        parts.push(paragraph.substring(lastIndex, match.index));
+      }
+
+      // Handle bold
+      if (match[1]) {
+        parts.push(<strong key={`bold-${pIndex}-${match.index}`}>{match[2]}</strong>);
+      }
+      // Handle italic
+      else if (match[3]) {
+        parts.push(<em key={`italic-${pIndex}-${match.index}`}>{match[4]}</em>);
       }
       
-      const parts = part.split(italicRegex).map((subPart, subIndex) => {
-        if (subIndex % 2 !== 0) { // It's an italic part
-          return <em key={`italic-${pIndex}-${index}-${subIndex}`}>{subPart}</em>;
-        }
-        return subPart;
-      });
-      return <p key={`part-${pIndex}-${index}`} className="mb-4 last:mb-0">{parts}</p>;
-    });
+      lastIndex = match.index + match[0].length;
+    }
 
-    return <React.Fragment key={`p-${pIndex}`}>{nodes}</React.Fragment>;
+    // Add remaining text
+    if (lastIndex < paragraph.length) {
+      parts.push(paragraph.substring(lastIndex));
+    }
+    
+    return <p key={`p-${pIndex}`} className="mb-4 last:mb-0">{parts}</p>;
   });
 }
 
@@ -59,7 +72,7 @@ const PsychologyModule = ({ content, onPointClick, readItems }: { content: any, 
         <Brain className="h-5 w-5 text-primary" />
         Módulo 1: {content.title}
       </CardTitle>
-      <CardDescription>Entenda os "porquês" por trás das suas ações financeiras.</CardDescription>
+      <CardDescription>{content.subtitle}</CardDescription>
     </CardHeader>
     <CardContent className="space-y-3">
       {content.points.map((point: any, index: number) => (
@@ -69,7 +82,7 @@ const PsychologyModule = ({ content, onPointClick, readItems }: { content: any, 
           className="flex w-full cursor-pointer items-start gap-3 rounded-md p-2 text-left text-sm transition-colors hover:bg-muted"
         >
           <Lightbulb className="h-4 w-4 shrink-0 text-amber-500 mt-1" />
-          <span className="flex-1">{parseMarkdown(point.title)}</span>
+          <span className="flex-1">{point.title}</span>
           {readItems.has(point.title) && <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-1" />}
         </button>
       ))}
@@ -84,7 +97,7 @@ const PracticalExperiencesModule = ({ content, onExperienceClick, readItems }: {
         <HandHeart className="h-5 w-5 text-emerald-600" />
         Módulo 2: {content.title}
       </CardTitle>
-      <CardDescription>Exercícios para conectar o aprendizado à sua vida real.</CardDescription>
+      <CardDescription>{content.subtitle}</CardDescription>
     </CardHeader>
     <CardContent className="space-y-4">
       {content.experiences.map((exp: any, index: number) => (
@@ -111,7 +124,7 @@ const MicroHabitsModule = ({ content, checkedHabits, onHabitToggle }: { content:
         <Target className="h-5 w-5 text-sky-500" />
         Módulo 3: {content.title}
       </CardTitle>
-      <CardDescription>Pequenas ações diárias para construir grandes mudanças.</CardDescription>
+      <CardDescription>{content.subtitle}</CardDescription>
     </CardHeader>
     <CardContent className="space-y-3">
       {content.habits.map((habit: string, index: number) => (
@@ -140,7 +153,7 @@ const NarrativeModule = ({ content }: { content: any }) => (
         <Mountain className="h-5 w-5 text-primary" />
         Módulo 4: {content.title}
       </CardTitle>
-      <CardDescription>Uma metáfora para guiar sua jornada.</CardDescription>
+      <CardDescription>{content.subtitle}</CardDescription>
     </CardHeader>
     <CardContent>
       <div className="prose prose-sm max-w-none text-muted-foreground dark:prose-invert">
@@ -160,7 +173,7 @@ const ToolModule = ({ module }: { module: any }) => {
           <Zap className="h-5 w-5 text-sky-500" />
           Módulo 5: {module.title}
         </CardTitle>
-        <CardDescription>Use esta ferramenta para tomar decisões melhores.</CardDescription>
+        <CardDescription>{module.subtitle}</CardDescription>
       </CardHeader>
       <CardContent>
         <ToolComponent />
@@ -236,7 +249,7 @@ const FinalQuizModule = ({ module, track, user, onQuizComplete }: { module: any,
           <Check className="h-5 w-5 text-green-600" />
           Módulo {module.questions ? '6' : 'Final'}: {module.title}
         </CardTitle>
-        <CardDescription>Valide o que você aprendeu e ganhe pontos.</CardDescription>
+        <CardDescription>{module.subtitle}</CardDescription>
       </CardHeader>
       <form onSubmit={handleQuizSubmit}>
         <CardContent className="space-y-6">
@@ -292,6 +305,7 @@ export default function EducationTrackPage() {
   const [checkedHabits, setCheckedHabits] = useState<Set<number>>(new Set());
   const [activeTab, setActiveTab] = useState('0');
   const [completedModules, setCompletedModules] = useState<Set<number>>(new Set());
+  const [isLoadingNext, setIsLoadingNext] = useState(false);
 
   const track = educationTracks.find((t) => t.slug === slug);
 
@@ -343,11 +357,17 @@ export default function EducationTrackPage() {
   };
 
   const handleNext = () => {
+    setIsLoadingNext(true);
     setCompletedModules(prev => new Set(prev).add(parseInt(activeTab, 10)));
-    const nextTabIndex = parseInt(activeTab, 10) + 1;
-    if (nextTabIndex < track.content.modules.length) {
-      setActiveTab(String(nextTabIndex));
-    }
+    
+    // Simulate loading and then advance
+    setTimeout(() => {
+        const nextTabIndex = parseInt(activeTab, 10) + 1;
+        if (nextTabIndex < track.content.modules.length) {
+            setActiveTab(String(nextTabIndex));
+        }
+        setIsLoadingNext(false);
+    }, 500);
   };
 
   const handlePrevious = () => {
@@ -396,7 +416,7 @@ export default function EducationTrackPage() {
                     <Icon className={cn("h-7 w-7", track.color)} />
                 </div>
                 <div className="flex-1">
-                  <DialogTitle className="text-xl leading-snug">{parseMarkdown(modalContent?.title || '')}</DialogTitle>
+                  <DialogTitle className="text-xl leading-snug">{modalContent?.title || ''}</DialogTitle>
                 </div>
             </div>
             <Separator />
@@ -446,7 +466,8 @@ export default function EducationTrackPage() {
                         <ArrowLeft className="mr-2 h-4 w-4" /> Anterior
                     </Button>
                      {currentModuleIndex < track.content.modules.length -1 && (
-                        <Button onClick={handleNext} disabled={!canGoNext}>
+                        <Button onClick={handleNext} disabled={!canGoNext || isLoadingNext}>
+                            {isLoadingNext && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Próximo <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                     )}
