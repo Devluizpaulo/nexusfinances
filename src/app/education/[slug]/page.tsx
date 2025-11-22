@@ -22,18 +22,26 @@ import type { EducationTrack } from '@/lib/types';
 // Helper Functions
 function parseMarkdown(text: string): React.ReactNode {
   if (!text) return null;
-  const parts = text.split(/(\*\*.*?\*\*)|(\*.*?\*)/g);
-  return parts.map((part, index) => {
-    if (!part) return null;
-    if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={index}>{part.slice(2, -2)}</strong>;
+  
+  const boldRegex = /\*\*(.*?)\*\*/g;
+  const italicRegex = /\*(.*?)\*/g;
+
+  const nodes = text.split(boldRegex).map((part, index) => {
+    if (index % 2 !== 0) { // It's a bold part
+      return <strong key={`bold-${index}`}>{part}</strong>;
     }
-    if (part.startsWith('*') && part.endsWith('*')) {
-      return <em key={index}>{part.slice(1, -1)}</em>;
-    }
-    return part;
+    
+    return part.split(italicRegex).map((subPart, subIndex) => {
+      if (subIndex % 2 !== 0) { // It's an italic part
+        return <em key={`italic-${index}-${subIndex}`}>{subPart}</em>;
+      }
+      return subPart;
+    });
   });
+
+  return <>{nodes}</>;
 }
+
 
 // Sub-components for each module
 const PsychologyModule = ({ content, onPointClick }: { content: EducationTrack['content']['psychology'], onPointClick: (point: any) => void }) => (
@@ -263,7 +271,7 @@ export default function EducationTrackPage() {
       <Dialog open={!!modalContent} onOpenChange={() => setModalContent(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{modalContent?.title}</DialogTitle>
+            <DialogTitle>{modalContent?.title ? parseMarkdown(modalContent.title) : ''}</DialogTitle>
           </DialogHeader>
           <div className="prose prose-sm max-w-none text-foreground dark:prose-invert">
             {parseMarkdown(modalContent?.details || '')}
