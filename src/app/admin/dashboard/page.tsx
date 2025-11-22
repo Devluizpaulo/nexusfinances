@@ -11,10 +11,11 @@ import { KpiCard } from '@/components/dashboard/kpi-card';
 import { Users, UserPlus, Loader2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { subDays } from 'date-fns';
-import type { Log } from '@/lib/types';
+import type { Log, EducationTrack } from '@/lib/types';
 import { LogsTable } from './logs/logs-table';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 export default function AdminDashboardPage() {
   const { user } = useUser();
@@ -32,8 +33,14 @@ export default function AdminDashboardPage() {
     return query(collection(firestore, `logs`), orderBy('timestamp', 'desc'));
   }, [firestore]);
 
+  const tracksQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'education'), orderBy('order', 'asc'));
+  }, [firestore]);
+
   const { data: usersData, isLoading: isUsersLoading } = useCollection<AppUser>(usersQuery);
   const { data: logsData, isLoading: isLogsLoading } = useCollection<Log>(logsQuery);
+  const { data: tracks, isLoading: isTracksLoading } = useCollection<EducationTrack>(tracksQuery);
 
   const { totalUsers, newUsersLast30Days } = useMemo(() => {
     if (!usersData) return { totalUsers: 0, newUsersLast30Days: 0 };
@@ -64,7 +71,7 @@ export default function AdminDashboardPage() {
 
   const formatNumber = (num: number) => new Intl.NumberFormat('pt-BR').format(num);
 
-  const isLoading = isUsersLoading || isLogsLoading;
+  const isLoading = isUsersLoading || isLogsLoading || isTracksLoading;
 
   if (isLoading) {
     return (
@@ -78,40 +85,40 @@ export default function AdminDashboardPage() {
     <>
       <PageHeader
         title="Painel do Administrador"
-        description="Gerencie usuários, visualize estatísticas e configure o sistema."
+        description="Gerencie usuários, conteúdo educacional, logs e mais."
       />
 
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="mb-6 flex flex-wrap gap-2 border-b pb-2">
         <Button
-          variant={activeSection === 'overview' ? 'default' : 'outline'}
+          variant={activeSection === 'overview' ? 'secondary' : 'ghost'}
           size="sm"
           onClick={() => setActiveSection('overview')}
         >
           Visão Geral
         </Button>
         <Button
-          variant={activeSection === 'users' ? 'default' : 'outline'}
+          variant={activeSection === 'users' ? 'secondary' : 'ghost'}
           size="sm"
           onClick={() => setActiveSection('users')}
         >
           Usuários
         </Button>
         <Button
-          variant={activeSection === 'education' ? 'default' : 'outline'}
+          variant={activeSection === 'education' ? 'secondary' : 'ghost'}
           size="sm"
           onClick={() => setActiveSection('education')}
         >
           Educação
         </Button>
         <Button
-          variant={activeSection === 'logs' ? 'default' : 'outline'}
+          variant={activeSection === 'logs' ? 'secondary' : 'ghost'}
           size="sm"
           onClick={() => setActiveSection('logs')}
         >
           Logs
         </Button>
         <Button
-          variant={activeSection === 'monetization' ? 'default' : 'outline'}
+          variant={activeSection === 'monetization' ? 'secondary' : 'ghost'}
           size="sm"
           onClick={() => setActiveSection('monetization')}
         >
@@ -119,9 +126,8 @@ export default function AdminDashboardPage() {
         </Button>
       </div>
 
-      {/* Visão Geral */}
       {activeSection === 'overview' && (
-        <section className="space-y-4">
+        <section className="space-y-4 animate-in fade-in-50">
           <div className="grid gap-4 md:grid-cols-2">
             <KpiCard
               title="Total de Usuários"
@@ -136,82 +142,83 @@ export default function AdminDashboardPage() {
               description="Novos usuários nos últimos 30 dias."
             />
           </div>
-        </section>
-      )}
-
-      {/* Usuários */}
-      {activeSection === 'users' && (
-        <section className="mt-8 space-y-4">
-          <Card>
+           <Card>
             <CardHeader>
-              <CardTitle>Usuários</CardTitle>
-              <CardDescription>Lista de usuários cadastrados na plataforma.</CardDescription>
+              <CardTitle>Logs Recentes</CardTitle>
+              <CardDescription>Últimos 5 eventos importantes do sistema.</CardDescription>
             </CardHeader>
             <CardContent>
-              <UsersTable usersData={usersData || []} />
+              <LogsTable logsData={logsData?.slice(0, 5) || []} />
             </CardContent>
           </Card>
         </section>
       )}
 
-      {/* Educação */}
+      {activeSection === 'users' && (
+        <section className="space-y-4 animate-in fade-in-50">
+          <UsersTable usersData={usersData || []} />
+        </section>
+      )}
+
       {activeSection === 'education' && (
-        <section className="mt-8 space-y-4">
-          <Card>
-            <CardHeader className="flex flex-row items-start justify-between gap-4">
+        <section className="space-y-4 animate-in fade-in-50">
+           <Card>
+            <CardHeader className="flex-row items-center justify-between">
               <div>
                 <CardTitle>Gerenciamento de Conteúdo Educacional</CardTitle>
                 <CardDescription>
-                  Informações sobre como o conteúdo da "Jornada Financeira" é gerenciado.
+                  Adicione, edite e organize as trilhas da Jornada Financeira.
                 </CardDescription>
               </div>
-              <Button asChild variant="default">
-                <Link href="/admin/education">Gerenciar trilhas</Link>
+               <Button asChild>
+                <Link href="/admin/education/new">Nova trilha</Link>
               </Button>
             </CardHeader>
             <CardContent>
-              <div className="prose prose-sm max-w-full text-foreground/80">
-                <h4>Abordagem Atual: Conteúdo Dinâmico no Firestore</h4>
-                <p>O conteúdo das trilhas de educação agora é gerenciado através da coleção <code>/education</code> no Firestore. Esta abordagem dinâmica oferece muito mais flexibilidade do que o conteúdo estático anterior.</p>
-
-                <h5>Vantagens da nova abordagem:</h5>
-                <ul>
-                  <li><strong>Flexibilidade:</strong> O conteúdo pode ser atualizado a qualquer momento sem a necessidade de um novo deploy do aplicativo.</li>
-                  <li><strong>Escalabilidade:</strong> Facilita a adição de novas trilhas e módulos no futuro.</li>
-                  <li><strong>Gerenciamento Centralizado:</strong> Todo o conteúdo educacional fica em um único local, facilitando a gestão.</li>
-                </ul>
-
-                <h5>Como atualizar o conteúdo:</h5>
-                <p>Atualmente, a atualização do conteúdo deve ser feita diretamente no Firestore. Administradores podem acessar o Console do Firebase para editar, adicionar ou remover documentos na coleção <code>/education</code>.</p>
-
-                <h4 className="mt-6">Evolução Futura: CMS Integrado</h4>
-                <p>
-                  O próximo passo lógico é construir uma interface de gerenciamento (CMS) aqui mesmo, nesta aba. Isso permitirá que administradores criem e editem as trilhas de forma visual e intuitiva, sem precisar acessar o Firebase diretamente. Esta funcionalidade será desenvolvida em uma fase posterior do projeto.
-                </p>
-              </div>
+              {isTracksLoading ? (
+                 <div className="flex h-40 items-center justify-center">
+                   <Loader2 className="h-6 w-6 animate-spin" />
+                 </div>
+              ) : (
+                <div className="space-y-2">
+                  {tracks && tracks.length > 0 ? (
+                    tracks.map(track => (
+                      <Card key={track.slug}>
+                        <CardContent className="flex items-center justify-between p-3">
+                          <div className="space-y-1">
+                            <span className="font-semibold">{track.title}</span>
+                            <p className="text-sm text-muted-foreground">{track.description}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline">Ordem: {track.order}</Badge>
+                            {/* Futuro botão de editar */}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  ) : (
+                     <div className="flex h-40 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
+                        <h3 className="text-lg font-semibold">Nenhuma trilha encontrada</h3>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Clique em "Nova trilha" para criar a primeira jornada de aprendizado.
+                        </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </section>
       )}
 
-      {/* Logs */}
       {activeSection === 'logs' && (
-        <section className="mt-8 space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Logs do sistema</CardTitle>
-              <CardDescription>Eventos recentes de uso da aplicação.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <LogsTable logsData={logsData || []} />
-            </CardContent>
-          </Card>
+        <section className="space-y-4 animate-in fade-in-50">
+          <LogsTable logsData={logsData || []} />
         </section>
       )}
 
-      {/* Monetização */}
       {activeSection === 'monetization' && (
-        <section className="mt-8 space-y-6">
+        <section className="space-y-6 animate-in fade-in-50">
           <Card>
             <CardHeader>
               <CardTitle>Monetização com Anúncios</CardTitle>
