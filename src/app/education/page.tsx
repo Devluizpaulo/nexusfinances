@@ -45,7 +45,7 @@ function JourneyProgressCard({ isLoading, currentLevelIndex, progressPercentage 
         <Progress value={progressPercentage} className="mt-3 h-3" />
         <div className="mt-2 grid grid-cols-5 gap-1 text-center text-xs text-muted-foreground">
           {journeyLevels.map((item, index) => (
-            <div key={item.level} className={cn(index <= currentLevelIndex ? 'font-semibold text-primary' : '')}>
+            <div key={item.level} className={cn('truncate', index <= currentLevelIndex ? 'font-semibold text-primary' : '')}>
               {item.level}
             </div>
           ))}
@@ -138,7 +138,7 @@ export default function EducationPage() {
                 )}
             </TabsContent>
             <TabsContent value="completed" className="mt-6">
-                {finishedTracks.length > 0 ? (
+                 {finishedTracks.length > 0 ? (
                     <div className="grid gap-4 md:grid-cols-2">
                         {finishedTracks.map((track) => (
                             <EducationTrackCard key={track.slug} track={track} isCompleted={true} />
@@ -164,4 +164,3 @@ export default function EducationPage() {
     </>
   );
 }
-
