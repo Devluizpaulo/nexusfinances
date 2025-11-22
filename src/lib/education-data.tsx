@@ -1,3 +1,4 @@
+
 import { Banknote, BookOpen, Calculator, FileText, Goal, HeartHandshake, Landmark, PiggyBank, Receipt, Sparkles, Zap, type LucideIcon } from 'lucide-react';
 import { PayoffSimulator } from '@/components/education/PayoffSimulator';
 import { InterestCalculator } from '@/components/education/InterestCalculator';
@@ -97,33 +98,74 @@ export const educationTracks: EducationTrack[] = [
     },
   },
    {
-    slug: 'friends-family',
-    title: 'Dívidas com Amigos e Família',
-    description: 'Como lidar com empréstimos informais e preservar relações.',
+    slug: 'negotiation-scripts',
+    title: 'Scripts de Negociação',
+    description: 'Modelos prontos para conversar com credores e conseguir acordos.',
     icon: HeartHandshake,
-    color: 'text-rose-500',
-    bgColor: 'bg-rose-50',
-    borderColor: 'border-rose-200',
+    color: 'text-teal-500',
+    bgColor: 'bg-teal-50',
+    borderColor: 'border-teal-200',
     content: {
-      introduction: 'Misturar dinheiro e relações pessoais é delicado. A falta de clareza é a principal causa de problemas. A chave aqui é comunicação e formalização.',
+      introduction: 'Negociar uma dívida pode ser intimidante, mas é um direito seu. Ter um roteiro em mãos te dá confiança e clareza para conseguir as melhores condições. O segredo é estar preparado.',
       metaphor: {
-        title: 'Metáfora: O Contrato da Confiança',
-        description: 'Mesmo sem papel, um empréstimo com um ente querido é um contrato baseado na confiança. Se a confiança é quebrada, o "contrato" se rasga. Proteger essa relação é mais importante que o dinheiro.',
+        title: 'Metáfora: O Jogo de Cartas',
+        description: 'Negociar é como um jogo de cartas. Você precisa saber quais cartas tem (sua situação financeira, quanto pode pagar) e entender as possíveis cartas do seu oponente (o credor quer receber, mesmo que seja um valor menor). Um bom roteiro é a sua carta na manga.',
       },
       actionSteps: {
-        title: 'Plano de Ação para Manter a Paz',
+        title: 'Plano de Ação para uma Boa Negociação',
         steps: [
           {
-            title: '1. Converse Abertamente',
-            description: 'Não evite a pessoa. Seja honesto sobre sua situação. Diga quando e como planeja pagar, mesmo que seja aos poucos. A incerteza é pior que uma má notícia.',
+            title: '1. Conheça sua Situação',
+            description: 'Antes de ligar, saiba exatamente quanto você deve e, mais importante, quanto pode pagar por mês de forma realista. Use o "xô planilhas" para ter essa clareza.',
           },
           {
-            title: '2. Faça um Acordo (mesmo que simples)',
-            description: 'Coloque no papel (ou numa mensagem) o valor, a data de pagamento e como será feito. Isso evita mal-entendidos e mostra que você leva a sério.',
+            title: '2. Use o Script Base',
+            description: '"Olá, meu nome é [Seu Nome] e estou ligando sobre [sua dívida]. Estou passando por um momento financeiro delicado, mas tenho total interesse em resolver minha pendência. Gostaria de saber quais são as opções de negociação que vocês podem me oferecer."',
           },
           {
-            title: '3. Priorize este pagamento',
-            description: 'Pagar de volta a um amigo ou familiar deve ser uma prioridade. Mostre que você valoriza a confiança que depositaram em você.',
+            title: '3. Seja Firme, mas Educado',
+            description: 'Ouça a proposta, mas não aceite a primeira oferta se ela não couber no seu bolso. Use frases como: "Agradeço a proposta, mas esse valor ainda está fora da minha realidade. O que mais podemos fazer?" ou "Com base no meu orçamento, o valor que consigo pagar é R$ X por mês. É possível chegarmos a um acordo com base nisso?"',
+          },
+          {
+            title: '4. Formalize o Acordo',
+            description: 'Após chegar a um acordo, peça para que tudo seja enviado por e-mail ou por escrito. Não faça nenhum pagamento antes de ter o acordo formalizado.',
+          }
+        ],
+      },
+    },
+  },
+   {
+    slug: 'daily-habits',
+    title: 'Construindo Hábitos: Pequenas Vitórias',
+    description: 'Use o app para criar hábitos que transformam sua vida financeira.',
+    icon: Sparkles,
+    color: 'text-violet-500',
+    bgColor: 'bg-violet-50',
+    borderColor: 'border-violet-200',
+    content: {
+      introduction: 'A saúde financeira não vem de uma grande ação, mas da soma de pequenas atitudes diárias. O "xô planilhas" foi feito para te ajudar a criar esses hábitos de forma leve e motivadora.',
+      metaphor: {
+        title: 'Metáfora: O Treino na Academia',
+        description: 'Ir na academia uma vez não te deixa forte. Mas ir um pouco a cada dia, sim. Com as finanças é igual. Cada pequena ação, como registrar um gasto ou fazer um pequeno aporte, é um "exercício" que fortalece seu "músculo financeiro".',
+      },
+      actionSteps: {
+        title: 'Missões para Criar Hábitos Vencedores',
+        steps: [
+          {
+            title: 'Missão Diária: Registre Tudo',
+            description: 'Tire 2 minutos no fim do dia e registre todas as suas despesas na aba "Despesas". Este é o hábito mais importante para ter clareza.',
+          },
+          {
+            title: 'Missão Semanal: Revise o Painel',
+            description: 'Uma vez por semana, abra o "Painel" e veja o resumo. Onde você mais gastou? Seu balanço está positivo? Essa revisão te mantém no controle.',
+          },
+          {
+            title: 'Missão do Aporte: Guarde um Pouco',
+            description: 'Recebeu um dinheiro extra ou economizou em algo? Vá em "Reservas", escolha uma meta e use o botão "Adicionar aporte" para guardar esse valor. Comemore cada pequena contribuição!',
+          },
+           {
+            title: 'Missão da Dívida: Pague uma Parcela',
+            description: 'Vá em "Dívidas", escolha uma e pague a próxima parcela. Marcar como "pago" no app te dá uma sensação incrível de progresso.',
           },
         ],
       },
