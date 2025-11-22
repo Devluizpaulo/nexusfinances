@@ -43,12 +43,10 @@ export function EducationLevelBadge() {
     <TooltipProvider>
         <Tooltip>
             <TooltipTrigger asChild>
-                <Button asChild variant="ghost" size="icon" className="h-10 w-10">
-                    <Link href="/education">
-                        <Icon className={cn("h-5 w-5", currentLevel.colorClass)} />
-                        <span className="sr-only">Nível da Jornada de Evolução</span>
-                    </Link>
-                </Button>
+                <Link href="/education" className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "h-10 w-10")}>
+                    <Icon className={cn("h-5 w-5", currentLevel.colorClass)} />
+                    <span className="sr-only">Nível da Jornada de Evolução</span>
+                </Link>
             </TooltipTrigger>
             <TooltipContent>
                 <p className="font-semibold">Nível: {currentLevel.level}</p>
