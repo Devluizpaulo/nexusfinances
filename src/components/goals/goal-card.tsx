@@ -57,8 +57,8 @@ export function GoalCard({ goal, onAddContribution }: GoalCardProps) {
     deleteDocumentNonBlocking(goalRef);
 
     toast({
-        title: 'Meta Excluída',
-        description: `A meta "${goal.name}" foi removida.`,
+        title: 'Item Excluído',
+        description: `O item "${goal.name}" foi removido.`,
     });
     
     setIsDeleteDialogOpen(false);
@@ -75,7 +75,7 @@ export function GoalCard({ goal, onAddContribution }: GoalCardProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Você tem certeza absoluta?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Isso excluirá permanentemente a meta <strong>{goal.name}</strong>.
+              Esta ação não pode ser desfeita. Isso excluirá permanentemente o item <strong>{goal.name}</strong>.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -93,12 +93,12 @@ export function GoalCard({ goal, onAddContribution }: GoalCardProps) {
             <div>
               <CardTitle>{goal.name}</CardTitle>
               {isCompleted && (
-                <CardDescription className="font-semibold text-green-600">Meta Atingida!</CardDescription>
+                <CardDescription className="font-semibold text-green-600">Objetivo Atingido!</CardDescription>
               )}
             </div>
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsDeleteDialogOpen(true)}>
                 <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                <span className="sr-only">Excluir Meta</span>
+                <span className="sr-only">Excluir Item</span>
             </Button>
           </div>
         </CardHeader>
@@ -109,7 +109,7 @@ export function GoalCard({ goal, onAddContribution }: GoalCardProps) {
               <span className="font-semibold">{formatCurrency(goal.currentAmount)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Meta</span>
+              <span className="text-muted-foreground">Objetivo</span>
               <span>{formatCurrency(goal.targetAmount)}</span>
             </div>
             <Progress value={progress} className="h-2" />

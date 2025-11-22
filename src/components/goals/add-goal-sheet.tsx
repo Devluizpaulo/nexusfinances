@@ -28,7 +28,7 @@ import { useToast } from '@/hooks/use-toast';
 import { CurrencyInput } from '../ui/currency-input';
 
 const formSchema = z.object({
-  name: z.string().min(1, 'O nome da meta é obrigatório.'),
+  name: z.string().min(1, 'O nome é obrigatório.'),
   targetAmount: z.coerce.number().positive('O valor alvo deve ser positivo.'),
   currentAmount: z.coerce.number().min(0, 'O valor atual não pode ser negativo.').default(0),
 });
@@ -59,7 +59,7 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
       toast({
         variant: 'destructive',
         title: 'Erro de autenticação',
-        description: 'Você precisa estar logado para adicionar uma meta.',
+        description: 'Você precisa estar logado para adicionar um item.',
       });
       return;
     }
@@ -75,8 +75,8 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
       addDocumentNonBlocking(goalsColRef, goalData);
 
       toast({
-        title: 'Meta adicionada!',
-        description: `Sua meta "${values.name}" foi adicionada com sucesso.`,
+        title: 'Item adicionado!',
+        description: `"${values.name}" foi adicionado com sucesso.`,
       });
 
       form.reset();
@@ -87,7 +87,7 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
       toast({
         variant: 'destructive',
         title: 'Oh, não! Algo deu errado.',
-        description: 'Não foi possível adicionar a meta. Por favor, tente novamente.',
+        description: 'Não foi possível adicionar o item. Por favor, tente novamente.',
       });
     }
   };
@@ -96,7 +96,7 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Adicionar Nova Meta Financeira</DialogTitle>
+          <DialogTitle>Adicionar Nova Reserva/Investimento</DialogTitle>
           <DialogDescription>
             Defina um objetivo e acompanhe seu progresso.
           </DialogDescription>
@@ -108,7 +108,7 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nome da Meta</FormLabel>
+                  <FormLabel>Nome</FormLabel>
                   <FormControl>
                     <Input placeholder="Ex: Reserva de Emergência" {...field} />
                   </FormControl>
@@ -145,7 +145,7 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
                     />
                   </FormControl>
                   <FormDescription>
-                    Quanto você já tem guardado para esta meta?
+                    Quanto você já tem guardado para este objetivo?
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -159,7 +159,7 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
               {form.formState.isSubmitting && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              Salvar Meta
+              Salvar
             </Button>
           </form>
         </Form>

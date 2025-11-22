@@ -51,10 +51,10 @@ export default function GoalsPage() {
             goal={selectedGoal} 
           />
       )}
-      <PageHeader title="Metas Financeiras" description="Defina e acompanhe sua reserva de emergência e metas de investimento.">
+      <PageHeader title="Reserva & Investimentos" description="Crie e acompanhe suas reservas de emergência e investimentos.">
         <Button onClick={() => setIsAddGoalSheetOpen(true)} disabled={!user}>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Adicionar Meta
+          Adicionar Reserva/Investimento
         </Button>
       </PageHeader>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -64,13 +64,13 @@ export default function GoalsPage() {
       </div>
        {(!goalData || goalData.length === 0) && !isLoading && (
         <div className="col-span-full mt-10 flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-transparent p-8 text-center" style={{minHeight: '300px'}}>
-            <h3 className="text-xl font-semibold tracking-tight">Nenhuma meta encontrada</h3>
+            <h3 className="text-xl font-semibold tracking-tight">Nenhuma reserva ou investimento encontrado</h3>
             <p className="mt-2 text-sm text-muted-foreground">
-              Comece adicionando uma nova meta para ver seu progresso aqui.
+              Comece adicionando um novo item para ver seu progresso aqui.
             </p>
             <Button className="mt-4" onClick={() => setIsAddGoalSheetOpen(true)}>
               <PlusCircle className="mr-2 h-4 w-4" />
-              Adicionar Primeira Meta
+              Adicionar Reserva/Investimento
             </Button>
         </div>
       )}

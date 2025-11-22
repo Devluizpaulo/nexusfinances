@@ -77,7 +77,7 @@ export function AddContributionSheet({ isOpen, onClose, goal }: AddContributionS
 
       toast({
         title: 'Aporte adicionado!',
-        description: `R$ ${values.amount.toFixed(2)} adicionados à sua meta "${goal.name}".`,
+        description: `R$ ${values.amount.toFixed(2)} adicionados ao seu objetivo "${goal.name}".`,
       });
 
       onClose();
@@ -98,7 +98,7 @@ export function AddContributionSheet({ isOpen, onClose, goal }: AddContributionS
         <DialogHeader>
           <DialogTitle>Adicionar Aporte para "{goal?.name}"</DialogTitle>
           <DialogDescription>
-            Registre um novo valor para se aproximar da sua meta.
+            Registre um novo valor para se aproximar do seu objetivo.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
