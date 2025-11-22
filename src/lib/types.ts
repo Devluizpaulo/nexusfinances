@@ -185,6 +185,7 @@ export type EducationTrack = {
   color: string;
   bgColor: string;
   borderColor: string;
+  order: number;
   content: {
     introduction: string;
     modules: EducationModule[];
