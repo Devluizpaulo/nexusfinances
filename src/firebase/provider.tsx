@@ -17,6 +17,7 @@ export interface AppUser extends Omit<User, 'metadata' | 'phoneNumber'> {
   metadata: UserMetadata;
   customIncomeCategories?: string[];
   customExpenseCategories?: string[];
+  completedTracks?: string[];
 }
 
 // Internal state for user authentication, using our extended AppUser
@@ -107,6 +108,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
               registrationDate: firestoreData.registrationDate,
               customIncomeCategories: firestoreData.customIncomeCategories || [],
               customExpenseCategories: firestoreData.customExpenseCategories || [],
+              completedTracks: firestoreData.completedTracks || [],
             };
           } else {
             const nameParts = (firebaseUser.displayName || firebaseUser.email || '').split(' ');
@@ -123,6 +125,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
               lastName: lastName,
               phoneNumber: firebaseUser.phoneNumber || '',
               role: 'user', // Default role
+              completedTracks: [], // Initialize completedTracks
             }, { merge: true });
              appUser = {
                 ...appUser,
@@ -131,6 +134,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                 phoneNumber: firebaseUser.phoneNumber || '',
                 role: 'user',
                 registrationDate: registrationDate,
+                completedTracks: [],
             };
           }
           setUserAuthState({ user: appUser, isUserLoading: false, userError: null });

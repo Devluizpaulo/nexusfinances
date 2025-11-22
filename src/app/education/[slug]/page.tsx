@@ -3,45 +3,81 @@
 import { notFound, useParams } from 'next/navigation';
 import { educationTracks } from '@/lib/education-data';
 import { PageHeader } from '@/components/page-header';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { AlertCircle, Target, BookCopy, Zap, HelpCircle, Check, Lightbulb } from 'lucide-react';
+import { HelpCircle, Target, BookCopy, Zap, Check, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { doc, arrayUnion } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { useUser, useFirestore, updateDocumentNonBlocking } from '@/firebase';
+
 
 export default function EducationTrackPage() {
   const params = useParams();
   const slug = params.slug as string;
   const { toast } = useToast();
+  const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
 
   const track = educationTracks.find((t) => t.slug === slug);
 
   const [quizAnswers, setQuizAnswers] = useState<Record<string, string>>({});
   const [showQuizResult, setShowQuizResult] = useState(false);
+  
+  const isCompleted = user?.completedTracks?.includes(slug) || false;
+
+  useEffect(() => {
+    // Se a trilha já foi concluída, mostrar os resultados do quiz
+    if (isCompleted) {
+        setShowQuizResult(true);
+    }
+  }, [isCompleted]);
 
   if (!track) {
     notFound();
   }
 
-  const handleQuizSubmit = (e: React.FormEvent) => {
+  const handleQuizSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user || !firestore) {
+        toast({ variant: 'destructive', title: 'Erro', description: 'Você precisa estar logado para salvar seu progresso.'});
+        return;
+    }
+
     setShowQuizResult(true);
 
     const correctAnswers = track.content.finalQuiz.questions.filter(
       (q, index) => quizAnswers[index] === q.correctAnswer
     ).length;
     const totalQuestions = track.content.finalQuiz.questions.length;
+    const score = (correctAnswers / totalQuestions) * 100;
 
     toast({
         title: "Resultado do Quiz",
         description: `Você acertou ${correctAnswers} de ${totalQuestions} perguntas!`,
     });
+
+    if (score > 50 && !isCompleted) {
+        const userDocRef = doc(firestore, 'users', user.uid);
+        try {
+            updateDocumentNonBlocking(userDocRef, {
+                completedTracks: arrayUnion(slug)
+            });
+            toast({
+                title: "Trilha Concluída!",
+                description: `Parabéns! Você concluiu a trilha "${track.title}".`,
+                className: "bg-emerald-100 border-emerald-300 text-emerald-800"
+            });
+        } catch (error) {
+            console.error("Error updating user progress:", error);
+            toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar seu progresso. Tente novamente.'});
+        }
+    }
   };
 
   return (
@@ -176,12 +212,12 @@ export default function EducationTrackPage() {
                                     <div 
                                         key={oIndex} 
                                         className={cn(
-                                            "flex items-center space-x-2 rounded-md border p-3",
-                                            showQuizResult && (q.correctAnswer === opt ? 'border-green-400 bg-green-50' : (quizAnswers[qIndex] === opt ? 'border-red-400 bg-red-50' : ''))
+                                            "flex items-center space-x-2 rounded-md border p-3 transition-colors",
+                                            showQuizResult && (q.correctAnswer === opt ? 'border-green-400 bg-green-50 dark:bg-green-900/20' : (quizAnswers[qIndex] === opt ? 'border-red-400 bg-red-50 dark:bg-red-900/20' : ''))
                                         )}
                                     >
                                         <RadioGroupItem value={opt} id={`q${qIndex}-o${oIndex}`} />
-                                        <Label htmlFor={`q${qIndex}-o${oIndex}`} className="font-normal">{opt}</Label>
+                                        <Label htmlFor={`q${qIndex}-o${oIndex}`} className="font-normal cursor-pointer">{opt}</Label>
                                     </div>
                                 ))}
                             </RadioGroup>
@@ -189,8 +225,8 @@ export default function EducationTrackPage() {
                     ))}
                 </CardContent>
                 <CardFooter>
-                    <Button type="submit" disabled={showQuizResult || Object.keys(quizAnswers).length !== track.content.finalQuiz.questions.length}>
-                        Verificar Respostas
+                    <Button type="submit" disabled={isCompleted || showQuizResult || Object.keys(quizAnswers).length !== track.content.finalQuiz.questions.length}>
+                        {isCompleted ? 'Trilha Concluída' : 'Verificar Respostas'}
                     </Button>
                 </CardFooter>
              </form>

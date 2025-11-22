@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import type { LucideIcon } from 'lucide-react';
+
 
 export type Transaction = {
   id: string;
@@ -144,3 +146,51 @@ export const GetFinancialInsightsOutputSchema = z.object({
     .describe('Uma lista de 2 a 3 pontos de ação claros e práticos para o usuário. Cada ponto deve ser uma frase curta e direta.'),
 });
 export type GetFinancialInsightsOutput = z.infer<typeof GetFinancialInsightsOutputSchema>;
+
+export type EducationTrack = {
+  slug: string;
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+  content: {
+    introduction: string;
+    diagnostic: {
+      title: string;
+      questions: string[];
+    };
+    metaphor: {
+      title: string;
+      description: string;
+    };
+    actionSteps: {
+      title: string;
+      steps: {
+        title: string;
+        description: string;
+      }[];
+    };
+    examples: {
+      scenario: string;
+      consequence: string;
+    }[];
+    finalQuiz: {
+      title: string;
+      questions: {
+        question: string;
+        options: string[];
+        correctAnswer: string;
+      }[];
+    };
+    tool?: React.ComponentType;
+  };
+};
+
+export interface Mission {
+  id: string;
+  description: string;
+  isCompleted: boolean;
+  points: number;
+}

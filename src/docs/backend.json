@@ -1,0 +1,477 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the xô planilhas application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user entity."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "First name of the user."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "Last name of the user."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Display name of the user, typically a combination of first and last name."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the user.",
+          "format": "email"
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "URL of the user's profile picture.",
+          "format": "uri"
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "User's phone number."
+        },
+        "registrationDate": {
+          "type": "string",
+          "description": "Date and time the user registered.",
+          "format": "date-time"
+        },
+        "role": {
+          "type": "string",
+          "description": "The role of the user.",
+          "enum": [
+            "user",
+            "superadmin"
+          ]
+        },
+        "customIncomeCategories": {
+            "type": "array",
+            "description": "Custom income categories defined by the user.",
+            "items": {
+                "type": "string"
+            }
+        },
+        "customExpenseCategories": {
+            "type": "array",
+            "description": "Custom expense categories defined by the user.",
+            "items": {
+                "type": "string"
+            }
+        },
+        "completedTracks": {
+            "type": "array",
+            "description": "An array of slugs for completed education tracks.",
+            "items": {
+                "type": "string"
+            }
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "registrationDate",
+        "firstName",
+        "lastName"
+      ]
+    },
+    "Income": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Income",
+      "type": "object",
+      "description": "Represents an income entry for a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the income entry."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Income)"
+        },
+        "source": {
+          "type": "string",
+          "description": "Source of the income (e.g., salary, freelance)."
+        },
+        "amount": {
+          "type": "number",
+          "description": "Amount of the income."
+        },
+        "date": {
+          "type": "string",
+          "description": "Date of the income.",
+          "format": "date-time"
+        },
+        "isRecurring": {
+          "type": "boolean",
+          "description": "Indicates if the income is recurring."
+        },
+        "recurrenceSchedule": {
+          "type": "string",
+          "description": "Schedule for recurring income (e.g., monthly, weekly)."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "source",
+        "amount",
+        "date",
+        "isRecurring"
+      ]
+    },
+    "Expense": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Expense",
+      "type": "object",
+      "description": "Represents an expense entry for a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the expense entry."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Expense)"
+        },
+        "category": {
+          "type": "string",
+          "description": "Category of the expense (e.g., food, rent)."
+        },
+        "amount": {
+          "type": "number",
+          "description": "Amount of the expense."
+        },
+        "date": {
+          "type": "string",
+          "description": "Date of the expense.",
+          "format": "date-time"
+        },
+        "isRecurring": {
+          "type": "boolean",
+          "description": "Indicates if the expense is recurring."
+        },
+        "recurrenceSchedule": {
+          "type": "string",
+          "description": "Schedule for recurring expense (e.g., monthly, weekly)."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "category",
+        "amount",
+        "date",
+        "isRecurring"
+      ]
+    },
+    "Debt": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Debt",
+      "type": "object",
+      "description": "Represents a debt/loan for a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the debt."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Debt)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the debt (e.g., credit card, student loan)."
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "Total amount of the debt."
+        },
+        "interestRate": {
+          "type": "number",
+          "description": "Interest rate for the debt."
+        },
+        "startDate": {
+          "type": "string",
+          "description": "Start date of the debt.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "name",
+        "totalAmount",
+        "interestRate",
+        "startDate"
+      ]
+    },
+    "Installment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Installment",
+      "type": "object",
+      "description": "Represents an installment payment for a debt.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the installment."
+        },
+        "debtId": {
+          "type": "string",
+          "description": "Reference to Debt. (Relationship: Debt 1:N Installment)"
+        },
+        "dueDate": {
+          "type": "string",
+          "description": "Due date for the installment.",
+          "format": "date-time"
+        },
+        "amount": {
+          "type": "number",
+          "description": "Amount of the installment."
+        },
+        "paymentStatus": {
+          "type": "string",
+          "description": "Status of the installment payment (e.g., paid, unpaid)."
+        },
+        "paymentDate": {
+          "type": "string",
+          "description": "Date when the installment was paid.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "debtId",
+        "dueDate",
+        "amount",
+        "paymentStatus"
+      ]
+    },
+    "Goal": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Goal",
+      "type": "object",
+      "description": "Represents a financial goal for a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the goal."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Goal)"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the financial goal."
+        },
+        "targetAmount": {
+          "type": "number",
+          "description": "The target amount for the goal."
+        },
+        "currentAmount": {
+          "type": "number",
+          "description": "The current amount saved towards the goal."
+        },
+        "targetDate": {
+          "type": "string",
+          "description": "Optional target date to achieve the goal.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "name",
+        "targetAmount",
+        "currentAmount"
+      ]
+    },
+    "Log": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Log",
+      "type": "object",
+      "description": "Represents a system log entry.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the log entry."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The time the event occurred."
+        },
+        "level": {
+          "type": "string",
+          "description": "The severity level of the log.",
+          "enum": ["info", "warn", "error"]
+        },
+        "message": {
+          "type": "string",
+          "description": "A description of the event that occurred."
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "The UID of the user who triggered the event."
+        },
+        "createdByName": {
+          "type": "string",
+          "description": "The display name of the user who triggered the event."
+        }
+      },
+      "required": ["id", "timestamp", "level", "message", "createdBy"]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "google.com"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profile information.  All user-specific data is located under this node.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/incomes/{incomeId}",
+        "definition": {
+          "entityName": "Income",
+          "schema": {
+            "$ref": "#/backend/entities/Income"
+          },
+          "description": "Stores income entries for a specific user. Includes denormalized 'userId' for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "incomeId",
+              "description": "The unique identifier of the income entry."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/expenses/{expenseId}",
+        "definition": {
+          "entityName": "Expense",
+          "schema": {
+            "$ref": "#/backend/entities/Expense"
+          },
+          "description": "Stores expense entries for a specific user. Includes denormalized 'userId' for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "expenseId",
+              "description": "The unique identifier of the expense entry."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/debts/{debtId}",
+        "definition": {
+          "entityName": "Debt",
+          "schema": {
+            "$ref": "#/backend/entities/Debt"
+          },
+          "description": "Stores debt information for a specific user. Includes denormalized 'userId' for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "debtId",
+              "description": "The unique identifier of the debt."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/debts/{debtId}/installments/{installmentId}",
+        "definition": {
+          "entityName": "Installment",
+          "schema": {
+            "$ref": "#/backend/entities/Installment"
+          },
+          "description": "Stores installment payments for a specific debt. Includes denormalized 'userId' for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "debtId",
+              "description": "The unique identifier of the debt."
+            },
+            {
+              "name": "installmentId",
+              "description": "The unique identifier of the installment."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/goals/{goalId}",
+        "definition": {
+          "entityName": "Goal",
+          "schema": {
+            "$ref": "#/backend/entities/Goal"
+          },
+          "description": "Stores financial goals for a specific user. Includes denormalized 'userId' for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "goalId",
+              "description": "The unique identifier of the goal."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/logs/{logId}",
+        "definition": {
+          "entityName": "Log",
+          "schema": {
+            "$ref": "#/backend/entities/Log"
+          },
+          "description": "Stores system log entries for administrative review. Restricted access.",
+          "params": [
+            {
+              "name": "logId",
+              "description": "The unique identifier of the log entry."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to support the xô planilhas application, focusing on secure and efficient data management for user finances.  The design follows the core principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), QAPs (Queries are not Filters), and Invariants.\n\n**Authorization Independence:** Achieved through denormalization of the `userId` field in the `incomes`, `expenses`, `debts`, `installments` and `goals` collections. This eliminates the need for `get()` calls to parent documents (users) in security rules, enabling atomic operations (transactions/batches) and simplifying debugging.\n\n**Structural Segregation:**  Employed by storing all `incomes`, `expenses`, `debts`, and `installments` for a given user under the `/users/{userId}` path. This ensures that all documents within these subcollections share the same security requirements, simplifying rules and improving maintainability. All private user data is segregated under the user's document.\n\n**Access Modeling:** Path-based ownership is consistently used for all user-owned data (incomes, expenses, debts, installments, goals). This makes security rules simple and efficient.\n\n**QAPs (Rules Are Not Filters):** The structure enables secure list operations. Because all documents within a collection share the same security requirements and authorization information (`userId`), it's possible to write rules that allow listing only the documents that the user has access to, without having to filter based on document content.\n\n**Invariants:** Enforced through clear ownership (`userId` in child collections) and consistent naming conventions. Timestamps can be added to each entity to track creation and modification times, if required.\n\n**Logging:** A top-level `/logs` collection is added to store system-wide events. Access is restricted to superadmins for reading, while creation is allowed for any authenticated user to enable client-side event logging."
+  }
+}
