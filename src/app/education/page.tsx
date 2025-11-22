@@ -17,9 +17,15 @@ import {
   BookOpen,
   ChevronRight,
   Trophy,
+  Loader2
 } from 'lucide-react';
 import Link from 'next/link';
 import { educationTracks } from '@/lib/education-data';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query } from 'firebase/firestore';
+import type { Transaction, Debt, Goal } from '@/lib/types';
+import { useMemo } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const healthLevels = [
   { level: 'Desorganizado', color: 'bg-red-500' },
@@ -29,8 +35,107 @@ const healthLevels = [
   { level: 'Saudável', color: 'bg-emerald-500' },
 ];
 
+const calculateScore = (income: number, expenses: number, debts: Debt[], goals: Goal[], transactions: Transaction[]) => {
+    let score = 0;
+    let maxScore = 115; // Pontuação máxima possível com todas as missões
+
+    // Missão 1: Gastos vs Renda (30 pts)
+    const expenseToIncomeRatio = income > 0 ? expenses / income : 1;
+    if (expenseToIncomeRatio < 0.8) score += 30;
+
+    // Missão 2: Metas de economia (15 pts)
+    if (goals.length > 0) score += 15;
+
+    // Missão 2b: Progresso em metas (10 pts)
+    const hasGoalWithProgress = goals.some((goal) => {
+      const target = goal.targetAmount || 0;
+      if (target <= 0) return false;
+      const current = goal.currentAmount || 0;
+      return current / target >= 0.5;
+    });
+    if (hasGoalWithProgress) score += 10;
+    
+    // Mission 3: Quitar dívidas (25 pts)
+    const totalDebtAmount = debts.reduce((sum, d) => sum + d.totalAmount, 0);
+    const totalPaidAmount = debts.reduce((sum, d) => sum + (d.paidAmount || 0), 0);
+    const debtProgress = totalDebtAmount > 0 ? totalPaidAmount / totalDebtAmount : 1;
+    if (debtProgress > 0.5) score += 25;
+
+    // Mission 4: Acompanhar os gastos (15 pts)
+    if (transactions.length >= 5) score += 15;
+
+    // Mission 5: Economizar dinheiro (10 pts)
+    if (income - expenses > 0) score += 10;
+    
+    // Mission 6: Aportes em metas (10 pts)
+    const hasContributions = goals.some((goal) => Array.isArray((goal as any).contributions) && (goal as any).contributions.length > 0);
+    if(hasContributions) score += 10;
+
+    return maxScore > 0 ? (score / maxScore) * 100 : 0;
+}
+
 export default function EducationPage() {
-  const currentLevelIndex = 2; // Exemplo: 'Estável'
+  const firestore = useFirestore();
+  const { user, isUserLoading } = useUser();
+  
+  const transactionsQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(collection(firestore, `users/${user.uid}/incomes`));
+  }, [firestore, user]);
+
+  const expensesQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(collection(firestore, `users/${user.uid}/expenses`));
+  }, [firestore, user]);
+
+  const debtsQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(collection(firestore, `users/${user.uid}/debts`));
+  }, [firestore, user]);
+
+  const goalsQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(collection(firestore, `users/${user.uid}/goals`));
+  }, [firestore, user]);
+
+  const { data: allIncomeData, isLoading: isIncomeLoading } = useCollection<Transaction>(transactionsQuery);
+  const { data: allExpenseData, isLoading: isExpensesLoading } = useCollection<Transaction>(expensesQuery);
+  const { data: debtData, isLoading: isDebtsLoading } = useCollection<Debt>(debtsQuery);
+  const { data: goalData, isLoading: isGoalsLoading } = useCollection<Goal>(goalsQuery);
+
+  const { totalIncome, totalExpenses } = useMemo(() => {
+    const totalIncome = allIncomeData?.reduce((sum, t) => sum + t.amount, 0) || 0;
+    const totalExpenses = allExpenseData?.reduce((sum, t) => sum + t.amount, 0) || 0;
+    return { totalIncome, totalExpenses };
+  }, [allIncomeData, allExpenseData]);
+
+  const score = useMemo(() => {
+    if(!allExpenseData || !allIncomeData || !debtData || !goalData) return 0;
+     return calculateScore(totalIncome, totalExpenses, debtData, goalData, allExpenseData);
+  }, [totalIncome, totalExpenses, debtData, goalData, allExpenseData]);
+
+  const currentLevelIndex = useMemo(() => {
+    if (score <= 20) return 0; // Desorganizado
+    if (score <= 40) return 1; // Razoável
+    if (score <= 60) return 2; // Estável
+    if (score <= 80) return 3; // Forte
+    return 4; // Saudável
+  }, [score]);
+  
+  const isLoading = isUserLoading || isIncomeLoading || isExpensesLoading || isDebtsLoading || isGoalsLoading;
+  
+  if (isLoading) {
+    return (
+        <div className="space-y-8">
+            <PageHeader
+                title="Jornada da Saúde Financeira"
+                description="Aprenda a lidar com suas finanças de forma leve, intuitiva e conquiste a tranquilidade."
+            />
+            <Skeleton className="h-40 w-full" />
+            <Skeleton className="h-64 w-full" />
+        </div>
+    )
+  }
 
   return (
     <div className="space-y-8">
