@@ -23,6 +23,10 @@ import {
   Receipt,
   Sparkles,
   Trophy,
+  Calculator,
+  FileText,
+  Goal,
+  Zap,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -81,6 +85,29 @@ const debtTracks = [
     href: '#',
   },
 ];
+
+const comingSoonTools = [
+    {
+        icon: Zap,
+        title: "Simulador de Quitação",
+        description: "Veja o impacto de antecipar parcelas."
+    },
+    {
+        icon: Calculator,
+        title: "Calculadora de Juros",
+        description: "Entenda o custo real de uma dívida."
+    },
+    {
+        icon: FileText,
+        title: "Scripts de Negociação",
+        description: "Modelos prontos para conversar com credores."
+    },
+    {
+        icon: Goal,
+        title: "Missões Diárias",
+        description: "Pequenas vitórias para criar grandes hábitos."
+    }
+]
 
 export default function EducationPage() {
   const currentLevelIndex = 2; // Exemplo: 'Estável'
@@ -182,26 +209,33 @@ export default function EducationPage() {
         </Carousel>
       </div>
 
-       <Card className="border-accent bg-accent/20">
+      <Card className="border-accent bg-accent/20">
         <CardHeader>
-           <div className="flex items-center gap-3">
-              <Sparkles className="h-6 w-6 text-amber-500" />
-              <CardTitle>Em Breve: Ferramentas e Missões</CardTitle>
-            </div>
+          <div className="flex items-center gap-3">
+            <Sparkles className="h-6 w-6 text-amber-500" />
+            <CardTitle>Em Breve: Ferramentas e Missões</CardTitle>
+          </div>
           <CardDescription>
-            Estamos construindo ferramentas práticas para acelerar sua jornada.
+            Estamos construindo ferramentas práticas para transformar conhecimento em ação e acelerar sua jornada.
           </CardDescription>
         </CardHeader>
         <CardContent>
-            <div className="prose prose-sm max-w-full text-foreground/80">
-                <ul>
-                    <li><strong>Simulador de Quitação:</strong> Veja o impacto de antecipar parcelas.</li>
-                    <li><strong>Calculadora de Juros:</strong> Entenda o custo real de uma dívida.</li>
-                    <li><strong>Scripts de Negociação:</strong> Modelos prontos para conversar com credores.</li>
-                    <li><strong>Missões Diárias:</strong> Pequenas vitórias para criar grandes hábitos.</li>
-                </ul>
-                <p>O objetivo é transformar conhecimento em ação e resultado real no seu bolso.</p>
-            </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {comingSoonTools.map((tool) => (
+              <div key={tool.title} className="flex items-start gap-3 rounded-lg border border-border bg-background p-3">
+                 <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                    <tool.icon className="h-5 w-5" />
+                 </div>
+                 <div>
+                    <p className="font-semibold text-sm">{tool.title}</p>
+                    <p className="text-xs text-muted-foreground">{tool.description}</p>
+                 </div>
+              </div>
+            ))}
+          </div>
+          <p className="mt-4 text-center text-sm text-muted-foreground">
+            O objetivo é transformar conhecimento em ação e resultado real no seu bolso.
+          </p>
         </CardContent>
       </Card>
     </div>
