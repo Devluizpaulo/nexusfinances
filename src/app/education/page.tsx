@@ -13,7 +13,7 @@ import { useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EducationTrackCard } from '@/components/education/EducationTrackCard';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Link from 'next/link';
 
 function JourneyProgressCard({ isLoading, currentLevelIndex, progressPercentage }: { isLoading: boolean, currentLevelIndex: number, progressPercentage: number }) {
   if (isLoading) {
@@ -112,53 +112,55 @@ export default function EducationPage() {
         description="Aprenda a lidar com suas finanças de forma leve, intuitiva e conquiste a tranquilidade."
       />
 
-      <div className="grid gap-8 lg:grid-cols-[1fr,320px]">
-        <Tabs defaultValue="upcoming" className="w-full">
-            <TabsList>
-                <TabsTrigger value="upcoming">Próximas Missões</TabsTrigger>
-                <TabsTrigger value="completed">Conquistas</TabsTrigger>
-            </TabsList>
-            <TabsContent value="upcoming" className="mt-6">
-                {upcomingTracks.length > 0 ? (
-                     <div className="grid gap-4 md:grid-cols-2">
-                        {upcomingTracks.map((track) => (
-                            <EducationTrackCard key={track.slug} track={track} isCompleted={false} />
-                        ))}
-                    </div>
-                ) : (
-                    <Card className="col-span-full mt-6 flex h-64 flex-col items-center justify-center text-center">
-                        <CardHeader>
-                            <CardTitle>Parabéns, Expert!</CardTitle>
-                            <CardDescription>Você concluiu todas as trilhas disponíveis.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-sm text-muted-foreground">Continue aplicando o conhecimento e fique de olho para novas trilhas no futuro!</p>
-                        </CardContent>
-                    </Card>
-                )}
-            </TabsContent>
-            <TabsContent value="completed" className="mt-6">
-                 {finishedTracks.length > 0 ? (
-                    <div className="grid gap-4 md:grid-cols-2">
-                        {finishedTracks.map((track) => (
-                            <EducationTrackCard key={track.slug} track={track} isCompleted={true} />
-                        ))}
-                    </div>
-                ) : (
-                     <Card className="col-span-full mt-6 flex h-64 flex-col items-center justify-center text-center">
-                        <CardHeader>
-                            <CardTitle>Nenhuma conquista ainda</CardTitle>
-                            <CardDescription>Comece sua primeira missão para desbloquear suas conquistas.</CardDescription>
-                        </CardHeader>
-                         <CardContent>
-                            <p className="text-sm text-muted-foreground">Cada trilha concluída é um passo em direção à sua tranquilidade financeira.</p>
-                        </CardContent>
-                    </Card>
-                )}
-            </TabsContent>
-        </Tabs>
-         <aside className="hidden lg:block">
-          <JourneyProgressCard isLoading={isLoading} currentLevelIndex={currentLevelIndex} progressPercentage={progressPercentage} />
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr,320px]">
+        <div className="space-y-6">
+            <h2 className="text-xl font-bold tracking-tight">Próximas Missões</h2>
+             {upcomingTracks.length > 0 ? (
+                <div className="grid gap-4 md:grid-cols-2">
+                    {upcomingTracks.map((track) => (
+                        <EducationTrackCard key={track.slug} track={track} isCompleted={false} />
+                    ))}
+                </div>
+            ) : (
+                <Card className="col-span-full flex h-64 flex-col items-center justify-center text-center">
+                    <CardHeader>
+                        <CardTitle>Parabéns, Expert!</CardTitle>
+                        <CardDescription>Você concluiu todas as trilhas disponíveis.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-sm text-muted-foreground">Continue aplicando o conhecimento e fique de olho para novas trilhas no futuro!</p>
+                    </CardContent>
+                </Card>
+            )}
+        </div>
+         <aside className="space-y-6">
+            <JourneyProgressCard isLoading={isLoading} currentLevelIndex={currentLevelIndex} progressPercentage={progressPercentage} />
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-base">Conquistas</CardTitle>
+                    <CardDescription className="text-sm">Trilhas que você já completou.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    {finishedTracks.length > 0 ? (
+                        finishedTracks.map((track) => (
+                            <Link href={`/education/${track.slug}`} key={track.slug} className="group flex items-center gap-3 rounded-md p-2 hover:bg-muted transition-colors">
+                                <div className={cn("flex h-8 w-8 items-center justify-center rounded-lg", track.bgColor)}>
+                                    <track.icon className={cn("h-5 w-5", track.color)} />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-sm font-medium">{track.title}</p>
+                                </div>
+                                <Check className="h-5 w-5 text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </Link>
+                        ))
+                    ) : (
+                         <div className="flex flex-col items-center justify-center p-4 text-center text-sm text-muted-foreground">
+                            <p>Suas conquistas aparecerão aqui quando você completar sua primeira trilha.</p>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
         </aside>
       </div>
     </>
