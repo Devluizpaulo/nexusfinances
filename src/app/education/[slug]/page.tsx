@@ -6,7 +6,7 @@ import { notFound, useParams } from 'next/navigation';
 import { educationTracks } from '@/lib/education-data';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Check, Lightbulb, Brain, HandHeart, Mountain, Target, Zap, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -291,16 +291,18 @@ export default function EducationTrackPage() {
     <>
       <Dialog open={!!modalContent} onOpenChange={() => setModalContent(null)}>
         <DialogContent className="max-w-2xl">
-          <DialogHeader className="mb-4">
-            <div className="flex items-center gap-4 mb-4">
-                <div className={cn("flex h-12 w-12 items-center justify-center rounded-lg", track.bgColor)}>
+          <DialogHeader>
+            <div className="flex items-start gap-4 mb-4">
+                <div className={cn("flex h-12 w-12 shrink-0 items-center justify-center rounded-lg", track.bgColor)}>
                     <Icon className={cn("h-7 w-7", track.color)} />
                 </div>
-                <DialogTitle className="text-xl leading-snug">{modalContent?.title ? parseMarkdown(modalContent.title) : ''}</DialogTitle>
+                <div className="flex-1">
+                  <DialogTitle className="text-xl leading-snug">{modalContent?.title ? parseMarkdown(modalContent.title) : ''}</DialogTitle>
+                </div>
             </div>
             <Separator />
           </DialogHeader>
-          <div className="prose prose-sm max-w-none text-foreground dark:prose-invert">
+          <div className="prose prose-sm max-w-none text-foreground dark:prose-invert py-4">
             {parseMarkdown(modalContent?.details || '')}
           </div>
           <DialogFooter className="mt-4">
