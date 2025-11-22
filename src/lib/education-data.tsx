@@ -238,27 +238,3 @@ export const educationTracks: EducationTrack[] = [
     },
   },
 ];
-
-
-export const comingSoonTools = [
-    {
-        icon: Zap,
-        title: "Simulador de Quitação",
-        description: "Veja o impacto de antecipar parcelas."
-    },
-    {
-        icon: Calculator,
-        title: "Calculadora de Juros",
-        description: "Entenda o custo real de uma dívida."
-    },
-    {
-        icon: FileText,
-        title: "Scripts de Negociação",
-        description: "Modelos prontos para conversar com credores."
-    },
-    {
-        icon: Goal,
-        title: "Missões Diárias",
-        description: "Pequenas vitórias para criar grandes hábitos."
-    }
-];

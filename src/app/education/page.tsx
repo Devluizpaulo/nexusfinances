@@ -19,7 +19,7 @@ import {
   Trophy,
 } from 'lucide-react';
 import Link from 'next/link';
-import { educationTracks, comingSoonTools } from '@/lib/education-data';
+import { educationTracks } from '@/lib/education-data';
 
 const healthLevels = [
   { level: 'Desorganizado', color: 'bg-red-500' },
