@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
 import { KpiCard } from '@/components/dashboard/kpi-card';
-import { Banknote, Landmark, CreditCard, Scale, Calendar as CalendarIcon, AlertTriangle } from 'lucide-react';
+import { Banknote, Landmark, CreditCard, Scale, Calendar as CalendarIcon, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
 import { IncomeExpenseChart } from '@/components/dashboard/income-expense-chart';
 import { ExpenseCategoryChart } from '@/components/dashboard/expense-category-chart';
 import { FinancialHealthScore } from '@/components/dashboard/financial-health-score';
@@ -21,9 +22,9 @@ import { AddGoalSheet } from '@/components/goals/add-goal-sheet';
 import { incomeCategories, expenseCategories } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-
+import { DateRangePicker } from '@/components/dashboard/date-range-picker';
+import { Separator } from '@/components/ui/separator';
 
 type InstallmentInfo = {
   debtName: string;
@@ -289,8 +290,7 @@ export default function DashboardPage() {
   };
 
   const isLoading = isUserLoading || isIncomeLoading || isExpensesLoading || isDebtsLoading || isGoalsLoading;
-  const descriptionPeriod = `em ${format(selectedDate, 'MMMM/yyyy', { locale: ptBR })}`;
-
+  
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -327,6 +327,11 @@ export default function DashboardPage() {
     );
   }
 
+  const getFirstName = (displayName: string | null | undefined) => {
+    if (!displayName) return '';
+    return displayName.split(' ')[0];
+  }
+
   return (
     <>
       <AddTransactionSheet
@@ -352,17 +357,20 @@ export default function DashboardPage() {
       <div className="space-y-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">Dashboard Financeiro</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Olá, {getFirstName(user?.displayName)}! 👋</h1>
             <p className="text-sm text-muted-foreground">
-              Resumo das suas receitas, despesas e dívidas {descriptionPeriod}.
+              Aqui está o resumo financeiro de {format(selectedDate, 'MMMM/yyyy', { locale: ptBR })}.
             </p>
           </div>
-           <QuickActions
-            onAddIncome={() => setIsIncomeSheetOpen(true)}
-            onAddExpense={() => setIsExpenseSheetOpen(true)}
-            onAddDebt={() => setIsDebtSheetOpen(true)}
-            onAddGoal={() => setIsGoalSheetOpen(true)}
-          />
+          <div className="flex flex-col items-center gap-2 md:flex-row">
+            <DateRangePicker date={selectedDate} onDateChange={setSelectedDate} />
+            <QuickActions
+                onAddIncome={() => setIsIncomeSheetOpen(true)}
+                onAddExpense={() => setIsExpenseSheetOpen(true)}
+                onAddDebt={() => setIsDebtSheetOpen(true)}
+                onAddGoal={() => setIsGoalSheetOpen(true)}
+            />
+          </div>
         </div>
 
         <OverdueDebtsCard debts={debtData || []} />
@@ -374,13 +382,11 @@ export default function DashboardPage() {
                 title="Renda Total"
                 value={formatCurrency(totalIncome)}
                 icon={Landmark}
-                description={descriptionPeriod}
             />
             <KpiCard
                 title="Despesas Totais"
                 value={formatCurrency(totalExpenses)}
                 icon={CreditCard}
-                description={descriptionPeriod}
             />
             <KpiCard
                 title="Balanço Geral"
@@ -397,6 +403,66 @@ export default function DashboardPage() {
             </div>
         </div>
 
+         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <h2 className="text-lg font-medium tracking-tight mb-2">Próximos Lançamentos</h2>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium">Receitas a receber</CardTitle>
+                  <ArrowUpCircle className="h-4 w-4 text-emerald-500" />
+                </CardHeader>
+                <CardContent>
+                  {upcomingIncomes.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Nenhuma receita futura este mês.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {upcomingIncomes.map((item, index) => (
+                        <div key={index} className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground">
+                            {format(item.date, 'dd/MM')}
+                          </span>
+                          <span className="font-semibold">{formatCurrency(item.total)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium">Despesas a pagar</CardTitle>
+                  <ArrowDownCircle className="h-4 w-4 text-red-500" />
+                </CardHeader>
+                <CardContent>
+                  {upcomingExpenses.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Nenhuma despesa futura este mês.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {upcomingExpenses.map((item, index) => (
+                        <div key={index} className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground">
+                            {format(item.date, 'dd/MM')}
+                          </span>
+                          <span className="font-semibold">{formatCurrency(item.total)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+          <div className="lg:col-span-1">
+              <FinancialHealthScore
+                  income={totalIncome}
+                  expenses={totalExpenses}
+                  debts={debtData || []}
+                  goals={goalData || []}
+                  transactions={expenseData || []}
+              />
+          </div>
+        </div>
 
         <div className="space-y-2">
             <h2 className="text-lg font-medium tracking-tight">Análise Gráfica</h2>
@@ -409,113 +475,102 @@ export default function DashboardPage() {
               </div>
             </div>
         </div>
-
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-             <div className="lg:col-span-2">
-                <FinancialHealthScore
-                    income={totalIncome}
-                    expenses={totalExpenses}
-                    debts={debtData || []}
-                    goals={goalData || []}
-                    transactions={expenseData || []}
-                />
-             </div>
-              <Card>
-                <CardHeader className="border-b pb-3">
-                    <div className="flex items-center gap-2">
-                    <CalendarIcon className="h-5 w-5 text-primary" />
-                    <div>
-                        <CardTitle className="text-base">Central de Rotinas</CardTitle>
-                        <CardDescription className="text-xs md:text-sm">
-                        Calendário de pagamentos e prévia do mês.
-                        </CardDescription>
-                    </div>
-                    </div>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-6 pt-4">
-                    <div className="flex flex-1 flex-col items-center gap-3 md:items-start">
-                    <Calendar
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={(date) => date && setSelectedDate(date)}
-                        locale={ptBR}
-                        modifiers={{
-                        overdue: installmentOverdueDates,
-                        upcoming: installmentUpcomingDates,
-                        incomeDay: incomeDates,
-                        expenseDay: expenseDates,
-                        }}
-                        modifiersClassNames={{
-                        overdue:
-                            'relative after:absolute after:bottom-1 after:left-1/2 after:h-1.5 after:w-1.5 after:-translate-x-1/2 after:rounded-full after:bg-destructive',
-                        upcoming:
-                            'relative after:absolute after:bottom-1 after:left-1/2 after:h-1.5 after:w-1.5 after:-translate-x-1/2 after:rounded-full after:bg-amber-500',
-                        incomeDay:
-                            'relative after:absolute after:top-1 after:right-1 after:h-1.5 after:w-1.5 after:rounded-full after:bg-emerald-500',
-                        expenseDay:
-                            'relative after:absolute after:top-1 after:left-1 after:h-1.5 after:w-1.5 after:rounded-full after:bg-sky-500',
-                        }}
-                        className="rounded-md border mx-auto"
-                        onDayMouseEnter={(day) => {
-                        const key = startOfDay(day).toISOString();
-                        const items = installmentsByDate[key];
-                        if (items && items.length) {
-                            setHoveredInstallments({ date: day, items });
-                        } else {
-                            setHoveredInstallments(null);
-                        }
-                        }}
-                        onDayMouseLeave={() => setHoveredInstallments(null)}
-                        onDayClick={(day) => {
-                        const key = startOfDay(day).toISOString();
-                        const items = installmentsByDate[key];
-                        setSelectedDate(day);
-                        if (items && items.length) {
-                            const dateStr = format(day, 'yyyy-MM-dd');
-                            router.push(`/debts?dueDate=${dateStr}`);
-                        }
-                        }}
-                    />
-                    <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground mx-auto">
-                        <span className="flex items-center gap-1">
-                        <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                        Renda
+        
+         <Card>
+            <CardHeader className="border-b pb-3">
+                <div className="flex items-center gap-2">
+                <CalendarIcon className="h-5 w-5 text-primary" />
+                <div>
+                    <CardTitle className="text-base">Central de Rotinas</CardTitle>
+                    <CardDescription className="text-xs md:text-sm">
+                    Calendário de pagamentos e prévia do mês.
+                    </CardDescription>
+                </div>
+                </div>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                <div className="md:col-span-2 flex flex-col items-center">
+                  <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(date) => date && setSelectedDate(date)}
+                      locale={ptBR}
+                      modifiers={{
+                      overdue: installmentOverdueDates,
+                      upcoming: installmentUpcomingDates,
+                      incomeDay: incomeDates,
+                      expenseDay: expenseDates,
+                      }}
+                      modifiersClassNames={{
+                      overdue:
+                          'relative after:absolute after:bottom-1 after:left-1/2 after:h-1.5 after:w-1.5 after:-translate-x-1/2 after:rounded-full after:bg-destructive',
+                      upcoming:
+                          'relative after:absolute after:bottom-1 after:left-1/2 after:h-1.5 after:w-1.5 after:-translate-x-1/2 after:rounded-full after:bg-amber-500',
+                      incomeDay:
+                          'relative after:absolute after:top-1 after:right-1 after:h-1.5 after:w-1.5 after:rounded-full after:bg-emerald-500',
+                      expenseDay:
+                          'relative after:absolute after:top-1 after:left-1 after:h-1.5 after:w-1.5 after:rounded-full after:bg-sky-500',
+                      }}
+                      className="rounded-md border mx-auto"
+                      onDayMouseEnter={(day) => {
+                      const key = startOfDay(day).toISOString();
+                      const items = installmentsByDate[key];
+                      if (items && items.length) {
+                          setHoveredInstallments({ date: day, items });
+                      } else {
+                          setHoveredInstallments(null);
+                      }
+                      }}
+                      onDayMouseLeave={() => setHoveredInstallments(null)}
+                      onDayClick={(day) => {
+                      const key = startOfDay(day).toISOString();
+                      const items = installmentsByDate[key];
+                      setSelectedDate(day);
+                      if (items && items.length) {
+                          const dateStr = format(day, 'yyyy-MM-dd');
+                          router.push(`/debts?dueDate=${dateStr}`);
+                      }
+                      }}
+                  />
+                  <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground mx-auto mt-2">
+                      <span className="flex items-center gap-1">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                      Renda
+                      </span>
+                      <span className="flex items-center gap-1">
+                      <span className="h-2 w-2 rounded-full bg-sky-500" />
+                      Despesa
+                      </span>
+                      <span className="flex items-center gap-1">
+                      <span className="h-2 w-2 rounded-full bg-destructive" />
+                      Vencida
+                      </span>
+                      <span className="flex items-center gap-1">
+                      <span className="h-2 w-2 rounded-full bg-amber-500" />
+                      A vencer
+                      </span>
+                  </div>
+                </div>
+                {hoveredInstallments && (
+                <div className="hidden flex-1 space-y-2 rounded-md bg-muted/60 p-3 text-sm md:block">
+                    <p className="text-xs font-semibold text-muted-foreground">
+                    Vencimentos em{' '}
+                    {format(hoveredInstallments.date, "dd 'de' MMMM", { locale: ptBR })}
+                    </p>
+                    <ul className="space-y-1">
+                    {hoveredInstallments.items.map((item, index) => (
+                        <li key={index} className="flex items-center justify-between gap-2">
+                        <span className="text-muted-foreground">{item.debtName}</span>
+                        <span className="font-medium">
+                            {formatCurrency(item.amount)}
                         </span>
-                        <span className="flex items-center gap-1">
-                        <span className="h-2 w-2 rounded-full bg-sky-500" />
-                        Despesa
-                        </span>
-                        <span className="flex items-center gap-1">
-                        <span className="h-2 w-2 rounded-full bg-destructive" />
-                        Vencida
-                        </span>
-                        <span className="flex items-center gap-1">
-                        <span className="h-2 w-2 rounded-full bg-amber-500" />
-                        A vencer
-                        </span>
-                    </div>
-                    </div>
-                    {hoveredInstallments && (
-                    <div className="hidden flex-1 space-y-2 rounded-md bg-muted/60 p-3 text-sm md:block">
-                        <p className="text-xs font-semibold text-muted-foreground">
-                        Vencimentos em{' '}
-                        {format(hoveredInstallments.date, "dd 'de' MMMM", { locale: ptBR })}
-                        </p>
-                        <ul className="space-y-1">
-                        {hoveredInstallments.items.map((item, index) => (
-                            <li key={index} className="flex items-center justify-between gap-2">
-                            <span className="text-muted-foreground">{item.debtName}</span>
-                            <span className="font-medium">
-                                {formatCurrency(item.amount)}
-                            </span>
-                            </li>
-                        ))}
-                        </ul>
-                    </div>
-                    )}
-                </CardContent>
-            </Card>
-        </div>
+                        </li>
+                    ))}
+                    </ul>
+                </div>
+                )}
+            </CardContent>
+        </Card>
       </div>
     </>
   );

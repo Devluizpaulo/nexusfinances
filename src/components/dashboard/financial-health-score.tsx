@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -126,22 +127,20 @@ export function FinancialHealthScore({
         : 'Excelente! Mantenha seus hábitos e revise suas metas periodicamente.';
   
   return (
-    <Card>
+    <Card className="flex flex-col h-full">
        <CardHeader>
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-            <Trophy className="h-6 w-6 text-primary" />
-          </div>
+          <Trophy className="h-5 w-5 text-primary" />
           <div>
-            <CardTitle>Sua Saúde Financeira</CardTitle>
-            <CardDescription>
-              Complete missões para aumentar sua pontuação e melhorar suas finanças.
+            <CardTitle className="text-base">Sua Saúde Financeira</CardTitle>
+            <CardDescription className="text-xs">
+              Complete missões para aumentar sua pontuação.
             </CardDescription>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-8 md:grid-cols-2">
-        <div className="flex flex-col items-center justify-center space-y-2 text-center">
+      <CardContent className="flex-1 grid gap-4 md:grid-cols-2">
+        <div className="flex flex-col items-center justify-center space-y-1 text-center">
             <ChartContainer
                 config={{
                     score: {
@@ -149,32 +148,31 @@ export function FinancialHealthScore({
                         color: scoreColor,
                     },
                 }}
-                className="mx-auto aspect-square h-full max-h-[250px]"
+                className="mx-auto aspect-square h-full max-h-[150px]"
             >
                 <RadialBarChart
                     startAngle={-90}
                     endAngle={270}
                     innerRadius="80%"
                     outerRadius="100%"
-                    barSize={12}
+                    barSize={10}
                     data={[{ name: 'score', value: score, fill: scoreColor }]}
                 >
                     <PolarAngleAxis type="number" domain={[0, 100]} dataKey="value" tick={false} />
-                    <RadialBar dataKey="value" background={{ fill: 'hsl(var(--muted))' }} cornerRadius={6} />
+                    <RadialBar dataKey="value" background={{ fill: 'hsl(var(--muted))' }} cornerRadius={5} />
                 </RadialBarChart>
             </ChartContainer>
-            <span className="text-5xl font-bold" style={{ color: scoreColor }}>
+            <span className="text-4xl font-bold" style={{ color: scoreColor }}>
                 {score.toFixed(0)}
             </span>
-            <p className="text-sm font-medium">Pontos de Saúde Financeira</p>
-            <p className="max-w-xs text-xs text-muted-foreground">{scoreLabel}</p>
+            <p className="text-xs font-medium text-muted-foreground">Pontos de Saúde Financeira</p>
         </div>
 
-        <div className="flex flex-col justify-center space-y-4">
+        <div className="flex flex-col justify-center space-y-3">
             <div className="flex items-center justify-between gap-2">
-              <h3 className="font-semibold">Missões do Mês</h3>
+              <h3 className="text-sm font-semibold">Missões do Mês</h3>
               <span className="text-xs text-muted-foreground">
-                {completedMissions} de {totalMissions} missões concluídas
+                {completedMissions}/{totalMissions}
               </span>
             </div>
              <div className="space-y-2">
@@ -182,18 +180,18 @@ export function FinancialHealthScore({
                   <div
                     key={mission.id}
                     className={cn(
-                      'flex items-start gap-3 rounded-md border px-3 py-2 text-sm',
+                      'flex items-start gap-2 rounded-md border p-2 text-xs',
                       mission.isCompleted
-                        ? 'border-emerald-200 bg-emerald-50/60 text-emerald-900 dark:border-emerald-900/60 dark:bg-emerald-900/10 dark:text-emerald-100'
+                        ? 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-900/60 dark:bg-emerald-900/10'
                         : 'border-border bg-background'
                     )}
                   >
                       {mission.isCompleted ? (
-                          <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-500" />
+                          <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
                       ) : (
-                          <XCircle className="mt-0.5 h-4 w-4 text-muted-foreground/60" />
+                          <XCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/60" />
                       )}
-                      <span className={cn('text-sm', mission.isCompleted ? 'text-emerald-900 dark:text-emerald-50' : 'text-foreground')}>
+                      <span className={cn('text-xs', mission.isCompleted ? 'text-emerald-900 dark:text-emerald-50' : 'text-foreground')}>
                           {mission.description}
                       </span>
                   </div>
@@ -201,10 +199,10 @@ export function FinancialHealthScore({
              </div>
         </div>
       </CardContent>
-       <CardFooter className="justify-center">
+       <CardFooter className="justify-center pt-4">
             {missions.length > 3 && (
-                 <Button variant="link" onClick={() => setShowAllMissions(!showAllMissions)}>
-                    {showAllMissions ? 'Mostrar menos missões' : 'Mostrar todas as missões'}
+                 <Button variant="link" size="sm" onClick={() => setShowAllMissions(!showAllMissions)} className="text-xs">
+                    {showAllMissions ? 'Mostrar menos' : 'Mostrar todas'}
                 </Button>
             )}
        </CardFooter>
