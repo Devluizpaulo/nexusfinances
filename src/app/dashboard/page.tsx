@@ -27,6 +27,7 @@ import { useDashboardDate } from '@/context/dashboard-date-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { getFinancialInsights, type GetFinancialInsightsInput } from '@/ai/flows/financial-insights-flow';
+import AdBanner from '@/components/ads/AdBanner';
 
 type InstallmentInfo = {
   debtName: string;
@@ -351,6 +352,10 @@ export default function DashboardPage() {
                   onAddGoal={() => setIsGoalSheetOpen(true)}
                 />
               </div>
+            </div>
+            
+            <div className="my-6">
+              <AdBanner />
             </div>
 
             <div className="space-y-5">
