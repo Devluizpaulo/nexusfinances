@@ -9,6 +9,7 @@ import { useDashboardDate } from '@/context/dashboard-date-context';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { addMonths } from 'date-fns';
+import { EducationLevelBadge } from '../education/EducationLevelBadge';
 
 const getTitle = (pathname: string) => {
     if (pathname.startsWith('/dashboard')) return 'Painel';
@@ -17,6 +18,7 @@ const getTitle = (pathname: string) => {
     if (pathname.startsWith('/debts')) return 'Dívidas';
     if (pathname.startsWith('/goals')) return 'Metas & Reservas';
     if (pathname.startsWith('/reports')) return 'Relatórios';
+    if (pathname.startsWith('/education')) return 'Jornada Financeira'
     if (pathname.startsWith('/profile')) return 'Perfil';
     if (pathname.startsWith('/support')) return 'Suporte';
     return 'xô planilhas';
@@ -69,6 +71,7 @@ export function Header() {
         {/* Direita: tema + notificações */}
         <div className="flex items-center gap-1 sm:gap-2">
           <ThemeToggle />
+          <EducationLevelBadge />
           <Button variant="ghost" size="icon">
             <Bell />
             <span className="sr-only">Notificações</span>

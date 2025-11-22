@@ -6,20 +6,12 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { BookOpen, Check, Trophy, Loader2 } from 'lucide-react';
-import { educationTracks } from '@/lib/education-data';
+import { educationTracks, journeyLevels } from '@/lib/education-data';
 import { useUser } from '@/firebase';
 import { useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EducationTrackCard } from '@/components/education/EducationTrackCard';
 import { Badge } from '@/components/ui/badge';
-
-const journeyLevels = [
-  { level: 'Iniciante', color: 'bg-red-500' },
-  { level: 'Curioso(a)', color: 'bg-orange-500' },
-  { level: 'Estudioso(a)', color: 'bg-yellow-500' },
-  { level: 'Entendido(a)', color: 'bg-sky-500' },
-  { level: 'Expert', color: 'bg-emerald-500' },
-];
 
 export default function EducationPage() {
   const { user, isUserLoading } = useUser();
@@ -40,11 +32,11 @@ export default function EducationPage() {
     const progress = (completedCount / totalTracks) * 100;
     
     // Define levels based on percentage of tracks completed
-    if (progress <= 20) return { currentLevelIndex: 0, progressPercentage: progress }; // Iniciante (0-1)
-    if (progress <= 40) return { currentLevelIndex: 1, progressPercentage: progress }; // Curioso (2)
-    if (progress <= 60) return { currentLevelIndex: 2, progressPercentage: progress }; // Estudioso (3)
-    if (progress < 100) return { currentLevelIndex: 3, progressPercentage: progress }; // Entendido (4)
-    return { currentLevelIndex: 4, progressPercentage: 100 }; // Expert (5-6)
+    if (progress <= 20) return { currentLevelIndex: 0, progressPercentage: progress }; // Iniciante
+    if (progress <= 40) return { currentLevelIndex: 1, progressPercentage: progress }; // Curioso
+    if (progress <= 60) return { currentLevelIndex: 2, progressPercentage: progress }; // Estudioso
+    if (progress < 100) return { currentLevelIndex: 3, progressPercentage: progress }; // Entendido
+    return { currentLevelIndex: 4, progressPercentage: 100 }; // Expert
 
   }, [completedTracks]);
 
@@ -88,7 +80,7 @@ export default function EducationPage() {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground">Seu nível de conhecimento</span>
-            <Badge variant="secondary" className={cn('font-semibold', journeyLevels[currentLevelIndex].color, 'text-white')}>
+            <Badge variant="secondary" className={cn('font-semibold', journeyLevels[currentLevelIndex].colorClass, 'text-white')}>
               {journeyLevels[currentLevelIndex].level}
             </Badge>
           </div>

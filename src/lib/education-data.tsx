@@ -1,5 +1,5 @@
 
-import { Banknote, BookOpen, Calculator, FileText, Goal, HeartHandshake, Landmark, PiggyBank, Receipt, Sparkles, Zap, type LucideIcon } from 'lucide-react';
+import { Banknote, BookOpen, Calculator, FileText, Goal, HeartHandshake, Landmark, PiggyBank, Receipt, Sparkles, Zap, type LucideIcon, Award, Activity, BrainCircuit, Rocket, Gem } from 'lucide-react';
 import { PayoffSimulator } from '@/components/education/PayoffSimulator';
 import { InterestCalculator } from '@/components/education/InterestCalculator';
 import type { Debt, Goal as GoalType, Transaction } from './types';
@@ -53,6 +53,14 @@ export interface Mission {
   points: number;
 }
 
+export const journeyLevels = [
+  { level: 'Iniciante', icon: Award, colorClass: 'text-red-500' },
+  { level: 'Curioso(a)', icon: Activity, colorClass: 'text-orange-500' },
+  { level: 'Estudioso(a)', icon: BrainCircuit, colorClass: 'text-yellow-500' },
+  { level: 'Entendido(a)', icon: Rocket, colorClass: 'text-sky-500' },
+  { level: 'Expert', icon: Gem, colorClass: 'text-emerald-500' },
+];
+
 export const calculateScore = (income: number, expenses: number, debts: Debt[], goals: GoalType[], transactions: Transaction[]) => {
     let score = 0;
     let maxScore = 0;
@@ -93,15 +101,14 @@ export const calculateScore = (income: number, expenses: number, debts: Debt[], 
     
     const totalDebtAmount = debts.reduce((sum, d) => sum + d.totalAmount, 0);
     const totalPaidAmount = debts.reduce((sum, d) => sum + (d.paidAmount || 0), 0);
-    const debtProgress = totalDebtAmount > 0 ? totalPaidAmount / totalDebtAmount : 0;
     
     const mission3 = {
       id: 'm3',
-      description: `Pagar mais de 50% do total de dívidas (${(debtProgress * 100).toFixed(0)}% pago)`,
-      isCompleted: totalDebtAmount > 0 && debtProgress > 0.5,
+      description: `Pagar mais de 50% do total de dívidas`,
+      isCompleted: totalDebtAmount > 0 && (totalPaidAmount / totalDebtAmount) > 0.5,
       points: 25,
     };
-    if (totalDebtAmount > 0) {
+     if (totalDebtAmount > 0) {
         maxScore += mission3.points;
         if (mission3.isCompleted) score += mission3.points;
     }
