@@ -134,11 +134,11 @@ export default function EducationPage() {
             ) : (
                 <Card className="col-span-full flex h-64 flex-col items-center justify-center text-center">
                     <CardHeader>
-                        <CardTitle>Parabéns, Expert!</CardTitle>
-                        <CardDescription>Você concluiu todas as trilhas disponíveis.</CardDescription>
+                        <CardTitle>Em Breve</CardTitle>
+                        <CardDescription>Novas trilhas e conteúdos estão sendo preparados para você!</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-sm text-muted-foreground">Continue aplicando o conhecimento e fique de olho para novas trilhas no futuro!</p>
+                        <p className="text-sm text-muted-foreground">Continue aplicando o conhecimento e fique de olho para as novidades.</p>
                     </CardContent>
                 </Card>
             )}
@@ -180,5 +180,3 @@ export default function EducationPage() {
     </>
   );
 }
-
-    
