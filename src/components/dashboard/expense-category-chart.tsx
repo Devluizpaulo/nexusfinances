@@ -123,3 +123,4 @@ export function ExpenseCategoryChart({ transactions }: { transactions: Transacti
   );
 }
 
+
