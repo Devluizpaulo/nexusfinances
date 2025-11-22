@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/tooltip"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
+const SIDEBAR_PINNED_COOKIE_NAME = "sidebar_pinned_state";
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
@@ -34,6 +35,8 @@ type SidebarContext = {
   setOpenMobile: (open: boolean) => void
   isMobile: boolean
   toggleSidebar: () => void
+  isPinned: boolean
+  togglePinned: () => void
 }
 
 const SidebarContext = React.createContext<SidebarContext | null>(null)
@@ -53,13 +56,15 @@ const SidebarProvider = React.forwardRef<
     defaultOpen?: boolean
     open?: boolean
     onOpenChange?: (open: boolean) => void
+    defaultPinned?: boolean
   }
 >(
   (
     {
-      defaultOpen = false, // Default to collapsed
+      defaultOpen = false,
       open: openProp,
       onOpenChange: setOpenProp,
+      defaultPinned = false,
       className,
       style,
       children,
@@ -69,10 +74,9 @@ const SidebarProvider = React.forwardRef<
   ) => {
     const isMobile = useIsMobile()
     const [openMobile, setOpenMobile] = React.useState(false)
-
-    // This is the internal state of the sidebar.
-    // We use openProp and setOpenProp for control from outside the component.
     const [_open, _setOpen] = React.useState(defaultOpen)
+    const [_isPinned, _setIsPinned] = React.useState(defaultPinned);
+
     const open = openProp ?? _open
     const setOpen = React.useCallback(
       (value: boolean | ((value: boolean) => boolean)) => {
@@ -82,21 +86,37 @@ const SidebarProvider = React.forwardRef<
         } else {
           _setOpen(openState)
         }
-
-        // This sets the cookie to keep the sidebar state.
         document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
       },
       [setOpenProp, open]
     )
 
-    // Helper to toggle the sidebar.
+    const isPinned = _isPinned;
+    const setIsPinned = React.useCallback((value: boolean | ((value: boolean) => boolean)) => {
+        const pinnedState = typeof value === 'function' ? value(isPinned) : value;
+        _setIsPinned(pinnedState);
+        document.cookie = `${SIDEBAR_PINNED_COOKIE_NAME}=${pinnedState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+    }, [isPinned]);
+
+    const togglePinned = React.useCallback(() => {
+        setIsPinned((prev) => !prev);
+    }, [setIsPinned]);
+
+
+    React.useEffect(() => {
+        const pinnedCookie = document.cookie.split('; ').find(row => row.startsWith(`${SIDEBAR_PINNED_COOKIE_NAME}=`));
+        if (pinnedCookie) {
+            _setIsPinned(pinnedCookie.split('=')[1] === 'true');
+        }
+    }, []);
+
     const toggleSidebar = React.useCallback(() => {
+      if (isPinned) return;
       return isMobile
         ? setOpenMobile((open) => !open)
         : setOpen((open) => !open)
-    }, [isMobile, setOpen, setOpenMobile])
+    }, [isMobile, setOpen, setOpenMobile, isPinned])
 
-    // Adds a keyboard shortcut to toggle the sidebar.
     React.useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
         if (
@@ -112,9 +132,7 @@ const SidebarProvider = React.forwardRef<
       return () => window.removeEventListener("keydown", handleKeyDown)
     }, [toggleSidebar])
 
-    // We add a state so that we can do data-state="expanded" or "collapsed".
-    // This makes it easier to style the sidebar with Tailwind classes.
-    const state = open ? "expanded" : "collapsed"
+    const state = open || isPinned ? "expanded" : "collapsed"
 
     const contextValue = React.useMemo<SidebarContext>(
       () => ({
@@ -125,8 +143,10 @@ const SidebarProvider = React.forwardRef<
         openMobile,
         setOpenMobile,
         toggleSidebar,
+        isPinned,
+        togglePinned
       }),
-      [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
+      [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar, isPinned, togglePinned]
     )
 
     return (
@@ -175,11 +195,11 @@ const Sidebar = React.forwardRef<
     },
     ref
   ) => {
-    const { isMobile, state, open, openMobile, setOpen, setOpenMobile } = useSidebar()
+    const { isMobile, state, open, openMobile, setOpenMobile, isPinned } = useSidebar()
     const [isHovered, setIsHovered] = React.useState(false);
 
     const handleMouseEnter = () => {
-      if (state === 'collapsed') {
+      if (state === 'collapsed' && !isPinned) {
         setIsHovered(true);
       }
     };
@@ -223,7 +243,7 @@ const Sidebar = React.forwardRef<
       )
     }
     
-    const finalState = (open || isHovered) ? 'expanded' : 'collapsed';
+    const finalState = (open || isHovered || isPinned) ? 'expanded' : 'collapsed';
 
     return (
        <div
@@ -388,7 +408,7 @@ const SidebarFooter = React.forwardRef<
     <div
       ref={ref}
       data-sidebar="footer"
-      className={cn("flex flex-col gap-2 p-2", className)}
+      className={cn("mt-auto flex flex-col gap-2 p-2", className)}
       {...props}
     />
   )

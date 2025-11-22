@@ -1,6 +1,6 @@
 'use client';
 import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator } from '@/components/ui/sidebar';
-import { LayoutDashboard, Landmark, CreditCard, Banknote, DollarSign, Loader2, Target, LogOut, UserCircle, LifeBuoy, ShieldCheck, PiggyBank, BarChart3, GraduationCap } from 'lucide-react';
+import { LayoutDashboard, Landmark, CreditCard, Banknote, DollarSign, Loader2, Target, LogOut, UserCircle, LifeBuoy, ShieldCheck, PiggyBank, BarChart3, GraduationCap, Pin, PinOff } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -35,7 +35,7 @@ const secondaryMenuItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { state, isMobile, setOpenMobile } = useSidebar();
+  const { state, isMobile, setOpenMobile, isPinned, togglePinned } = useSidebar();
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
 
@@ -71,7 +71,7 @@ export function AppSidebar() {
         )
     }
 
-    if(user) {
+    if(user && !isPinned) {
         return (
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -153,7 +153,14 @@ export function AppSidebar() {
                 ))}
             </SidebarMenu>
             <SidebarSeparator />
-             {renderUserContent()}
+            
+            <div className="flex flex-col gap-2">
+                {renderUserContent()}
+                <SidebarMenuButton onClick={togglePinned} tooltip={isPinned ? 'Desafixar menu' : 'Fixar menu'}>
+                    {isPinned ? <PinOff/> : <Pin />}
+                    <span>{isPinned ? 'Menu Flutuante' : 'Fixar Menu'}</span>
+                </SidebarMenuButton>
+            </div>
         </SidebarFooter>
     </Sidebar>
   );

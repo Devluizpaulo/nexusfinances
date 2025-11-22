@@ -1,7 +1,7 @@
 'use client';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { Bell, PanelLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Bell, PanelLeft, ChevronLeft, ChevronRight, UserCircle, LogOut } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '../ui/sidebar';
 import { ThemeToggle } from '../theme-toggle';
@@ -10,6 +10,20 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { addMonths } from 'date-fns';
 import { EducationLevelBadge } from '../education/EducationLevelBadge';
+import { useUser, useAuth } from '@/firebase';
+import { signOut } from 'firebase/auth';
+import Link from 'next/link';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { cn } from '@/lib/utils';
+
 
 const getTitle = (pathname: string) => {
     if (pathname.startsWith('/dashboard')) return 'Painel';
@@ -24,10 +38,65 @@ const getTitle = (pathname: string) => {
     return 'xô planilhas';
 }
 
+function UserMenu() {
+    const { user } = useUser();
+    const auth = useAuth();
+    
+     const handleSignOut = async () => {
+        if (!auth) return;
+        try {
+            await signOut(auth);
+        } catch (error) {
+            console.error("Erro ao fazer logout:", error);
+        }
+    };
+
+
+    const getFirstName = (displayName: string | null | undefined) => {
+        if (!displayName) return 'Usuário';
+        return displayName.split(' ')[0];
+    }
+
+
+    if (!user) return null;
+
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Avatar className="h-9 w-9">
+                        <AvatarImage src={user?.photoURL || undefined} alt="Avatar do usuário"/>
+                        <AvatarFallback>{user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
+                    </Avatar>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="bottom" align="end" className="w-56">
+                <DropdownMenuLabel className='font-normal'>
+                    <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{getFirstName(user.displayName)}</p>
+                        <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                    </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <Link href="/profile">
+                    <DropdownMenuItem>
+                        <UserCircle className="mr-2" />
+                        <span>Perfil & Configuração</span>
+                    </DropdownMenuItem>
+                </Link>
+                <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2" />
+                    <span>Sair</span>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    )
+}
+
 export function Header() {
   const pathname = usePathname();
   const title = getTitle(pathname);
-  const { toggleSidebar } = useSidebar();
+  const { toggleSidebar, isPinned } = useSidebar();
   const isDashboard = pathname.startsWith('/dashboard');
   const dashboardDate = isDashboard ? useDashboardDate() : null;
 
@@ -76,6 +145,7 @@ export function Header() {
             <Bell />
             <span className="sr-only">Notificações</span>
           </Button>
+          {isPinned && <UserMenu />}
         </div>
       </div>
     </header>
