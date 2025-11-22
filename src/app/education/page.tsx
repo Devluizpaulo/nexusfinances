@@ -14,21 +14,12 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import {
-  Banknote,
   BookOpen,
   ChevronRight,
-  HeartHandshake,
-  Landmark,
-  PiggyBank,
-  Receipt,
-  Sparkles,
   Trophy,
-  Calculator,
-  FileText,
-  Goal,
-  Zap,
 } from 'lucide-react';
 import Link from 'next/link';
+import { educationTracks, comingSoonTools } from '@/lib/education-data';
 
 const healthLevels = [
   { level: 'Desorganizado', color: 'bg-red-500' },
@@ -37,77 +28,6 @@ const healthLevels = [
   { level: 'Forte', color: 'bg-sky-500' },
   { level: 'Saudável', color: 'bg-emerald-500' },
 ];
-
-const debtTracks = [
-  {
-    title: 'Dívidas com Amigos e Família',
-    description: 'Como lidar com empréstimos informais, preservar relações e criar acordos claros.',
-    icon: HeartHandshake,
-    color: 'text-rose-500',
-    bgColor: 'bg-rose-50',
-    borderColor: 'border-rose-200',
-    href: '#',
-  },
-  {
-    title: 'Cartão de Crédito: A Bola de Neve',
-    description: 'Entenda os juros rotativos, o efeito bola de neve e como sair do ciclo vicioso.',
-    icon: Banknote,
-    color: 'text-red-500',
-    bgColor: 'bg-red-50',
-    borderColor: 'border-red-200',
-    href: '#',
-  },
-  {
-    title: 'Financiamentos (Carro, Casa)',
-    description: 'Aprenda sobre amortização, como antecipar parcelas e reduzir o custo total.',
-    icon: Landmark,
-    color: 'text-blue-500',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200',
-    href: '#',
-  },
-  {
-    title: 'Dívidas Bancárias (Cheque Especial)',
-    description: 'Estratégias para negociar com o banco, sair do cheque especial e evitar taxas abusivas.',
-    icon: PiggyBank,
-    color: 'text-amber-500',
-    bgColor: 'bg-amber-50',
-    borderColor: 'border-amber-200',
-    href: '#',
-  },
-  {
-    title: 'Contas do Dia a Dia',
-    description: 'Técnicas para organizar e priorizar contas de consumo (água, luz) e evitar cortes.',
-    icon: Receipt,
-    color: 'text-cyan-500',
-    bgColor: 'bg-cyan-50',
-    borderColor: 'border-cyan-200',
-    href: '#',
-  },
-];
-
-const comingSoonTools = [
-    {
-        icon: Zap,
-        title: "Simulador de Quitação",
-        description: "Veja o impacto de antecipar parcelas."
-    },
-    {
-        icon: Calculator,
-        title: "Calculadora de Juros",
-        description: "Entenda o custo real de uma dívida."
-    },
-    {
-        icon: FileText,
-        title: "Scripts de Negociação",
-        description: "Modelos prontos para conversar com credores."
-    },
-    {
-        icon: Goal,
-        title: "Missões Diárias",
-        description: "Pequenas vitórias para criar grandes hábitos."
-    }
-]
 
 export default function EducationPage() {
   const currentLevelIndex = 2; // Exemplo: 'Estável'
@@ -172,9 +92,9 @@ export default function EducationPage() {
           className="w-full"
         >
           <CarouselContent className="-ml-4">
-            {debtTracks.map((track) => (
+            {educationTracks.map((track) => (
               <CarouselItem key={track.title} className="basis-full md:basis-1/2 lg:basis-1/3 pl-4">
-                <Link href={track.href} className="group block h-full">
+                <Link href={`/education/${track.slug}`} className="group block h-full">
                   <Card
                     className={cn(
                       'flex h-full flex-col overflow-hidden border-2 transition-all group-hover:border-primary/80 group-hover:shadow-lg',
@@ -208,36 +128,6 @@ export default function EducationPage() {
           <CarouselNext className="-right-4" />
         </Carousel>
       </div>
-
-      <Card className="border-accent bg-accent/20">
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <Sparkles className="h-6 w-6 text-amber-500" />
-            <CardTitle>Em Breve: Ferramentas e Missões</CardTitle>
-          </div>
-          <CardDescription>
-            Estamos construindo ferramentas práticas para transformar conhecimento em ação e acelerar sua jornada.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {comingSoonTools.map((tool) => (
-              <div key={tool.title} className="flex items-start gap-3 rounded-lg border border-border bg-background p-3">
-                 <div className="flex h-8 w-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
-                    <tool.icon className="h-5 w-5" />
-                 </div>
-                 <div>
-                    <p className="font-semibold text-sm">{tool.title}</p>
-                    <p className="text-xs text-muted-foreground">{tool.description}</p>
-                 </div>
-              </div>
-            ))}
-          </div>
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            O objetivo é transformar conhecimento em ação e resultado real no seu bolso.
-          </p>
-        </CardContent>
-      </Card>
     </div>
   );
 }
