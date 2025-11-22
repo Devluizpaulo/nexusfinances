@@ -26,7 +26,7 @@ const mainMenuItems = [
   { href: '/debts', label: 'Dívidas', icon: Banknote },
   { href: '/goals', label: 'Reservas', icon: PiggyBank },
   { href: '/reports', label: 'Relatórios', icon: BarChart3 },
-  { href: '/education', label: 'Educação', icon: GraduationCap },
+  { href: '/education', label: 'Jornada Financeira', icon: GraduationCap },
 ];
 
 const secondaryMenuItems = [
