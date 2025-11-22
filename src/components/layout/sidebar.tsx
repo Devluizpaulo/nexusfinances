@@ -107,7 +107,7 @@ export function AppSidebar() {
                  <div className="p-2.5 rounded-lg bg-primary text-primary-foreground">
                     <DollarSign className="size-5" />
                 </div>
-                <span className={cn("text-lg font-semibold", state === "collapsed" && "hidden")}>Nexus Finanças</span>
+                <span className={cn("text-lg font-semibold", state === "collapsed" && "hidden")}>Nexus Finances</span>
             </Button>
         </SidebarHeader>
         <SidebarMenu className="flex-1">

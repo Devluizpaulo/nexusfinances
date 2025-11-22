@@ -53,7 +53,7 @@ function ClientRoot() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <DollarSign className="h-5 w-5" />
             </div>
-            <span className="text-lg font-bold tracking-tight">Xô Planilhas</span>
+            <span className="text-lg font-bold tracking-tight">Nexus Finances</span>
           </Link>
           <Button variant="ghost" onClick={() => redirect('/login')}>
             Entrar
@@ -83,7 +83,7 @@ function ClientRoot() {
                   <Button
                     type="submit"
                     size="lg"
-                    className="h-12 w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:opacity-90 sm:w-auto"
+                    className="h-12 w-full bg-gradient-to-r from-primary to-accent text-white hover:opacity-90 sm:w-auto"
                   >
                     Começar Agora
                     <ArrowRight className="ml-2 h-5 w-5" />
@@ -210,7 +210,7 @@ function ClientRoot() {
                 </div>
                 <Accordion type="single" collapsible className="mt-8 w-full">
                     <AccordionItem value="item-1">
-                        <AccordionTrigger>O Xô Planilhas é realmente gratuito?</AccordionTrigger>
+                        <AccordionTrigger>O Nexus Finances é realmente gratuito?</AccordionTrigger>
                         <AccordionContent>
                             Sim! Oferecemos um plano gratuito robusto que inclui todas as funcionalidades essenciais para organizar sua vida financeira. No futuro, teremos planos pagos com recursos avançados, como sincronização bancária automática.
                         </AccordionContent>
@@ -224,7 +224,7 @@ function ClientRoot() {
                     <AccordionItem value="item-3">
                         <AccordionTrigger>Posso usar em múltiplos dispositivos?</AccordionTrigger>
                         <AccordionContent>
-                            Sim! Por ser um aplicativo web, você pode acessar sua conta do Xô Planilhas em qualquer dispositivo com um navegador, seja no seu computador, tablet ou celular. Seus dados estarão sempre sincronizados.
+                            Sim! Por ser um aplicativo web, você pode acessar sua conta do Nexus Finances em qualquer dispositivo com um navegador, seja no seu computador, tablet ou celular. Seus dados estarão sempre sincronizados.
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>
@@ -253,7 +253,7 @@ function ClientRoot() {
       <footer className="border-t">
           <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 py-6 md:flex-row">
               <p className="text-sm text-muted-foreground">
-                  © {new Date().getFullYear()} Xô Planilhas. Todos os direitos reservados.
+                  © {new Date().getFullYear()} Nexus Finances. Todos os direitos reservados.
               </p>
               <div className="flex gap-4">
                   <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">Termos</Link>

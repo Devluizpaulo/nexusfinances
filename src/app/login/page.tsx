@@ -204,7 +204,7 @@ function LoginClient() {
           <DollarSign className="h-8 w-8" />
         </div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          xô planilhas
+          Nexus Finances
         </h1>
         <p className="mt-2 text-md text-muted-foreground max-w-md">
           Controle simples do seu dinheiro, sem fórmulas nem planilhas complicadas.

@@ -5,7 +5,7 @@ import { FirebaseClientProvider } from "@/firebase/client-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
-  title: "xô planilhas",
+  title: "Nexus Finances",
   description: "Organize seu dinheiro sem depender de planilhas.",
 };
 
