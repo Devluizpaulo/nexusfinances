@@ -105,8 +105,8 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
               phoneNumber: firestoreData.phoneNumber,
               role: firestoreData.role,
               registrationDate: firestoreData.registrationDate,
-              customIncomeCategories: firestoreData.customIncomeCategories,
-              customExpenseCategories: firestoreData.customExpenseCategories,
+              customIncomeCategories: firestoreData.customIncomeCategories || [],
+              customExpenseCategories: firestoreData.customExpenseCategories || [],
             };
           } else {
             const nameParts = (firebaseUser.displayName || firebaseUser.email || '').split(' ');
