@@ -1,4 +1,3 @@
-
 import { Banknote, BookOpen, Calculator, FileText, Goal, HeartHandshake, Landmark, PiggyBank, Receipt, Sparkles, Zap, type LucideIcon } from 'lucide-react';
 import { PayoffSimulator } from '@/components/education/PayoffSimulator';
 import { InterestCalculator } from '@/components/education/InterestCalculator';
@@ -13,6 +12,10 @@ export type EducationTrack = {
   borderColor: string;
   content: {
     introduction: string;
+    diagnostic: {
+      title: string;
+      questions: string[];
+    };
     metaphor: {
       title: string;
       description: string;
@@ -22,6 +25,18 @@ export type EducationTrack = {
       steps: {
         title: string;
         description: string;
+      }[];
+    };
+    examples: {
+      scenario: string;
+      consequence: string;
+    }[];
+    finalQuiz: {
+      title: string;
+      questions: {
+        question: string;
+        options: string[];
+        correctAnswer: string;
       }[];
     };
     tool?: React.ComponentType;
@@ -35,12 +50,21 @@ export const educationTracks: EducationTrack[] = [
     description: 'Entenda os juros rotativos e como sair do ciclo vicioso.',
     icon: Banknote,
     color: 'text-red-500',
-    bgColor: 'bg-red-50',
-    borderColor: 'border-red-200',
+    bgColor: 'bg-red-50 dark:bg-red-900/20',
+    borderColor: 'border-red-200 dark:border-red-800/50',
     content: {
       introduction: 'O cartão de crédito pode ser um ótimo aliado, mas também um vilão perigoso. O "rotativo" acontece quando você não paga a fatura inteira e joga o restante para o próximo mês. É aí que a bola de neve começa.',
+      diagnostic: {
+        title: 'Diagnóstico Rápido',
+        questions: [
+          'Você já pagou apenas o valor mínimo da fatura?',
+          'Você costuma parcelar a fatura do cartão?',
+          'Você usa o limite do cartão como se fosse parte do seu salário?',
+          'Você não sabe exatamente qual a taxa de juros do seu cartão?',
+        ]
+      },
       metaphor: {
-        title: 'Metáfora: O Monstro dos Juros Compostos',
+        title: 'O Monstro dos Juros Compostos',
         description: 'Imagine um monstrinho que come dinheiro. Se você deve R$100 e a taxa é 10%, no fim do mês ele comeu R$10. No mês seguinte, ele não come só mais R$10, mas R$11 (10% dos R$110 que você deve agora). Ele cresce e come mais a cada mês. Isso são os juros compostos do rotativo.',
       },
       actionSteps: {
@@ -48,17 +72,42 @@ export const educationTracks: EducationTrack[] = [
         steps: [
           {
             title: '1. Pare de usar o cartão IMEDIATAMENTE',
-            description: 'O primeiro passo para sair de um buraco é parar de cavar. Guarde o cartão físico e remova-o dos apps de compra.',
+            description: 'O primeiro passo para sair de um buraco é parar de cavar. Guarde o cartão físico e remova-o dos apps de compra online.',
           },
           {
             title: '2. Troque a dívida por uma mais barata',
-            description: 'Os juros do rotativo são os mais altos. Veja se consegue um empréstimo pessoal com juros menores para quitar o cartão. Use a calculadora abaixo para ver a diferença.',
+            description: 'Os juros do rotativo são os mais altos do mercado. Veja se consegue um empréstimo pessoal com juros menores para quitar o cartão. Use a calculadora abaixo para ver a diferença.',
           },
           {
             title: '3. NUNCA pague só o mínimo',
-            description: 'O pagamento mínimo é uma armadilha. Ele mal cobre os juros e sua dívida quase não diminui. Pague o máximo que puder.',
+            description: 'O pagamento mínimo é uma armadilha que alimenta o monstro dos juros. Ele mal cobre os juros e sua dívida quase não diminui. Pague o máximo que puder, sempre.',
           },
         ],
+      },
+      examples: [
+          {
+              scenario: "Exemplo 1: Maria pagou o mínimo de uma fatura de R$ 1.000.",
+              consequence: "No mês seguinte, a dívida dela já era de quase R$ 1.150, mesmo sem usar mais o cartão, por causa dos juros rotativos de 15%."
+          },
+           {
+              scenario: "Exemplo 2: João parcelou uma compra de R$ 500 em 10x 'sem juros'.",
+              consequence: "Ele comprometeu R$ 50 do seu orçamento por 10 meses. Quando precisou de dinheiro para uma emergência, não tinha, pois seu orçamento já estava comprometido com parcelas."
+          }
+      ],
+      finalQuiz: {
+        title: 'Teste seu Conhecimento',
+        questions: [
+            {
+                question: 'O que acontece quando você paga apenas o valor mínimo da fatura do cartão?',
+                options: ['A dívida é congelada', 'O restante da dívida entra no rotativo, com juros muito altos', 'O banco perdoa o restante da dívida'],
+                correctAnswer: 'O restante da dívida entra no rotativo, com juros muito altos'
+            },
+            {
+                question: 'Qual é a melhor estratégia para lidar com uma dívida alta no cartão de crédito?',
+                options: ['Continuar pagando o mínimo', 'Tentar negociar a dívida ou trocá-la por um empréstimo com juros menores', 'Ignorar a dívida'],
+                correctAnswer: 'Tentar negociar a dívida ou trocá-la por um empréstimo com juros menores'
+            }
+        ]
       },
       tool: InterestCalculator
     },
@@ -69,12 +118,20 @@ export const educationTracks: EducationTrack[] = [
     description: 'Aprenda sobre amortização e como antecipar parcelas.',
     icon: Landmark,
     color: 'text-blue-500',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200',
+    bgColor: 'bg-blue-50 dark:bg-blue-900/20',
+    borderColor: 'border-blue-200 dark:border-blue-800/50',
     content: {
       introduction: 'Financiamentos são compromissos de longo prazo. Entender como eles funcionam pode economizar milhares de reais. A chave é a "amortização".',
+       diagnostic: {
+        title: 'Diagnóstico Rápido',
+        questions: [
+          'Você sabe o que é "amortizar" uma dívida?',
+          'Você já tentou pagar uma parcela a mais do seu financiamento?',
+          'Você sabe qual sistema de amortização do seu contrato (SAC ou Price)?',
+        ]
+      },
       metaphor: {
-        title: 'Metáfora: A Plantação de Dívidas',
+        title: 'A Plantação de Dívidas',
         description: 'Um financiamento é como uma plantação. Cada parcela que você paga é a colheita. Parte dela paga os "juros" (o custo da terra) e parte paga o "principal" (a dívida real). Amortizar é como arrancar as ervas daninhas (o principal) direto na raiz, fazendo a plantação diminuir mais rápido.',
       },
       actionSteps: {
@@ -94,6 +151,22 @@ export const educationTracks: EducationTrack[] = [
           },
         ],
       },
+      examples: [
+          {
+              scenario: "Exemplo: Carlos tinha um financiamento de 360 meses. Ele começou a pagar R$ 200 a mais por mês.",
+              consequence: "Com essa pequena amortização mensal, ele conseguiu reduzir o tempo do financiamento em quase 10 anos e economizou dezenas de milhares de reais em juros."
+          }
+      ],
+      finalQuiz: {
+        title: 'Teste seu Conhecimento',
+        questions: [
+            {
+                question: 'O que é "amortizar" um financiamento?',
+                options: ['Pagar apenas os juros da parcela', 'Adiantar o pagamento de parcelas futuras, abatendo do saldo devedor principal', 'Renegociar a taxa de juros'],
+                correctAnswer: 'Adiantar o pagamento de parcelas futuras, abatendo do saldo devedor principal'
+            },
+        ]
+      },
       tool: PayoffSimulator,
     },
   },
@@ -103,12 +176,20 @@ export const educationTracks: EducationTrack[] = [
     description: 'Modelos prontos para conversar com credores e conseguir acordos.',
     icon: HeartHandshake,
     color: 'text-teal-500',
-    bgColor: 'bg-teal-50',
-    borderColor: 'border-teal-200',
+    bgColor: 'bg-teal-50 dark:bg-teal-900/20',
+    borderColor: 'border-teal-200 dark:border-teal-800/50',
     content: {
       introduction: 'Negociar uma dívida pode ser intimidante, mas é um direito seu. Ter um roteiro em mãos te dá confiança e clareza para conseguir as melhores condições. O segredo é estar preparado.',
+       diagnostic: {
+        title: 'Diagnóstico Rápido',
+        questions: [
+          'Você já tentou negociar uma dívida antes?',
+          'Você se sente ansioso só de pensar em ligar para um credor?',
+          'Você sabe exatamente quanto pode pagar em um acordo?',
+        ]
+      },
       metaphor: {
-        title: 'Metáfora: O Jogo de Cartas',
+        title: 'O Jogo de Cartas',
         description: 'Negociar é como um jogo de cartas. Você precisa saber quais cartas tem (sua situação financeira, quanto pode pagar) e entender as possíveis cartas do seu oponente (o credor quer receber, mesmo que seja um valor menor). Um bom roteiro é a sua carta na manga.',
       },
       actionSteps: {
@@ -132,6 +213,22 @@ export const educationTracks: EducationTrack[] = [
           }
         ],
       },
+       examples: [
+          {
+              scenario: "Exemplo: Ana devia R$ 5.000 no cheque especial. O banco ofereceu pagar em 10x de R$ 750 (total R$ 7.500).",
+              consequence: 'Ela usou o script, explicou que só podia pagar R$ 450. O banco contrapropôs 12x de R$ 480 (total R$ 5.760). Ela aceitou e economizou quase R$ 2.000.'
+          }
+      ],
+      finalQuiz: {
+        title: 'Teste seu Conhecimento',
+        questions: [
+            {
+                question: 'Qual o primeiro passo antes de ligar para negociar uma dívida?',
+                options: ['Juntar o máximo de dinheiro possível', 'Saber exatamente sua situação financeira e quanto você pode pagar', 'Pedir dinheiro emprestado'],
+                correctAnswer: 'Saber exatamente sua situação financeira e quanto você pode pagar'
+            },
+        ]
+      },
     },
   },
    {
@@ -140,12 +237,20 @@ export const educationTracks: EducationTrack[] = [
     description: 'Use o app para criar hábitos que transformam sua vida financeira.',
     icon: Sparkles,
     color: 'text-violet-500',
-    bgColor: 'bg-violet-50',
-    borderColor: 'border-violet-200',
+    bgColor: 'bg-violet-50 dark:bg-violet-900/20',
+    borderColor: 'border-violet-200 dark:border-violet-800/50',
     content: {
       introduction: 'A saúde financeira não vem de uma grande ação, mas da soma de pequenas atitudes diárias. O "xô planilhas" foi feito para te ajudar a criar esses hábitos de forma leve e motivadora.',
+       diagnostic: {
+        title: 'Diagnóstico Rápido',
+        questions: [
+          'Você anota seus gastos todos os dias?',
+          'Você sabe exatamente para onde seu dinheiro foi no mês passado?',
+          'Você costuma guardar dinheiro que "sobra" sem um objetivo claro?',
+        ]
+      },
       metaphor: {
-        title: 'Metáfora: O Treino na Academia',
+        title: 'O Treino na Academia',
         description: 'Ir na academia uma vez não te deixa forte. Mas ir um pouco a cada dia, sim. Com as finanças é igual. Cada pequena ação, como registrar um gasto ou fazer um pequeno aporte, é um "exercício" que fortalece seu "músculo financeiro".',
       },
       actionSteps: {
@@ -169,6 +274,22 @@ export const educationTracks: EducationTrack[] = [
           },
         ],
       },
+       examples: [
+          {
+              scenario: "Exemplo: Lucas começou a registrar até o cafezinho.",
+              consequence: 'No fim do mês, ele percebeu que gastava R$ 200 só com lanches fora de hora. No mês seguinte, reduziu pela metade e usou a economia para fazer um aporte em sua reserva de emergência.'
+          }
+      ],
+      finalQuiz: {
+        title: 'Teste seu Conhecimento',
+        questions: [
+            {
+                question: 'Qual o hábito mais fundamental para a organização financeira?',
+                options: ['Investir na bolsa', 'Registrar todos os gastos diariamente', 'Cortar todos os luxos'],
+                correctAnswer: 'Registrar todos os gastos diariamente'
+            },
+        ]
+      },
     },
   },
   {
@@ -177,12 +298,20 @@ export const educationTracks: EducationTrack[] = [
     description: 'Estratégias para negociar e sair do cheque especial.',
     icon: PiggyBank,
     color: 'text-amber-500',
-    bgColor: 'bg-amber-50',
-    borderColor: 'border-amber-200',
+    bgColor: 'bg-amber-50 dark:bg-amber-900/20',
+    borderColor: 'border-amber-200 dark:border-amber-800/50',
     content: {
       introduction: 'O cheque especial é uma das formas mais caras de crédito. Ele foi feito para emergências curtas, não para ser uma extensão do seu salário. Sair dele é uma libertação.',
+       diagnostic: {
+        title: 'Diagnóstico Rápido',
+        questions: [
+          'Seu saldo bancário fica negativo com frequência?',
+          'Você usa o limite do cheque especial para pagar contas do mês?',
+          'Você considera o limite do cheque especial como parte da sua renda?',
+        ]
+      },
       metaphor: {
-        title: 'Metáfora: A Areia Movediça Financeira',
+        title: 'A Areia Movediça Financeira',
         description: 'Usar o cheque especial é como pisar em areia movediça. Quanto mais você usa, mais fundo afunda, e os juros tornam cada vez mais difícil sair. O segredo é parar de se debater e encontrar um galho firme para se puxar.',
       },
       actionSteps: {
@@ -202,6 +331,22 @@ export const educationTracks: EducationTrack[] = [
           },
         ],
       },
+       examples: [
+          {
+              scenario: "Exemplo: Julia usava R$ 800 do cheque especial todo mês.",
+              consequence: 'Ela pegou um empréstimo pessoal para quitar o saldo, cancelou o limite do cheque especial com o gerente e começou a construir uma reserva de emergência. Nunca mais pagou juros abusivos.'
+          }
+      ],
+      finalQuiz: {
+        title: 'Teste seu Conhecimento',
+        questions: [
+            {
+                question: 'Para que serve o cheque especial?',
+                options: ['Para complementar o salário todo mês', 'Para emergências muito curtas, de um ou dois dias', 'Para fazer compras parceladas'],
+                correctAnswer: 'Para emergências muito curtas, de um ou dois dias'
+            },
+        ]
+      },
     },
   },
   {
@@ -210,12 +355,20 @@ export const educationTracks: EducationTrack[] = [
     description: 'Técnicas para organizar e priorizar contas de consumo.',
     icon: Receipt,
     color: 'text-cyan-500',
-    bgColor: 'bg-cyan-50',
-    borderColor: 'border-cyan-200',
+    bgColor: 'bg-cyan-50 dark:bg-cyan-900/20',
+    borderColor: 'border-cyan-200 dark:border-cyan-800/50',
     content: {
       introduction: 'Contas de água, luz, internet... Elas parecem pequenas, mas quando se acumulam, podem virar um grande problema, incluindo o risco de corte de serviços essenciais.',
+       diagnostic: {
+        title: 'Diagnóstico Rápido',
+        questions: [
+          'Você já teve algum serviço cortado por falta de pagamento?',
+          'Você costuma pagar contas depois do vencimento e com juros?',
+          'Você não tem um lugar central para ver todas as suas contas do mês?',
+        ]
+      },
       metaphor: {
-        title: 'Metáfora: O Jogo dos Pratos Giratórios',
+        title: 'O Jogo dos Pratos Giratórios',
         description: 'Cada conta é um prato que você precisa manter girando. Se você se descuida, um deles cai (vence). Se muitos caem, o show para (cortam o serviço). O segredo é saber qual prato girar primeiro.',
       },
       actionSteps: {
@@ -223,7 +376,7 @@ export const educationTracks: EducationTrack[] = [
         steps: [
           {
             title: '1. Liste Todas as Contas e Datas',
-            description: 'Pegue todas as suas contas do mês. Coloque em uma lista simples o nome da conta, o valor e a data de vencimento. Use o xô planilhas para isso!',
+            description: 'Pegue todas as suas contas do mês. Registre no "xô planilhas" como despesas recorrentes e com status "pendente". Use a data de vencimento de cada uma.',
           },
           {
             title: '2. Priorize o Essencial',
@@ -231,9 +384,25 @@ export const educationTracks: EducationTrack[] = [
           },
           {
             title: '3. Automatize o que Puder',
-            description: 'Coloque as contas que têm valor fixo (como internet, plano de celular, assinaturas) em débito automático. Isso diminui a chance de esquecimento.',
+            description: 'Coloque as contas que têm valor fixo (como internet, plano de celular, assinaturas) em débito automático. Isso diminui a chance de esquecimento e multas.',
           },
         ],
+      },
+      examples: [
+          {
+              scenario: "Exemplo: Felipe sempre pagava a conta de internet com atraso.",
+              consequence: 'Ele colocou a conta em débito automático. Além de nunca mais pagar juros, ele parou de gastar energia mental se preocupando com o vencimento.'
+          }
+      ],
+      finalQuiz: {
+        title: 'Teste seu Conhecimento',
+        questions: [
+            {
+                question: 'Se o dinheiro está curto, qual tipo de conta deve ser priorizada?',
+                options: ['Assinaturas de streaming', 'Contas essenciais como aluguel, água e luz', 'Fatura do cartão de crédito'],
+                correctAnswer: 'Contas essenciais como aluguel, água e luz'
+            },
+        ]
       },
     },
   },
