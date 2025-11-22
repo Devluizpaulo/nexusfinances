@@ -2,9 +2,9 @@
   "placeholderImages": [
     {
       "id": "lp-hero",
-      "description": "Uma pessoa sorrindo, aliviada, enquanto olha para um laptop ou tablet exibindo gráficos financeiros claros.",
-      "imageUrl": "https://images.unsplash.com/photo-1599585183326-87b1fff61c33?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxmaW5hbmNpYWwlMjByZWxpZWZ8ZW58MHx8fHwxNzYzODMzMTQ0fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "financial relief"
+      "description": "Uma pessoa sorrindo, aliviada, enquanto olha para um laptop ou tablet exibindo gráficos financeiros claros e positivos.",
+      "imageUrl": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxmaW5hbmNpYWwlMjBjbGFyaXR5fGVufDB8fHx8MTc2NTU1ODU1M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "financial clarity"
     },
     {
       "id": "lp-feature-1",

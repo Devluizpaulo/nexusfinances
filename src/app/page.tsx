@@ -71,7 +71,7 @@ function ClientRoot() {
 
       <main>
         {/* Hero Section */}
-        <section className="relative border-b bg-gradient-to-br from-primary/10 via-background to-background py-20 md:py-28">
+        <section className="relative border-b bg-gradient-to-b from-primary/10 via-background to-background py-20 md:py-28">
             <div className="container mx-auto grid grid-cols-1 items-center gap-12 px-4 md:grid-cols-2">
                 <div className="text-center md:text-left">
                     <h1 className="text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl">
