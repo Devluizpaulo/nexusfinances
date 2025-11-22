@@ -38,11 +38,12 @@ import { PlusCircle, Trash2, Calendar, History, MoreVertical, Pencil, Eye } from
 import { cn } from '@/lib/utils';
 import { doc } from 'firebase/firestore';
 
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from '../ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Separator } from '../ui/separator';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('pt-BR', {
@@ -79,6 +80,7 @@ export function GoalCard({ goal, onAddContribution, onEdit }: GoalCardProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [selectedHorizon, setSelectedHorizon] = useState<6 | 12 | 24>(12);
 
   const firestore = useFirestore();
   const { user } = useUser();
@@ -137,6 +139,48 @@ export function GoalCard({ goal, onAddContribution, onEdit }: GoalCardProps) {
   const progress = goal.targetAmount > 0 ? (goal.currentAmount / goal.targetAmount) * 100 : 100;
   const isCompleted = goal.currentAmount >= goal.targetAmount;
   const icon = goalIcons[goal.category as GoalCategory] || '🎯';
+
+  const { remainingAmount, estimatedMonths, estimatedDate } = useMemo(() => {
+    const remaining = Math.max(goal.targetAmount - goal.currentAmount, 0);
+
+    if (!goal.monthlyContribution || goal.monthlyContribution <= 0 || remaining === 0) {
+      return {
+        remainingAmount: remaining,
+        estimatedMonths: null as number | null,
+        estimatedDate: null as Date | null,
+      };
+    }
+
+    const months = Math.ceil(remaining / goal.monthlyContribution);
+    const date = addMonths(new Date(), months);
+
+    return { remainingAmount: remaining, estimatedMonths: months, estimatedDate: date };
+  }, [goal.targetAmount, goal.currentAmount, goal.monthlyContribution]);
+
+  const suggestedMonthlyByHorizon = useMemo(() => {
+    if (remainingAmount <= 0) return null;
+    return {
+      6: Math.ceil(remainingAmount / 6),
+      12: Math.ceil(remainingAmount / 12),
+      24: Math.ceil(remainingAmount / 24),
+    } as Record<6 | 12 | 24, number>;
+  }, [remainingAmount]);
+
+  const timelineData = useMemo(() => {
+    const baseContributions = ((goal as any).contributions || []) as GoalContribution[];
+    if (!baseContributions.length) return [] as { date: string; total: number }[];
+
+    const ascending = [...baseContributions].sort((a, b) => (a.date < b.date ? -1 : 1));
+    let total = 0;
+
+    return ascending.map((c) => {
+      total += c.amount;
+      return {
+        date: format(parseISO(c.date), 'dd/MM', { locale: ptBR }),
+        total,
+      };
+    });
+  }, [goal]);
 
   return (
     <>
@@ -209,6 +253,31 @@ export function GoalCard({ goal, onAddContribution, onEdit }: GoalCardProps) {
                 <span className="text-sm font-semibold text-primary">{Math.min(100, progress).toFixed(0)}%</span>
               </div>
             </div>
+
+            {timelineData.length > 0 && (
+              <div className="rounded-lg border p-4">
+                <p className="mb-2 text-sm font-semibold text-muted-foreground">Evolução da reserva</p>
+                <div className="h-40">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={timelineData} margin={{ left: -20, right: 4, top: 4, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="date" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                      <YAxis
+                        tick={{ fontSize: 10 }}
+                        tickFormatter={(value) => `${(value as number) / 1000}k`}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <Tooltip
+                        formatter={(value) => formatCurrency(value as number)}
+                        labelFormatter={(label) => `Data: ${label}`}
+                      />
+                      <Line type="monotone" dataKey="total" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            )}
             
             <div className="grid grid-cols-2 gap-4 text-sm">
                 {goal.targetDate && (
@@ -263,7 +332,19 @@ export function GoalCard({ goal, onAddContribution, onEdit }: GoalCardProps) {
             <div className="flex items-center gap-3">
               <span className="text-2xl">{icon}</span>
               <div>
-                <CardTitle className="text-lg">{goal.name}</CardTitle>
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-lg">{goal.name}</CardTitle>
+                  {isCompleted && (
+                    <Badge variant="secondary" className="text-[10px] font-semibold text-emerald-700">
+                      Meta batida
+                    </Badge>
+                  )}
+                  {!isCompleted && progress >= 80 && (
+                    <Badge variant="outline" className="text-[10px] font-semibold text-amber-700 border-amber-300">
+                      Quase lá
+                    </Badge>
+                  )}
+                </div>
                 {goal.targetDate && (
                   <div className="flex items-center text-xs text-muted-foreground mt-1">
                     <Calendar className="mr-1.5 h-3 w-3" />
@@ -317,6 +398,66 @@ export function GoalCard({ goal, onAddContribution, onEdit }: GoalCardProps) {
             <Progress value={progress} className="h-3 bg-primary/20" indicatorClassName="bg-primary" />
             <span className="text-sm font-semibold text-primary">{Math.min(100, progress).toFixed(0)}%</span>
           </div>
+          {!isCompleted && estimatedDate && estimatedMonths !== null && remainingAmount > 0 && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Faltam {formatCurrency(remainingAmount)} para bater a meta. No ritmo atual você deve alcançar em
+              {' '}
+              <span className="font-medium">
+                {format(estimatedDate, "MMMM 'de' yyyy", { locale: ptBR })}
+              </span>
+              {' '}(~{estimatedMonths} {estimatedMonths === 1 ? 'mês' : 'meses'}).
+            </p>
+          )}
+          {!isCompleted && remainingAmount > 0 && suggestedMonthlyByHorizon && (
+            <div className="mt-1 space-y-1 text-[11px] text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <span className="text-[10px]">Simular prazo:</span>
+                {[6, 12, 24].map((h) => (
+                  <button
+                    key={h}
+                    type="button"
+                    onClick={() => setSelectedHorizon(h as 6 | 12 | 24)}
+                    className={cn(
+                      'rounded-full border px-2 py-0.5 text-[10px]',
+                      selectedHorizon === h
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border bg-background hover:border-primary/40'
+                    )}
+                  >
+                    {h}m
+                  </button>
+                ))}
+              </div>
+              <p>
+                Para concluir em{' '}
+                <span className="font-medium">{selectedHorizon} meses</span>, o aporte ideal seria de{' '}
+                <span className="font-medium">
+                  {formatCurrency(suggestedMonthlyByHorizon[selectedHorizon])}
+                </span>{' '}
+                por mês
+                {goal.monthlyContribution && goal.monthlyContribution > 0 && (
+                  <>
+                    {' '}({goal.monthlyContribution < suggestedMonthlyByHorizon[selectedHorizon]
+                      ? `+${formatCurrency(suggestedMonthlyByHorizon[selectedHorizon] - goal.monthlyContribution)} em relação ao aporte atual`
+                      : 'igual ou abaixo do que você já planejou'})
+                    .
+                  </>
+                )}
+                .
+              </p>
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 px-2 text-[11px]"
+                  onClick={() => onEdit(goal)}
+                >
+                  Ajustar aporte mensal
+                </Button>
+              </div>
+            </div>
+          )}
            {sortedContributions.length > 0 && (
               <div className="space-y-2 pt-2">
                 <div className="flex items-center justify-between gap-2">

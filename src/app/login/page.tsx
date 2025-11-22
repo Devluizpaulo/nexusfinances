@@ -190,10 +190,10 @@ function LoginClient() {
           <DollarSign className="h-8 w-8" />
         </div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Bem-vindo ao Nexus Finanças
+          xô planilhas
         </h1>
-        <p className="mt-2 text-md text-muted-foreground">
-          Seu assistente para uma vida financeira mais inteligente.
+        <p className="mt-2 text-md text-muted-foreground max-w-md">
+          Controle simples do seu dinheiro, sem fórmulas nem planilhas complicadas.
         </p>
       </div>
 
@@ -206,8 +206,8 @@ function LoginClient() {
         <TabsContent value="login">
           <Card>
             <CardHeader>
-              <CardTitle>Login</CardTitle>
-              <CardDescription>Acesse sua conta para gerenciar suas finanças.</CardDescription>
+              <CardTitle>Entrar</CardTitle>
+              <CardDescription>Acesse seu painel financeiro em poucos segundos.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Form {...loginForm}>
@@ -275,8 +275,8 @@ function LoginClient() {
         <TabsContent value="register">
           <Card>
             <CardHeader>
-              <CardTitle>Cadastro</CardTitle>
-              <CardDescription>Crie sua conta para começar a organizar suas finanças.</CardDescription>
+              <CardTitle>Criar conta</CardTitle>
+              <CardDescription>Comece hoje a sair das planilhas e organizar seu dinheiro.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Form {...registerForm}>

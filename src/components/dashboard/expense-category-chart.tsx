@@ -80,7 +80,7 @@ export function ExpenseCategoryChart({ transactions }: { transactions: Transacti
         {chartData.length > 0 ? (
             <ChartContainer
               config={chartConfig}
-              className="mx-auto aspect-square max-h-[350px]"
+              className="mx-auto h-[320px] max-h-[360px] w-full"
             >
               <PieChart>
                 <ChartTooltip

@@ -38,7 +38,7 @@ export default function DebtsPage() {
   return (
     <>
       <AddDebtSheet isOpen={isSheetOpen} onClose={() => setIsSheetOpen(false)} />
-      <PageHeader title="Dívidas" description="Gerencie seus empréstimos e parcelamentos.">
+      <PageHeader title="Dívidas" description="Veja todas as dívidas em um só lugar e pare de controlar vencimentos em planilhas.">
         <Button onClick={() => setIsSheetOpen(true)} disabled={!user}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Adicionar Dívida
@@ -53,7 +53,7 @@ export default function DebtsPage() {
         <div className="col-span-full mt-10 flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-transparent p-8 text-center">
             <h3 className="text-xl font-semibold tracking-tight">Nenhuma dívida encontrada</h3>
             <p className="mt-2 text-sm text-muted-foreground">
-              Comece adicionando uma nova dívida para ver seus detalhes aqui.
+              Adicione suas dívidas aqui para não depender mais de planilhas e anotações soltas.
             </p>
             <Button className="mt-4" onClick={() => setIsSheetOpen(true)}>
               <PlusCircle className="mr-2 h-4 w-4" />

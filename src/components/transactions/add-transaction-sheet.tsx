@@ -51,10 +51,10 @@ import { Separator } from '../ui/separator';
 import { Label } from '@/components/ui/label';
 
 const formSchema = z.object({
-  category: z.string().min(1, 'A categoria é obrigatória.'),
-  amount: z.coerce.number().positive('O valor deve ser positivo.'),
+  category: z.string().min(1, 'Escolha uma categoria.'),
+  amount: z.coerce.number().positive('Use um valor maior que zero.'),
   date: z.date({
-    required_error: 'A data é obrigatória.',
+    required_error: 'Escolha uma data.',
   }),
   description: z.string().optional(),
   isRecurring: z.boolean().default(false),
@@ -97,7 +97,6 @@ export function AddTransactionSheet({
   const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
 
-
   const allCategories = useMemo(() => {
     const customCategories = transactionType === 'income' 
       ? user?.customIncomeCategories 
@@ -107,7 +106,6 @@ export function AddTransactionSheet({
 
     return Array.from(combined);
   }, [categories, user, transactionType]);
-
 
   useEffect(() => {
     if (isOpen && transaction) {
@@ -129,13 +127,12 @@ export function AddTransactionSheet({
     }
   }, [isOpen, transaction, form]);
 
-
   const onSubmit = (values: TransactionFormValues) => {
     if (!user) {
       toast({
         variant: 'destructive',
-        title: 'Erro de autenticação',
-        description: 'Você precisa estar logado para gerenciar transações.',
+        title: 'Faça login para continuar',
+        description: 'Entre na sua conta para registrar essa movimentação.',
       });
       return;
     }
@@ -154,14 +151,14 @@ export function AddTransactionSheet({
       const docRef = doc(firestore, collectionPath, transaction.id);
       setDocumentNonBlocking(docRef, dataToSave, { merge: true });
       toast({
-        title: 'Transação atualizada!',
-        description: `Sua ${transactionType === 'income' ? 'renda' : 'despesa'} foi atualizada com sucesso.`,
+        title: 'Movimentação atualizada',
+        description: 'Seu painel já foi atualizado.',
       });
     } else {
       addDocumentNonBlocking(collection(firestore, collectionPath), dataToSave);
       toast({
-        title: 'Transação salva!',
-        description: `Sua ${transactionType === 'income' ? 'renda' : 'despesa'} foi adicionada com sucesso.`,
+        title: 'Movimentação salva',
+        description: `Sua ${transactionType === 'income' ? 'renda' : 'despesa'} já entrou no painel.`,
       });
     }
     
@@ -178,7 +175,7 @@ export function AddTransactionSheet({
       await updateDoc(userDocRef, {
         [fieldToUpdate]: arrayUnion(newCategoryName.trim())
       });
-      toast({ title: 'Categoria Adicionada!', description: `"${newCategoryName.trim()}" foi adicionada.` });
+      toast({ title: 'Categoria adicionada', description: `"${newCategoryName.trim()}" foi incluída na sua lista.` });
       
       // Set the newly added category in the form
       form.setValue('category', newCategoryName.trim());
@@ -187,10 +184,9 @@ export function AddTransactionSheet({
       setIsAddCategoryDialogOpen(false);
     } catch (error) {
       console.error(error);
-      toast({ variant: "destructive", title: "Erro", description: "Não foi possível adicionar a categoria." });
+      toast({ variant: "destructive", title: "Não deu para salvar a categoria", description: "Tente de novo em alguns segundos." });
     }
   };
-
 
   const title = transaction ? `Editar ${transactionType === 'income' ? 'Renda' : 'Despesa'}` : `Adicionar ${transactionType === 'income' ? 'Renda' : 'Despesa'}`;
   const description = transaction ? 'Modifique os detalhes da sua transação.' : `Adicione uma nova ${transactionType === 'income' ? 'entrada de renda' : 'saída para suas despesas'}.`;
@@ -313,7 +309,7 @@ export function AddTransactionSheet({
               control={form.control}
               name="isRecurring"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border bg-muted/50 p-3">
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border border-border bg-muted p-3">
                   <div className="space-y-0.5">
                     <FormLabel>Recorrente</FormLabel>
                     <FormDescription>
@@ -324,6 +320,7 @@ export function AddTransactionSheet({
                     <Switch
                       checked={field.value}
                       onCheckedChange={field.onChange}
+                      className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-slate-300"
                     />
                   </FormControl>
                 </FormItem>
@@ -333,7 +330,7 @@ export function AddTransactionSheet({
               control={form.control}
               name="status"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border bg-muted/50 p-3">
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border border-border bg-muted p-3">
                   <div className="space-y-0.5">
                     <FormLabel>{transactionType === 'income' ? 'Recebido' : 'Pago'}</FormLabel>
                     <FormDescription>
@@ -344,6 +341,7 @@ export function AddTransactionSheet({
                     <Switch
                       checked={field.value === 'paid'}
                       onCheckedChange={(checked) => field.onChange(checked ? 'paid' : 'pending')}
+                      className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-slate-300"
                     />
                   </FormControl>
                 </FormItem>

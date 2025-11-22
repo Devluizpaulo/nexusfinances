@@ -384,13 +384,13 @@ export default function DashboardPage() {
         onClose={() => setIsGoalSheetOpen(false)}
       />
       <div className="space-y-8 max-w-8x1 mx-auto">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)] items-start">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(360px,1fr)] items-start">
           <div className="space-y-8">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div className="space-y-1">
                 <h1 className="text-3xl font-semibold tracking-tight">Olá, {getFirstName(user?.displayName)}! 👋</h1>
                 <p className="text-sm text-muted-foreground max-w-xl">
-                  Aqui está o resumo financeiro de {format(selectedDate, 'MMMM/yyyy', { locale: ptBR })}.
+                  Este é o seu painel de {format(selectedDate, 'MMMM/yyyy', { locale: ptBR })}. Tudo em um só lugar, sem planilhas.
                 </p>
               </div>
               <div className="flex flex-col items-center gap-2 md:flex-row">
@@ -434,10 +434,13 @@ export default function DashboardPage() {
             <Separator className="my-4" />
 
             <div className="space-y-8">
-              <section className="space-y-4">
+              <section className="space-y-2">
                 <div className="flex items-center justify-between">
                   <h2 className="text-lg font-semibold tracking-tight">Próximos lançamentos</h2>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Veja o que está para entrar e sair ainda neste mês.
+                </p>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -486,8 +489,11 @@ export default function DashboardPage() {
                 </div>
               </section>
 
-              <section className="space-y-4">
+              <section className="space-y-2">
                 <h2 className="text-lg font-semibold tracking-tight">Análise gráfica</h2>
+                <p className="text-xs text-muted-foreground max-w-md">
+                  Compare receitas e despesas e entenda para onde o dinheiro está indo.
+                </p>
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
                   <div className="lg:col-span-3">
                     <IncomeExpenseChart transactions={allTransactions} />

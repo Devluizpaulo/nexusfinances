@@ -1,7 +1,7 @@
 'use client';
 
 import { useForm } from 'react-hook-form';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { collection, doc } from 'firebase/firestore';
@@ -95,6 +95,7 @@ export function AddGoalSheet({ isOpen, onClose, goal }: AddGoalSheetProps) {
   const currentAmount = form.watch('currentAmount');
   const monthlyContribution = form.watch('monthlyContribution');
   const watchedTargetDate = form.watch('targetDate');
+  const [isTargetDateOpen, setIsTargetDateOpen] = useState(false);
 
   const remainingAmount = Math.max(targetAmount - currentAmount, 0);
   const estimatedMonths = monthlyContribution > 0 ? Math.ceil(remainingAmount / monthlyContribution) : null;
@@ -128,8 +129,8 @@ export function AddGoalSheet({ isOpen, onClose, goal }: AddGoalSheetProps) {
     if (!user || !firestore) {
       toast({
         variant: 'destructive',
-        title: 'Erro de autenticação',
-        description: 'Você precisa estar logado para adicionar um item.',
+        title: 'Faça login para continuar',
+        description: 'Entre na sua conta para criar ou editar uma meta.',
       });
       return;
     }
@@ -147,8 +148,8 @@ export function AddGoalSheet({ isOpen, onClose, goal }: AddGoalSheetProps) {
         };
         setDocumentNonBlocking(goalRef, updatedData, { merge: true });
         toast({
-            title: 'Objetivo atualizado!',
-            description: `"${values.name}" foi atualizado com sucesso.`,
+            title: 'Meta atualizada',
+            description: `"${values.name}" foi atualizada.`,
         });
 
       } else {
@@ -175,8 +176,8 @@ export function AddGoalSheet({ isOpen, onClose, goal }: AddGoalSheetProps) {
         const progress = values.targetAmount > 0 ? (values.currentAmount / values.targetAmount) * 100 : 0;
 
         toast({
-          title: 'Objetivo criado com sucesso!',
-          description: `"${values.name}" foi adicionado. Você já está em ${Math.min(
+          title: 'Meta criada',
+          description: `"${values.name}" foi criada. Você já está em ${Math.min(
             100,
             Math.max(0, Math.round(progress)),
           )}% do caminho.`,
@@ -189,8 +190,8 @@ export function AddGoalSheet({ isOpen, onClose, goal }: AddGoalSheetProps) {
       console.error("Error saving goal: ", error);
       toast({
         variant: 'destructive',
-        title: 'Oh, não! Algo deu errado.',
-        description: 'Não foi possível salvar o item. Por favor, tente novamente.',
+        title: 'Não deu para salvar a meta',
+        description: 'Tente novamente em alguns segundos.',
       });
     }
   };
@@ -349,7 +350,7 @@ export function AddGoalSheet({ isOpen, onClose, goal }: AddGoalSheetProps) {
                 <FormItem className="flex flex-col">
                   <FormLabel>Data Alvo (Opcional)</FormLabel>
 
-                  <Popover>
+                  <Popover open={isTargetDateOpen} onOpenChange={setIsTargetDateOpen}>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
@@ -372,7 +373,10 @@ export function AddGoalSheet({ isOpen, onClose, goal }: AddGoalSheetProps) {
                       <Calendar
                         mode="single"
                         selected={field.value}
-                        onSelect={field.onChange}
+                        onSelect={(date) => {
+                          field.onChange(date);
+                          if (date) setIsTargetDateOpen(false);
+                        }}
                         initialFocus
                         locale={ptBR}
                       />

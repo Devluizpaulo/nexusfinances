@@ -81,11 +81,11 @@ export default function IncomePage() {
       />
       <PageHeader
         title="Renda"
-        description="Acompanhe e gerencie todas as suas fontes de renda."
+        description="Registre o que entra no mês sem precisar atualizar planilhas manualmente."
       >
         <Button onClick={() => handleOpenSheet()} disabled={!user}>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Adicionar Renda
+          Registrar renda
         </Button>
       </PageHeader>
       {searchParams.get('date') && (

@@ -81,11 +81,11 @@ export default function ExpensesPage() {
       />
       <PageHeader
         title="Despesas"
-        description="Acompanhe e gerencie todas as suas despesas."
+        description="Anote seus gastos em segundos e veja o impacto direto no seu mês, sem planilhas."
       >
         <Button onClick={() => handleOpenSheet()} disabled={!user}>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Adicionar Despesa
+          Registrar gasto
         </Button>
       </PageHeader>
       {searchParams.get('date') && (

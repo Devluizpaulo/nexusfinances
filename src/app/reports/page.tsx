@@ -290,11 +290,7 @@ export default function ReportsPage() {
     <>
       <PageHeader
         title="Relatórios"
-        description={`Analise suas finanças com filtros e visualizações detalhadas. Relatório gerado em ${format(
-          new Date(),
-          'PPPp',
-          { locale: ptBR },
-        )}.`}
+        description="Filtre e exporte seus lançamentos sem montar tabelas no Excel."
       />
       {isLoading ? (
         <div className="flex h-64 items-center justify-center">

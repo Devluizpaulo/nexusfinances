@@ -73,9 +73,10 @@ export function AddDebtSheet({ isOpen, onClose }: AddDebtSheetProps) {
     if (!user || !firestore) {
       toast({
         variant: 'destructive',
-        title: 'Erro de autenticação',
-        description: 'Você precisa estar logado para adicionar uma dívida.',
+        title: 'Faça login para continuar',
+        description: 'Entre na sua conta para cadastrar dívidas.',
       });
+
       return;
     }
 
@@ -115,8 +116,8 @@ export function AddDebtSheet({ isOpen, onClose }: AddDebtSheetProps) {
       await batch.commit();
 
       toast({
-        title: 'Dívida adicionada!',
-        description: `${values.name} foi adicionada com sucesso, com ${values.numberOfInstallments} parcelas.`,
+        title: 'Dívida adicionada',
+        description: `${values.name} foi criada com ${values.numberOfInstallments} parcelas.`,
       });
 
       form.reset();
@@ -126,8 +127,8 @@ export function AddDebtSheet({ isOpen, onClose }: AddDebtSheetProps) {
       console.error("Error adding debt: ", error);
       toast({
         variant: 'destructive',
-        title: 'Oh, não! Algo deu errado.',
-        description: 'Não foi possível adicionar a dívida. Por favor, tente novamente.',
+        title: 'Não deu para salvar a dívida',
+        description: 'Tente novamente em alguns segundos.',
       });
     }
   };

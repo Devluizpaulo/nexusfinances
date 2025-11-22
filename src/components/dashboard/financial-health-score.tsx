@@ -63,10 +63,26 @@ export function FinancialHealthScore({
       id: 'm2',
       description: 'Definir pelo menos uma meta de economia',
       isCompleted: goals.length > 0,
-      points: 20,
+      points: 15,
     };
     maxScore += mission2.points;
     if (mission2.isCompleted) score += mission2.points;
+
+    // Mission 2b: Progresso relevante em alguma meta (> 50%)
+    const hasGoalWithProgress = goals.some((goal) => {
+      const target = goal.targetAmount || 0;
+      if (target <= 0) return false;
+      const current = goal.currentAmount || 0;
+      return current / target >= 0.5;
+    });
+    const mission2b = {
+      id: 'm2b',
+      description: 'Ter pelo menos uma meta com mais de 50% de progresso',
+      isCompleted: hasGoalWithProgress,
+      points: 10,
+    };
+    maxScore += mission2b.points;
+    if (mission2b.isCompleted) score += mission2b.points;
     
     // Mission 3: Quitar dívidas
     const totalDebtAmount = debts.reduce((sum, d) => sum + d.totalAmount, 0);
@@ -102,10 +118,21 @@ export function FinancialHealthScore({
     maxScore += mission5.points;
     if(mission5.isCompleted) score += mission5.points;
 
+    // Mission 6: Registrar aportes em metas (pelo menos 1 contribuição)
+    const hasContributions = goals.some((goal) => Array.isArray((goal as any).contributions) && (goal as any).contributions.length > 0);
+    const mission6 = {
+      id: 'm6',
+      description: 'Registrar pelo menos um aporte em alguma meta',
+      isCompleted: hasContributions,
+      points: 10,
+    };
+    maxScore += mission6.points;
+    if (mission6.isCompleted) score += mission6.points;
+
 
     const finalScore = maxScore > 0 ? (score / maxScore) * 100 : 0;
 
-    const missions: Mission[] = [mission1, mission2, mission3, mission4, mission5];
+    const missions: Mission[] = [mission1, mission2, mission2b, mission3, mission4, mission5, mission6];
 
     return { score: finalScore, missions };
   }, [income, expenses, debts, goals, transactions]);
