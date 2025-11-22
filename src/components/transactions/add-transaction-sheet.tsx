@@ -48,6 +48,7 @@ import type { Transaction } from '@/lib/types';
 import { Textarea } from '../ui/textarea';
 import { CurrencyInput } from '../ui/currency-input';
 import { Separator } from '../ui/separator';
+import { Label } from '@/components/ui/label';
 
 const formSchema = z.object({
   category: z.string().min(1, 'A categoria é obrigatória.'),
