@@ -1,10 +1,11 @@
+
 'use client';
 
 import { notFound, useParams } from 'next/navigation';
 import { educationTracks } from '@/lib/education-data';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { HelpCircle, Target, BookCopy, Zap, Check, Lightbulb } from 'lucide-react';
+import { HelpCircle, Target, BookCopy, Zap, Check, Lightbulb, Brain, HandHeart, Mountain } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -92,89 +93,83 @@ export default function EducationTrackPage() {
         <p className="lead !text-lg !text-muted-foreground">{track.content.introduction}</p>
       </div>
 
-      {/* Módulo 1: Diagnóstico */}
+      {/* Módulo 1: Psicologia */}
       <Card>
           <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                  <HelpCircle className="h-5 w-5 text-primary" />
-                  Módulo 1: Diagnóstico Rápido
+                  <Brain className="h-5 w-5 text-primary" />
+                  Módulo 1: {track.content.psychology.title}
               </CardTitle>
-              <CardDescription>Responda para entender sua situação atual.</CardDescription>
+              <CardDescription>Entenda os "porquês" por trás das suas ações financeiras.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-              {track.content.diagnostic.questions.map((q, index) => (
-                  <div key={index} className="flex items-start space-x-3 rounded-md border p-4">
-                     <Checkbox id={`diag-${index}`} className="mt-1" />
-                     <div className="grid gap-1.5 leading-none">
-                        <Label htmlFor={`diag-${index}`} className="text-sm font-medium">
-                           {q}
-                        </Label>
-                    </div>
+          <CardContent className="space-y-3">
+              {track.content.psychology.points.map((point, index) => (
+                  <div key={index} className="flex items-center gap-3 text-sm">
+                     <Lightbulb className="h-4 w-4 shrink-0 text-amber-500" />
+                     <span>{point}</span>
                   </div>
               ))}
           </CardContent>
       </Card>
       
-      {/* Módulo 2: O Conceito */}
-      <Card>
-          <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                  <Lightbulb className="h-5 w-5 text-amber-500" />
-                  Módulo 2: O Conceito-Chave
-              </CardTitle>
-              <CardDescription>Uma forma simples de entender o problema.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-              <h3 className="font-semibold">{track.content.metaphor.title}</h3>
-              <p className="text-sm text-muted-foreground">{track.content.metaphor.description}</p>
-          </CardContent>
-      </Card>
+      {/* Módulo 2: Experiências Práticas */}
+       <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <HandHeart className="h-5 w-5 text-emerald-600" />
+                    Módulo 2: {track.content.practicalExperiences.title}
+                </CardTitle>
+                <CardDescription>Exercícios para conectar o aprendizado à sua vida real.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                 {track.content.practicalExperiences.experiences.map((exp, index) => (
+                     <div key={index} className="p-4 rounded-md bg-muted/50 border">
+                        <p className="font-semibold text-sm">{exp.title}</p>
+                        <p className="text-sm text-muted-foreground mt-1">{exp.description}</p>
+                     </div>
+                 ))}
+            </CardContent>
+        </Card>
       
-      {/* Módulo 3: Plano de Ação */}
+      {/* Módulo 3: Micro-hábitos */}
       <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                    <Target className="h-5 w-5 text-primary" />
-                    Módulo 3: Plano de Ação (Checklist)
+                    <Target className="h-5 w-5 text-sky-500" />
+                    Módulo 3: {track.content.microHabits.title}
                 </CardTitle>
-                <CardDescription>Marque cada passo concluído e sinta o progresso.</CardDescription>
+                <CardDescription>Pequenas ações diárias para construir grandes mudanças.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-                {track.content.actionSteps.steps.map((step, index) => (
+                {track.content.microHabits.habits.map((habit, index) => (
                     <div key={index} className="flex items-start space-x-3 rounded-md border p-4">
-                         <Checkbox id={`step-${index}`} className="mt-1" />
+                         <Checkbox id={`habit-${index}`} className="mt-1" />
                          <div className="grid gap-1.5 leading-none">
-                            <Label htmlFor={`step-${index}`} className="text-sm font-semibold">
-                               {step.title}
+                            <Label htmlFor={`habit-${index}`} className="text-sm font-medium">
+                               {habit}
                             </Label>
-                            <p className="text-sm text-muted-foreground">{step.description}</p>
                         </div>
                     </div>
                 ))}
             </CardContent>
         </Card>
         
-      {/* Módulo 4: Exemplos Práticos */}
-      <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <BookCopy className="h-5 w-5 text-emerald-600" />
-                    Módulo 4: Exemplos Práticos
-                </CardTitle>
-                <CardDescription>Veja como isso se aplica na vida real.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                 {track.content.examples.map((example, index) => (
-                     <div key={index} className="p-4 rounded-md bg-muted/50 border">
-                        <p className="font-semibold text-sm">{example.scenario}</p>
-                        <p className="text-sm text-muted-foreground mt-1">{example.consequence}</p>
-                     </div>
-                 ))}
-            </CardContent>
-        </Card>
+      {/* Módulo 4: Narrativa */}
+      <Card className="bg-primary/5 border-primary/20">
+          <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                  <Mountain className="h-5 w-5 text-primary" />
+                  Módulo 4: {track.content.narrative.title}
+              </CardTitle>
+              <CardDescription>Uma metáfora para guiar sua jornada.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground italic">{track.content.narrative.description}</p>
+          </CardContent>
+      </Card>
 
-       {/* Módulo 5: Ferramenta */}
-       {track.tool && (
+       {/* Módulo 5: Ferramenta (Opcional) */}
+       {track.content.tool && (
         <Card>
              <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -184,7 +179,7 @@ export default function EducationTrackPage() {
                  <CardDescription>Use esta ferramenta para tomar decisões melhores.</CardDescription>
             </CardHeader>
             <CardContent>
-                <track.tool />
+                <track.content.tool />
             </CardContent>
         </Card>
        )}
