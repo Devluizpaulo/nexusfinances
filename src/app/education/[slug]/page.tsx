@@ -43,10 +43,10 @@ function parseMarkdown(text: string): React.ReactNode[] {
         }
         return subPart;
       });
-      return <React.Fragment key={`part-${pIndex}-${index}`}>{parts}</React.Fragment>;
+      return <p key={`part-${pIndex}-${index}`} className="mb-4 last:mb-0">{parts}</p>;
     });
 
-    return <p key={`p-${pIndex}`} className="mb-4 last:mb-0">{nodes}</p>;
+    return <React.Fragment key={`p-${pIndex}`}>{nodes}</React.Fragment>;
   });
 }
 
@@ -104,7 +104,7 @@ const PracticalExperiencesModule = ({ content, onExperienceClick, readItems }: {
   </Card>
 );
 
-const MicroHabitsModule = ({ content }: { content: any }) => (
+const MicroHabitsModule = ({ content, checkedHabits, onHabitToggle }: { content: any, checkedHabits: Set<number>, onHabitToggle: (index: number) => void }) => (
   <Card>
     <CardHeader>
       <CardTitle className="flex items-center gap-2">
@@ -116,9 +116,14 @@ const MicroHabitsModule = ({ content }: { content: any }) => (
     <CardContent className="space-y-3">
       {content.habits.map((habit: string, index: number) => (
         <div key={index} className="flex items-start space-x-3 rounded-md border p-4">
-          <Checkbox id={`habit-${index}`} className="mt-1" />
+          <Checkbox 
+            id={`habit-${index}`} 
+            className="mt-1" 
+            checked={checkedHabits.has(index)}
+            onCheckedChange={() => onHabitToggle(index)}
+          />
           <div className="grid gap-1.5 leading-none">
-            <Label htmlFor={`habit-${index}`} className="text-sm font-medium">
+            <Label htmlFor={`habit-${index}`} className="text-sm font-medium cursor-pointer">
               {parseMarkdown(habit)}
             </Label>
           </div>
@@ -192,29 +197,37 @@ const FinalQuizModule = ({ module, track, user, onQuizComplete }: { module: any,
     const totalQuestions = module.questions.length;
     const score = (correctAnswers / totalQuestions) * 100;
 
-    toast({
-      title: "Resultado do Quiz",
-      description: `Você acertou ${correctAnswers} de ${totalQuestions} perguntas!`,
-    });
-
-    if (score > 50 && !isCompleted) {
-      const userDocRef = doc(firestore, 'users', user.uid);
-      try {
-        updateDocumentNonBlocking(userDocRef, {
-          completedTracks: arrayUnion(track.slug)
-        });
+    if (score > 50) {
+        if(!isCompleted) {
+            const userDocRef = doc(firestore, 'users', user.uid);
+            try {
+                updateDocumentNonBlocking(userDocRef, {
+                completedTracks: arrayUnion(track.slug)
+                });
+                toast({
+                title: "Trilha Concluída!",
+                description: `Parabéns! Você concluiu a trilha "${track.title}".`,
+                className: "bg-emerald-100 border-emerald-300 text-emerald-800 dark:bg-emerald-800/50 dark:border-emerald-700 dark:text-emerald-200"
+                });
+                onQuizComplete();
+            } catch (error) {
+                console.error("Error updating user progress:", error);
+                toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar seu progresso. Tente novamente.' });
+            }
+        } else {
+            onQuizComplete(); // Still allow progression if already completed
+        }
+    } else {
         toast({
-          title: "Trilha Concluída!",
-          description: `Parabéns! Você concluiu a trilha "${track.title}".`,
-          className: "bg-emerald-100 border-emerald-300 text-emerald-800 dark:bg-emerald-800/50 dark:border-emerald-700 dark:text-emerald-200"
+            variant: "destructive",
+            title: "Tente novamente!",
+            description: `Você acertou ${correctAnswers} de ${totalQuestions}. É preciso acertar mais da metade para avançar.`,
         });
-        onQuizComplete();
-      } catch (error) {
-        console.error("Error updating user progress:", error);
-        toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar seu progresso. Tente novamente.' });
-      }
+        // Do not call onQuizComplete()
     }
   };
+  
+  const allQuestionsAnswered = Object.keys(quizAnswers).length === module.questions.length;
 
   return (
     <Card>
@@ -259,7 +272,7 @@ const FinalQuizModule = ({ module, track, user, onQuizComplete }: { module: any,
           ))}
         </CardContent>
         <CardFooter>
-          <Button type="submit" disabled={isCompleted || showQuizResult || Object.keys(quizAnswers).length !== module.questions.length}>
+          <Button type="submit" disabled={isCompleted || !allQuestionsAnswered}>
             {isCompleted ? 'Trilha Concluída' : 'Verificar Respostas'}
           </Button>
         </CardFooter>
@@ -276,6 +289,7 @@ export default function EducationTrackPage() {
   const { user } = useUser();
   const [modalContent, setModalContent] = useState<{ title: string; details: string; } | null>(null);
   const [readItems, setReadItems] = useState<Set<string>>(new Set());
+  const [checkedHabits, setCheckedHabits] = useState<Set<number>>(new Set());
   const [activeTab, setActiveTab] = useState('0');
   const [completedModules, setCompletedModules] = useState<Set<number>>(new Set());
 
@@ -284,12 +298,48 @@ export default function EducationTrackPage() {
   if (!track) {
     notFound();
   }
+  
+  const currentModuleIndex = parseInt(activeTab, 10);
+  const currentModule = track.content.modules[currentModuleIndex];
+  
+  const isModuleCompleted = () => {
+    if (!currentModule) return false;
+    
+    switch (currentModule.type) {
+      case 'psychology':
+        return currentModule.points?.every(p => readItems.has(p.title)) || false;
+      case 'practicalExperiences':
+        return currentModule.experiences?.every(e => readItems.has(e.title)) || false;
+      case 'microHabits':
+        return currentModule.habits?.every((_, index) => checkedHabits.has(index)) || false;
+      case 'narrative':
+      case 'tool':
+        return true; // Auto-complete these modules
+      case 'finalQuiz':
+        return user?.completedTracks?.includes(track.slug) || false;
+      default:
+        return false;
+    }
+  };
+
 
   const handleMarkAsRead = () => {
     if (modalContent) {
       setReadItems(prev => new Set(prev).add(modalContent.title));
       setModalContent(null);
     }
+  };
+  
+  const handleHabitToggle = (index: number) => {
+    setCheckedHabits(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(index)) {
+        newSet.delete(index);
+      } else {
+        newSet.add(index);
+      }
+      return newSet;
+    });
   };
 
   const handleNext = () => {
@@ -322,7 +372,7 @@ export default function EducationTrackPage() {
       case 'practicalExperiences':
         return <PracticalExperiencesModule key={index} content={module} onExperienceClick={setModalContent} readItems={readItems} />;
       case 'microHabits':
-        return <MicroHabitsModule key={index} content={module} />;
+        return <MicroHabitsModule key={index} content={module} checkedHabits={checkedHabits} onHabitToggle={handleHabitToggle} />;
       case 'narrative':
         return <NarrativeModule key={index} content={module} />;
       case 'tool':
@@ -333,9 +383,8 @@ export default function EducationTrackPage() {
         return null;
     }
   };
-
-  const currentModuleIndex = parseInt(activeTab, 10);
-  const isLastModule = currentModuleIndex === track.content.modules.length - 1;
+  
+  const canGoNext = isModuleCompleted();
 
   return (
     <>
@@ -347,7 +396,7 @@ export default function EducationTrackPage() {
                     <Icon className={cn("h-7 w-7", track.color)} />
                 </div>
                 <div className="flex-1">
-                  <DialogTitle className="text-xl leading-snug">{modalContent?.title ? parseMarkdown(modalContent.title) : ''}</DialogTitle>
+                  <DialogTitle className="text-xl leading-snug">{parseMarkdown(modalContent?.title || '')}</DialogTitle>
                 </div>
             </div>
             <Separator />
@@ -396,8 +445,8 @@ export default function EducationTrackPage() {
                     <Button onClick={handlePrevious} disabled={currentModuleIndex === 0}>
                         <ArrowLeft className="mr-2 h-4 w-4" /> Anterior
                     </Button>
-                     {currentModuleIndex < track.content.modules.length -1 && module.type !== 'finalQuiz' && (
-                        <Button onClick={handleNext}>
+                     {currentModuleIndex < track.content.modules.length -1 && (
+                        <Button onClick={handleNext} disabled={!canGoNext}>
                             Próximo <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                     )}
