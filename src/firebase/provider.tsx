@@ -171,7 +171,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
 /**
  * Hook to access core Firebase services and user authentication state.
- * Throws error if core services are not available or used outside provider.
+ * Returns a fallback value if used during server-side rendering or if core services are not available.
  */
 export const useFirebase = (): FirebaseServicesAndUser => {
   const context = useContext(FirebaseContext);
@@ -181,7 +181,21 @@ export const useFirebase = (): FirebaseServicesAndUser => {
   }
 
   if (!context.areServicesAvailable || !context.firebaseApp || !context.firestore || !context.auth || !context.storage) {
-    throw new Error('Firebase core services not available. Check FirebaseProvider props.');
+    if (typeof window === 'undefined') {
+      // Server-side rendering, return a fallback value
+      return {
+        firebaseApp: null,
+        firestore: null,
+        auth: null,
+        storage: null,
+        user: null,
+        isUserLoading: false,
+        userError: null,
+      } as unknown as FirebaseServicesAndUser;
+    } else {
+      // Client-side, throw an error
+      throw new Error('Firebase core services not available. Check FirebaseProvider props.');
+    }
   }
 
   return {
