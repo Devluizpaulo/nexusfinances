@@ -6,8 +6,8 @@ import { notFound, useParams } from 'next/navigation';
 import { educationTracks } from '@/lib/education-data';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Check, Lightbulb, Brain, HandHeart, Mountain, Target, Zap } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Check, Lightbulb, Brain, HandHeart, Mountain, Target, Zap, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -49,7 +49,7 @@ function parseMarkdown(text: string): React.ReactNode[] {
 
 
 // Sub-components for each module
-const PsychologyModule = ({ content, onPointClick }: { content: EducationTrack['content']['psychology'], onPointClick: (point: any) => void }) => (
+const PsychologyModule = ({ content, onPointClick, readItems }: { content: EducationTrack['content']['psychology'], onPointClick: (point: any) => void, readItems: Set<string> }) => (
   <Card>
     <CardHeader>
       <CardTitle className="flex items-center gap-2">
@@ -66,14 +66,15 @@ const PsychologyModule = ({ content, onPointClick }: { content: EducationTrack['
           className="flex w-full cursor-pointer items-start gap-3 rounded-md p-2 text-left text-sm transition-colors hover:bg-muted"
         >
           <Lightbulb className="h-4 w-4 shrink-0 text-amber-500 mt-1" />
-          <span>{parseMarkdown(point.title)}</span>
+          <span className="flex-1">{parseMarkdown(point.title)}</span>
+          {readItems.has(point.title) && <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-1" />}
         </button>
       ))}
     </CardContent>
   </Card>
 );
 
-const PracticalExperiencesModule = ({ content, onExperienceClick }: { content: EducationTrack['content']['practicalExperiences'], onExperienceClick: (exp: any) => void }) => (
+const PracticalExperiencesModule = ({ content, onExperienceClick, readItems }: { content: EducationTrack['content']['practicalExperiences'], onExperienceClick: (exp: any) => void, readItems: Set<string> }) => (
   <Card>
     <CardHeader>
       <CardTitle className="flex items-center gap-2">
@@ -87,10 +88,13 @@ const PracticalExperiencesModule = ({ content, onExperienceClick }: { content: E
         <button
           key={index}
           onClick={() => onExperienceClick(exp)}
-          className="w-full cursor-pointer rounded-md border bg-muted/50 p-4 text-left transition-colors hover:bg-muted"
+          className="w-full cursor-pointer rounded-md border bg-muted/50 p-4 text-left transition-colors hover:bg-muted flex items-start justify-between"
         >
-          <p className="font-semibold text-sm">{exp.title}</p>
-          <p className="text-sm text-muted-foreground mt-1">{exp.description}</p>
+          <div className="flex-1">
+            <p className="font-semibold text-sm">{exp.title}</p>
+            <p className="text-sm text-muted-foreground mt-1">{exp.description}</p>
+          </div>
+           {readItems.has(exp.title) && <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-1 ml-4 shrink-0" />}
         </button>
       ))}
     </CardContent>
@@ -131,7 +135,9 @@ const NarrativeModule = ({ content }: { content: EducationTrack['content']['narr
       <CardDescription>Uma metáfora para guiar sua jornada.</CardDescription>
     </CardHeader>
     <CardContent>
-      <p className="text-sm text-muted-foreground italic">{content.description}</p>
+      <div className="prose prose-sm max-w-none text-muted-foreground dark:prose-invert">
+        {parseMarkdown(content.description)}
+      </div>
     </CardContent>
   </Card>
 );
@@ -264,12 +270,20 @@ export default function EducationTrackPage() {
   const slug = params.slug as string;
   const { user } = useUser();
   const [modalContent, setModalContent] = useState<{ title: string; details: string; } | null>(null);
+  const [readItems, setReadItems] = useState<Set<string>>(new Set());
 
   const track = educationTracks.find((t) => t.slug === slug);
 
   if (!track) {
     notFound();
   }
+
+  const handleMarkAsRead = () => {
+    if (modalContent) {
+      setReadItems(prev => new Set(prev).add(modalContent.title));
+      setModalContent(null);
+    }
+  };
 
   const Icon = track.icon;
 
@@ -289,6 +303,12 @@ export default function EducationTrackPage() {
           <div className="prose prose-sm max-w-none text-foreground dark:prose-invert">
             {parseMarkdown(modalContent?.details || '')}
           </div>
+          <DialogFooter className="mt-4">
+            <Button onClick={handleMarkAsRead}>
+              <Check className="mr-2 h-4 w-4" />
+              Marcar como Concluído
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -300,11 +320,11 @@ export default function EducationTrackPage() {
         </PageHeader>
 
         <div className="prose prose-sm sm:prose-base max-w-none text-foreground dark:prose-invert prose-headings:text-foreground">
-          <p className="lead !text-lg !text-muted-foreground">{track.content.introduction}</p>
+          <div className="lead !text-lg !text-muted-foreground">{parseMarkdown(track.content.introduction)}</div>
         </div>
 
-        <PsychologyModule content={track.content.psychology} onPointClick={setModalContent} />
-        <PracticalExperiencesModule content={track.content.practicalExperiences} onExperienceClick={setModalContent} />
+        <PsychologyModule content={track.content.psychology} onPointClick={setModalContent} readItems={readItems} />
+        <PracticalExperiencesModule content={track.content.practicalExperiences} onExperienceClick={setModalContent} readItems={readItems} />
         <MicroHabitsModule content={track.content.microHabits} />
         <NarrativeModule content={track.content.narrative} />
         {track.content.tool && <ToolModule content={track.content} />}
