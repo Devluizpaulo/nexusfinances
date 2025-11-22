@@ -476,21 +476,21 @@ export default function DashboardPage() {
             </div>
         </div>
         
-         <Card>
-            <CardHeader className="border-b pb-3">
-                <div className="flex items-center gap-2">
-                <CalendarIcon className="h-5 w-5 text-primary" />
-                <div>
-                    <CardTitle className="text-base">Central de Rotinas</CardTitle>
-                    <CardDescription className="text-xs md:text-sm">
-                    Calendário de pagamentos e prévia do mês.
-                    </CardDescription>
-                </div>
-                </div>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-                <div className="md:col-span-2 flex flex-col items-center">
-                  <Calendar
+         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <Card className="md:col-span-2">
+                 <CardHeader className="border-b pb-3">
+                    <div className="flex items-center gap-2">
+                    <CalendarIcon className="h-5 w-5 text-primary" />
+                    <div>
+                        <CardTitle className="text-base">Calendário Financeiro</CardTitle>
+                        <CardDescription className="text-xs md:text-sm">
+                        Visão geral de rendas, despesas e vencimentos.
+                        </CardDescription>
+                    </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="pt-4 flex justify-center">
+                     <Calendar
                       mode="single"
                       selected={selectedDate}
                       onSelect={(date) => date && setSelectedDate(date)}
@@ -531,47 +531,59 @@ export default function DashboardPage() {
                           router.push(`/debts?dueDate=${dateStr}`);
                       }
                       }}
-                  />
-                  <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground mx-auto mt-2">
-                      <span className="flex items-center gap-1">
-                      <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                      Renda
-                      </span>
-                      <span className="flex items-center gap-1">
-                      <span className="h-2 w-2 rounded-full bg-sky-500" />
-                      Despesa
-                      </span>
-                      <span className="flex items-center gap-1">
-                      <span className="h-2 w-2 rounded-full bg-destructive" />
-                      Vencida
-                      </span>
-                      <span className="flex items-center gap-1">
-                      <span className="h-2 w-2 rounded-full bg-amber-500" />
-                      A vencer
-                      </span>
-                  </div>
-                </div>
-                {hoveredInstallments && (
-                <div className="hidden flex-1 space-y-2 rounded-md bg-muted/60 p-3 text-sm md:block">
-                    <p className="text-xs font-semibold text-muted-foreground">
-                    Vencimentos em{' '}
-                    {format(hoveredInstallments.date, "dd 'de' MMMM", { locale: ptBR })}
-                    </p>
-                    <ul className="space-y-1">
-                    {hoveredInstallments.items.map((item, index) => (
-                        <li key={index} className="flex items-center justify-between gap-2">
-                        <span className="text-muted-foreground">{item.debtName}</span>
-                        <span className="font-medium">
-                            {formatCurrency(item.amount)}
+                    />
+                </CardContent>
+            </Card>
+             <div className="space-y-4">
+                <Card>
+                    <CardHeader className="pb-3">
+                        <CardTitle className="text-sm font-medium">Legenda do Calendário</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-xs text-muted-foreground grid grid-cols-2 gap-2">
+                        <span className="flex items-center gap-1.5">
+                            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                            Renda
                         </span>
-                        </li>
-                    ))}
-                    </ul>
-                </div>
+                        <span className="flex items-center gap-1.5">
+                            <span className="h-2.5 w-2.5 rounded-full bg-sky-500" />
+                            Despesa
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                            <span className="h-2.5 w-2.5 rounded-full bg-destructive" />
+                            Parcela Vencida
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                            <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+                            Parcela a Vencer
+                        </span>
+                    </CardContent>
+                </Card>
+                {hoveredInstallments && (
+                <Card>
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium">
+                            Vencimentos em{' '}
+                            {format(hoveredInstallments.date, "dd 'de' MMMM", { locale: ptBR })}
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <ul className="space-y-2 text-sm">
+                        {hoveredInstallments.items.map((item, index) => (
+                            <li key={index} className="flex items-center justify-between gap-2">
+                                <span className="text-muted-foreground">{item.debtName}</span>
+                                <span className="font-medium">
+                                    {formatCurrency(item.amount)}
+                                </span>
+                            </li>
+                        ))}
+                        </ul>
+                    </CardContent>
+                </Card>
                 )}
-            </CardContent>
-        </Card>
+            </div>
+         </div>
       </div>
     </>
   );
 }
+
