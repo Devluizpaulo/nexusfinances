@@ -121,7 +121,8 @@ service cloud.firestore {
                       && request.resource.data.lastName is string
                       && (request.resource.data.phoneNumber == null || request.resource.data.phoneNumber is string)
                       && (request.resource.data.customIncomeCategories is list || !('customIncomeCategories' in request.resource.data))
-                      && (request.resource.data.customExpenseCategories is list || !('customExpenseCategories' in request.resource.data)))
+                      && (request.resource.data.customExpenseCategories is list || !('customExpenseCategories' in request.resource.data))
+                      && (request.resource.data.completedTracks is list || !('completedTracks' in request.resource.data)))
                       || (isSuperAdmin() && request.resource.data.id == resource.data.id);
       allow delete: if isExistingOwner(userId) || isSuperAdmin();
 
