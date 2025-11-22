@@ -17,6 +17,19 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, updateDocumentNonBlocking } from '@/firebase';
 
+function parseMarkdown(text: string): React.ReactNode {
+  const parts = text.split(/(\*\*.*?\*\*)|(\*.*?\*)/g);
+  return parts.map((part, index) => {
+    if (!part) return null;
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={index}>{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return <em key={index}>{part.slice(1, -1)}</em>;
+    }
+    return part;
+  });
+}
 
 export default function EducationTrackPage() {
   const params = useParams();
@@ -104,9 +117,9 @@ export default function EducationTrackPage() {
           </CardHeader>
           <CardContent className="space-y-3">
               {track.content.psychology.points.map((point, index) => (
-                  <div key={index} className="flex items-center gap-3 text-sm">
-                     <Lightbulb className="h-4 w-4 shrink-0 text-amber-500" />
-                     <span>{point}</span>
+                  <div key={index} className="flex items-start gap-3 text-sm">
+                     <Lightbulb className="h-4 w-4 shrink-0 text-amber-500 mt-1" />
+                     <span>{parseMarkdown(point)}</span>
                   </div>
               ))}
           </CardContent>
@@ -125,7 +138,7 @@ export default function EducationTrackPage() {
                  {track.content.practicalExperiences.experiences.map((exp, index) => (
                      <div key={index} className="p-4 rounded-md bg-muted/50 border">
                         <p className="font-semibold text-sm">{exp.title}</p>
-                        <p className="text-sm text-muted-foreground mt-1">{exp.description}</p>
+                        <p className="text-sm text-muted-foreground mt-1">{parseMarkdown(exp.description)}</p>
                      </div>
                  ))}
             </CardContent>
@@ -146,7 +159,7 @@ export default function EducationTrackPage() {
                          <Checkbox id={`habit-${index}`} className="mt-1" />
                          <div className="grid gap-1.5 leading-none">
                             <Label htmlFor={`habit-${index}`} className="text-sm font-medium">
-                               {habit}
+                               {parseMarkdown(habit)}
                             </Label>
                         </div>
                     </div>
