@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { KpiCard } from '@/components/dashboard/kpi-card';
-import { Banknote, Landmark, CreditCard, Scale, Calendar as CalendarIcon, ArrowUpCircle, ArrowDownCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Banknote, Landmark, CreditCard, Scale, Calendar as CalendarIcon, ArrowUpCircle, ArrowDownCircle, ChevronLeft, ChevronRight, Sparkles, Loader2 as LoaderSpinner } from 'lucide-react';
 import { IncomeExpenseChart } from '@/components/dashboard/income-expense-chart';
 import { ExpenseCategoryChart } from '@/components/dashboard/expense-category-chart';
 import { FinancialHealthScore } from '@/components/dashboard/financial-health-score';
@@ -24,6 +24,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useRouter } from 'next/navigation';
 import { Separator } from '@/components/ui/separator';
 import { useDashboardDate } from '@/context/dashboard-date-context';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { getFinancialInsights, type GetFinancialInsightsInput } from '@/ai/flows/financial-insights-flow';
 
 type InstallmentInfo = {
   debtName: string;
@@ -41,6 +44,9 @@ export default function DashboardPage() {
   const [isExpenseSheetOpen, setIsExpenseSheetOpen] = useState(false);
   const [isDebtSheetOpen, setIsDebtSheetOpen] = useState(false);
   const [isGoalSheetOpen, setIsGoalSheetOpen] = useState(false);
+  
+  const [isInsightsLoading, setIsInsightsLoading] = useState(false);
+  const [insights, setInsights] = useState<{ summary: string; actionPoints: string[] } | null>(null);
 
   const transactionsQuery = useMemoFirebase(() => {
     if (!user) return null;
@@ -137,89 +143,10 @@ export default function DashboardPage() {
 
     return Object.values(byDay).sort((a, b) => a.date.getTime() - b.date.getTime());
   }, [incomeExpenseByDate, installmentsByDate, selectedDate]);
-
-  const upcomingIncomes = useMemo(() => {
-    const today = startOfDay(new Date());
-    const monthStart = startOfMonth(selectedDate);
-    const monthEnd = endOfMonth(selectedDate);
-    const isCurrentMonth =
-      selectedDate.getMonth() === today.getMonth() && selectedDate.getFullYear() === today.getFullYear();
-
-    const items: { date: Date; total: number }[] = [];
-
-    Object.entries(incomeExpenseByDate).forEach(([key, value]) => {
-      const date = new Date(key);
-      if (date < monthStart || date > monthEnd) return;
-      if (isCurrentMonth && isBefore(date, today)) return;
-      if (value.income <= 0) return;
-
-      items.push({ date, total: value.income });
-    });
-
-    items.sort((a, b) => a.date.getTime() - b.date.getTime());
-    return items.slice(0, 4);
-  }, [incomeExpenseByDate, selectedDate]);
-
-  const upcomingExpenses = useMemo(() => {
-    const today = startOfDay(new Date());
-    const monthStart = startOfMonth(selectedDate);
-    const monthEnd = endOfMonth(selectedDate);
-    const isCurrentMonth =
-      selectedDate.getMonth() === today.getMonth() && selectedDate.getFullYear() === today.getFullYear();
-
-    const items: { date: Date; total: number }[] = [];
-
-    Object.entries(incomeExpenseByDate).forEach(([key, value]) => {
-      const date = new Date(key);
-      if (date < monthStart || date > monthEnd) return;
-      if (isCurrentMonth && isBefore(date, today)) return;
-      if (value.expense <= 0) return;
-
-      items.push({ date, total: value.expense });
-    });
-
-    items.sort((a, b) => a.date.getTime() - b.date.getTime());
-    return items.slice(0, 4);
-  }, [incomeExpenseByDate, selectedDate]);
-
-  const { overdueInstallmentCount, upcomingInstallmentsSummary, weekTotal, monthTotal } = useMemo(() => {
-    const today = startOfDay(new Date());
-    const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
-    const monthEnd = endOfMonth(today);
-
-    let overdueCount = 0;
-    const upcoming: { date: Date; totalAmount: number }[] = [];
-    let weekTotalAmount = 0;
-    let monthTotalAmount = 0;
-
-    Object.entries(installmentsByDate).forEach(([key, items]) => {
-      const date = new Date(key);
-      const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
-
-      if (isBefore(date, today)) {
-        overdueCount += items.length;
-      } else {
-        upcoming.push({ date, totalAmount });
-
-        if (!isBefore(date, today) && date <= weekEnd) {
-          weekTotalAmount += totalAmount;
-        }
-
-        if (!isBefore(date, today) && date <= monthEnd) {
-          monthTotalAmount += totalAmount;
-        }
-      }
-    });
-
-    upcoming.sort((a, b) => a.date.getTime() - b.date.getTime());
-
-    return {
-      overdueInstallmentCount: overdueCount,
-      upcomingInstallmentsSummary: upcoming.slice(0, 3),
-      weekTotal: weekTotalAmount,
-      monthTotal: monthTotalAmount,
-    };
-  }, [installmentsByDate]);
+  
+  useEffect(() => {
+    setInsights(null);
+  }, [selectedDate]);
 
   const { incomeData, expenseData } = useMemo(() => {
     const start = startOfMonth(selectedDate);
@@ -309,6 +236,29 @@ export default function DashboardPage() {
 
     fetchInstallmentDueDates();
   }, [debtData, user, firestore]);
+  
+  const handleGenerateInsights = async () => {
+    setIsInsightsLoading(true);
+    setInsights(null);
+
+    const input: GetFinancialInsightsInput = {
+      incomes: incomeData,
+      expenses: expenseData,
+      debts: debtData || [],
+      goals: goalData || [],
+      userName: user?.displayName?.split(' ')[0] || 'Usuário',
+    };
+
+    try {
+        const result = await getFinancialInsights(input);
+        setInsights(result);
+    } catch(e) {
+        console.error("Error generating insights:", e);
+        // Handle error in UI
+    } finally {
+        setIsInsightsLoading(false);
+    }
+  }
 
 
   const formatCurrency = (amount: number) => {
@@ -433,68 +383,57 @@ export default function DashboardPage() {
 
             <Separator className="my-4" />
 
-            <div className="space-y-8">
-              <section className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold tracking-tight">Próximos lançamentos</h2>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Veja o que está para entrar e sair ainda neste mês.
-                </p>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                      <CardTitle className="text-sm font-medium">Receitas a receber</CardTitle>
-                      <ArrowUpCircle className="h-4 w-4 text-emerald-500" />
-                    </CardHeader>
-                    <CardContent>
-                      {upcomingIncomes.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">Nenhuma receita futura este mês.</p>
-                      ) : (
-                        <div className="space-y-2">
-                          {upcomingIncomes.map((item, index) => (
-                            <div key={index} className="flex items-center justify-between text-sm">
-                              <span className="text-muted-foreground">
-                                {format(item.date, 'dd/MM')}
-                              </span>
-                              <span className="font-semibold">{formatCurrency(item.total)}</span>
-                            </div>
-                          ))}
+            <Tabs defaultValue="insights" className="w-full">
+              <TabsList>
+                <TabsTrigger value="insights">Insights do Mês com IA</TabsTrigger>
+                <TabsTrigger value="charts">Gráficos do Mês</TabsTrigger>
+              </TabsList>
+              <TabsContent value="insights">
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <CardTitle className="flex items-center gap-2">
+                            <Sparkles className="h-5 w-5 text-amber-500" />
+                            Análise do seu mês
+                            </CardTitle>
+                            <CardDescription>
+                            Receba um resumo e dicas personalizadas com inteligência artificial.
+                            </CardDescription>
                         </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                      <CardTitle className="text-sm font-medium">Despesas a pagar</CardTitle>
-                      <ArrowDownCircle className="h-4 w-4 text-red-500" />
-                    </CardHeader>
-                    <CardContent>
-                      {upcomingExpenses.length === 0 ? (
-                        <p className="text-sm text-muted-foreground">Nenhuma despesa futura este mês.</p>
-                      ) : (
-                        <div className="space-y-2">
-                          {upcomingExpenses.map((item, index) => (
-                            <div key={index} className="flex items-center justify-between text-sm">
-                              <span className="text-muted-foreground">
-                                {format(item.date, 'dd/MM')}
-                              </span>
-                              <span className="font-semibold">{formatCurrency(item.total)}</span>
-                            </div>
-                          ))}
+                        <Button size="sm" onClick={handleGenerateInsights} disabled={isInsightsLoading}>
+                            {isInsightsLoading && <LoaderSpinner className="mr-2 h-4 w-4 animate-spin" />}
+                            Gerar Análise
+                        </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {isInsightsLoading ? (
+                        <div className="space-y-4">
+                            <Skeleton className="h-4 w-3/4" />
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-5/6" />
                         </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </div>
-              </section>
-
-              <section className="space-y-2">
-                <h2 className="text-lg font-semibold tracking-tight">Análise gráfica</h2>
-                <p className="text-xs text-muted-foreground max-w-md">
-                  Compare receitas e despesas e entenda para onde o dinheiro está indo.
-                </p>
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+                    ) : insights ? (
+                         <div className="prose prose-sm max-w-none text-foreground dark:prose-invert">
+                            <p>{insights.summary}</p>
+                            <h3>Pontos de Ação</h3>
+                            <ul>
+                                {insights.actionPoints.map((point, index) => (
+                                    <li key={index}>{point}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center text-center text-sm text-muted-foreground p-8">
+                            <p>Clique em "Gerar Análise" para obter um resumo inteligente da sua vida financeira neste mês.</p>
+                        </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              <TabsContent value="charts">
+                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
                   <div className="lg:col-span-3">
                     <IncomeExpenseChart transactions={allTransactions} />
                   </div>
@@ -502,8 +441,8 @@ export default function DashboardPage() {
                     <ExpenseCategoryChart transactions={expenseData || []} />
                   </div>
                 </div>
-              </section>
-            </div>
+              </TabsContent>
+            </Tabs>
           </div>
 
           <aside className="space-y-6 lg:sticky lg:top-20">
@@ -660,4 +599,3 @@ export default function DashboardPage() {
     </>
   );
 }
-
