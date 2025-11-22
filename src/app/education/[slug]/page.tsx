@@ -202,7 +202,7 @@ const FinalQuizModule = ({ track, user }: { track: EducationTrack, user: any }) 
         toast({
           title: "Trilha Concluída!",
           description: `Parabéns! Você concluiu a trilha "${track.title}".`,
-          className: "bg-emerald-100 border-emerald-300 text-emerald-800"
+          className: "bg-emerald-100 border-emerald-300 text-emerald-800 dark:bg-emerald-800/50 dark:border-emerald-700 dark:text-emerald-200"
         });
       } catch (error) {
         console.error("Error updating user progress:", error);
@@ -290,7 +290,7 @@ export default function EducationTrackPage() {
   return (
     <>
       <Dialog open={!!modalContent} onOpenChange={() => setModalContent(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <div className="flex items-start gap-4 mb-4">
                 <div className={cn("flex h-12 w-12 shrink-0 items-center justify-center rounded-lg", track.bgColor)}>
