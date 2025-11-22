@@ -6,77 +6,50 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { BookOpen, Check, Trophy, Loader2 } from 'lucide-react';
-import { educationTracks, calculateScore } from '@/lib/education-data';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query } from 'firebase/firestore';
-import type { Transaction, Debt, Goal } from '@/lib/types';
+import { educationTracks } from '@/lib/education-data';
+import { useUser } from '@/firebase';
 import { useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EducationTrackCard } from '@/components/education/EducationTrackCard';
 import { Badge } from '@/components/ui/badge';
 
-const healthLevels = [
+const journeyLevels = [
   { level: 'Iniciante', color: 'bg-red-500' },
-  { level: 'Razoável', color: 'bg-orange-500' },
-  { level: 'Estável', color: 'bg-yellow-500' },
-  { level: 'Forte', color: 'bg-sky-500' },
-  { level: 'Saudável', color: 'bg-emerald-500' },
+  { level: 'Curioso(a)', color: 'bg-orange-500' },
+  { level: 'Estudioso(a)', color: 'bg-yellow-500' },
+  { level: 'Entendido(a)', color: 'bg-sky-500' },
+  { level: 'Expert', color: 'bg-emerald-500' },
 ];
 
 export default function EducationPage() {
-  const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
-  
-  const incomesQuery = useMemoFirebase(() => {
-    if (!user) return null;
-    return query(collection(firestore, `users/${user.uid}/incomes`));
-  }, [firestore, user]);
-
-  const expensesQuery = useMemoFirebase(() => {
-    if (!user) return null;
-    return query(collection(firestore, `users/${user.uid}/expenses`));
-  }, [firestore, user]);
-
-  const debtsQuery = useMemoFirebase(() => {
-    if (!user) return null;
-    return query(collection(firestore, `users/${user.uid}/debts`));
-  }, [firestore, user]);
-
-  const goalsQuery = useMemoFirebase(() => {
-    if (!user) return null;
-    return query(collection(firestore, `users/${user.uid}/goals`));
-  }, [firestore, user]);
-
-  const { data: allIncomeData, isLoading: isIncomeLoading } = useCollection<Transaction>(incomesQuery);
-  const { data: allExpenseData, isLoading: isExpensesLoading } = useCollection<Transaction>(expensesQuery);
-  const { data: debtData, isLoading: isDebtsLoading } = useCollection<Debt>(debtsQuery);
-  const { data: goalData, isLoading: isGoalsLoading } = useCollection<Goal>(goalsQuery);
-
-  const { totalIncome, totalExpenses } = useMemo(() => {
-    const totalIncome = allIncomeData?.reduce((sum, t) => sum + t.amount, 0) || 0;
-    const totalExpenses = allExpenseData?.reduce((sum, t) => sum + t.amount, 0) || 0;
-    return { totalIncome, totalExpenses };
-  }, [allIncomeData, allExpenseData]);
-
-  const { score } = useMemo(() => {
-    if(!allExpenseData || !allIncomeData || !debtData || !goalData) return { score: 0, missions: [] };
-     return calculateScore(totalIncome, totalExpenses, debtData, goalData, allExpenseData);
-  }, [totalIncome, totalExpenses, debtData, goalData, allExpenseData]);
-
-  const currentLevelIndex = useMemo(() => {
-    if (score <= 20) return 0;
-    if (score <= 40) return 1;
-    if (score <= 60) return 2;
-    if (score <= 80) return 3;
-    return 4;
-  }, [score]);
   
   const completedTracks = useMemo(() => new Set(user?.completedTracks || []), [user?.completedTracks]);
   
   const upcomingTracks = useMemo(() => educationTracks.filter(track => !completedTracks.has(track.slug)), [completedTracks]);
   const finishedTracks = useMemo(() => educationTracks.filter(track => completedTracks.has(track.slug)), [completedTracks]);
   
-  const isLoading = isUserLoading || isIncomeLoading || isExpensesLoading || isDebtsLoading || isGoalsLoading;
+  const { currentLevelIndex, progressPercentage } = useMemo(() => {
+    const totalTracks = educationTracks.length;
+    const completedCount = completedTracks.size;
+
+    if (totalTracks === 0) {
+      return { currentLevelIndex: 0, progressPercentage: 0 };
+    }
+
+    const progress = (completedCount / totalTracks) * 100;
+    
+    // Define levels based on percentage of tracks completed
+    if (progress <= 20) return { currentLevelIndex: 0, progressPercentage: progress }; // Iniciante (0-1)
+    if (progress <= 40) return { currentLevelIndex: 1, progressPercentage: progress }; // Curioso (2)
+    if (progress <= 60) return { currentLevelIndex: 2, progressPercentage: progress }; // Estudioso (3)
+    if (progress < 100) return { currentLevelIndex: 3, progressPercentage: progress }; // Entendido (4)
+    return { currentLevelIndex: 4, progressPercentage: 100 }; // Expert (5-6)
+
+  }, [completedTracks]);
+
+
+  const isLoading = isUserLoading;
   
   if (isLoading) {
     return (
@@ -107,21 +80,21 @@ export default function EducationPage() {
             <div>
               <CardTitle>Sua Jornada de Evolução</CardTitle>
               <CardDescription>
-                A saúde financeira é um caminho. Veja seu progresso e o que falta para o próximo nível.
+                Aprender é o caminho. Veja seu progresso e o que falta para o próximo nível.
               </CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-muted-foreground">Seu nível atual</span>
-            <Badge variant="secondary" className={cn('font-semibold', healthLevels[currentLevelIndex].color, 'text-white')}>
-              {healthLevels[currentLevelIndex].level}
+            <span className="text-sm font-medium text-muted-foreground">Seu nível de conhecimento</span>
+            <Badge variant="secondary" className={cn('font-semibold', journeyLevels[currentLevelIndex].color, 'text-white')}>
+              {journeyLevels[currentLevelIndex].level}
             </Badge>
           </div>
-          <Progress value={(currentLevelIndex + 1) * 20} className="mt-3 h-3" />
+          <Progress value={progressPercentage} className="mt-3 h-3" />
           <div className="mt-2 grid grid-cols-5 gap-1 text-center text-xs text-muted-foreground">
-            {healthLevels.map((item, index) => (
+            {journeyLevels.map((item, index) => (
               <div key={item.level} className={cn(index <= currentLevelIndex ? 'font-semibold text-primary' : '')}>
                 {item.level}
               </div>
