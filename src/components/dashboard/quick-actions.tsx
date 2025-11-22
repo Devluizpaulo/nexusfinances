@@ -1,9 +1,8 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Landmark, CreditCard, Banknote, Target } from "lucide-react";
+import { Landmark, CreditCard, Banknote, Target } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 
 type QuickActionsProps = {
     onAddIncome: () => void;
@@ -29,7 +28,11 @@ export function QuickActions({
                     <Landmark className="mr-2 h-4 w-4" />
                     Adicionar Renda
                 </Button>
-                <Button variant="outline" onClick={onAddExpense}>
+                <Button 
+                    variant="outline" 
+                    onClick={onAddExpense}
+                    className="hover:border-primary/20 transition-colors"
+                >
                     <CreditCard className="mr-2 h-4 w-4" />
                     Adicionar Despesa
                 </Button>
@@ -41,7 +44,11 @@ export function QuickActions({
                     <Banknote className="mr-2 h-4 w-4" />
                     Adicionar Dívida
                 </Button>
-                 <Button variant="outline" onClick={onAddGoal}>
+                 <Button 
+                    variant="outline" 
+                    onClick={onAddGoal}
+                    className="hover:border-primary/20 transition-colors"
+                 >
                     <Target className="mr-2 h-4 w-4" />
                     Adicionar Meta
                 </Button>
