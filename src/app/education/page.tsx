@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -23,19 +24,17 @@ export default function EducationPage() {
   
   const { currentLevelIndex, progressPercentage } = useMemo(() => {
     const totalTracks = educationTracks.length;
-    const completedCount = completedTracks.size;
-
     if (totalTracks === 0) {
-      return { currentLevelIndex: 0, progressPercentage: 0 };
+        return { currentLevelIndex: 0, progressPercentage: 0 };
     }
-
+    const completedCount = completedTracks.size;
     const progress = (completedCount / totalTracks) * 100;
     
-    // Define levels based on percentage of tracks completed
-    if (progress <= 20) return { currentLevelIndex: 0, progressPercentage: progress }; // Iniciante
-    if (progress <= 40) return { currentLevelIndex: 1, progressPercentage: progress }; // Curioso
-    if (progress <= 60) return { currentLevelIndex: 2, progressPercentage: progress }; // Estudioso
-    if (progress < 100) return { currentLevelIndex: 3, progressPercentage: progress }; // Entendido
+    // Logic to determine level based on percentage of completed tracks
+    if (progress <= 20) return { currentLevelIndex: 0, progressPercentage: progress }; // Beginner
+    if (progress <= 40) return { currentLevelIndex: 1, progressPercentage: progress }; // Curious
+    if (progress <= 60) return { currentLevelIndex: 2, progressPercentage: progress }; // Studious
+    if (progress < 100) return { currentLevelIndex: 3, progressPercentage: progress }; // Knowledgeable
     return { currentLevelIndex: 4, progressPercentage: 100 }; // Expert
 
   }, [completedTracks]);
@@ -126,7 +125,7 @@ export default function EducationPage() {
                   <Check className="h-6 w-6 text-emerald-600" />
               </div>
               <div>
-                  <h2 className="text-xl font-semibold tracking-tight">Conquistas</h2>
+                  <h2 className="text-xl font-semibold tracking-tight">Minhas Conquistas</h2>
                   <p className="text-sm text-muted-foreground">
                   Parabéns! Você já concluiu estas trilhas e ganhou conhecimento.
                   </p>
