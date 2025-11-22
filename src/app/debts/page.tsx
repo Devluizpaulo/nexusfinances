@@ -9,11 +9,14 @@ import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebas
 import type { Debt } from '@/lib/types';
 import { DebtCard } from '@/components/debts/debt-card';
 import { AddDebtSheet } from '@/components/debts/add-debt-sheet';
+import { useSearchParams } from 'next/navigation';
 
 export default function DebtsPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
+  const searchParams = useSearchParams();
+  const selectedDueDate = searchParams.get('dueDate');
 
   const debtsQuery = useMemoFirebase(() => {
     if (!user) return null;
@@ -43,7 +46,7 @@ export default function DebtsPage() {
       </PageHeader>
       <div className="grid gap-6 md:grid-cols-2">
         {(debtData || []).map((debt) => (
-          <DebtCard key={debt.id} debt={debt} />
+          <DebtCard key={debt.id} debt={debt} selectedDueDate={selectedDueDate || undefined} />
         ))}
       </div>
        {(!debtData || debtData.length === 0) && !isLoading && (

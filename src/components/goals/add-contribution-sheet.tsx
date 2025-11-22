@@ -70,10 +70,20 @@ export function AddContributionSheet({ isOpen, onClose, goal }: AddContributionS
 
     try {
       const goalRef = doc(firestore, `users/${user.uid}/goals`, goal.id);
-      
-      const newCurrentAmount = goal.currentAmount + values.amount;
 
-      updateDocumentNonBlocking(goalRef, { currentAmount: newCurrentAmount });
+      const newCurrentAmount = goal.currentAmount + values.amount;
+      const existingContributions = (goal as any).contributions || [];
+      const newContribution = {
+        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        amount: values.amount,
+        date: new Date().toISOString(),
+      };
+
+      // Atualiza o valor acumulado e o histórico embutido da meta
+      updateDocumentNonBlocking(goalRef, {
+        currentAmount: newCurrentAmount,
+        contributions: [newContribution, ...existingContributions],
+      });
 
       toast({
         title: 'Aporte adicionado!',

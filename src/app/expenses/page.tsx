@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { useCollection, useFirestore, useUser, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
 import { DataTable } from '@/components/data-table/data-table';
@@ -11,6 +11,7 @@ import { PlusCircle, Loader2 } from 'lucide-react';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { expenseCategories, type Transaction } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 export default function ExpensesPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -19,6 +20,8 @@ export default function ExpensesPage() {
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
   const { toast } = useToast();
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   const expensesQuery = useMemoFirebase(() => {
     if (!user) return null;
@@ -29,6 +32,13 @@ export default function ExpensesPage() {
   }, [firestore, user]);
 
   const { data: expenseData, isLoading: isExpensesLoading } = useCollection<Transaction>(expensesQuery);
+
+  const filteredExpenseData = useMemo(() => {
+    const dateFilter = searchParams.get('date');
+    if (!dateFilter || !expenseData) return expenseData || [];
+
+    return expenseData.filter((t) => t.date === dateFilter);
+  }, [expenseData, searchParams]);
 
   const handleOpenSheet = (transaction: Transaction | null = null) => {
     setEditingTransaction(transaction);
@@ -78,7 +88,25 @@ export default function ExpensesPage() {
           Adicionar Despesa
         </Button>
       </PageHeader>
-      <DataTable columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })} data={expenseData || []} />
+      {searchParams.get('date') && (
+        <div className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+          <span>
+            Filtrando despesas do dia{' '}
+            <span className="font-medium">{searchParams.get('date')}</span>.
+          </span>{' '}
+          <button
+            type="button"
+            onClick={() => router.push('/expenses')}
+            className="ml-2 font-semibold text-amber-900 underline-offset-2 hover:underline"
+          >
+            Limpar filtro
+          </button>
+        </div>
+      )}
+      <DataTable
+        columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
+        data={filteredExpenseData}
+      />
     </>
   );
 }

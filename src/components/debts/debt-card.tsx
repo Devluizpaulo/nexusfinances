@@ -54,9 +54,10 @@ const formatCurrency = (amount: number) => {
 
 interface DebtCardProps {
   debt: Debt;
+  selectedDueDate?: string;
 }
 
-export function DebtCard({ debt }: DebtCardProps) {
+export function DebtCard({ debt, selectedDueDate }: DebtCardProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const firestore = useFirestore();
   const { user } = useUser();
@@ -226,8 +227,12 @@ export function DebtCard({ debt }: DebtCardProps) {
                     <TableBody>
                       {(installmentsData || []).map((installment) => {
                         const status = getInstallmentStatus(installment);
+                        const isSelectedDate = selectedDueDate && installment.dueDate === selectedDueDate;
                         return (
-                          <TableRow key={installment.id}>
+                          <TableRow
+                            key={installment.id}
+                            className={cn({ 'bg-amber-50': isSelectedDate })}
+                          >
                             <TableCell>{installment.installmentNumber}</TableCell>
                             <TableCell>
                               {format(parseISO(installment.dueDate), 'PPP', { locale: ptBR })}
@@ -236,11 +241,14 @@ export function DebtCard({ debt }: DebtCardProps) {
                             <TableCell>
                               <Badge
                                 variant={status.variant === 'paid' ? 'secondary' : 'default'}
-                                className={cn({
-                                  'bg-green-100 text-green-800': status.variant === 'paid',
-                                  'bg-yellow-100 text-yellow-800': status.variant === 'unpaid',
-                                  'bg-red-100 text-red-800 font-semibold': status.variant === 'overdue',
-                                })}
+                                className={cn(
+                                  {
+                                    'bg-green-100 text-green-800': status.variant === 'paid',
+                                    'bg-yellow-100 text-yellow-800': status.variant === 'unpaid',
+                                    'bg-red-100 text-red-800 font-semibold': status.variant === 'overdue',
+                                  },
+                                  isSelectedDate && 'ring-1 ring-amber-500 ring-offset-1',
+                                )}
                               >
                                 {status.text}
                               </Badge>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useForm } from 'react-hook-form';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { collection } from 'firebase/firestore';
@@ -42,18 +43,27 @@ import {
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
-import { format, formatISO } from 'date-fns';
+import { addMonths, format, formatISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Textarea } from '../ui/textarea';
 
-const formSchema = z.object({
-  name: z.string().min(1, 'O nome é obrigatório.'),
-  category: z.string().min(1, 'A categoria é obrigatória.'),
-  targetAmount: z.coerce.number().positive('O valor alvo deve ser positivo.'),
-  currentAmount: z.coerce.number().min(0, 'O valor atual não pode ser negativo.').default(0),
-  targetDate: z.date().optional(),
-  description: z.string().optional(),
-});
+const formSchema = z
+  .object({
+    name: z.string().min(1, 'O nome é obrigatório.'),
+    category: z.string().min(1, 'A categoria é obrigatória.'),
+    targetAmount: z.coerce.number().positive('O valor alvo deve ser positivo.'),
+    currentAmount: z.coerce.number().min(0, 'O valor inicial não pode ser negativo.').default(0),
+    monthlyContribution: z.coerce.number().min(0, 'O aporte mensal não pode ser negativo.').default(0),
+    targetDate: z.date().optional(),
+    description: z.string().optional(),
+  })
+  .refine(
+    (values) => values.currentAmount <= values.targetAmount,
+    {
+      path: ['currentAmount'],
+      message: 'O valor inicial não pode ser maior que o valor alvo.',
+    },
+  );
 
 type GoalFormValues = z.infer<typeof formSchema>;
 
@@ -65,11 +75,13 @@ type AddGoalSheetProps = {
 export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
   const form = useForm<GoalFormValues>({
     resolver: zodResolver(formSchema),
+    mode: 'onChange',
     defaultValues: {
       name: '',
       category: '',
       targetAmount: 0,
       currentAmount: 0,
+      monthlyContribution: 0,
       description: '',
     },
   });
@@ -77,6 +89,14 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
+
+  const targetAmount = form.watch('targetAmount');
+  const currentAmount = form.watch('currentAmount');
+  const monthlyContribution = form.watch('monthlyContribution');
+
+  const remainingAmount = Math.max(targetAmount - currentAmount, 0);
+  const estimatedMonths = monthlyContribution > 0 ? Math.ceil(remainingAmount / monthlyContribution) : null;
+  const estimatedDate = estimatedMonths && estimatedMonths > 0 ? addMonths(new Date(), estimatedMonths) : null;
 
   const onSubmit = async (values: GoalFormValues) => {
     if (!user || !firestore) {
@@ -90,18 +110,34 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
 
     try {
       const goalsColRef = collection(firestore, `users/${user.uid}/goals`);
-      
+
+      const hasInitialAmount = values.currentAmount > 0;
+      const initialContribution = hasInitialAmount
+        ? [{
+            id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+            amount: values.currentAmount,
+            date: new Date().toISOString(),
+          }]
+        : [];
+
       const goalData = {
         ...values,
         targetDate: values.targetDate ? formatISO(values.targetDate) : undefined,
         userId: user.uid,
+        contributions: initialContribution,
+        monthlyContribution: values.monthlyContribution || 0,
       };
 
       addDocumentNonBlocking(goalsColRef, goalData);
 
+      const progress = values.targetAmount > 0 ? (values.currentAmount / values.targetAmount) * 100 : 0;
+
       toast({
-        title: 'Item adicionado!',
-        description: `"${values.name}" foi adicionado com sucesso.`,
+        title: ' Objetivo criado com sucesso!',
+        description: `"${values.name}" foi adicionado. Você já está em ${Math.min(
+          100,
+          Math.max(0, Math.round(progress)),
+        )}% do caminho.`,
       });
 
       form.reset();
@@ -137,6 +173,10 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
                   <FormControl>
                     <Input placeholder="Ex: Viagem para o Japão" {...field} />
                   </FormControl>
+                  <FormDescription className="text-[11px]">
+                    Ex.: Emergência financeira, Comprar um carro, Viagem para o Japão, Aposentadoria, Reserva de
+                    oportunidade.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -148,18 +188,33 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Categoria</FormLabel>
-                   <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
+
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione uma categoria" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {goalCategories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
+                      {goalCategories.map((category) => {
+                        const iconMap: Record<string, string> = {
+                          'Reserva de Emergência': '🆘',
+                          Viagem: '✈️',
+                          Carro: '🚗',
+                          Casa: '🏠',
+                          Eletrônicos: '💻',
+                          Educação: '🎓',
+                          Aposentadoria: '💼',
+                          Outros: '✨',
+                        };
+                        const icon = iconMap[category] || '🎯';
+                        return (
+                          <SelectItem key={category} value={category}>
+                            <span className="mr-2 inline-block w-4 text-center">{icon}</span>
+                            {category}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -167,60 +222,90 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
               )}
             />
 
-             <FormField
+            <FormField
               control={form.control}
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Plano/Descrição (Opcional)</FormLabel>
+                  <FormLabel>Por que este objetivo é importante para você? (Opcional)</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Descreva sua estratégia para alcançar este objetivo..." {...field} />
+                    <Textarea
+                      placeholder="Ex.: Quero ter uma reserva para emergências e não depender de crédito quando algo inesperado acontecer."
+                      {...field}
+                    />
                   </FormControl>
+                  <FormDescription className="text-[11px]">
+                    Registrar o motivo aumenta o compromisso e ajuda você a manter o foco no longo prazo.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <FormField
+              <FormField
                 control={form.control}
                 name="targetAmount"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Valor Alvo (R$)</FormLabel>
                     <FormControl>
-                      <CurrencyInput
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      />
+                      <CurrencyInput value={field.value} onValueChange={field.onChange} />
                     </FormControl>
+                    <FormDescription className="text-[11px]">
+                      Quanto você deseja acumular no total para esta reserva/investimento.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-               <FormField
+
+              <FormField
                 control={form.control}
                 name="currentAmount"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Valor Inicial (R$)</FormLabel>
                     <FormControl>
-                      <CurrencyInput
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      />
+                      <CurrencyInput value={field.value} onValueChange={field.onChange} />
                     </FormControl>
+                    <FormDescription className="text-[11px]">
+                      O valor que você já tem disponível para esta reserva/investimento.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
-             <FormField
+
+            <FormField
+              control={form.control}
+              name="monthlyContribution"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Aporte mensal planejado (R$) (Opcional)</FormLabel>
+                  <FormControl>
+                    <CurrencyInput
+                      value={Number(field.value) || 0}
+                      onValueChange={(val) => field.onChange(val ?? 0)}
+                    />
+                  </FormControl>
+                  <FormDescription className="text-[11px]">
+                    Quanto você pretende investir por mês neste objetivo. Usamos esse valor para estimar uma possível
+                    data de conclusão.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
               control={form.control}
               name="targetDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Data Alvo (Opcional)</FormLabel>
+                  <FormLabel>Quando você planeja alcançar este objetivo? (Data Alvo opcional)</FormLabel>
+
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -228,7 +313,7 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
                           variant={'outline'}
                           className={cn(
                             'w-full pl-3 text-left font-normal',
-                            !field.value && 'text-muted-foreground'
+                            !field.value && 'text-muted-foreground',
                           )}
                         >
                           {field.value ? (
@@ -250,25 +335,35 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
                       />
                     </PopoverContent>
                   </Popover>
-                  <FormDescription>
-                    Quando você planeja alcançar este objetivo?
+                  <FormDescription className="text-[11px] space-y-0.5">
+                    {estimatedDate && (
+                      <span className="block text-[11px] text-emerald-700">
+                        Com o aporte mensal informado, você pode alcançar este objetivo em torno de{' '}
+                        <span className="font-semibold">
+                          {format(estimatedDate, 'MM/yyyy', { locale: ptBR })}
+                        </span>
+                        .
+                      </span>
+                    )}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <DialogFooter>
-                <Button
+              <Button
                 type="submit"
-                disabled={form.formState.isSubmitting || !user}
+                disabled={form.formState.isSubmitting || !user || !form.formState.isValid}
                 className="w-full"
-                >
+              >
                 {form.formState.isSubmitting && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
                 Salvar Objetivo
-                </Button>
+              </Button>
             </DialogFooter>
+
           </form>
         </Form>
       </DialogContent>

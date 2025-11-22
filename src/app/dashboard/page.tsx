@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { KpiCard } from '@/components/dashboard/kpi-card';
-import { Banknote, Landmark, CreditCard, Scale, Calendar as CalendarIcon } from 'lucide-react';
+import { Banknote, Landmark, CreditCard, Scale, Calendar as CalendarIcon, AlertTriangle } from 'lucide-react';
 import { IncomeExpenseChart } from '@/components/dashboard/income-expense-chart';
 import { ExpenseCategoryChart } from '@/components/dashboard/expense-category-chart';
 import { FinancialHealthScore } from '@/components/dashboard/financial-health-score';
@@ -12,7 +12,7 @@ import type { Transaction, Debt, Goal, Installment } from '@/lib/types';
 import { useManageRecurrences } from '@/hooks/useManageRecurrences';
 import { OverdueDebtsCard } from '@/components/dashboard/overdue-debts-card';
 import { Calendar } from '@/components/ui/calendar';
-import { startOfMonth, endOfMonth, parseISO, format, startOfDay, isBefore } from 'date-fns';
+import { startOfMonth, endOfMonth, parseISO, format, startOfDay, isBefore, endOfWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { QuickActions } from '@/components/dashboard/quick-actions';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
@@ -107,6 +107,89 @@ export default function DashboardPage() {
         .map(([key]) => new Date(key)),
     [incomeExpenseByDate],
   );
+  
+  const upcomingIncomes = useMemo(() => {
+    const today = startOfDay(new Date());
+    const monthStart = startOfMonth(selectedDate);
+    const monthEnd = endOfMonth(selectedDate);
+    const isCurrentMonth =
+      selectedDate.getMonth() === today.getMonth() && selectedDate.getFullYear() === today.getFullYear();
+
+    const items: { date: Date; total: number }[] = [];
+
+    Object.entries(incomeExpenseByDate).forEach(([key, value]) => {
+      const date = new Date(key);
+      if (date < monthStart || date > monthEnd) return;
+      if (isCurrentMonth && isBefore(date, today)) return;
+      if (value.income <= 0) return;
+
+      items.push({ date, total: value.income });
+    });
+
+    items.sort((a, b) => a.date.getTime() - b.date.getTime());
+    return items.slice(0, 4);
+  }, [incomeExpenseByDate, selectedDate]);
+
+  const upcomingExpenses = useMemo(() => {
+    const today = startOfDay(new Date());
+    const monthStart = startOfMonth(selectedDate);
+    const monthEnd = endOfMonth(selectedDate);
+    const isCurrentMonth =
+      selectedDate.getMonth() === today.getMonth() && selectedDate.getFullYear() === today.getFullYear();
+
+    const items: { date: Date; total: number }[] = [];
+
+    Object.entries(incomeExpenseByDate).forEach(([key, value]) => {
+      const date = new Date(key);
+      if (date < monthStart || date > monthEnd) return;
+      if (isCurrentMonth && isBefore(date, today)) return;
+      if (value.expense <= 0) return;
+
+      items.push({ date, total: value.expense });
+    });
+
+    items.sort((a, b) => a.date.getTime() - b.date.getTime());
+    return items.slice(0, 4);
+  }, [incomeExpenseByDate, selectedDate]);
+
+  const { overdueInstallmentCount, upcomingInstallmentsSummary, weekTotal, monthTotal } = useMemo(() => {
+    const today = startOfDay(new Date());
+    const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
+    const monthEnd = endOfMonth(today);
+
+    let overdueCount = 0;
+    const upcoming: { date: Date; totalAmount: number }[] = [];
+    let weekTotalAmount = 0;
+    let monthTotalAmount = 0;
+
+    Object.entries(installmentsByDate).forEach(([key, items]) => {
+      const date = new Date(key);
+      const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
+
+      if (isBefore(date, today)) {
+        overdueCount += items.length;
+      } else {
+        upcoming.push({ date, totalAmount });
+
+        if (!isBefore(date, today) && date <= weekEnd) {
+          weekTotalAmount += totalAmount;
+        }
+
+        if (!isBefore(date, today) && date <= monthEnd) {
+          monthTotalAmount += totalAmount;
+        }
+      }
+    });
+
+    upcoming.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+    return {
+      overdueInstallmentCount: overdueCount,
+      upcomingInstallmentsSummary: upcoming.slice(0, 3),
+      weekTotal: weekTotalAmount,
+      monthTotal: monthTotalAmount,
+    };
+  }, [installmentsByDate]);
   
   const { incomeData, expenseData } = useMemo(() => {
     const start = startOfMonth(selectedDate);
@@ -302,7 +385,7 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="flex flex-col gap-6 py-4 md:flex-row md:items-start md:justify-between">
-            <div className="flex flex-1 justify-center md:justify-start">
+            <div className="flex flex-1 flex-col items-center gap-3 md:items-start">
               <Calendar
                 mode="single"
                 selected={selectedDate}
@@ -345,6 +428,24 @@ export default function DashboardPage() {
                   }
                 }}
               />
+              <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                  Renda
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full bg-sky-500" />
+                  Despesa
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full bg-destructive" />
+                  Parcela vencida
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full bg-amber-500" />
+                  Parcela a vencer
+                </span>
+              </div>
             </div>
 
             {hoveredInstallments && (
@@ -369,32 +470,125 @@ export default function DashboardPage() {
               </div>
             )}
 
-            <div className="flex-1 space-y-3 md:border-l md:pl-6">
-              <h3 className="text-sm font-semibold text-destructive">Pendências críticas</h3>
-              {totalDebt > 0 ? (
-                <ul className="space-y-2 text-sm">
-                  <li className="flex items-center justify-between gap-2">
-                    <span className="text-muted-foreground">
-                      Você possui dívidas em aberto que impactam seu saldo.
-                    </span>
-                    <Link
-                      href="/debts"
-                      className="whitespace-nowrap text-xs font-medium text-primary hover:underline"
-                    >
-                      Ver pendências
-                    </Link>
-                  </li>
-                </ul>
-              ) : (
-                <p className="text-sm text-emerald-600">Nenhuma pendência crítica no momento.</p>
-              )}
+            <div className="flex-1 space-y-4 md:border-l md:pl-6">
+              <div className="space-y-1">
+                <h3 className="text-sm font-semibold">Prévia do mês</h3>
+                <p className="text-xs text-muted-foreground">
+                  Veja um resumo dos principais recebimentos, despesas e parcelas previstas para este mês.
+                </p>
+              </div>
 
-              <Link
-                href="/reports"
-                className="text-xs font-medium text-primary hover:underline"
-              >
-                Ir para a central de relatórios →
-              </Link>
+              <div className="space-y-3 overflow-y-auto pr-1 text-xs max-h-64">
+                <div>
+                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+                    Próximos recebimentos
+                  </p>
+                  {upcomingIncomes.length > 0 ? (
+                    <ul className="space-y-1">
+                      {upcomingIncomes.map((item, index) => {
+                        const dateParam = format(item.date, 'yyyy-MM-dd');
+                        return (
+                          <li key={index} className="flex items-center justify-between gap-2">
+                            <Link
+                              href={`/income?date=${dateParam}`}
+                              className="flex w-full items-center justify-between gap-2 hover:text-primary"
+                            >
+                              <span>{format(item.date, 'dd/MM')}</span>
+                              <span className="font-medium text-emerald-700">{formatCurrency(item.total)}</span>
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : (
+                    <p className="text-[11px] text-muted-foreground">Nenhum recebimento previsto para os próximos dias.</p>
+                  )}
+                </div>
+
+                <div>
+                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-sky-700">
+                    Próximas despesas
+                  </p>
+                  {upcomingExpenses.length > 0 ? (
+                    <ul className="space-y-1">
+                      {upcomingExpenses.map((item, index) => {
+                        const dateParam = format(item.date, 'yyyy-MM-dd');
+                        return (
+                          <li key={index} className="flex items-center justify-between gap-2">
+                            <Link
+                              href={`/expenses?date=${dateParam}`}
+                              className="flex w-full items-center justify-between gap-2 hover:text-primary"
+                            >
+                              <span>{format(item.date, 'dd/MM')}</span>
+                              <span className="font-medium text-sky-700">{formatCurrency(item.total)}</span>
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : (
+                    <p className="text-[11px] text-muted-foreground">Nenhuma despesa prevista para os próximos dias.</p>
+                  )}
+                </div>
+
+                <div>
+                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-destructive">
+                    Próximas parcelas de dívidas
+                  </p>
+                  {upcomingInstallmentsSummary.length > 0 ? (
+                    <ul className="space-y-1">
+                      {upcomingInstallmentsSummary.map((item, index) => {
+                        const dateParam = format(item.date, 'yyyy-MM-dd');
+                        return (
+                          <li key={index} className="flex items-center justify-between gap-2">
+                            <Link
+                              href={`/debts?dueDate=${dateParam}`}
+                              className="flex w-full items-center justify-between gap-2 hover:text-primary"
+                            >
+                              <span>{format(item.date, 'dd/MM')}</span>
+                              <span className="font-medium">{formatCurrency(item.totalAmount)}</span>
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : (
+                    <p className="text-[11px] text-muted-foreground">Nenhuma parcela de dívida prevista para os próximos dias.</p>
+                  )}
+                </div>
+
+                {(weekTotal > 0 || monthTotal > 0) && (
+                  <div className="mt-1 rounded-md bg-amber-50 px-3 py-2 text-[11px] text-amber-900">
+                    <div className="mb-1 flex items-center gap-1 font-medium uppercase tracking-wide">
+                      <AlertTriangle className="h-3 w-3" />
+                      Radar de pagamentos
+                    </div>
+                    <div className="space-y-0.5">
+                      {weekTotal > 0 && (
+                        <p>
+                          Total a pagar <span className="font-medium">esta semana</span>:{' '}
+                          <span className="font-semibold text-foreground">{formatCurrency(weekTotal)}</span>
+                        </p>
+                      )}
+                      {monthTotal > 0 && (
+                        <p>
+                          Total a pagar <span className="font-medium">até o fim do mês</span>:{' '}
+                          <span className="font-semibold text-foreground">{formatCurrency(monthTotal)}</span>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap gap-2 text-[11px]">
+                  <Link href="/debts" className="font-medium text-primary hover:underline">
+                    Ver todas as dívidas
+                  </Link>
+                  <Link href="/reports" className="font-medium text-primary hover:underline">
+                    Ver relatórios detalhados
+                  </Link>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>

@@ -39,6 +39,12 @@ export type Goal = {
   currentAmount: number;
   targetDate?: string; // ISO string, optional
   userId?: string;
+  contributions?: {
+    id: string;
+    amount: number;
+    date: string; // ISO string
+  }[];
+  monthlyContribution?: number;
 };
 
 export type Log = {
