@@ -14,7 +14,8 @@ import { AddContributionSheet } from '@/components/goals/add-contribution-sheet'
 export default function GoalsPage() {
   const [isAddGoalSheetOpen, setIsAddGoalSheetOpen] = useState(false);
   const [isAddContributionSheetOpen, setIsAddContributionSheetOpen] = useState(false);
-  const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
+  const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
+  const [selectedGoalForContribution, setSelectedGoalForContribution] = useState<Goal | null>(null);
 
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
@@ -27,9 +28,19 @@ export default function GoalsPage() {
   const { data: goalData, isLoading: isGoalsLoading } = useCollection<Goal>(goalsQuery);
   
   const handleOpenContributionSheet = (goal: Goal) => {
-    setSelectedGoal(goal);
+    setSelectedGoalForContribution(goal);
     setIsAddContributionSheetOpen(true);
   };
+  
+  const handleOpenEditSheet = (goal: Goal) => {
+    setEditingGoal(goal);
+    setIsAddGoalSheetOpen(true);
+  }
+
+  const handleCloseGoalSheet = () => {
+    setIsAddGoalSheetOpen(false);
+    setEditingGoal(null);
+  }
 
   const isLoading = isUserLoading || isGoalsLoading;
 
@@ -43,12 +54,16 @@ export default function GoalsPage() {
   
   return (
     <>
-      <AddGoalSheet isOpen={isAddGoalSheetOpen} onClose={() => setIsAddGoalSheetOpen(false)} />
-      {selectedGoal && (
+      <AddGoalSheet 
+        isOpen={isAddGoalSheetOpen} 
+        onClose={handleCloseGoalSheet} 
+        goal={editingGoal} 
+      />
+      {selectedGoalForContribution && (
           <AddContributionSheet 
             isOpen={isAddContributionSheetOpen} 
             onClose={() => setIsAddContributionSheetOpen(false)} 
-            goal={selectedGoal} 
+            goal={selectedGoalForContribution} 
           />
       )}
       <PageHeader title="Reserva & Investimentos" description="Crie e acompanhe suas reservas de emergência e investimentos.">
@@ -57,9 +72,9 @@ export default function GoalsPage() {
           Adicionar Reserva/Investimento
         </Button>
       </PageHeader>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
         {(goalData || []).map((goal) => (
-          <GoalCard key={goal.id} goal={goal} onAddContribution={handleOpenContributionSheet} />
+          <GoalCard key={goal.id} goal={goal} onAddContribution={handleOpenContributionSheet} onEdit={handleOpenEditSheet} />
         ))}
       </div>
        {(!goalData || goalData.length === 0) && !isLoading && (

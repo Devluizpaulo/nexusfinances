@@ -23,11 +23,18 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { useFirestore, useUser, deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 
-import type { Goal } from '@/lib/types';
+import type { Goal, GoalCategory } from '@/lib/types';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, Calendar, Tag, History } from 'lucide-react';
+import { PlusCircle, Trash2, Calendar, History, MoreVertical, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { doc } from 'firebase/firestore';
 
@@ -35,6 +42,7 @@ import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from '../ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Separator } from '../ui/separator';
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('pt-BR', {
@@ -46,6 +54,7 @@ const formatCurrency = (amount: number) => {
 interface GoalCardProps {
   goal: Goal;
   onAddContribution: (goal: Goal) => void;
+  onEdit: (goal: Goal) => void;
 }
 
 type GoalContribution = {
@@ -54,7 +63,18 @@ type GoalContribution = {
   date: string;
 };
 
-export function GoalCard({ goal, onAddContribution }: GoalCardProps) {
+const goalIcons: Record<GoalCategory, string> = {
+    'Reserva de Emergência': '🆘',
+    Viagem: '✈️',
+    Carro: '🚗',
+    Casa: '🏠',
+    Eletrônicos: '💻',
+    Educação: '🎓',
+    Aposentadoria: '💼',
+    Outros: '✨',
+};
+
+export function GoalCard({ goal, onAddContribution, onEdit }: GoalCardProps) {
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
@@ -69,8 +89,6 @@ export function GoalCard({ goal, onAddContribution }: GoalCardProps) {
     () => [...contributions].sort((a, b) => (a.date < b.date ? 1 : -1)),
     [contributions],
   );
-
-  const recentContributions = sortedContributions.slice(0, 3);
 
   const handleDeleteContribution = async (contributionId: string) => {
     if (!user || !firestore) return;
@@ -107,23 +125,20 @@ export function GoalCard({ goal, onAddContribution }: GoalCardProps) {
     }
 
     const goalRef = doc(firestore, `users/${user.uid}/goals`, goal.id);
-
     deleteDocumentNonBlocking(goalRef);
-
     toast({
       title: 'Item Excluído',
       description: `O item "${goal.name}" foi removido.`,
     });
-
     setIsDeleteDialogOpen(false);
   };
 
   const progress = goal.targetAmount > 0 ? (goal.currentAmount / goal.targetAmount) * 100 : 100;
   const isCompleted = goal.currentAmount >= goal.targetAmount;
+  const icon = goalIcons[goal.category as GoalCategory] || '🎯';
 
   return (
     <>
-      {/* Modal de histórico completo de aportes */}
       <Dialog open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -132,20 +147,20 @@ export function GoalCard({ goal, onAddContribution }: GoalCardProps) {
               Consulte todos os aportes já realizados nesta reserva e gerencie o histórico.
             </DialogDescription>
           </DialogHeader>
-          <div className="mt-3 max-h-80 space-y-2 overflow-y-auto text-xs">
+          <div className="mt-3 max-h-80 space-y-2 overflow-y-auto pr-2 text-sm">
             {sortedContributions.length === 0 && (
-              <p className="text-muted-foreground">Nenhum aporte registrado ainda.</p>
+              <p className="text-center text-muted-foreground">Nenhum aporte registrado ainda.</p>
             )}
             {sortedContributions.map((c, index) => (
               <div
                 key={c.id || `${c.date}-${index}`}
-                className="flex items-center justify-between gap-2 rounded-md border px-2 py-1"
+                className="flex items-center justify-between gap-2 rounded-md border p-2"
               >
                 <div className="flex flex-col">
-                  <span className="text-[11px] text-muted-foreground">
-                    {format(parseISO(c.date), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
+                   <span className="font-medium">{formatCurrency(c.amount)}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {format(parseISO(c.date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                   </span>
-                  <span className="font-medium">{formatCurrency(c.amount)}</span>
                 </div>
                 <Button
                   type="button"
@@ -181,85 +196,95 @@ export function GoalCard({ goal, onAddContribution }: GoalCardProps) {
       </AlertDialog>
 
       <Card className={cn("flex flex-col", isCompleted ? 'border-green-300 bg-green-50/50 dark:border-green-800 dark:bg-green-900/20' : '')}>
-        <CardHeader>
+        <CardHeader className="pb-4">
           <div className="flex items-start justify-between">
-            <div>
-              <CardTitle>{goal.name}</CardTitle>
-              {isCompleted ? (
-                <CardDescription className="font-semibold text-green-600 dark:text-green-400">Objetivo Atingido!</CardDescription>
-              ) : goal.targetDate ? (
-                <div className="flex items-center text-xs text-muted-foreground mt-1">
-                  <Calendar className="mr-1.5 h-3 w-3" />
-                  <span>{`Até ${format(parseISO(goal.targetDate), 'PPP', { locale: ptBR })}`}</span>
-                </div>
-              ) : null}
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">{icon}</span>
+              <div>
+                <CardTitle className="text-lg">{goal.name}</CardTitle>
+                {goal.targetDate && (
+                  <div className="flex items-center text-xs text-muted-foreground mt-1">
+                    <Calendar className="mr-1.5 h-3 w-3" />
+                    <span>{`Data limite: ${format(parseISO(goal.targetDate), 'dd/MM/yyyy', { locale: ptBR })}`}</span>
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              {goal.category && <Badge variant="secondary">{goal.category}</Badge>}
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsDeleteDialogOpen(true)}>
-                <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                <span className="sr-only">Excluir Item</span>
-              </Button>
-            </div>
+             <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                  <MoreVertical className="h-4 w-4" />
+                  <span className="sr-only">Opções</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onEdit(goal)}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  <span>Editar</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-destructive">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  <span>Excluir</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </CardHeader>
-        <CardContent className="flex-grow">
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Alcançado</span>
-              <span className="font-semibold">{formatCurrency(goal.currentAmount)}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Objetivo</span>
-              <span>{formatCurrency(goal.targetAmount)}</span>
-            </div>
-            <Progress value={progress} className="h-2" />
-            <p className="text-right text-xs text-muted-foreground">
-              {progress > 100 ? 100 : progress.toFixed(0)}%
-            </p>
-            {recentContributions.length > 0 && (
-              <div className="mt-3 space-y-1">
+        <CardContent className="flex-grow space-y-4">
+          <Separator/>
+          <div className="space-y-1">
+             <div className="flex items-baseline justify-between">
+                <span className="text-sm text-muted-foreground">Alcançado</span>
+                 <span className="text-sm text-muted-foreground">Objetivo</span>
+             </div>
+             <div className="flex items-baseline justify-between">
+                <p className="text-2xl font-bold text-foreground">
+                    {formatCurrency(goal.currentAmount)}
+                </p>
+                 <p className="text-sm font-medium text-muted-foreground">
+                    {formatCurrency(goal.targetAmount)}
+                </p>
+             </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Progress value={progress} className="h-3 bg-primary/20" indicatorClassName="bg-primary" />
+            <span className="text-sm font-semibold text-primary">{Math.min(100, progress).toFixed(0)}%</span>
+          </div>
+           {sortedContributions.length > 0 && (
+              <div className="space-y-2 pt-2">
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-xs font-semibold text-muted-foreground">
-                    Histórico de aportes recentes
+                    Últimos aportes:
                   </p>
-                  {sortedContributions.length > 0 && (
                     <button
                       type="button"
                       className="inline-flex items-center gap-1 rounded-full border border-transparent px-2 py-0.5 text-[11px] font-medium text-primary hover:border-primary/40 hover:bg-primary/5"
                       onClick={() => setIsHistoryOpen(true)}
                     >
                       <History className="h-3 w-3" />
-                      Ver histórico
+                      Ver todos
                     </button>
-                  )}
                 </div>
-                <div className="max-h-24 space-y-1 overflow-y-auto pr-1 text-xs">
-                  {recentContributions.map((c, index) => (
-                    <div
-                      key={c.id || `${c.date}-${index}`}
-                      className="flex items-center justify-between gap-2"
-                    >
-                      <span className="text-muted-foreground">
-                        {format(parseISO(c.date), 'dd/MM/yyyy', { locale: ptBR })}
-                      </span>
-                      <span className="font-medium">{formatCurrency(c.amount)}</span>
+                <div className="space-y-1.5 text-sm">
+                  {sortedContributions.slice(0, 3).map((c, index) => (
+                    <div key={c.id || `${c.date}-${index}`} className="flex items-center justify-between gap-2 text-xs">
+                       <span className="text-muted-foreground">{format(parseISO(c.date), 'dd/MM/yyyy', { locale: ptBR })}</span>
+                       <Badge variant="secondary" className="font-mono">+ {formatCurrency(c.amount)}</Badge>
                     </div>
                   ))}
                 </div>
               </div>
             )}
-          </div>
         </CardContent>
         <CardFooter>
           <Button
-            variant="outline"
             className="w-full"
             onClick={() => onAddContribution(goal)}
             disabled={isCompleted}
           >
             <PlusCircle className="mr-2 h-4 w-4" />
-            Adicionar Aporte
+            Adicionar novo aporte
           </Button>
         </CardFooter>
       </Card>

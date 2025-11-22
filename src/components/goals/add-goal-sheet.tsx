@@ -1,11 +1,11 @@
 'use client';
 
 import { useForm } from 'react-hook-form';
-
+import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { collection } from 'firebase/firestore';
-import { useFirestore, useUser, addDocumentNonBlocking } from '@/firebase';
+import { collection, doc } from 'firebase/firestore';
+import { useFirestore, useUser, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
 import {
   Dialog,
   DialogContent,
@@ -43,7 +43,7 @@ import {
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
-import { addMonths, format, formatISO } from 'date-fns';
+import { addMonths, format, formatISO, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Textarea } from '../ui/textarea';
 
@@ -70,9 +70,10 @@ type GoalFormValues = z.infer<typeof formSchema>;
 type AddGoalSheetProps = {
   isOpen: boolean;
   onClose: () => void;
+  goal?: Goal | null;
 };
 
-export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
+export function AddGoalSheet({ isOpen, onClose, goal }: AddGoalSheetProps) {
   const form = useForm<GoalFormValues>({
     resolver: zodResolver(formSchema),
     mode: 'onChange',
@@ -98,6 +99,30 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
   const estimatedMonths = monthlyContribution > 0 ? Math.ceil(remainingAmount / monthlyContribution) : null;
   const estimatedDate = estimatedMonths && estimatedMonths > 0 ? addMonths(new Date(), estimatedMonths) : null;
 
+  useEffect(() => {
+    if (goal && isOpen) {
+      form.reset({
+        name: goal.name,
+        category: goal.category,
+        description: goal.description || '',
+        targetAmount: goal.targetAmount,
+        currentAmount: goal.currentAmount,
+        monthlyContribution: goal.monthlyContribution || 0,
+        targetDate: goal.targetDate ? parseISO(goal.targetDate) : undefined,
+      });
+    } else {
+       form.reset({
+        name: '',
+        category: '',
+        targetAmount: 0,
+        currentAmount: 0,
+        monthlyContribution: 0,
+        description: '',
+        targetDate: undefined,
+      });
+    }
+  }, [goal, isOpen, form]);
+
   const onSubmit = async (values: GoalFormValues) => {
     if (!user || !firestore) {
       toast({
@@ -110,56 +135,74 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
 
     try {
       const goalsColRef = collection(firestore, `users/${user.uid}/goals`);
+      
+      if(goal) {
+        // Editing an existing goal
+        const goalRef = doc(firestore, `users/${user.uid}/goals`, goal.id);
+        const updatedData = {
+          ...values,
+          targetDate: values.targetDate ? formatISO(values.targetDate) : undefined,
+          monthlyContribution: values.monthlyContribution || 0,
+        };
+        setDocumentNonBlocking(goalRef, updatedData, { merge: true });
+        toast({
+            title: 'Objetivo atualizado!',
+            description: `"${values.name}" foi atualizado com sucesso.`,
+        });
 
-      const hasInitialAmount = values.currentAmount > 0;
-      const initialContribution = hasInitialAmount
-        ? [{
-            id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-            amount: values.currentAmount,
-            date: new Date().toISOString(),
-          }]
-        : [];
+      } else {
+        // Creating a new goal
+        const hasInitialAmount = values.currentAmount > 0;
+        const initialContribution = hasInitialAmount
+          ? [{
+              id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+              amount: values.currentAmount,
+              date: new Date().toISOString(),
+            }]
+          : [];
 
-      const goalData = {
-        ...values,
-        targetDate: values.targetDate ? formatISO(values.targetDate) : undefined,
-        userId: user.uid,
-        contributions: initialContribution,
-        monthlyContribution: values.monthlyContribution || 0,
-      };
+        const goalData = {
+          ...values,
+          targetDate: values.targetDate ? formatISO(values.targetDate) : undefined,
+          userId: user.uid,
+          contributions: initialContribution,
+          monthlyContribution: values.monthlyContribution || 0,
+        };
 
-      addDocumentNonBlocking(goalsColRef, goalData);
+        addDocumentNonBlocking(goalsColRef, goalData);
 
-      const progress = values.targetAmount > 0 ? (values.currentAmount / values.targetAmount) * 100 : 0;
+        const progress = values.targetAmount > 0 ? (values.currentAmount / values.targetAmount) * 100 : 0;
 
-      toast({
-        title: ' Objetivo criado com sucesso!',
-        description: `"${values.name}" foi adicionado. Você já está em ${Math.min(
-          100,
-          Math.max(0, Math.round(progress)),
-        )}% do caminho.`,
-      });
+        toast({
+          title: 'Objetivo criado com sucesso!',
+          description: `"${values.name}" foi adicionado. Você já está em ${Math.min(
+            100,
+            Math.max(0, Math.round(progress)),
+          )}% do caminho.`,
+        });
+      }
 
-      form.reset();
       onClose();
 
     } catch (error) {
-      console.error("Error adding goal: ", error);
+      console.error("Error saving goal: ", error);
       toast({
         variant: 'destructive',
         title: 'Oh, não! Algo deu errado.',
-        description: 'Não foi possível adicionar o item. Por favor, tente novamente.',
+        description: 'Não foi possível salvar o item. Por favor, tente novamente.',
       });
     }
   };
+
+  const isEditing = !!goal;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Adicionar Nova Reserva/Investimento</DialogTitle>
+          <DialogTitle>{isEditing ? 'Editar Objetivo' : 'Adicionar Nova Reserva/Investimento'}</DialogTitle>
           <DialogDescription>
-            Defina um objetivo e acompanhe seu progresso.
+            {isEditing ? 'Atualize os detalhes do seu objetivo.' : 'Defina um objetivo e acompanhe seu progresso.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -253,7 +296,7 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
                       <CurrencyInput value={field.value} onValueChange={field.onChange} />
                     </FormControl>
                     <FormDescription className="text-[11px]">
-                      Quanto você deseja acumular no total para esta reserva/investimento.
+                      Quanto você deseja acumular no total.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -267,10 +310,10 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
                   <FormItem>
                     <FormLabel>Valor Inicial (R$)</FormLabel>
                     <FormControl>
-                      <CurrencyInput value={field.value} onValueChange={field.onChange} />
+                      <CurrencyInput value={field.value} onValueChange={field.onChange} disabled={isEditing} />
                     </FormControl>
                     <FormDescription className="text-[11px]">
-                      O valor que você já tem disponível para esta reserva/investimento.
+                      {isEditing ? 'O valor atual é gerenciado pelos aportes.' : 'O que você já tem guardado.'}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -291,8 +334,7 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
                     />
                   </FormControl>
                   <FormDescription className="text-[11px]">
-                    Quanto você pretende investir por mês neste objetivo. Usamos esse valor para estimar uma possível
-                    data de conclusão.
+                    Usado para estimar a data de conclusão.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -304,7 +346,7 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
               name="targetDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Quando você planeja alcançar este objetivo? (Data Alvo opcional)</FormLabel>
+                  <FormLabel>Data Alvo (Opcional)</FormLabel>
 
                   <Popover>
                     <PopoverTrigger asChild>
@@ -336,9 +378,9 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
                     </PopoverContent>
                   </Popover>
                   <FormDescription className="text-[11px] space-y-0.5">
-                    {estimatedDate && (
+                    {estimatedDate && !values.targetDate && (
                       <span className="block text-[11px] text-emerald-700">
-                        Com o aporte mensal informado, você pode alcançar este objetivo em torno de{' '}
+                        Estimativa com aporte mensal:{' '}
                         <span className="font-semibold">
                           {format(estimatedDate, 'MM/yyyy', { locale: ptBR })}
                         </span>
@@ -360,7 +402,7 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
                 {form.formState.isSubmitting && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Salvar Objetivo
+                {isEditing ? 'Salvar Alterações' : 'Salvar Objetivo'}
               </Button>
             </DialogFooter>
 
