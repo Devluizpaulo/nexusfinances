@@ -12,7 +12,7 @@ import {
   signInWithEmailAndPassword,
   updateProfile
 } from 'firebase/auth';
-import { redirect } from 'next/navigation';
+import { redirect, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -79,6 +79,7 @@ function LoginClient() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('login');
   const [isLoading, setIsLoading] = useState(false);
+  const searchParams = useSearchParams();
 
   const loginForm = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -89,6 +90,19 @@ function LoginClient() {
     resolver: zodResolver(registerSchema),
     defaultValues: { name: '', email: '', password: '' },
   });
+
+  // Pre-fill email from URL param
+  useEffect(() => {
+    const emailFromParams = searchParams.get('email');
+    if (emailFromParams) {
+      if (activeTab === 'login') {
+        loginForm.setValue('email', emailFromParams);
+      } else {
+        registerForm.setValue('email', emailFromParams);
+      }
+      setActiveTab('register'); // Default to register tab if email is present
+    }
+  }, [searchParams, loginForm, registerForm]);
 
   const handleGoogleSignIn = async () => {
     if (!auth) return;

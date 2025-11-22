@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useUser } from '@/firebase';
 import { redirect } from 'next/navigation';
-import { ArrowRight, CheckCircle2, DollarSign, Quote, BarChart3, Target, Wallet } from 'lucide-react';
+import { ArrowRight, CheckCircle2, DollarSign, Quote, BarChart3, Target, Wallet, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -14,9 +14,22 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link';
+import { Input } from '@/components/ui/input';
 
 function ClientRoot() {
   const { user, isUserLoading } = useUser();
+  const [email, setEmail] = useState('');
+
+  const handleStart = () => {
+    // Redirect to registration page with email pre-filled
+    const params = new URLSearchParams();
+    if (email) {
+      params.append('email', email);
+    }
+    redirect(`/login?${params.toString()}`);
+  };
+
 
   useEffect(() => {
     if (!isUserLoading && user) {
@@ -58,11 +71,24 @@ function ClientRoot() {
             <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
               Assuma o controle da sua vida financeira com uma ferramenta simples, visual e feita para você. Chega de fórmulas e abas confusas.
             </p>
-            <div className="mt-8 flex justify-center gap-4">
-              <Button size="lg" onClick={() => redirect('/login')}>
-                Começar de graça
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
+            <div className="mt-8 flex justify-center">
+              <form onSubmit={(e) => { e.preventDefault(); handleStart(); }} className="flex w-full max-w-md flex-col items-center gap-2 sm:flex-row">
+                  <Input
+                    type="email"
+                    placeholder="seu@email.com"
+                    className="h-12 flex-1 rounded-lg px-4 text-base"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                  <Button
+                    type="submit"
+                    size="lg"
+                    className="h-12 w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:opacity-90 sm:w-auto"
+                  >
+                    Começar Agora
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </form>
             </div>
              <p className="mt-4 text-xs text-muted-foreground">
               Cadastro rápido. Sem cartão de crédito.
@@ -258,8 +284,3 @@ export default function RootPage() {
   // Once mounted on the client, render the actual component
   return <ClientRoot />;
 }
-
-// Helper components that were in the original page but might be useful
-import { Loader2 } from 'lucide-react';
-import Link from 'next/link';
-
