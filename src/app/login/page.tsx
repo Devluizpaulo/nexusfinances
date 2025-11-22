@@ -61,6 +61,7 @@ export default function LoginPage() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('login');
   const [isLoading, setIsLoading] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
 
   const loginForm = useForm<LoginValues>({
@@ -72,6 +73,11 @@ export default function LoginPage() {
     resolver: zodResolver(registerSchema),
     defaultValues: { name: '', email: '', password: '' },
   });
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
 
   const handleGoogleSignIn = async () => {
     if (!auth) return;
@@ -162,7 +168,7 @@ export default function LoginPage() {
     }
   }, [user]);
 
-  if (isUserLoading || user) {
+  if (!isClient || isUserLoading || user) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
