@@ -4,6 +4,8 @@ import { PayoffSimulator } from '@/components/education/PayoffSimulator';
 import { InterestCalculator } from '@/components/education/InterestCalculator';
 import type { Debt, Goal as GoalType, Transaction, EducationTrack, Mission } from './types';
 
+export type { Mission };
+
 
 export const journeyLevels = [
   { level: 'Iniciante', icon: SparklesIcon, colorClass: 'text-red-500' },

@@ -154,7 +154,8 @@ export default function EducationPage() {
                 <CardContent className="space-y-3">
                     {finishedTracks.length > 0 ? (
                         finishedTracks.map((track) => {
-                          const Icon = (LucideIcons as any)[track.icon] || LucideIcons.HelpCircle;
+                          const iconKey = track.icon as unknown as keyof typeof LucideIcons;
+                          const Icon = (LucideIcons as any)[iconKey] || LucideIcons.HelpCircle;
                           return (
                             <Link href={`/education/${track.slug}`} key={track.slug} className="group flex items-center gap-3 rounded-md p-2 hover:bg-muted transition-colors">
                                 <div className={cn("flex h-8 w-8 items-center justify-center rounded-lg", track.bgColor)}>

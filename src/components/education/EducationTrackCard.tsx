@@ -13,7 +13,8 @@ interface EducationTrackCardProps {
 }
 
 export function EducationTrackCard({ track, isCompleted }: EducationTrackCardProps) {
-  const Icon = (LucideIcons as any)[track.icon] || LucideIcons.HelpCircle;
+  const iconKey = track.icon as unknown as keyof typeof LucideIcons;
+  const Icon = (LucideIcons as any)[iconKey] || LucideIcons.HelpCircle;
   
   return (
     <Link href={`/education/${track.slug}`} className="group block h-full">

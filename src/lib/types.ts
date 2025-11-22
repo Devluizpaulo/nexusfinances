@@ -163,14 +163,16 @@ type QuizQuestion = {
   correctAnswer: string;
 };
 
-type EducationModule = {
+export type EducationModule = {
     type: 'psychology' | 'practicalExperiences' | 'microHabits' | 'narrative' | 'finalQuiz' | 'tool';
     title: string;
+    subtitle?: string;
     points?: DetailItem[];
     experiences?: ExperienceItem[];
     habits?: string[];
     description?: string;
     questions?: QuizQuestion[];
+    componentName?: string;
     component?: React.ComponentType;
 };
 

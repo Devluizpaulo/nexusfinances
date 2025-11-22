@@ -169,11 +169,11 @@ const NarrativeModule = ({ content }: { content: any }) => (
 );
 
 const ToolModule = ({ module }: { module: EducationModuleType }) => {
-  if (!module.componentName) return null;
-  const ToolComponent = dynamicComponents[module.componentName];
+  if (!module.component) return null;
+  const ToolComponent = module.component;
 
   if (!ToolComponent) {
-    console.warn(`Dynamic component "${module.componentName}" not found.`);
+    console.warn('Dynamic component not found on module.');
     return null;
   }
   
@@ -408,7 +408,8 @@ export default function EducationTrackPage() {
     setCompletedModules(allModules);
   }
 
-  const Icon = (LucideIcons as any)[track.icon] || LucideIcons.HelpCircle;
+  const iconKey = track.icon as unknown as keyof typeof LucideIcons;
+  const Icon = (LucideIcons as any)[iconKey] || LucideIcons.HelpCircle;
 
   const renderModule = (module: any, index: number) => {
     switch (module.type) {
