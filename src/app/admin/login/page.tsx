@@ -168,7 +168,7 @@ function AdminLoginClient() {
           Portal do Administrador
         </h1>
         <p className="mt-2 text-md text-muted-foreground">
-          Acesse para gerenciar o Nexus Finanças.
+          Acesse para gerenciar o xô planilhas.
         </p>
       </div>
 

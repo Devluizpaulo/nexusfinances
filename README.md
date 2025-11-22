@@ -1,6 +1,6 @@
-# Nexus Finanças: Seu Assistente Financeiro Pessoal
+# xô planilhas: Seu Assistente Financeiro Pessoal
 
-Nexus Finanças é uma aplicação web moderna construída com Next.js e Firebase, projetada para ajudar os usuários a gerenciar suas finanças pessoais de forma inteligente e intuitiva.
+xô planilhas é uma aplicação web moderna construída com Next.js e Firebase, projetada para ajudar os usuários a gerenciar suas finanças pessoais de forma inteligente e intuitiva.
 
 ## ✨ Funcionalidades Principais
 
