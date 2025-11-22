@@ -1,6 +1,6 @@
 'use client';
 import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator } from '@/components/ui/sidebar';
-import { LayoutDashboard, Landmark, CreditCard, Banknote, DollarSign, Loader2, Target, LogOut, UserCircle, LifeBuoy, ShieldCheck, PiggyBank, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, Landmark, CreditCard, Banknote, DollarSign, Loader2, Target, LogOut, UserCircle, LifeBuoy, ShieldCheck, PiggyBank, BarChart3, GraduationCap } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -26,6 +26,7 @@ const mainMenuItems = [
   { href: '/debts', label: 'Dívidas', icon: Banknote },
   { href: '/goals', label: 'Reservas', icon: PiggyBank },
   { href: '/reports', label: 'Relatórios', icon: BarChart3 },
+  { href: '/education', label: 'Educação', icon: GraduationCap },
 ];
 
 const secondaryMenuItems = [
@@ -34,7 +35,7 @@ const secondaryMenuItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
 
@@ -44,6 +45,12 @@ export function AppSidebar() {
         await signOut(auth);
     } catch (error) {
         console.error("Erro ao fazer logout:", error);
+    }
+  };
+
+  const handleMobileClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
     }
   };
 
@@ -113,7 +120,7 @@ export function AppSidebar() {
         <SidebarMenu className="flex-1">
             {mainMenuItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label}>
+                    <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label} onClick={handleMobileClick}>
                         <Link href={item.href}>
                             <item.icon />
                             <span>{item.label}</span>
@@ -123,7 +130,7 @@ export function AppSidebar() {
             ))}
              {user?.role === 'superadmin' && (
                 <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin')} tooltip="Painel Admin">
+                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin')} tooltip="Painel Admin" onClick={handleMobileClick}>
                         <Link href="/admin/dashboard">
                             <ShieldCheck />
                             <span>Painel Admin</span>
@@ -136,7 +143,7 @@ export function AppSidebar() {
             <SidebarMenu>
                  {secondaryMenuItems.map((item) => (
                     <SidebarMenuItem key={item.href}>
-                        <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label}>
+                        <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label} onClick={handleMobileClick}>
                             <Link href={item.href}>
                                 <item.icon />
                                 <span>{item.label}</span>
