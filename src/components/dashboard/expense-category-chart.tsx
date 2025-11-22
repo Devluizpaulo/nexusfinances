@@ -37,14 +37,11 @@ export function ExpenseCategoryChart({ transactions }: { transactions: Transacti
       }, {} as Record<string, { name: string; value: number }>);
 
     const palette = [
-      '#f97316', // laranja - Mercado
-      '#0ea5e9', // azul - Transporte / outros
-      '#22c55e', // verde - Lazer
-      '#a855f7', // roxo - Escola / educação
-      '#e11d48', // vermelho - Moradia / contas
-      '#eab308', // amarelo - Vestuário / extras
-      '#6366f1', // azul arroxeado - Investimentos
-      '#14b8a6', // teal - Outras despesas
+      'hsl(var(--chart-1))',
+      'hsl(var(--chart-2))',
+      'hsl(var(--chart-3))',
+      'hsl(var(--chart-4))',
+      'hsl(var(--chart-5))',
     ];
 
     return Object.values(expenseData).map((item, index) => ({
@@ -57,14 +54,14 @@ export function ExpenseCategoryChart({ transactions }: { transactions: Transacti
     <Card>
       <CardHeader>
         <CardTitle>Despesas por Categoria</CardTitle>
-        <CardDescription>Uma análise detalhada de seus gastos.</CardDescription>
+        <CardDescription>Análise dos gastos no período selecionado.</CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col gap-4 pb-0 md:flex-row md:items-center">
+      <CardContent className="flex items-center justify-center">
         {chartData.length > 0 ? (
           <>
             <ChartContainer
               config={chartConfig}
-              className="mx-auto aspect-square max-h-[260px] md:max-h-[300px] md:w-2/3"
+              className="mx-auto aspect-square max-h-[350px]"
             >
               <PieChart>
                 <ChartTooltip
@@ -86,27 +83,14 @@ export function ExpenseCategoryChart({ transactions }: { transactions: Transacti
                   data={chartData}
                   dataKey="value"
                   nameKey="name"
-                  // pizza cheia, sem furo no meio
-                  innerRadius={0}
-                  strokeWidth={1}
+                  innerRadius={60}
+                  strokeWidth={2}
                 />
               </PieChart>
             </ChartContainer>
-
-            <div className="flex flex-wrap gap-2 text-xs md:w-1/3 md:text-sm">
-              {chartData.map((item) => (
-                <div key={item.name} className="flex items-center gap-2">
-                  <span
-                    className="h-3 w-3 rounded-full"
-                    style={{ backgroundColor: item.fill as string }}
-                  />
-                  <span>{item.name}</span>
-                </div>
-              ))}
-            </div>
           </>
         ) : (
-          <div className="flex h-[300px] w-full items-center justify-center text-muted-foreground">
+          <div className="flex h-[350px] w-full items-center justify-center text-muted-foreground">
             Nenhuma despesa para exibir.
           </div>
         )}

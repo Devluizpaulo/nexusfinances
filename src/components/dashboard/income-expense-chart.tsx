@@ -1,7 +1,7 @@
 'use client';
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
   ChartContainer,
   ChartTooltip,
@@ -16,17 +16,17 @@ import { ptBR } from 'date-fns/locale';
 const chartConfig = {
   income: {
     label: 'Renda',
-    color: 'hsl(var(--chart-1))',
+    color: 'hsl(var(--chart-2))',
   },
   expenses: {
     label: 'Despesas',
-    color: 'hsl(var(--chart-2))',
+    color: 'hsl(var(--chart-5))',
   },
 };
 
 export function IncomeExpenseChart({ transactions }: { transactions: Transaction[] }) {
   const monthlyData = transactions.reduce((acc, transaction) => {
-    const month = format(startOfMonth(parseISO(transaction.date)), 'MMM yyyy', { locale: ptBR });
+    const month = format(startOfMonth(parseISO(transaction.date)), 'MMM/yy', { locale: ptBR });
     if (!acc[month]) {
       acc[month] = { month, income: 0, expenses: 0 };
     }
@@ -38,21 +38,30 @@ export function IncomeExpenseChart({ transactions }: { transactions: Transaction
     return acc;
   }, {} as Record<string, { month: string; income: number; expenses: number }>);
 
-  const chartData = Object.values(monthlyData).sort((a,b) => new Date(a.month).getTime() - new Date(b.month).getTime());
+  // Sort data by date to ensure correct order in the chart
+  const chartData = Object.values(monthlyData).sort((a, b) => {
+      const [aMonth, aYear] = a.month.split('/');
+      const [bMonth, bYear] = b.month.split('/');
+      const aDate = new Date(Number(aYear) + 2000, ptBR.localize?.month(ptBR.match.months?.findIndex(m => m.test(aMonth)) || 0));
+      const bDate = new Date(Number(bYear) + 2000, ptBR.localize?.month(ptBR.match.months?.findIndex(m => m.test(bMonth)) || 0));
+      return aDate.getTime() - bDate.getTime();
+  });
+
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Renda vs. Despesas</CardTitle>
+        <CardTitle>Renda vs. Despesas (Mensal)</CardTitle>
+        <CardDescription>Comparativo dos últimos meses.</CardDescription>
       </CardHeader>
       <CardContent>
         {chartData.length === 0 ? (
-          <div className="flex min-h-[260px] w-full flex-col items-center justify-center text-center text-sm text-muted-foreground">
+          <div className="flex min-h-[350px] w-full flex-col items-center justify-center text-center text-sm text-muted-foreground">
             <p>Ainda não há movimentações suficientes para mostrar o gráfico.</p>
-            <p className="mt-1">Comece adicionando uma renda ou despesa nas ações rápidas acima.</p>
+            <p className="mt-1">Comece adicionando rendas ou despesas.</p>
           </div>
         ) : (
-          <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
+          <ChartContainer config={chartConfig} className="min-h-[350px] w-full">
             <BarChart data={chartData} accessibilityLayer>
               <CartesianGrid vertical={false} />
               <XAxis
@@ -60,9 +69,11 @@ export function IncomeExpenseChart({ transactions }: { transactions: Transaction
                 tickLine={false}
                 tickMargin={10}
                 axisLine={false}
+                tick={{ fontSize: 12 }}
               />
               <YAxis
                 tickFormatter={(value) => `R$${Number(value) / 1000}k`}
+                tick={{ fontSize: 12 }}
               />
               <ChartTooltip content={<ChartTooltipContent formatter={(value) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value as number)} />} />
               <ChartLegend content={<ChartLegendContent />} />
