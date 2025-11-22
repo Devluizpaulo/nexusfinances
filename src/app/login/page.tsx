@@ -11,7 +11,7 @@ import {
   signInWithEmailAndPassword,
   updateProfile
 } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
+import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { redirect } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -39,8 +39,6 @@ import {
 } from "@/components/ui/form"
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
-
 
 const loginSchema = z.object({
   email: z.string().email('Por favor, insira um e-mail válido.'),
@@ -59,7 +57,6 @@ type RegisterValues = z.infer<typeof registerSchema>;
 
 export default function LoginPage() {
   const auth = useAuth();
-  const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('login');
@@ -77,23 +74,12 @@ export default function LoginPage() {
   });
 
   const handleGoogleSignIn = async () => {
-    if (!auth || !firestore) return;
+    if (!auth) return;
     setIsLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
-      const userRef = doc(firestore, "users", result.user.uid);
-      const userSnap = await getDoc(userRef);
-
-      if (!userSnap.exists()) {
-        await setDoc(userRef, { 
-          id: result.user.uid,
-          displayName: result.user.displayName,
-          email: result.user.email,
-          photoURL: result.user.photoURL,
-          registrationDate: serverTimestamp(),
-         }, { merge: true });
-      }
+      await signInWithPopup(auth, provider);
+      // The onAuthStateChanged listener in FirebaseProvider will handle user doc creation/check
     } catch (error: any) {
       if (error.code !== 'auth/popup-closed-by-user') {
         console.error('Erro no login com Google:', error);
@@ -113,6 +99,7 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
+      // The onAuthStateChanged listener in FirebaseProvider will handle user state
     } catch (error: any) {
       console.error('Erro no login com E-mail:', error);
       let description = "E-mail ou senha incorretos. Verifique seus dados e tente novamente.";
@@ -132,30 +119,23 @@ export default function LoginPage() {
   };
 
   const handleEmailRegister = async (values: RegisterValues) => {
-      if (!auth || !firestore) return;
+      if (!auth) return;
       setIsLoading(true);
       try {
           const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-          const firebaseUser = userCredential.user;
-
-          await updateProfile(firebaseUser, {
+          
+          await updateProfile(userCredential.user, {
               displayName: values.name,
           });
 
-          const userDocRef = doc(firestore, 'users', firebaseUser.uid);
-          await setDoc(userDocRef, {
-              id: firebaseUser.uid,
-              displayName: values.name,
-              email: values.email,
-              registrationDate: serverTimestamp(),
-          });
+          // The onAuthStateChanged listener will now handle creating the Firestore document.
+          // This avoids race conditions and centralizes user profile creation.
           
           toast({
               title: "Cadastro realizado com sucesso!",
-              description: "Você já pode fazer login com seu e-mail e senha."
+              description: "Redirecionando para o seu painel..."
           });
-          setActiveTab('login');
-          registerForm.reset();
+          // Redirect will be handled by the useEffect watching the user state.
 
       } catch (error: any) {
           console.error('Erro no cadastro com E-mail:', error);
