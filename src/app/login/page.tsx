@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { useAuth, useFirestore, useUser } from '@/firebase';
+import { useAuth, useUser } from '@/firebase';
 import { DollarSign, Loader2 } from 'lucide-react';
 import { 
   GoogleAuthProvider, 
@@ -11,7 +12,6 @@ import {
   signInWithEmailAndPassword,
   updateProfile
 } from 'firebase/auth';
-import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { redirect } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -48,7 +48,7 @@ const loginSchema = z.object({
 const registerSchema = z.object({
   name: z.string().min(3, 'O nome deve ter pelo menos 3 caracteres.'),
   email: z.string().email('Por favor, insira um e-mail válido.'),
-  password: z.string().regex(/^\d{6}$/, 'A senha deve conter exatamente 6 dígitos numéricos.'),
+  password: z.string().min(6, 'A senha deve ter no mínimo 6 caracteres.'),
 });
 
 type LoginValues = z.infer<typeof loginSchema>;
@@ -56,13 +56,29 @@ type RegisterValues = z.infer<typeof registerSchema>;
 
 
 export default function LoginPage() {
+  const [isClient, setIsClient] = useState(false);
+  
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
+  
+  return <LoginClient />;
+}
+
+function LoginClient() {
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('login');
   const [isLoading, setIsLoading] = useState(false);
-  const [isClient, setIsClient] = useState(false);
-
 
   const loginForm = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -73,11 +89,6 @@ export default function LoginPage() {
     resolver: zodResolver(registerSchema),
     defaultValues: { name: '', email: '', password: '' },
   });
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
 
   const handleGoogleSignIn = async () => {
     if (!auth) return;
@@ -133,15 +144,11 @@ export default function LoginPage() {
           await updateProfile(userCredential.user, {
               displayName: values.name,
           });
-
-          // The onAuthStateChanged listener will now handle creating the Firestore document.
-          // This avoids race conditions and centralizes user profile creation.
           
           toast({
               title: "Cadastro realizado com sucesso!",
               description: "Redirecionando para o seu painel..."
           });
-          // Redirect will be handled by the useEffect watching the user state.
 
       } catch (error: any) {
           console.error('Erro no cadastro com E-mail:', error);
@@ -168,7 +175,7 @@ export default function LoginPage() {
     }
   }, [user]);
 
-  if (!isClient || isUserLoading || user) {
+  if (isUserLoading || user) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -305,9 +312,9 @@ export default function LoginPage() {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Senha Numérica</FormLabel>
+                        <FormLabel>Senha</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="6 dígitos" {...field} maxLength={6} />
+                          <Input type="password" placeholder="Mínimo 6 caracteres" {...field} />
                         </FormControl>
                          <FormMessage />
                       </FormItem>
