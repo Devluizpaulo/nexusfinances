@@ -2,7 +2,7 @@
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, setDoc, getDoc, serverTimestamp, Timestamp, FieldValue } from 'firebase/firestore';
+import { Firestore, doc, setDoc, getDoc, serverTimestamp, Timestamp, FieldValue, onSnapshot } from 'firebase/firestore';
 import { FirebaseStorage } from 'firebase/storage';
 import { Auth, User, onAuthStateChanged, UserMetadata } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
@@ -85,61 +85,74 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       setUserAuthState({ user: null, isUserLoading: false, userError: null });
       return;
     }
-
-    setUserAuthState({ user: null, isUserLoading: true, userError: null });
-
-    const unsubscribe = onAuthStateChanged(
+  
+    setUserAuthState(prevState => ({ ...prevState, isUserLoading: true }));
+  
+    let userDocUnsubscribe: (() => void) | null = null;
+  
+    const authUnsubscribe = onAuthStateChanged(
       auth,
-      async (firebaseUser) => {
+      (firebaseUser) => {
+        // Clean up previous document listener if it exists
+        if (userDocUnsubscribe) {
+          userDocUnsubscribe();
+          userDocUnsubscribe = null;
+        }
+  
         if (firebaseUser) {
           const userDocRef = doc(firestore, 'users', firebaseUser.uid);
-          const userDocSnap = await getDoc(userDocRef);
-
-          let appUser: AppUser = { ...firebaseUser, phoneNumber: firebaseUser.phoneNumber };
-
-          if (userDocSnap.exists()) {
-            const firestoreData = userDocSnap.data();
-            appUser = {
-              ...appUser,
-              firstName: firestoreData.firstName,
-              lastName: firestoreData.lastName,
-              phoneNumber: firestoreData.phoneNumber,
-              role: firestoreData.role,
-              registrationDate: firestoreData.registrationDate,
-              customIncomeCategories: firestoreData.customIncomeCategories || [],
-              customExpenseCategories: firestoreData.customExpenseCategories || [],
-              completedTracks: firestoreData.completedTracks || [],
-            };
-          } else {
-            const nameParts = (firebaseUser.displayName || firebaseUser.email || '').split(' ');
-            const firstName = nameParts[0];
-            const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
-            const registrationDate = serverTimestamp();
-             await setDoc(userDocRef, {
-              id: firebaseUser.uid,
-              displayName: firebaseUser.displayName || `${firstName} ${lastName}`.trim(),
-              email: firebaseUser.email,
-              photoURL: firebaseUser.photoURL,
-              registrationDate: registrationDate,
-              firstName: firstName,
-              lastName: lastName,
-              phoneNumber: firebaseUser.phoneNumber || '',
-              role: 'user', // Default role
-              completedTracks: [], // Initialize completedTracks
-            }, { merge: true });
-             appUser = {
-                ...appUser,
-                firstName,
-                lastName,
-                phoneNumber: firebaseUser.phoneNumber || '',
-                role: 'user',
-                registrationDate: registrationDate,
-                completedTracks: [],
-            };
-          }
-          setUserAuthState({ user: appUser, isUserLoading: false, userError: null });
+  
+          // Listen to the user document in real-time
+          userDocUnsubscribe = onSnapshot(
+            userDocRef,
+            async (userDocSnap) => {
+              let appUser: AppUser = { ...firebaseUser, phoneNumber: firebaseUser.phoneNumber };
+  
+              if (userDocSnap.exists()) {
+                const firestoreData = userDocSnap.data();
+                appUser = {
+                  ...appUser,
+                  ...firestoreData,
+                };
+              } else {
+                // Document doesn't exist, create it.
+                const nameParts = (firebaseUser.displayName || firebaseUser.email || '').split(' ');
+                const firstName = nameParts[0];
+                const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+                const registrationDate = serverTimestamp();
+                const newUserDoc = {
+                  id: firebaseUser.uid,
+                  displayName: firebaseUser.displayName || `${firstName} ${lastName}`.trim(),
+                  email: firebaseUser.email,
+                  photoURL: firebaseUser.photoURL,
+                  registrationDate: registrationDate,
+                  firstName: firstName,
+                  lastName: lastName,
+                  phoneNumber: firebaseUser.phoneNumber || '',
+                  role: 'user' as const, // Default role
+                  completedTracks: [], // Initialize completedTracks
+                  customIncomeCategories: [],
+                  customExpenseCategories: [],
+                };
+                
+                await setDoc(userDocRef, newUserDoc, { merge: true });
+  
+                appUser = {
+                    ...appUser,
+                    ...newUserDoc,
+                    registrationDate: new Date().toISOString(), // Use client date as placeholder
+                };
+              }
+              setUserAuthState({ user: appUser, isUserLoading: false, userError: null });
+            },
+            (error) => {
+              console.error("FirebaseProvider: User document snapshot error:", error);
+              setUserAuthState({ user: null, isUserLoading: false, userError: error });
+            }
+          );
         } else {
-            setUserAuthState({ user: null, isUserLoading: false, userError: null });
+          // No Firebase user, so set auth state to signed out
+          setUserAuthState({ user: null, isUserLoading: false, userError: null });
         }
       },
       (error) => {
@@ -147,7 +160,14 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
         setUserAuthState({ user: null, isUserLoading: false, userError: error });
       }
     );
-    return () => unsubscribe();
+  
+    // Cleanup function for the auth state listener
+    return () => {
+      authUnsubscribe();
+      if (userDocUnsubscribe) {
+        userDocUnsubscribe();
+      }
+    };
   }, [auth, firestore]);
 
   // Memoize the context value
