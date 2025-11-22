@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 export type Transaction = {
   id: string;
   type: 'income' | 'expense';
@@ -93,3 +95,52 @@ export const goalCategories = [
 ] as const;
 
 export type GoalCategory = typeof goalCategories[number];
+
+
+// Schemas and types for AI Financial Insights Flow
+const AITransactionSchema = z.object({
+  id: z.string(),
+  type: z.enum(['income', 'expense']),
+  amount: z.number(),
+  date: z.string(),
+  description: z.string(),
+  category: z.string(),
+  isRecurring: z.boolean(),
+  status: z.enum(['paid', 'pending']),
+});
+
+const AIDebtSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  totalAmount: z.number(),
+  paidAmount: z.number(),
+  creditor: z.string(),
+});
+
+const AIGoalSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  targetAmount: z.number(),
+  currentAmount: z.number(),
+});
+
+export const GetFinancialInsightsInputSchema = z.object({
+  userName: z.string().describe('O primeiro nome do usuário para personalizar a resposta.'),
+  incomes: z.array(AITransactionSchema).describe('Lista de transações de renda do usuário no mês.'),
+  expenses: z.array(AITransactionSchema).describe('Lista de transações de despesa do usuário no mês.'),
+  debts: z.array(AIDebtSchema).describe('Lista de todas as dívidas ativas do usuário.'),
+  goals: z.array(AIGoalSchema).describe('Lista de todas as metas de economia do usuário.'),
+});
+export type GetFinancialInsightsInput = z.infer<typeof GetFinancialInsightsInputSchema>;
+
+export const GetFinancialInsightsOutputSchema = z.object({
+  summary: z
+    .string()
+    .describe(
+      'Um parágrafo curto e amigável (2-3 frases) resumindo a saúde financeira do usuário neste mês. Use o nome do usuário. Ex: "Olá, [nome]! Este mês, suas finanças estão..."'
+    ),
+  actionPoints: z
+    .array(z.string())
+    .describe('Uma lista de 2 a 3 pontos de ação claros e práticos para o usuário. Cada ponto deve ser uma frase curta e direta.'),
+});
+export type GetFinancialInsightsOutput = z.infer<typeof GetFinancialInsightsOutputSchema>;
