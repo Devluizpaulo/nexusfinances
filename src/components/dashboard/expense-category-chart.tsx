@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Pie, PieChart, Cell } from 'recharts';
@@ -26,18 +27,24 @@ export function ExpenseCategoryChart({ transactions }: { transactions: Transacti
       return { chartData: [], chartConfig: {} };
     }
 
-    const expenseData = transactions
+    const expenseByCat = transactions
       .filter((t) => t.type === 'expense')
       .reduce((acc, t) => {
-        const key = t.category;
-        if (!acc[key]) {
-          acc[key] = { name: t.category, value: 0 };
+        if (!acc[t.category]) {
+          acc[t.category] = 0;
         }
-        acc[key].value += t.amount;
+        acc[t.category] += t.amount;
         return acc;
-      }, {} as Record<string, { name: string; value: number }>);
+      }, {} as Record<string, number>);
+
+    const total = Object.values(expenseByCat).reduce((sum, amount) => sum + amount, 0);
     
-    const chartData = Object.values(expenseData);
+    const chartData = Object.entries(expenseByCat).map(([category, amount]) => ({
+        name: category,
+        value: amount,
+        percentage: total > 0 ? ((amount / total) * 100).toFixed(0) : 0,
+    }));
+
 
     const config: ChartConfig = chartData.reduce((acc, item, index) => {
       const palette = [
@@ -48,7 +55,7 @@ export function ExpenseCategoryChart({ transactions }: { transactions: Transacti
         'hsl(var(--chart-5))',
       ];
       acc[item.name] = {
-        label: item.name,
+        label: `${item.name} (${item.percentage}%)`,
         color: palette[index % palette.length],
       };
       return acc;
@@ -83,7 +90,7 @@ export function ExpenseCategoryChart({ transactions }: { transactions: Transacti
                         return (
                           <div className="flex flex-col">
                             <span className="font-bold">{props.payload.name}</span>
-                            <span>{formattedValue}</span>
+                            <span>{formattedValue} ({props.payload.percentage}%)</span>
                           </div>
                         );
                     }}
@@ -115,3 +122,4 @@ export function ExpenseCategoryChart({ transactions }: { transactions: Transacti
     </Card>
   );
 }
+
