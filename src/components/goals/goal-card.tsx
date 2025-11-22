@@ -34,7 +34,7 @@ import {
 
 import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Trash2, Calendar, History, MoreVertical, Pencil } from 'lucide-react';
+import { PlusCircle, Trash2, Calendar, History, MoreVertical, Pencil, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { doc } from 'firebase/firestore';
 
@@ -78,6 +78,7 @@ export function GoalCard({ goal, onAddContribution, onEdit }: GoalCardProps) {
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const firestore = useFirestore();
   const { user } = useUser();
@@ -177,6 +178,67 @@ export function GoalCard({ goal, onAddContribution, onEdit }: GoalCardProps) {
           </div>
         </DialogContent>
       </Dialog>
+      
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3 text-xl">
+              <span className="text-2xl">{icon}</span>
+              {goal.name}
+            </DialogTitle>
+            {goal.description && <DialogDescription>{goal.description}</DialogDescription>}
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="rounded-lg border p-4">
+              <div className="space-y-1">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-sm text-muted-foreground">Alcançado</span>
+                  <span className="text-sm text-muted-foreground">Objetivo</span>
+                </div>
+                <div className="flex items-baseline justify-between">
+                  <p className="text-2xl font-bold text-foreground">
+                    {formatCurrency(goal.currentAmount)}
+                  </p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    {formatCurrency(goal.targetAmount)}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-2 flex items-center gap-3">
+                <Progress value={progress} className="h-3 bg-primary/20" indicatorClassName="bg-primary" />
+                <span className="text-sm font-semibold text-primary">{Math.min(100, progress).toFixed(0)}%</span>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 text-sm">
+                {goal.targetDate && (
+                    <div className="space-y-1">
+                        <p className="text-muted-foreground">Data Limite</p>
+                        <p className="font-medium">{format(parseISO(goal.targetDate), 'dd/MM/yyyy', { locale: ptBR })}</p>
+                    </div>
+                )}
+                {goal.monthlyContribution && goal.monthlyContribution > 0 && (
+                    <div className="space-y-1">
+                        <p className="text-muted-foreground">Aporte Mensal Planejado</p>
+                        <p className="font-medium">{formatCurrency(goal.monthlyContribution)}</p>
+                    </div>
+                )}
+            </div>
+
+            <div>
+              <h3 className="mb-2 text-sm font-semibold text-muted-foreground">Histórico de Aportes</h3>
+              <div className="max-h-48 space-y-2 overflow-y-auto rounded-md border p-2">
+                {sortedContributions.length > 0 ? sortedContributions.map((c) => (
+                  <div key={c.id} className="flex justify-between items-center text-xs">
+                     <span className="text-muted-foreground">{format(parseISO(c.date), 'dd/MM/yyyy HH:mm')}</span>
+                     <Badge variant="secondary" className="font-mono text-emerald-700">+ {formatCurrency(c.amount)}</Badge>
+                  </div>
+                )) : <p className="text-center text-xs text-muted-foreground">Nenhum aporte registrado.</p>}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
@@ -218,6 +280,10 @@ export function GoalCard({ goal, onAddContribution, onEdit }: GoalCardProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setIsDetailsOpen(true)}>
+                  <Eye className="mr-2 h-4 w-4" />
+                  <span>Ver Detalhes</span>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onEdit(goal)}>
                   <Pencil className="mr-2 h-4 w-4" />
                   <span>Editar</span>
@@ -236,15 +302,15 @@ export function GoalCard({ goal, onAddContribution, onEdit }: GoalCardProps) {
           <div className="space-y-1">
              <div className="flex items-baseline justify-between">
                 <span className="text-sm text-muted-foreground">Alcançado</span>
-                 <span className="text-sm text-muted-foreground">Objetivo</span>
+                 <p className="text-sm font-medium text-muted-foreground">
+                    {formatCurrency(goal.targetAmount)}
+                </p>
              </div>
              <div className="flex items-baseline justify-between">
                 <p className="text-2xl font-bold text-foreground">
                     {formatCurrency(goal.currentAmount)}
                 </p>
-                 <p className="text-sm font-medium text-muted-foreground">
-                    {formatCurrency(goal.targetAmount)}
-                </p>
+                <span className="text-sm text-muted-foreground">Objetivo</span>
              </div>
           </div>
           <div className="flex items-center gap-3">
