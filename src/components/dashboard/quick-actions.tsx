@@ -50,7 +50,7 @@ export function QuickActions({
                     className="hover:border-primary/20 transition-colors"
                  >
                     <Target className="mr-2 h-4 w-4" />
-                    Adicionar Meta
+                    Reservas & Investimentos
                 </Button>
             </CardContent>
         </Card>

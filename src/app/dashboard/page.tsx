@@ -1,28 +1,38 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { KpiCard } from '@/components/dashboard/kpi-card';
-import { Banknote, Landmark, CreditCard, Scale, Loader2 } from 'lucide-react';
+import { Banknote, Landmark, CreditCard, Scale, Calendar as CalendarIcon } from 'lucide-react';
 import { IncomeExpenseChart } from '@/components/dashboard/income-expense-chart';
 import { ExpenseCategoryChart } from '@/components/dashboard/expense-category-chart';
 import { FinancialHealthScore } from '@/components/dashboard/financial-health-score';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query } from 'firebase/firestore';
-import type { Transaction, Debt, Goal } from '@/lib/types';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import type { Transaction, Debt, Goal, Installment } from '@/lib/types';
 import { useManageRecurrences } from '@/hooks/useManageRecurrences';
 import { OverdueDebtsCard } from '@/components/dashboard/overdue-debts-card';
-import { DateRangePicker } from '@/components/dashboard/date-range-picker';
-import { startOfMonth, endOfMonth, parseISO, format } from 'date-fns';
+import { Calendar } from '@/components/ui/calendar';
+import { startOfMonth, endOfMonth, parseISO, format, startOfDay, isBefore } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { QuickActions } from '@/components/dashboard/quick-actions';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { AddDebtSheet } from '@/components/debts/add-debt-sheet';
 import { AddGoalSheet } from '@/components/goals/add-goal-sheet';
 import { incomeCategories, expenseCategories } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
+
+type InstallmentInfo = {
+  debtName: string;
+  amount: number;
+};
 
 export default function DashboardPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const router = useRouter();
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
   useManageRecurrences();
@@ -56,6 +66,47 @@ export default function DashboardPage() {
   const { data: allExpenseData, isLoading: isExpensesLoading } = useCollection<Transaction>(expensesQuery);
   const { data: debtData, isLoading: isDebtsLoading } = useCollection<Debt>(debtsQuery);
   const { data: goalData, isLoading: isGoalsLoading } = useCollection<Goal>(goalsQuery);
+
+  const [installmentOverdueDates, setInstallmentOverdueDates] = useState<Date[]>([]);
+  const [installmentUpcomingDates, setInstallmentUpcomingDates] = useState<Date[]>([]);
+  const [installmentsByDate, setInstallmentsByDate] = useState<Record<string, InstallmentInfo[]>>({});
+  const [hoveredInstallments, setHoveredInstallments] = useState<{ date: Date; items: InstallmentInfo[] } | null>(
+    null,
+  );
+  
+  const incomeExpenseByDate = useMemo(() => {
+    const byDate: Record<string, { income: number; expense: number }> = {};
+
+    (allIncomeData || []).forEach((t) => {
+      const key = startOfDay(parseISO(t.date)).toISOString();
+      if (!byDate[key]) byDate[key] = { income: 0, expense: 0 };
+      byDate[key].income += t.amount;
+    });
+
+    (allExpenseData || []).forEach((t) => {
+      const key = startOfDay(parseISO(t.date)).toISOString();
+      if (!byDate[key]) byDate[key] = { income: 0, expense: 0 };
+      byDate[key].expense += t.amount;
+    });
+
+    return byDate;
+  }, [allIncomeData, allExpenseData]);
+
+  const incomeDates = useMemo(
+    () =>
+      Object.entries(incomeExpenseByDate)
+        .filter(([, v]) => v.income > 0)
+        .map(([key]) => new Date(key)),
+    [incomeExpenseByDate],
+  );
+
+  const expenseDates = useMemo(
+    () =>
+      Object.entries(incomeExpenseByDate)
+        .filter(([, v]) => v.expense > 0)
+        .map(([key]) => new Date(key)),
+    [incomeExpenseByDate],
+  );
   
   const { incomeData, expenseData } = useMemo(() => {
     const start = startOfMonth(selectedDate);
@@ -94,6 +145,59 @@ export default function DashboardPage() {
   }, [incomeData, expenseData, debtData, allIncomeData, allExpenseData]);
 
 
+  useEffect(() => {
+    const fetchInstallmentDueDates = async () => {
+      if (!user || !firestore || !debtData) {
+        setInstallmentOverdueDates([]);
+        setInstallmentUpcomingDates([]);
+        setInstallmentsByDate({});
+        return;
+      }
+
+      const overdue: Date[] = [];
+      const upcoming: Date[] = [];
+      const byDate: Record<string, InstallmentInfo[]> = {};
+
+      try {
+        for (const debt of debtData) {
+          const installmentsQuery = query(
+            collection(firestore, `users/${user.uid}/debts/${debt.id}/installments`),
+            where('status', '==', 'unpaid'),
+          );
+
+          const querySnapshot = await getDocs(installmentsQuery);
+
+          querySnapshot.forEach((doc) => {
+            const installment = doc.data() as Installment;
+            const dueDate = startOfDay(parseISO(installment.dueDate));
+
+            const today = startOfDay(new Date());
+            if (isBefore(dueDate, today)) {
+              overdue.push(dueDate);
+            } else {
+              upcoming.push(dueDate);
+            }
+
+            const key = dueDate.toISOString();
+            if (!byDate[key]) {
+              byDate[key] = [];
+            }
+            byDate[key].push({ debtName: debt.name, amount: installment.amount });
+          });
+        }
+      } catch (error) {
+        console.error('Erro ao buscar parcelas para o calendário:', error);
+      }
+
+      setInstallmentOverdueDates(overdue);
+      setInstallmentUpcomingDates(upcoming);
+      setInstallmentsByDate(byDate);
+    };
+
+    fetchInstallmentDueDates();
+  }, [debtData, user, firestore]);
+
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -106,8 +210,49 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="space-y-8">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-7 w-48" />
+            <Skeleton className="h-4 w-72" />
+          </div>
+          <div className="flex items-center justify-end gap-4">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <Skeleton className="h-5 w-40" />
+            <Skeleton className="h-10 w-10 rounded-full" />
+          </div>
+        </div>
+
+        <div className="rounded-lg border bg-card p-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <Skeleton className="h-9 w-40" />
+            <Skeleton className="h-9 w-40" />
+            <Skeleton className="h-9 w-40" />
+            <Skeleton className="h-9 w-40" />
+          </div>
+        </div>
+
+        <Skeleton className="h-24 w-full rounded-lg" />
+
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="space-y-3 rounded-lg border bg-card p-4">
+              <div className="flex items-center justify-between">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-4 rounded-full" />
+              </div>
+              <Skeleton className="h-7 w-28" />
+              <Skeleton className="h-3 w-32" />
+            </div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+          <Skeleton className="h-[280px] w-full rounded-lg lg:col-span-3" />
+          <Skeleton className="h-[280px] w-full rounded-lg lg:col-span-2" />
+        </div>
+
+        <Skeleton className="h-[260px] w-full rounded-lg" />
       </div>
     );
   }
@@ -134,10 +279,125 @@ export default function DashboardPage() {
         isOpen={isGoalSheetOpen}
         onClose={() => setIsGoalSheetOpen(false)}
       />
-      <div className="space-y-6">
-        <div className="flex justify-center">
-          <DateRangePicker date={selectedDate} onDateChange={setSelectedDate} />
+      <div className="space-y-8">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-semibold tracking-tight">Dashboard financeiro</h1>
+            <p className="text-sm text-muted-foreground">
+              Resumo das suas receitas, despesas e dívidas {descriptionPeriod}.
+            </p>
+          </div>
         </div>
+
+        <Card>
+          <CardHeader className="border-b pb-3">
+            <div className="flex items-center gap-2">
+              <CalendarIcon className="h-5 w-5 text-primary" />
+              <div>
+                <CardTitle className="text-base">Central de Rotinas</CardTitle>
+                <CardDescription className="text-xs md:text-sm">
+                  Visualize o mês atual e acompanhe rapidamente suas pendências financeiras.
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-6 py-4 md:flex-row md:items-start md:justify-between">
+            <div className="flex flex-1 justify-center md:justify-start">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => date && setSelectedDate(date)}
+                locale={ptBR}
+                modifiers={{
+                  overdue: installmentOverdueDates,
+                  upcoming: installmentUpcomingDates,
+                  incomeDay: incomeDates,
+                  expenseDay: expenseDates,
+                }}
+                modifiersClassNames={{
+                  overdue:
+                    'relative after:absolute after:bottom-1 after:left-1/2 after:h-1.5 after:w-1.5 after:-translate-x-1/2 after:rounded-full after:bg-destructive',
+                  upcoming:
+                    'relative after:absolute after:bottom-1 after:left-1/2 after:h-1.5 after:w-1.5 after:-translate-x-1/2 after:rounded-full after:bg-amber-500',
+                  incomeDay:
+                    'relative after:absolute after:top-1 after:right-1 after:h-1.5 after:w-1.5 after:rounded-full after:bg-emerald-500',
+                  expenseDay:
+                    'relative after:absolute after:top-1 after:left-1 after:h-1.5 after:w-1.5 after:rounded-full after:bg-sky-500',
+                }}
+                className="rounded-md border"
+                onDayMouseEnter={(day) => {
+                  const key = startOfDay(day).toISOString();
+                  const items = installmentsByDate[key];
+                  if (items && items.length) {
+                    setHoveredInstallments({ date: day, items });
+                  } else {
+                    setHoveredInstallments(null);
+                  }
+                }}
+                onDayMouseLeave={() => setHoveredInstallments(null)}
+                onDayClick={(day) => {
+                  const key = startOfDay(day).toISOString();
+                  const items = installmentsByDate[key];
+                  setSelectedDate(day);
+                  if (items && items.length) {
+                    const dateStr = format(day, 'yyyy-MM-dd');
+                    router.push(`/debts?dueDate=${dateStr}`);
+                  }
+                }}
+              />
+            </div>
+
+            {hoveredInstallments && (
+              <div className="hidden flex-1 space-y-2 rounded-md bg-muted/60 p-3 text-sm md:block">
+                <p className="text-xs font-semibold text-muted-foreground">
+                  Parcelas com vencimento em{' '}
+                  {format(hoveredInstallments.date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                </p>
+                <ul className="space-y-1">
+                  {hoveredInstallments.items.map((item, index) => (
+                    <li key={index} className="flex items-center justify-between gap-2">
+                      <span className="text-muted-foreground">{item.debtName}</span>
+                      <span className="font-medium">
+                        {new Intl.NumberFormat('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL',
+                        }).format(item.amount)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="flex-1 space-y-3 md:border-l md:pl-6">
+              <h3 className="text-sm font-semibold text-destructive">Pendências críticas</h3>
+              {totalDebt > 0 ? (
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center justify-between gap-2">
+                    <span className="text-muted-foreground">
+                      Você possui dívidas em aberto que impactam seu saldo.
+                    </span>
+                    <Link
+                      href="/debts"
+                      className="whitespace-nowrap text-xs font-medium text-primary hover:underline"
+                    >
+                      Ver pendências
+                    </Link>
+                  </li>
+                </ul>
+              ) : (
+                <p className="text-sm text-emerald-600">Nenhuma pendência crítica no momento.</p>
+              )}
+
+              <Link
+                href="/reports"
+                className="text-xs font-medium text-primary hover:underline"
+              >
+                Ir para a central de relatórios →
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
 
         <QuickActions
           onAddIncome={() => setIsIncomeSheetOpen(true)}
@@ -148,30 +408,39 @@ export default function DashboardPage() {
 
         <OverdueDebtsCard debts={debtData || []} />
 
+        {!incomeData?.length && !expenseData?.length && (
+          <div className="rounded-lg border bg-muted/40 p-4 text-sm text-muted-foreground">
+            <p>
+              Você ainda não registrou rendas ou despesas neste período. Use as ações rápidas acima para começar a
+              acompanhar suas finanças.
+            </p>
+          </div>
+        )}
+
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <KpiCard
             title="Renda Total"
             value={formatCurrency(totalIncome)}
             icon={Landmark}
-            description={`Renda total ${descriptionPeriod}`}
+            description={`Total de rendas registradas ${descriptionPeriod}`}
           />
           <KpiCard
             title="Despesas Totais"
             value={formatCurrency(totalExpenses)}
             icon={CreditCard}
-            description={`Despesas totais ${descriptionPeriod}`}
+            description={`Total de despesas registradas ${descriptionPeriod}`}
           />
           <KpiCard
             title="Balanço Geral"
             value={formatCurrency(balance)}
             icon={Scale}
-            description="Balanço total de todas as transações"
+            description="Diferença entre todas as rendas e despesas registradas"
           />
           <KpiCard
             title="Dívida Pendente"
             value={formatCurrency(totalDebt)}
             icon={Banknote}
-            description="Saldo devedor total restante"
+            description="Total que ainda falta pagar em dívidas registradas"
           />
         </div>
 
@@ -193,6 +462,26 @@ export default function DashboardPage() {
             transactions={expenseData || []}
           />
         </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Relatórios detalhados</CardTitle>
+            <CardDescription>
+              Gere análises mais profundas das suas finanças com filtros avançados e exportação de dados.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-muted-foreground">
+              Acesse a Central de Relatórios para explorar suas transações com mais detalhe.
+            </p>
+            <Link
+              href="/reports"
+              className="inline-flex items-center justify-center rounded-md border bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+            >
+              Ver relatórios
+            </Link>
+          </CardContent>
+        </Card>
       </div>
     </>
   );

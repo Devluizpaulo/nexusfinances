@@ -113,6 +113,17 @@ export function FinancialHealthScore({
   const scoreColor = score < 40 ? 'hsl(var(--destructive))' : score < 80 ? 'hsl(var(--chart-4))' : 'hsl(var(--chart-1))';
 
   const visibleMissions = showAllMissions ? missions : missions.slice(0, 3);
+
+  const completedMissions = missions.filter((mission) => mission.isCompleted).length;
+  const totalMissions = missions.length;
+
+  const scoreLabel = score === 0
+    ? 'Comece completando suas primeiras missões.'
+    : score < 40
+      ? 'Sua saúde financeira ainda está frágil. Foque em completar as próximas missões.'
+      : score < 80
+        ? 'Bom caminho! Continue acompanhando e cumprindo as missões.'
+        : 'Excelente! Mantenha seus hábitos e revise suas metas periodicamente.';
   
   return (
     <Card>
@@ -130,7 +141,7 @@ export function FinancialHealthScore({
         </div>
       </CardHeader>
       <CardContent className="grid gap-8 md:grid-cols-2">
-        <div className="flex flex-col items-center justify-center space-y-2">
+        <div className="flex flex-col items-center justify-center space-y-2 text-center">
             <ChartContainer
                 config={{
                     score: {
@@ -155,23 +166,39 @@ export function FinancialHealthScore({
             <span className="text-5xl font-bold" style={{ color: scoreColor }}>
                 {score.toFixed(0)}
             </span>
-            <p className="text-sm text-muted-foreground">Pontos de Saúde Financeira</p>
+            <p className="text-sm font-medium">Pontos de Saúde Financeira</p>
+            <p className="max-w-xs text-xs text-muted-foreground">{scoreLabel}</p>
         </div>
 
-        <div className="flex flex-col justify-center space-y-3">
-            <h3 className="font-semibold">Missões do Mês</h3>
-             {visibleMissions.map((mission) => (
-                <div key={mission.id} className="flex items-center gap-3">
-                    {mission.isCompleted ? (
-                        <CheckCircle2 className="h-5 w-5 text-green-500" />
-                    ) : (
-                        <XCircle className="h-5 w-5 text-muted-foreground/50" />
+        <div className="flex flex-col justify-center space-y-4">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="font-semibold">Missões do Mês</h3>
+              <span className="text-xs text-muted-foreground">
+                {completedMissions} de {totalMissions} missões concluídas
+              </span>
+            </div>
+             <div className="space-y-2">
+               {visibleMissions.map((mission) => (
+                  <div
+                    key={mission.id}
+                    className={cn(
+                      'flex items-start gap-3 rounded-md border px-3 py-2 text-sm',
+                      mission.isCompleted
+                        ? 'border-emerald-200 bg-emerald-50/60 text-emerald-900 dark:border-emerald-900/60 dark:bg-emerald-900/10 dark:text-emerald-100'
+                        : 'border-border bg-background'
                     )}
-                    <span className={cn("text-sm", mission.isCompleted ? "text-muted-foreground" : "text-foreground")}>
-                        {mission.description}
-                    </span>
-                </div>
-            ))}
+                  >
+                      {mission.isCompleted ? (
+                          <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-500" />
+                      ) : (
+                          <XCircle className="mt-0.5 h-4 w-4 text-muted-foreground/60" />
+                      )}
+                      <span className={cn('text-sm', mission.isCompleted ? 'text-emerald-900 dark:text-emerald-50' : 'text-foreground')}>
+                          {mission.description}
+                      </span>
+                  </div>
+              ))}
+             </div>
         </div>
       </CardContent>
        <CardFooter className="justify-center">
