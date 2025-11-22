@@ -148,6 +148,16 @@ export const GetFinancialInsightsOutputSchema = z.object({
 });
 export type GetFinancialInsightsOutput = z.infer<typeof GetFinancialInsightsOutputSchema>;
 
+type DetailItem = {
+  title: string;
+  details: string;
+};
+
+type ExperienceItem = DetailItem & {
+  description: string;
+};
+
+
 export type EducationTrack = {
   slug: string;
   title: string;
@@ -160,14 +170,11 @@ export type EducationTrack = {
     introduction: string;
     psychology: {
       title: string;
-      points: string[];
+      points: DetailItem[];
     },
     practicalExperiences: {
       title: string,
-      experiences: {
-        title: string,
-        description: string,
-      }[]
+      experiences: ExperienceItem[]
     },
     microHabits: {
       title: string,
