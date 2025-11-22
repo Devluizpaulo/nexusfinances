@@ -1,3 +1,4 @@
+
 import { Banknote, BookOpen, Calculator, FileText, Goal, HeartHandshake, Landmark, PiggyBank, Receipt, Sparkles, Zap, type LucideIcon } from 'lucide-react';
 import { PayoffSimulator } from '@/components/education/PayoffSimulator';
 import { InterestCalculator } from '@/components/education/InterestCalculator';
@@ -128,6 +129,7 @@ export const educationTracks: EducationTrack[] = [
           'Você sabe o que é "amortizar" uma dívida?',
           'Você já tentou pagar uma parcela a mais do seu financiamento?',
           'Você sabe qual sistema de amortização do seu contrato (SAC ou Price)?',
+          'Você sabe qual o Custo Efetivo Total (CET) do seu financiamento?',
         ]
       },
       metaphor: {
@@ -153,18 +155,23 @@ export const educationTracks: EducationTrack[] = [
       },
       examples: [
           {
-              scenario: "Exemplo: Carlos tinha um financiamento de 360 meses. Ele começou a pagar R$ 200 a mais por mês.",
-              consequence: "Com essa pequena amortização mensal, ele conseguiu reduzir o tempo do financiamento em quase 10 anos e economizou dezenas de milhares de reais em juros."
+            scenario: "Exemplo: Carlos tinha um financiamento de 360 meses. Ele começou a pagar R$ 200 a mais por mês.",
+            consequence: "Com essa pequena amortização mensal, ele conseguiu reduzir o tempo do financiamento em quase 10 anos e economizou dezenas de milhares de reais em juros."
           }
       ],
       finalQuiz: {
         title: 'Teste seu Conhecimento',
         questions: [
             {
-                question: 'O que é "amortizar" um financiamento?',
-                options: ['Pagar apenas os juros da parcela', 'Adiantar o pagamento de parcelas futuras, abatendo do saldo devedor principal', 'Renegociar a taxa de juros'],
-                correctAnswer: 'Adiantar o pagamento de parcelas futuras, abatendo do saldo devedor principal'
+              question: 'O que é "amortizar" um financiamento?',
+              options: ['Pagar apenas os juros da parcela', 'Adiantar o pagamento de parcelas futuras, abatendo do saldo devedor principal', 'Renegociar a taxa de juros'],
+              correctAnswer: 'Adiantar o pagamento de parcelas futuras, abatendo do saldo devedor principal'
             },
+            {
+              question: 'Ao amortizar um financiamento, o que geralmente economiza mais dinheiro em juros?',
+              options: ['Reduzir o valor das parcelas futuras', 'Reduzir o prazo, ou seja, o número de parcelas restantes', 'Pedir um desconto no saldo devedor'],
+              correctAnswer: 'Reduzir o prazo, ou seja, o número de parcelas restantes'
+            }
         ]
       },
       tool: PayoffSimulator,
@@ -186,6 +193,7 @@ export const educationTracks: EducationTrack[] = [
           'Você já tentou negociar uma dívida antes?',
           'Você se sente ansioso só de pensar em ligar para um credor?',
           'Você sabe exatamente quanto pode pagar em um acordo?',
+          'Você tem medo de dizer "não" para a primeira oferta?',
         ]
       },
       metaphor: {
@@ -227,6 +235,11 @@ export const educationTracks: EducationTrack[] = [
                 options: ['Juntar o máximo de dinheiro possível', 'Saber exatamente sua situação financeira e quanto você pode pagar', 'Pedir dinheiro emprestado'],
                 correctAnswer: 'Saber exatamente sua situação financeira e quanto você pode pagar'
             },
+            {
+                question: 'O que você deve fazer ao receber a primeira proposta do credor?',
+                options: ['Aceitar imediatamente para não perder a oportunidade', 'Analisar se ela cabe no seu orçamento e contrapropor se necessário', 'Desligar o telefone'],
+                correctAnswer: 'Analisar se ela cabe no seu orçamento e contrapropor se necessário'
+            }
         ]
       },
     },
@@ -247,6 +260,7 @@ export const educationTracks: EducationTrack[] = [
           'Você anota seus gastos todos os dias?',
           'Você sabe exatamente para onde seu dinheiro foi no mês passado?',
           'Você costuma guardar dinheiro que "sobra" sem um objetivo claro?',
+          'Você se sente no controle de suas finanças?',
         ]
       },
       metaphor: {
@@ -288,6 +302,11 @@ export const educationTracks: EducationTrack[] = [
                 options: ['Investir na bolsa', 'Registrar todos os gastos diariamente', 'Cortar todos os luxos'],
                 correctAnswer: 'Registrar todos os gastos diariamente'
             },
+            {
+                question: 'Qual o propósito da "Missão Semanal"?',
+                options: ['Pagar todas as contas da semana', 'Revisar o painel para entender seus gastos e progresso', 'Criar um novo orçamento para a semana'],
+                correctAnswer: 'Revisar o painel para entender seus gastos e progresso'
+            }
         ]
       },
     },
@@ -308,6 +327,7 @@ export const educationTracks: EducationTrack[] = [
           'Seu saldo bancário fica negativo com frequência?',
           'Você usa o limite do cheque especial para pagar contas do mês?',
           'Você considera o limite do cheque especial como parte da sua renda?',
+          'Você já pagou juros sobre juros no cheque especial?',
         ]
       },
       metaphor: {
@@ -345,6 +365,11 @@ export const educationTracks: EducationTrack[] = [
                 options: ['Para complementar o salário todo mês', 'Para emergências muito curtas, de um ou dois dias', 'Para fazer compras parceladas'],
                 correctAnswer: 'Para emergências muito curtas, de um ou dois dias'
             },
+            {
+                question: 'Qual a melhor alternativa para sair de uma dívida de cheque especial?',
+                options: ['Esperar a dívida caducar', 'Tentar cobrir o saldo com o rotativo do cartão de crédito', 'Negociar um empréstimo pessoal com juros menores para quitar o saldo'],
+                correctAnswer: 'Negociar um empréstimo pessoal com juros menores para quitar o saldo'
+            }
         ]
       },
     },
@@ -365,6 +390,7 @@ export const educationTracks: EducationTrack[] = [
           'Você já teve algum serviço cortado por falta de pagamento?',
           'Você costuma pagar contas depois do vencimento e com juros?',
           'Você não tem um lugar central para ver todas as suas contas do mês?',
+          'Você se sente sobrecarregado com a quantidade de boletos para pagar?',
         ]
       },
       metaphor: {
@@ -402,6 +428,11 @@ export const educationTracks: EducationTrack[] = [
                 options: ['Assinaturas de streaming', 'Contas essenciais como aluguel, água e luz', 'Fatura do cartão de crédito'],
                 correctAnswer: 'Contas essenciais como aluguel, água e luz'
             },
+            {
+                question: 'Qual a principal vantagem de colocar contas em débito automático?',
+                options: ['Receber descontos na fatura', 'Evitar o esquecimento e o pagamento de multas por atraso', 'Aumentar seu score de crédito'],
+                correctAnswer: 'Evitar o esquecimento e o pagamento de multas por atraso'
+            }
         ]
       },
     },
