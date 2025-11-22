@@ -3,20 +3,10 @@ import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton
 import { LayoutDashboard, Landmark, CreditCard, Banknote, DollarSign, Loader2, Target, LogOut, UserCircle, LifeBuoy, ShieldCheck, PiggyBank, BarChart3, GraduationCap, Pin, PinOff } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '../ui/button';
 import { useSidebar } from '../ui/sidebar';
 import { cn } from '@/lib/utils';
-import { useUser, useAuth } from '@/firebase';
-import { signOut } from 'firebase/auth';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { useUser } from '@/firebase';
 
 
 const mainMenuItems = [
@@ -36,76 +26,13 @@ const secondaryMenuItems = [
 export function AppSidebar() {
   const pathname = usePathname();
   const { state, isMobile, setOpenMobile, isPinned, togglePinned } = useSidebar();
-  const { user, isUserLoading } = useUser();
-  const auth = useAuth();
-
-  const handleSignOut = async () => {
-    if (!auth) return;
-    try {
-        await signOut(auth);
-    } catch (error) {
-        console.error("Erro ao fazer logout:", error);
-    }
-  };
+  const { user } = useUser();
 
   const handleMobileClick = () => {
     if (isMobile) {
       setOpenMobile(false);
     }
   };
-
-  const getFirstName = (displayName: string | null | undefined) => {
-    if (!displayName) return 'Usuário';
-    return displayName.split(' ')[0];
-  }
-
-  const renderUserContent = () => {
-    if (isUserLoading) {
-        return (
-            <div className="flex items-center gap-3 p-2 rounded-md bg-secondary">
-                 <Loader2 className="size-9 animate-spin" />
-                 <div className={cn("flex flex-col", state === "collapsed" && "hidden")}>
-                    <span className="font-semibold text-sm">Carregando...</span>
-                </div>
-            </div>
-        )
-    }
-
-    if(user && !isPinned) {
-        return (
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className={cn("w-full justify-start items-center gap-3 p-2 h-auto", state === "collapsed" && "px-2 w-auto h-12 justify-center")}>
-                        <Avatar className="size-9">
-                            <AvatarImage src={user?.photoURL || undefined} alt="Avatar do usuário"/>
-                            <AvatarFallback>{user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
-                        </Avatar>
-                        <div className={cn("flex flex-col items-start overflow-hidden", state === "collapsed" && "hidden")}>
-                            <span className="font-semibold text-sm truncate">{getFirstName(user?.displayName)}</span>
-                            <span className="text-xs text-muted-foreground truncate">{user?.email}</span>
-                        </div>
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent side="right" align="start" className="w-56">
-                    <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <Link href="/profile">
-                        <DropdownMenuItem>
-                            <UserCircle className="mr-2" />
-                            <span>Perfil & Configuração</span>
-                        </DropdownMenuItem>
-                    </Link>
-                    <DropdownMenuItem onClick={handleSignOut}>
-                        <LogOut className="mr-2" />
-                        <span>Sair</span>
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
-        )
-    }
-
-    return null;
-  }
 
   return (
     <Sidebar variant="sidebar" collapsible="icon">
@@ -155,7 +82,6 @@ export function AppSidebar() {
             <SidebarSeparator />
             
             <div className="flex flex-col gap-2">
-                {renderUserContent()}
                 <SidebarMenuButton onClick={togglePinned} tooltip={isPinned ? 'Desafixar menu' : 'Fixar menu'}>
                     {isPinned ? <PinOff/> : <Pin />}
                     <span>{isPinned ? 'Menu Flutuante' : 'Fixar Menu'}</span>
