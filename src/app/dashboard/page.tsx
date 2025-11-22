@@ -27,7 +27,7 @@ import { useDashboardDate } from '@/context/dashboard-date-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { getFinancialInsights, type GetFinancialInsightsInput } from '@/ai/flows/financial-insights-flow';
-import AdBanner from '@/components/ads/AdBanner';
+import { AdSenseScript } from '@/components/ads/AdSenseScript';
 
 type InstallmentInfo = {
   debtName: string;
@@ -355,7 +355,7 @@ export default function DashboardPage() {
             </div>
             
             <div className="my-6">
-              <AdBanner />
+               <AdSenseScript adSlot="5124339999" />
             </div>
 
             <div className="space-y-5">

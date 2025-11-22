@@ -18,6 +18,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { AdSenseScript } from '@/components/ads/AdSenseScript';
 
 function ClientRoot() {
   const { user, isUserLoading } = useUser();
@@ -70,6 +71,11 @@ function ClientRoot() {
       </header>
 
       <main>
+        {/* Ad container for verification */}
+        <div style={{ display: 'none' }}>
+            <AdSenseScript adSlot="5124339999" />
+        </div>
+
         {/* Hero Section */}
         <section className="relative border-b bg-gradient-to-b from-primary/10 via-background to-background py-20 md:py-28">
             <div className="container mx-auto grid grid-cols-1 items-center gap-12 px-4 md:grid-cols-2">
