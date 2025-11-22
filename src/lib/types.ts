@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 import type { LucideIcon } from 'lucide-react';
 
@@ -157,25 +158,25 @@ export type EducationTrack = {
   borderColor: string;
   content: {
     introduction: string;
-    diagnostic: {
+    psychology: {
       title: string;
-      questions: string[];
-    };
-    metaphor: {
-      title: string;
-      description: string;
-    };
-    actionSteps: {
-      title: string;
-      steps: {
-        title: string;
-        description: string;
-      }[];
-    };
-    examples: {
-      scenario: string;
-      consequence: string;
-    }[];
+      points: string[];
+    },
+    practicalExperiences: {
+      title: string,
+      experiences: {
+        title: string,
+        description: string,
+      }[]
+    },
+    microHabits: {
+      title: string,
+      habits: string[],
+    },
+    narrative: {
+      title: string,
+      description: string,
+    },
     finalQuiz: {
       title: string;
       questions: {
