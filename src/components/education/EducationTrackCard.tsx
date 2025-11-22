@@ -37,18 +37,19 @@ export function EducationTrackCard({ track, isCompleted }: EducationTrackCardPro
         <CardContent className="flex-grow pt-4">
           <p className="text-sm text-muted-foreground">{track.description}</p>
         </CardContent>
-        <CardFooter className="pt-2">
+        <CardFooter className="flex w-full items-center justify-between pt-2">
             {isCompleted ? (
                  <Badge variant="secondary" className="flex items-center gap-1.5 bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300">
                     <CheckCircle2 className="h-3.5 w-3.5" />
                     <span>Concluída</span>
                 </Badge>
             ) : (
-                <div className="flex w-full items-center justify-end text-xs font-semibold text-primary group-hover:underline">
-                    Começar trilha
-                    <ChevronRight className="ml-1 h-4 w-4" />
-                </div>
+                <Badge variant="outline" className="font-medium">Começar</Badge>
             )}
+             <div className="flex w-full items-center justify-end text-xs font-semibold text-primary opacity-0 transition-opacity group-hover:opacity-100">
+                Ver trilha
+                <ChevronRight className="ml-1 h-4 w-4" />
+            </div>
         </CardFooter>
       </Card>
     </Link>
