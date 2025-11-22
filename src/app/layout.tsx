@@ -3,6 +3,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
 import { ThemeProvider } from "@/components/theme-provider";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "xô planilhas",
@@ -41,6 +42,12 @@ export default function RootLayout({
           </FirebaseClientProvider>
         </ThemeProvider>
         <Toaster />
+        <Script
+            async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5750464088623363"
+            crossOrigin="anonymous"
+            strategy="afterInteractive"
+          />
       </body>
     </html>
   );
