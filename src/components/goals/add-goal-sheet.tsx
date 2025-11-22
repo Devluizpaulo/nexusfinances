@@ -11,6 +11,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import {
   Form,
@@ -118,7 +119,7 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Adicionar Nova Reserva/Investimento</DialogTitle>
           <DialogDescription>
@@ -126,7 +127,7 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4 space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="name"
@@ -256,16 +257,18 @@ export function AddGoalSheet({ isOpen, onClose }: AddGoalSheetProps) {
                 </FormItem>
               )}
             />
-            <Button
-              type="submit"
-              disabled={form.formState.isSubmitting || !user}
-              className="w-full"
-            >
-              {form.formState.isSubmitting && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              Salvar Objetivo
-            </Button>
+            <DialogFooter>
+                <Button
+                type="submit"
+                disabled={form.formState.isSubmitting || !user}
+                className="w-full"
+                >
+                {form.formState.isSubmitting && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Salvar Objetivo
+                </Button>
+            </DialogFooter>
           </form>
         </Form>
       </DialogContent>
