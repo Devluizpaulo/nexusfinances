@@ -5,11 +5,10 @@ import { KpiCard } from '@/components/dashboard/kpi-card';
 import { Banknote, Landmark, CreditCard, Scale, Loader2 } from 'lucide-react';
 import { IncomeExpenseChart } from '@/components/dashboard/income-expense-chart';
 import { ExpenseCategoryChart } from '@/components/dashboard/expense-category-chart';
-import { AiInsights } from '@/components/dashboard/ai-insights';
-import type { FinancialInsightsInput } from '@/ai/flows/financial-insights-generator';
+import { FinancialHealthScore } from '@/components/dashboard/financial-health-score';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query } from 'firebase/firestore';
-import type { Transaction, Debt, Goal, IncomeCategory, ExpenseCategory } from '@/lib/types';
+import type { Transaction, Debt, Goal } from '@/lib/types';
 import { useManageRecurrences } from '@/hooks/useManageRecurrences';
 import { OverdueDebtsCard } from '@/components/dashboard/overdue-debts-card';
 import { DateRangePicker } from '@/components/dashboard/date-range-picker';
@@ -47,10 +46,16 @@ export default function DashboardPage() {
     if (!user) return null;
     return query(collection(firestore, `users/${user.uid}/debts`));
   }, [firestore, user]);
+  
+  const goalsQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(collection(firestore, `users/${user.uid}/goals`));
+  }, [firestore, user]);
 
   const { data: allIncomeData, isLoading: isIncomeLoading } = useCollection<Transaction>(transactionsQuery);
   const { data: allExpenseData, isLoading: isExpensesLoading } = useCollection<Transaction>(expensesQuery);
   const { data: debtData, isLoading: isDebtsLoading } = useCollection<Debt>(debtsQuery);
+  const { data: goalData, isLoading: isGoalsLoading } = useCollection<Goal>(goalsQuery);
   
   const { incomeData, expenseData } = useMemo(() => {
     const start = startOfMonth(selectedDate);
@@ -76,7 +81,7 @@ export default function DashboardPage() {
   }, [allIncomeData, allExpenseData]);
 
 
-  const { totalIncome, totalExpenses, totalDebt, balance, spendingByCategory } = useMemo(() => {
+  const { totalIncome, totalExpenses, totalDebt, balance } = useMemo(() => {
     const totalIncome = incomeData?.reduce((sum, t) => sum + t.amount, 0) || 0;
     const totalExpenses = expenseData?.reduce((sum, t) => sum + t.amount, 0) || 0;
     const totalDebt = debtData?.reduce((sum, d) => sum + (d.totalAmount - (d.paidAmount || 0)), 0) || 0;
@@ -85,15 +90,7 @@ export default function DashboardPage() {
     const allTimeExpenses = allExpenseData?.reduce((sum, t) => sum + t.amount, 0) || 0;
     const balance = allTimeIncome - allTimeExpenses;
 
-    const spendingByCategory = expenseData?.reduce((acc, t) => {
-        if (!acc[t.category]) {
-          acc[t.category] = 0;
-        }
-        acc[t.category] += t.amount;
-        return acc;
-      }, {} as Record<string, number>) || {};
-
-    return { totalIncome, totalExpenses, totalDebt, balance, spendingByCategory };
+    return { totalIncome, totalExpenses, totalDebt, balance };
   }, [incomeData, expenseData, debtData, allIncomeData, allExpenseData]);
 
 
@@ -103,17 +100,8 @@ export default function DashboardPage() {
       currency: 'BRL',
     }).format(amount);
   };
-  
-  const financialData: FinancialInsightsInput = {
-    income: totalIncome,
-    expenses: totalExpenses,
-    debts: totalDebt,
-    savings: totalIncome - totalExpenses,
-    spendingByCategory: spendingByCategory,
-    savingsGoals: { 'Carro Novo': 25000, 'Férias': 5000 },
-  };
 
-  const isLoading = isUserLoading || isIncomeLoading || isExpensesLoading || isDebtsLoading;
+  const isLoading = isUserLoading || isIncomeLoading || isExpensesLoading || isDebtsLoading || isGoalsLoading;
   const descriptionPeriod = `em ${format(selectedDate, 'MMMM/yyyy', { locale: ptBR })}`;
 
   if (isLoading) {
@@ -197,7 +185,13 @@ export default function DashboardPage() {
         </div>
 
         <div>
-          <AiInsights financialData={financialData} />
+          <FinancialHealthScore
+            income={totalIncome}
+            expenses={totalExpenses}
+            debts={debtData || []}
+            goals={goalData || []}
+            transactions={expenseData || []}
+          />
         </div>
       </div>
     </>
