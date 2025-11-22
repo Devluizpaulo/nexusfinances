@@ -195,7 +195,7 @@ const FinalQuizModule = ({ module, track, user, onQuizComplete }: { module: any,
     }
   }, [isCompleted]);
 
-  const handleQuizSubmit = async (e: React.FormEvent) => {
+  const handleQuizSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !firestore) {
       toast({ variant: 'destructive', title: 'Erro', description: 'Você precisa estar logado para salvar seu progresso.' });
@@ -213,23 +213,16 @@ const FinalQuizModule = ({ module, track, user, onQuizComplete }: { module: any,
     if (score > 50) {
         if(!isCompleted) {
             const userDocRef = doc(firestore, 'users', user.uid);
-            try {
-                updateDocumentNonBlocking(userDocRef, {
-                completedTracks: arrayUnion(track.slug)
-                });
-                toast({
-                title: "Trilha Concluída!",
-                description: `Parabéns! Você concluiu a trilha "${track.title}".`,
-                className: "bg-emerald-100 border-emerald-300 text-emerald-800 dark:bg-emerald-800/50 dark:border-emerald-700 dark:text-emerald-200"
-                });
-                onQuizComplete();
-            } catch (error) {
-                console.error("Error updating user progress:", error);
-                toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar seu progresso. Tente novamente.' });
-            }
-        } else {
-            onQuizComplete(); // Still allow progression if already completed
+            updateDocumentNonBlocking(userDocRef, {
+              completedTracks: arrayUnion(track.slug)
+            });
+            toast({
+              title: "Trilha Concluída!",
+              description: `Parabéns! Você concluiu a trilha "${track.title}".`,
+              className: "bg-emerald-100 border-emerald-300 text-emerald-800 dark:bg-emerald-800/50 dark:border-emerald-700 dark:text-emerald-200"
+            });
         }
+        onQuizComplete();
     } else {
         toast({
             variant: "destructive",
