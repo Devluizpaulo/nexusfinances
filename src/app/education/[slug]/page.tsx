@@ -49,7 +49,7 @@ function parseMarkdown(text: string): React.ReactNode[] {
 
 
 // Sub-components for each module
-const PsychologyModule = ({ content, onPointClick, readItems }: { content: EducationTrack['content']['psychology'], onPointClick: (point: any) => void, readItems: Set<string> }) => (
+const PsychologyModule = ({ content, onPointClick, readItems }: { content: any, onPointClick: (point: any) => void, readItems: Set<string> }) => (
   <Card>
     <CardHeader>
       <CardTitle className="flex items-center gap-2">
@@ -59,7 +59,7 @@ const PsychologyModule = ({ content, onPointClick, readItems }: { content: Educa
       <CardDescription>Entenda os "porquês" por trás das suas ações financeiras.</CardDescription>
     </CardHeader>
     <CardContent className="space-y-3">
-      {content.points.map((point, index) => (
+      {content.points.map((point: any, index: number) => (
         <button
           key={index}
           onClick={() => onPointClick(point)}
@@ -74,7 +74,7 @@ const PsychologyModule = ({ content, onPointClick, readItems }: { content: Educa
   </Card>
 );
 
-const PracticalExperiencesModule = ({ content, onExperienceClick, readItems }: { content: EducationTrack['content']['practicalExperiences'], onExperienceClick: (exp: any) => void, readItems: Set<string> }) => (
+const PracticalExperiencesModule = ({ content, onExperienceClick, readItems }: { content: any, onExperienceClick: (exp: any) => void, readItems: Set<string> }) => (
   <Card>
     <CardHeader>
       <CardTitle className="flex items-center gap-2">
@@ -84,7 +84,7 @@ const PracticalExperiencesModule = ({ content, onExperienceClick, readItems }: {
       <CardDescription>Exercícios para conectar o aprendizado à sua vida real.</CardDescription>
     </CardHeader>
     <CardContent className="space-y-4">
-      {content.experiences.map((exp, index) => (
+      {content.experiences.map((exp: any, index: number) => (
         <button
           key={index}
           onClick={() => onExperienceClick(exp)}
@@ -101,7 +101,7 @@ const PracticalExperiencesModule = ({ content, onExperienceClick, readItems }: {
   </Card>
 );
 
-const MicroHabitsModule = ({ content }: { content: EducationTrack['content']['microHabits'] }) => (
+const MicroHabitsModule = ({ content }: { content: any }) => (
   <Card>
     <CardHeader>
       <CardTitle className="flex items-center gap-2">
@@ -111,7 +111,7 @@ const MicroHabitsModule = ({ content }: { content: EducationTrack['content']['mi
       <CardDescription>Pequenas ações diárias para construir grandes mudanças.</CardDescription>
     </CardHeader>
     <CardContent className="space-y-3">
-      {content.habits.map((habit, index) => (
+      {content.habits.map((habit: string, index: number) => (
         <div key={index} className="flex items-start space-x-3 rounded-md border p-4">
           <Checkbox id={`habit-${index}`} className="mt-1" />
           <div className="grid gap-1.5 leading-none">
@@ -125,7 +125,7 @@ const MicroHabitsModule = ({ content }: { content: EducationTrack['content']['mi
   </Card>
 );
 
-const NarrativeModule = ({ content }: { content: EducationTrack['content']['narrative'] }) => (
+const NarrativeModule = ({ content }: { content: any }) => (
   <Card className="bg-primary/5 border-primary/20">
     <CardHeader>
       <CardTitle className="flex items-center gap-2">
@@ -142,25 +142,26 @@ const NarrativeModule = ({ content }: { content: EducationTrack['content']['narr
   </Card>
 );
 
-const ToolModule = ({ content }: { content: EducationTrack['content'] }) => {
-  if (!content.tool) return null;
+const ToolModule = ({ module }: { module: any }) => {
+  if (!module.component) return null;
+  const ToolComponent = module.component;
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Zap className="h-5 w-5 text-sky-500" />
-          Módulo 5: Ferramenta na Prática
+          Módulo 5: {module.title}
         </CardTitle>
         <CardDescription>Use esta ferramenta para tomar decisões melhores.</CardDescription>
       </CardHeader>
       <CardContent>
-        <content.tool />
+        <ToolComponent />
       </CardContent>
     </Card>
   );
 };
 
-const FinalQuizModule = ({ track, user }: { track: EducationTrack, user: any }) => {
+const FinalQuizModule = ({ module, track, user }: { module: any, track: EducationTrack, user: any }) => {
   const { toast } = useToast();
   const firestore = useFirestore();
   const [quizAnswers, setQuizAnswers] = useState<Record<string, string>>({});
@@ -182,10 +183,10 @@ const FinalQuizModule = ({ track, user }: { track: EducationTrack, user: any }) 
 
     setShowQuizResult(true);
 
-    const correctAnswers = track.content.finalQuiz.questions.filter(
-      (q, index) => quizAnswers[index] === q.correctAnswer
+    const correctAnswers = module.questions.filter(
+      (q: any, index: number) => quizAnswers[index] === q.correctAnswer
     ).length;
-    const totalQuestions = track.content.finalQuiz.questions.length;
+    const totalQuestions = module.questions.length;
     const score = (correctAnswers / totalQuestions) * 100;
 
     toast({
@@ -216,13 +217,13 @@ const FinalQuizModule = ({ track, user }: { track: EducationTrack, user: any }) 
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Check className="h-5 w-5 text-green-600" />
-          Módulo 6: Teste seu Conhecimento
+          Módulo 6: {module.title}
         </CardTitle>
         <CardDescription>Valide o que você aprendeu e ganhe pontos.</CardDescription>
       </CardHeader>
       <form onSubmit={handleQuizSubmit}>
         <CardContent className="space-y-6">
-          {track.content.finalQuiz.questions.map((q, qIndex) => (
+          {module.questions.map((q: any, qIndex: number) => (
             <div key={qIndex}>
               <p className="font-medium text-sm mb-2">{qIndex + 1}. {q.question}</p>
               <RadioGroup
@@ -230,7 +231,7 @@ const FinalQuizModule = ({ track, user }: { track: EducationTrack, user: any }) 
                 value={quizAnswers[qIndex]}
                 disabled={showQuizResult}
               >
-                {q.options.map((opt, oIndex) => {
+                {q.options.map((opt: string, oIndex: number) => {
                    const isCorrect = q.correctAnswer === opt;
                    const isSelected = quizAnswers[qIndex] === opt;
                    
@@ -254,7 +255,7 @@ const FinalQuizModule = ({ track, user }: { track: EducationTrack, user: any }) 
           ))}
         </CardContent>
         <CardFooter>
-          <Button type="submit" disabled={isCompleted || showQuizResult || Object.keys(quizAnswers).length !== track.content.finalQuiz.questions.length}>
+          <Button type="submit" disabled={isCompleted || showQuizResult || Object.keys(quizAnswers).length !== module.questions.length}>
             {isCompleted ? 'Trilha Concluída' : 'Verificar Respostas'}
           </Button>
         </CardFooter>
@@ -286,6 +287,25 @@ export default function EducationTrackPage() {
   };
 
   const Icon = track.icon;
+
+  const renderModule = (module: any, index: number) => {
+    switch (module.type) {
+      case 'psychology':
+        return <PsychologyModule key={index} content={module} onPointClick={setModalContent} readItems={readItems} />;
+      case 'practicalExperiences':
+        return <PracticalExperiencesModule key={index} content={module} onExperienceClick={setModalContent} readItems={readItems} />;
+      case 'microHabits':
+        return <MicroHabitsModule key={index} content={module} />;
+      case 'narrative':
+        return <NarrativeModule key={index} content={module} />;
+      case 'tool':
+        return <ToolModule key={index} module={module} />;
+      case 'finalQuiz':
+        return <FinalQuizModule key={index} module={module} track={track} user={user} />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <>
@@ -325,12 +345,8 @@ export default function EducationTrackPage() {
           <div className="lead !text-lg !text-muted-foreground">{parseMarkdown(track.content.introduction)}</div>
         </div>
 
-        <PsychologyModule content={track.content.psychology} onPointClick={setModalContent} readItems={readItems} />
-        <PracticalExperiencesModule content={track.content.practicalExperiences} onExperienceClick={setModalContent} readItems={readItems} />
-        <MicroHabitsModule content={track.content.microHabits} />
-        <NarrativeModule content={track.content.narrative} />
-        {track.content.tool && <ToolModule content={track.content} />}
-        <FinalQuizModule track={track} user={user} />
+        {track.content.modules.map(renderModule)}
+        
       </div>
     </>
   );

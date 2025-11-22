@@ -157,6 +157,23 @@ type ExperienceItem = DetailItem & {
   description: string;
 };
 
+type QuizQuestion = {
+  question: string;
+  options: string[];
+  correctAnswer: string;
+};
+
+type EducationModule = {
+    type: 'psychology' | 'practicalExperiences' | 'microHabits' | 'narrative' | 'finalQuiz' | 'tool';
+    title: string;
+    points?: DetailItem[];
+    experiences?: ExperienceItem[];
+    habits?: string[];
+    description?: string;
+    questions?: QuizQuestion[];
+    component?: React.ComponentType;
+};
+
 
 export type EducationTrack = {
   slug: string;
@@ -168,31 +185,7 @@ export type EducationTrack = {
   borderColor: string;
   content: {
     introduction: string;
-    psychology: {
-      title: string;
-      points: DetailItem[];
-    },
-    practicalExperiences: {
-      title: string,
-      experiences: ExperienceItem[]
-    },
-    microHabits: {
-      title: string,
-      habits: string[],
-    },
-    narrative: {
-      title: string,
-      description: string,
-    },
-    finalQuiz: {
-      title: string;
-      questions: {
-        question: string;
-        options: string[];
-        correctAnswer: string;
-      }[];
-    };
-    tool?: React.ComponentType;
+    modules: EducationModule[];
   };
 };
 
