@@ -5,5 +5,7 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <AuthenticatedLayout>{children}</AuthenticatedLayout>;
+  return (
+    <AuthenticatedLayout>{children}</AuthenticatedLayout>
+  );
 }

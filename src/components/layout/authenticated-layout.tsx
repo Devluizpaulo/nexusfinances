@@ -6,6 +6,7 @@ import { Loader2 } from 'lucide-react';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { DashboardDateProvider } from '@/context/dashboard-date-context';
 
 export function AuthenticatedLayout({
   children,
@@ -27,14 +28,16 @@ export function AuthenticatedLayout({
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <Header />
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
+    <DashboardDateProvider>
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <Header />
+          <main className="flex-1 overflow-y-auto p-4 lg:p-6">
             {children}
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+          </main>
+        </SidebarInset>
+      </SidebarProvider>
+    </DashboardDateProvider>
   );
 }

@@ -26,9 +26,10 @@ const chartConfig = {
 
 export function IncomeExpenseChart({ transactions }: { transactions: Transaction[] }) {
   const monthlyData = transactions.reduce((acc, transaction) => {
-    const month = format(startOfMonth(parseISO(transaction.date)), 'MMM/yy', { locale: ptBR });
+    const monthDate = startOfMonth(parseISO(transaction.date));
+    const month = format(monthDate, 'MMM/yy', { locale: ptBR });
     if (!acc[month]) {
-      acc[month] = { month, income: 0, expenses: 0 };
+      acc[month] = { month, date: monthDate, income: 0, expenses: 0 };
     }
     if (transaction.type === 'income') {
       acc[month].income += transaction.amount;
@@ -36,16 +37,10 @@ export function IncomeExpenseChart({ transactions }: { transactions: Transaction
       acc[month].expenses += transaction.amount;
     }
     return acc;
-  }, {} as Record<string, { month: string; income: number; expenses: number }>);
+  }, {} as Record<string, { month: string; date: Date; income: number; expenses: number }>);
 
-  // Sort data by date to ensure correct order in the chart
-  const chartData = Object.values(monthlyData).sort((a, b) => {
-      const [aMonth, aYear] = a.month.split('/');
-      const [bMonth, bYear] = b.month.split('/');
-      const aDate = new Date(Number(aYear) + 2000, ptBR.localize?.month(ptBR.match.months?.findIndex(m => m.test(aMonth)) || 0));
-      const bDate = new Date(Number(bYear) + 2000, ptBR.localize?.month(ptBR.match.months?.findIndex(m => m.test(bMonth)) || 0));
-      return aDate.getTime() - bDate.getTime();
-  });
+  // Ordena pelos objetos Date para garantir a ordem cronológica correta no gráfico
+  const chartData = Object.values(monthlyData).sort((a, b) => a.date.getTime() - b.date.getTime());
 
 
   return (
@@ -54,14 +49,14 @@ export function IncomeExpenseChart({ transactions }: { transactions: Transaction
         <CardTitle>Renda vs. Despesas (Mensal)</CardTitle>
         <CardDescription>Comparativo dos últimos meses.</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-2">
         {chartData.length === 0 ? (
-          <div className="flex min-h-[350px] w-full flex-col items-center justify-center text-center text-sm text-muted-foreground">
+          <div className="flex h-[360px] w-full flex-col items-center justify-center text-center text-sm text-muted-foreground">
             <p>Ainda não há movimentações suficientes para mostrar o gráfico.</p>
             <p className="mt-1">Comece adicionando rendas ou despesas.</p>
           </div>
         ) : (
-          <ChartContainer config={chartConfig} className="min-h-[350px] w-full">
+          <ChartContainer config={chartConfig} className="h-[360px] max-h-[420px] w-full">
             <BarChart data={chartData} accessibilityLayer>
               <CartesianGrid vertical={false} />
               <XAxis

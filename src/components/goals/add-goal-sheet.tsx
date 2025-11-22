@@ -94,6 +94,7 @@ export function AddGoalSheet({ isOpen, onClose, goal }: AddGoalSheetProps) {
   const targetAmount = form.watch('targetAmount');
   const currentAmount = form.watch('currentAmount');
   const monthlyContribution = form.watch('monthlyContribution');
+  const watchedTargetDate = form.watch('targetDate');
 
   const remainingAmount = Math.max(targetAmount - currentAmount, 0);
   const estimatedMonths = monthlyContribution > 0 ? Math.ceil(remainingAmount / monthlyContribution) : null;
@@ -378,7 +379,7 @@ export function AddGoalSheet({ isOpen, onClose, goal }: AddGoalSheetProps) {
                     </PopoverContent>
                   </Popover>
                   <FormDescription className="text-[11px] space-y-0.5">
-                    {estimatedDate && !values.targetDate && (
+                    {estimatedDate && !watchedTargetDate && (
                       <span className="block text-[11px] text-emerald-700">
                         Estimativa com aporte mensal:{' '}
                         <span className="font-semibold">
