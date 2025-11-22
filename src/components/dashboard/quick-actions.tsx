@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Landmark, CreditCard, Banknote, Target } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 type QuickActionsProps = {
     onAddIncome: () => void;
@@ -20,7 +21,11 @@ export function QuickActions({
     return (
         <Card>
             <CardContent className="p-4 flex flex-wrap items-center justify-center gap-2 md:gap-4">
-                 <Button variant="outline" onClick={onAddIncome}>
+                 <Button 
+                    variant="outline" 
+                    onClick={onAddIncome}
+                    className="hover:border-green-500/80 hover:text-green-600 dark:hover:border-green-500/80 dark:hover:text-green-500 transition-colors"
+                 >
                     <Landmark className="mr-2 h-4 w-4" />
                     Adicionar Renda
                 </Button>
@@ -28,7 +33,11 @@ export function QuickActions({
                     <CreditCard className="mr-2 h-4 w-4" />
                     Adicionar Despesa
                 </Button>
-                 <Button variant="outline" onClick={onAddDebt}>
+                 <Button 
+                    variant="outline" 
+                    onClick={onAddDebt}
+                    className="hover:border-destructive/80 hover:text-destructive transition-colors"
+                 >
                     <Banknote className="mr-2 h-4 w-4" />
                     Adicionar Dívida
                 </Button>
