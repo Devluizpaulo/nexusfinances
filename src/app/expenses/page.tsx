@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { collection, query, orderBy } from 'firebase/firestore';
-import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { collection, query, orderBy, doc } from 'firebase/firestore';
+import { useCollection, useFirestore, useUser, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
 import { DataTable } from '@/components/data-table/data-table';
 import { columns } from './columns';
 import { PageHeader } from '@/components/page-header';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { PlusCircle, Loader2 } from 'lucide-react';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { expenseCategories, type Transaction } from '@/lib/types';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ExpensesPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -17,6 +18,7 @@ export default function ExpensesPage() {
   
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
+  const { toast } = useToast();
 
   const expensesQuery = useMemoFirebase(() => {
     if (!user) return null;
@@ -37,6 +39,16 @@ export default function ExpensesPage() {
     setIsSheetOpen(false);
     setEditingTransaction(null);
   };
+
+  const handleStatusChange = (transaction: Transaction) => {
+    if (!user || transaction.status === 'paid') return;
+    const docRef = doc(firestore, `users/${user.uid}/expenses`, transaction.id);
+    updateDocumentNonBlocking(docRef, { status: "paid" });
+    toast({
+      title: "Transação atualizada!",
+      description: `A despesa foi marcada como paga.`,
+    });
+  }
   
   const isLoading = isUserLoading || isExpensesLoading;
 
@@ -66,7 +78,7 @@ export default function ExpensesPage() {
           Adicionar Despesa
         </Button>
       </PageHeader>
-      <DataTable columns={columns({ onEdit: handleOpenSheet })} data={expenseData || []} />
+      <DataTable columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })} data={expenseData || []} />
     </>
   );
 }
