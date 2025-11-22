@@ -50,25 +50,25 @@
           ]
         },
         "customIncomeCategories": {
-            "type": "array",
-            "description": "Custom income categories defined by the user.",
-            "items": {
-                "type": "string"
-            }
+          "type": "array",
+          "description": "Custom income categories defined by the user.",
+          "items": {
+            "type": "string"
+          }
         },
         "customExpenseCategories": {
-            "type": "array",
-            "description": "Custom expense categories defined by the user.",
-            "items": {
-                "type": "string"
-            }
+          "type": "array",
+          "description": "Custom expense categories defined by the user.",
+          "items": {
+            "type": "string"
+          }
         },
         "completedTracks": {
-            "type": "array",
-            "description": "An array of slugs for completed education tracks.",
-            "items": {
-                "type": "string"
-            }
+          "type": "array",
+          "description": "An array of slugs for completed education tracks.",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": [
@@ -325,6 +325,76 @@
         }
       },
       "required": ["id", "timestamp", "level", "message", "createdBy"]
+    },
+    "EducationTrack": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Education Track",
+      "type": "object",
+      "description": "Represents a single educational track in the Financial Health Journey.",
+      "properties": {
+        "id": { "type": "string" },
+        "slug": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "icon": { "type": "string" },
+        "color": { "type": "string" },
+        "bgColor": { "type": "string" },
+        "borderColor": { "type": "string" },
+        "order": { "type": "number" },
+        "content": {
+          "type": "object",
+          "properties": {
+            "introduction": { "type": "string" },
+            "modules": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                 "properties": {
+                  "type": { "type": "string" },
+                  "title": { "type": "string" },
+                  "subtitle": { "type": "string" },
+                  "points": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "title": { "type": "string" },
+                        "details": { "type": "string" }
+                      }
+                    }
+                  },
+                  "experiences": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "title": { "type": "string" },
+                        "description": { "type": "string" },
+                        "details": { "type": "string" }
+                      }
+                    }
+                  },
+                  "habits": { "type": "array", "items": { "type": "string" } },
+                  "description": { "type": "string" },
+                  "componentName": { "type": "string" },
+                  "questions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "question": { "type": "string" },
+                        "options": { "type": "array", "items": { "type": "string" } },
+                        "correctAnswer": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "required": ["slug", "title", "description", "icon", "color", "bgColor", "borderColor", "order", "content"]
     }
   },
   "auth": {
@@ -470,8 +540,24 @@
             }
           ]
         }
+      },
+       {
+        "path": "/education/{trackId}",
+        "definition": {
+          "entityName": "EducationTrack",
+          "schema": { "$ref": "#/backend/entities/EducationTrack" },
+          "description": "Stores the content for the Financial Health Journey educational tracks. This data is public and read-only for users.",
+          "params": [
+            {
+              "name": "trackId",
+              "description": "The unique identifier (usually the slug) for the educational track."
+            }
+          ]
+        }
       }
     ],
     "reasoning": "The Firestore data structure is designed to support the xô planilhas application, focusing on secure and efficient data management for user finances.  The design follows the core principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), QAPs (Queries are not Filters), and Invariants.\n\n**Authorization Independence:** Achieved through denormalization of the `userId` field in the `incomes`, `expenses`, `debts`, `installments` and `goals` collections. This eliminates the need for `get()` calls to parent documents (users) in security rules, enabling atomic operations (transactions/batches) and simplifying debugging.\n\n**Structural Segregation:**  Employed by storing all `incomes`, `expenses`, `debts`, and `installments` for a given user under the `/users/{userId}` path. This ensures that all documents within these subcollections share the same security requirements, simplifying rules and improving maintainability. All private user data is segregated under the user's document.\n\n**Access Modeling:** Path-based ownership is consistently used for all user-owned data (incomes, expenses, debts, installments, goals). This makes security rules simple and efficient.\n\n**QAPs (Rules Are Not Filters):** The structure enables secure list operations. Because all documents within a collection share the same security requirements and authorization information (`userId`), it's possible to write rules that allow listing only the documents that the user has access to, without having to filter based on document content.\n\n**Invariants:** Enforced through clear ownership (`userId` in child collections) and consistent naming conventions. Timestamps can be added to each entity to track creation and modification times, if required.\n\n**Logging:** A top-level `/logs` collection is added to store system-wide events. Access is restricted to superadmins for reading, while creation is allowed for any authenticated user to enable client-side event logging."
   }
 }
+
+    

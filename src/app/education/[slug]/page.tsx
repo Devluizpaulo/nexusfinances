@@ -1,27 +1,31 @@
 
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { notFound, useParams } from 'next/navigation';
-import { educationTracks } from '@/lib/education-data';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Check, Lightbulb, Brain, HandHeart, Mountain, Target, Zap, CheckCircle2, ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { doc, arrayUnion, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore } from '@/firebase';
-import type { EducationTrack } from '@/lib/types';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import type { EducationTrack, EducationModule as EducationModuleType } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { InterestCalculator } from '@/components/education/InterestCalculator';
+import { PayoffSimulator } from '@/components/education/PayoffSimulator';
 
+const dynamicComponents: Record<string, React.ComponentType<any>> = {
+  InterestCalculator,
+  PayoffSimulator,
+};
 
 // Helper Functions
 function parseMarkdown(text: string): React.ReactNode {
@@ -70,8 +74,8 @@ const PsychologyModule = ({ content, onPointClick, readItems }: { content: any, 
   <Card>
     <CardHeader>
       <CardTitle className="flex items-center gap-2">
-        <Brain className="h-5 w-5 text-primary" />
-        Módulo 1: {content.title}
+        <LucideIcons.Brain className="h-5 w-5 text-primary" />
+        {content.title}
       </CardTitle>
       <CardDescription>{content.subtitle}</CardDescription>
     </CardHeader>
@@ -82,9 +86,9 @@ const PsychologyModule = ({ content, onPointClick, readItems }: { content: any, 
           onClick={() => onPointClick(point)}
           className="flex w-full cursor-pointer items-start gap-3 rounded-md p-2 text-left text-sm transition-colors hover:bg-muted"
         >
-          <Lightbulb className="h-4 w-4 shrink-0 text-amber-500 mt-1" />
+          <LucideIcons.Lightbulb className="h-4 w-4 shrink-0 text-amber-500 mt-1" />
           <span className="flex-1">{point.title}</span>
-          {readItems.has(point.title) && <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-1" />}
+          {readItems.has(point.title) && <LucideIcons.CheckCircle2 className="h-4 w-4 text-emerald-500 mt-1" />}
         </button>
       ))}
     </CardContent>
@@ -95,8 +99,8 @@ const PracticalExperiencesModule = ({ content, onExperienceClick, readItems }: {
   <Card>
     <CardHeader>
       <CardTitle className="flex items-center gap-2">
-        <HandHeart className="h-5 w-5 text-emerald-600" />
-        Módulo 2: {content.title}
+        <LucideIcons.HandHeart className="h-5 w-5 text-emerald-600" />
+        {content.title}
       </CardTitle>
       <CardDescription>{content.subtitle}</CardDescription>
     </CardHeader>
@@ -111,7 +115,7 @@ const PracticalExperiencesModule = ({ content, onExperienceClick, readItems }: {
             <p className="font-semibold text-sm">{exp.title}</p>
             <p className="text-sm text-muted-foreground mt-1">{exp.description}</p>
           </div>
-           {readItems.has(exp.title) && <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-1 ml-4 shrink-0" />}
+           {readItems.has(exp.title) && <LucideIcons.CheckCircle2 className="h-4 w-4 text-emerald-500 mt-1 ml-4 shrink-0" />}
         </button>
       ))}
     </CardContent>
@@ -122,8 +126,8 @@ const MicroHabitsModule = ({ content, checkedHabits, onHabitToggle }: { content:
   <Card>
     <CardHeader>
       <CardTitle className="flex items-center gap-2">
-        <Target className="h-5 w-5 text-sky-500" />
-        Módulo 3: {content.title}
+        <LucideIcons.Target className="h-5 w-5 text-sky-500" />
+        {content.title}
       </CardTitle>
       <CardDescription>{content.subtitle}</CardDescription>
     </CardHeader>
@@ -151,8 +155,8 @@ const NarrativeModule = ({ content }: { content: any }) => (
   <Card className="bg-primary/5 border-primary/20">
     <CardHeader>
       <CardTitle className="flex items-center gap-2">
-        <Mountain className="h-5 w-5 text-primary" />
-        Módulo 4: {content.title}
+        <LucideIcons.Mountain className="h-5 w-5 text-primary" />
+        {content.title}
       </CardTitle>
       <CardDescription>{content.subtitle}</CardDescription>
     </CardHeader>
@@ -164,15 +168,21 @@ const NarrativeModule = ({ content }: { content: any }) => (
   </Card>
 );
 
-const ToolModule = ({ module }: { module: any }) => {
-  if (!module.component) return null;
-  const ToolComponent = module.component;
+const ToolModule = ({ module }: { module: EducationModuleType }) => {
+  if (!module.componentName) return null;
+  const ToolComponent = dynamicComponents[module.componentName];
+
+  if (!ToolComponent) {
+    console.warn(`Dynamic component "${module.componentName}" not found.`);
+    return null;
+  }
+  
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Zap className="h-5 w-5 text-sky-500" />
-          Módulo 5: {module.title}
+          <LucideIcons.Zap className="h-5 w-5 text-sky-500" />
+          {module.title}
         </CardTitle>
         <CardDescription>{module.subtitle}</CardDescription>
       </CardHeader>
@@ -210,9 +220,8 @@ const FinalQuizModule = ({ module, track, user, onQuizComplete }: { module: any,
     ).length;
 
     const totalQuestions = module.questions.length;
-    const score = (correctAnswers / totalQuestions) * 100;
     
-    if (score > 50) {
+    if (correctAnswers / totalQuestions > 0.5) {
         if(!isCompleted) {
             const userDocRef = doc(firestore, 'users', user.uid);
             try {
@@ -251,8 +260,8 @@ const FinalQuizModule = ({ module, track, user, onQuizComplete }: { module: any,
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Check className="h-5 w-5 text-green-600" />
-          Módulo {module.questions ? '6' : 'Final'}: {module.title}
+          <LucideIcons.Check className="h-5 w-5 text-green-600" />
+          {module.title}
         </CardTitle>
         <CardDescription>{module.subtitle}</CardDescription>
       </CardHeader>
@@ -281,7 +290,7 @@ const FinalQuizModule = ({ module, track, user, onQuizComplete }: { module: any,
                     >
                       <RadioGroupItem value={opt} id={`q${qIndex}-o${oIndex}`} />
                       <Label htmlFor={`q${qIndex}-o${oIndex}`} className="font-normal cursor-pointer flex-1">{opt}</Label>
-                      {showQuizResult && isCorrect && <Check className="h-5 w-5 text-green-500" />}
+                      {showQuizResult && isCorrect && <LucideIcons.Check className="h-5 w-5 text-green-500" />}
                     </div>
                    );
                 })}
@@ -305,6 +314,7 @@ export default function EducationTrackPage() {
   const params = useParams();
   const slug = params.slug as string;
   const { user } = useUser();
+  const firestore = useFirestore();
   const [modalContent, setModalContent] = useState<{ title: string; details: string; } | null>(null);
   const [readItems, setReadItems] = useState<Set<string>>(new Set());
   const [checkedHabits, setCheckedHabits] = useState<Set<number>>(new Set());
@@ -312,7 +322,17 @@ export default function EducationTrackPage() {
   const [completedModules, setCompletedModules] = useState<Set<number>>(new Set());
   const [isLoadingNext, setIsLoadingNext] = useState(false);
 
-  const track = educationTracks.find((t) => t.slug === slug);
+  const trackDocRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return doc(firestore, 'education', slug);
+  }, [firestore, slug]);
+
+  const { data: track, isLoading: isTrackLoading } = useDoc<EducationTrack>(trackDocRef);
+
+
+  if (isTrackLoading) {
+    return <div className="flex h-64 items-center justify-center"><LucideIcons.Loader2 className="h-8 w-8 animate-spin" /></div>;
+  }
 
   if (!track) {
     notFound();
@@ -388,7 +408,7 @@ export default function EducationTrackPage() {
     setCompletedModules(allModules);
   }
 
-  const Icon = track.icon;
+  const Icon = (LucideIcons as any)[track.icon] || LucideIcons.HelpCircle;
 
   const renderModule = (module: any, index: number) => {
     switch (module.type) {
@@ -431,7 +451,7 @@ export default function EducationTrackPage() {
           </div>
           <DialogFooter className="mt-4">
             <Button onClick={handleMarkAsRead}>
-              <Check className="mr-2 h-4 w-4" />
+              <LucideIcons.Check className="mr-2 h-4 w-4" />
               Marcar como Concluído
             </Button>
           </DialogFooter>
@@ -458,7 +478,7 @@ export default function EducationTrackPage() {
                   disabled={index > completedModules.size && index !== 0 && !isFinalQuizCompleted}
                   className="flex gap-2"
                 >
-                  {completedModules.has(index) && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
+                  {completedModules.has(index) && <LucideIcons.CheckCircle2 className="h-4 w-4 text-emerald-500" />}
                   <span>Módulo {index + 1}</span>
                 </TabsTrigger>
              ))}
@@ -468,12 +488,12 @@ export default function EducationTrackPage() {
                 {renderModule(module, index)}
                 <div className="mt-6 flex justify-between">
                     <Button onClick={handlePrevious} disabled={currentModuleIndex === 0}>
-                        <ArrowLeft className="mr-2 h-4 w-4" /> Anterior
+                        <LucideIcons.ArrowLeft className="mr-2 h-4 w-4" /> Anterior
                     </Button>
                      {currentModuleIndex < track.content.modules.length -1 && (
                         <Button onClick={handleNext} disabled={!canGoNext || isLoadingNext}>
-                            {isLoadingNext && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Próximo <ArrowRight className="ml-2 h-4 w-4" />
+                            {isLoadingNext && <LucideIcons.Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Próximo <LucideIcons.ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                     )}
                 </div>

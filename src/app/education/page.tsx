@@ -4,16 +4,18 @@
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-import { BookOpen, Check, Trophy, Loader2 } from 'lucide-react';
-import { educationTracks, journeyLevels } from '@/lib/education-data';
-import { useUser } from '@/firebase';
+import { Check, Trophy, Loader2 } from 'lucide-react';
+import { journeyLevels } from '@/lib/education-data';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EducationTrackCard } from '@/components/education/EducationTrackCard';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import { collection, query, orderBy } from 'firebase/firestore';
+import type { EducationTrack } from '@/lib/types';
+import * as LucideIcons from 'lucide-react';
 
 function JourneyProgressCard({ isLoading, currentLevelIndex, progressPercentage }: { isLoading: boolean, currentLevelIndex: number, progressPercentage: number }) {
   if (isLoading) {
@@ -58,14 +60,22 @@ function JourneyProgressCard({ isLoading, currentLevelIndex, progressPercentage 
 
 export default function EducationPage() {
   const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
+
+  const educationTracksQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'education'), orderBy('order', 'asc'));
+  }, [firestore]);
+
+  const { data: educationTracks, isLoading: areTracksLoading } = useCollection<EducationTrack>(educationTracksQuery);
   
   const completedTracks = useMemo(() => new Set(user?.completedTracks || []), [user?.completedTracks]);
   
-  const upcomingTracks = useMemo(() => educationTracks.filter(track => !completedTracks.has(track.slug)), [completedTracks]);
-  const finishedTracks = useMemo(() => educationTracks.filter(track => completedTracks.has(track.slug)), [completedTracks]);
+  const upcomingTracks = useMemo(() => (educationTracks || []).filter(track => !completedTracks.has(track.slug)), [educationTracks, completedTracks]);
+  const finishedTracks = useMemo(() => (educationTracks || []).filter(track => completedTracks.has(track.slug)), [educationTracks, completedTracks]);
   
   const { currentLevelIndex, progressPercentage } = useMemo(() => {
-    const totalTracks = educationTracks.length;
+    const totalTracks = educationTracks?.length || 0;
     if (totalTracks === 0) {
         return { currentLevelIndex: 0, progressPercentage: 0 };
     }
@@ -79,10 +89,10 @@ export default function EducationPage() {
     if (progress < 100) return { currentLevelIndex: 3, progressPercentage: progress }; // Knowledgeable
     return { currentLevelIndex: 4, progressPercentage: 100 }; // Expert
 
-  }, [completedTracks]);
+  }, [completedTracks, educationTracks]);
 
 
-  const isLoading = isUserLoading;
+  const isLoading = isUserLoading || areTracksLoading;
   
   if (isLoading) {
     return (
@@ -143,17 +153,20 @@ export default function EducationPage() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                     {finishedTracks.length > 0 ? (
-                        finishedTracks.map((track) => (
+                        finishedTracks.map((track) => {
+                          const Icon = (LucideIcons as any)[track.icon] || LucideIcons.HelpCircle;
+                          return (
                             <Link href={`/education/${track.slug}`} key={track.slug} className="group flex items-center gap-3 rounded-md p-2 hover:bg-muted transition-colors">
                                 <div className={cn("flex h-8 w-8 items-center justify-center rounded-lg", track.bgColor)}>
-                                    <track.icon className={cn("h-5 w-5", track.color)} />
+                                    <Icon className={cn("h-5 w-5", track.color)} />
                                 </div>
                                 <div className="flex-1">
                                     <p className="text-sm font-medium">{track.title}</p>
                                 </div>
                                 <Check className="h-5 w-5 text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </Link>
-                        ))
+                          )
+                        })
                     ) : (
                          <div className="flex flex-col items-center justify-center p-4 text-center text-sm text-muted-foreground">
                             <p>Suas conquistas aparecerão aqui quando você completar sua primeira trilha.</p>
@@ -166,3 +179,5 @@ export default function EducationPage() {
     </>
   );
 }
+
+    

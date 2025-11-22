@@ -99,6 +99,16 @@ service cloud.firestore {
     function isDebtFieldImmutable() {
         return request.resource.data.debtId == resource.data.debtId;
     }
+    
+    /**
+     * Checks if the fields being updated by a user are allowed.
+     * Prevents users from changing their own role or email.
+     */
+    function isAllowedUserUpdate() {
+      let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
+      // Users cannot change their ID, email, or role.
+      return !('id' in changedKeys) && !('email' in changedKeys) && !('role' in changedKeys);
+    }
 
     // ----------------------------------------------------------------------
     // Collection Rules
@@ -115,7 +125,7 @@ service cloud.firestore {
       allow get: if isOwner(userId) || isSuperAdmin();
       allow list: if isSuperAdmin();
       allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if (isOwner(userId) && request.resource.data.id == resource.data.id) || isSuperAdmin();
+      allow update: if (isOwner(userId) && isAllowedUserUpdate()) || isSuperAdmin();
       allow delete: if isExistingOwner(userId) || isSuperAdmin();
 
       /**
@@ -202,5 +212,19 @@ service cloud.firestore {
         allow create: if isSignedIn() && request.resource.data.createdBy == request.auth.uid;
         allow update, delete: if false;
     }
+
+    /**
+     * @description Manages educational content.
+     * @path /education/{trackId}
+     * @allow (read) Any authenticated user can read the educational tracks.
+     * @allow (write) Only superadmins can create, update, or delete educational content.
+     * @principle Makes content public for consumption but restricted for management.
+     */
+    match /education/{trackId} {
+        allow get, list: if isSignedIn();
+        allow write: if isSuperAdmin();
+    }
   }
 }
+
+    

@@ -115,22 +115,22 @@ export default function AdminDashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="prose prose-sm max-w-full text-foreground/80">
-                <h4>Abordagem Atual: Conteúdo Estático</h4>
-                <p>No momento, todo o conteúdo das trilhas de educação (módulos, perguntas, exemplos, etc.) é gerenciado de forma "estática", ou seja, está escrito diretamente no código-fonte do aplicativo no arquivo <code>src/lib/education-data.tsx</code>.</p>
+                <h4>Abordagem Atual: Conteúdo Dinâmico no Firestore</h4>
+                <p>O conteúdo das trilhas de educação agora é gerenciado através da coleção <code>/education</code> no Firestore. Esta abordagem dinâmica oferece muito mais flexibilidade do que o conteúdo estático anterior.</p>
                 
-                <h5>Vantagens desta abordagem:</h5>
+                <h5>Vantagens da nova abordagem:</h5>
                 <ul>
-                  <li><strong>Performance:</strong> O conteúdo é carregado instantaneamente, sem necessidade de consultas ao banco de dados.</li>
-                  <li><strong>Segurança e Custo:</strong> É uma abordagem segura e não gera custos adicionais de leitura no Firestore.</li>
-                  <li><strong>Controle de Versão:</strong> Todas as alterações no conteúdo são rastreadas pelo sistema de controle de versão (Git).</li>
+                  <li><strong>Flexibilidade:</strong> O conteúdo pode ser atualizado a qualquer momento sem a necessidade de um novo deploy do aplicativo.</li>
+                  <li><strong>Escalabilidade:</strong> Facilita a adição de novas trilhas e módulos no futuro.</li>
+                  <li><strong>Gerenciamento Centralizado:</strong> Todo o conteúdo educacional fica em um único local, facilitando a gestão.</li>
                 </ul>
 
                 <h5>Como atualizar o conteúdo:</h5>
-                <p>Para adicionar novas trilhas ou modificar o conteúdo existente, é necessário que um desenvolvedor edite o arquivo <code>education-data.tsx</code> e realize um novo deploy da aplicação.</p>
+                <p>Atualmente, a atualização do conteúdo deve ser feita diretamente no Firestore. Administradores podem acessar o Console do Firebase para editar, adicionar ou remover documentos na coleção <code>/education</code>.</p>
                 
-                <h4 className="mt-6">Evolução Futura: Conteúdo Dinâmico</h4>
+                <h4 className="mt-6">Evolução Futura: CMS Integrado</h4>
                 <p>
-                  No futuro, planejamos construir um CMS (Sistema de Gerenciamento de Conteúdo) completo dentro deste painel. Isso permitiria que administradores criem e editem as trilhas de forma dinâmica, sem a necessidade de alterar o código. No entanto, devido à complexidade, essa funcionalidade será desenvolvida em uma fase posterior do projeto.
+                  O próximo passo lógico é construir uma interface de gerenciamento (CMS) aqui mesmo, nesta aba. Isso permitirá que administradores criem e editem as trilhas de forma visual e intuitiva, sem precisar acessar o Firebase diretamente. Esta funcionalidade será desenvolvida em uma fase posterior do projeto.
                 </p>
               </div>
             </CardContent>
@@ -229,3 +229,5 @@ export default function AdminDashboardPage() {
     </>
   );
 }
+
+    
