@@ -18,7 +18,8 @@ export default function RootPage() {
     }
   }, [user, isUserLoading]);
   
-  // Render a loader while waiting for auth state
+  // Always render a loader on the server and during initial client-side loading.
+  // The useEffect hook will handle the redirection once the user state is determined.
   return (
     <div className="flex h-screen items-center justify-center">
       <Loader2 className="h-10 w-10 animate-spin text-primary" />
