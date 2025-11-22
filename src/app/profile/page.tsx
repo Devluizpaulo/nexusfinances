@@ -349,7 +349,7 @@ export default function ProfilePage() {
                   {user?.customIncomeCategories?.map(cat => (
                     <Badge key={cat} variant="outline" className="group">
                       {cat}
-                      <button onClick={() => handleRemoveCategory('income', cat)} className="ml-2 opacity-50 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => handleRemoveCategory('income', cat)} className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Trash2 className="h-3 w-3" />
                       </button>
                     </Badge>
@@ -377,7 +377,7 @@ export default function ProfilePage() {
                   {user?.customExpenseCategories?.map(cat => (
                     <Badge key={cat} variant="outline" className="group">
                       {cat}
-                       <button onClick={() => handleRemoveCategory('expense', cat)} className="ml-2 opacity-50 group-hover:opacity-100 transition-opacity">
+                       <button onClick={() => handleRemoveCategory('expense', cat)} className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Trash2 className="h-3 w-3" />
                       </button>
                     </Badge>
