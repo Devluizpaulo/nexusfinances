@@ -6,8 +6,8 @@ import { notFound, useParams } from 'next/navigation';
 import { educationTracks } from '@/lib/education-data';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
-import { Check, Lightbulb, Brain, HandHeart, Mountain, Target, Zap, CheckCircle2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Check, Lightbulb, Brain, HandHeart, Mountain, Target, Zap, CheckCircle2, ArrowLeft, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -19,6 +19,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, updateDocumentNonBlocking } from '@/firebase';
 import type { EducationTrack } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 
 // Helper Functions
 function parseMarkdown(text: string): React.ReactNode[] {
@@ -35,12 +37,13 @@ function parseMarkdown(text: string): React.ReactNode[] {
         return <strong key={`bold-${pIndex}-${index}`}>{part}</strong>;
       }
       
-      return part.split(italicRegex).map((subPart, subIndex) => {
+      const parts = part.split(italicRegex).map((subPart, subIndex) => {
         if (subIndex % 2 !== 0) { // It's an italic part
           return <em key={`italic-${pIndex}-${index}-${subIndex}`}>{subPart}</em>;
         }
         return subPart;
       });
+      return <React.Fragment key={`part-${pIndex}-${index}`}>{parts}</React.Fragment>;
     });
 
     return <p key={`p-${pIndex}`} className="mb-4 last:mb-0">{nodes}</p>;
@@ -161,7 +164,7 @@ const ToolModule = ({ module }: { module: any }) => {
   );
 };
 
-const FinalQuizModule = ({ module, track, user }: { module: any, track: EducationTrack, user: any }) => {
+const FinalQuizModule = ({ module, track, user, onQuizComplete }: { module: any, track: EducationTrack, user: any, onQuizComplete: () => void }) => {
   const { toast } = useToast();
   const firestore = useFirestore();
   const [quizAnswers, setQuizAnswers] = useState<Record<string, string>>({});
@@ -205,6 +208,7 @@ const FinalQuizModule = ({ module, track, user }: { module: any, track: Educatio
           description: `Parabéns! Você concluiu a trilha "${track.title}".`,
           className: "bg-emerald-100 border-emerald-300 text-emerald-800 dark:bg-emerald-800/50 dark:border-emerald-700 dark:text-emerald-200"
         });
+        onQuizComplete();
       } catch (error) {
         console.error("Error updating user progress:", error);
         toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível salvar seu progresso. Tente novamente.' });
@@ -217,7 +221,7 @@ const FinalQuizModule = ({ module, track, user }: { module: any, track: Educatio
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Check className="h-5 w-5 text-green-600" />
-          Módulo 6: {module.title}
+          Módulo {module.questions ? '6' : 'Final'}: {module.title}
         </CardTitle>
         <CardDescription>Valide o que você aprendeu e ganhe pontos.</CardDescription>
       </CardHeader>
@@ -272,6 +276,8 @@ export default function EducationTrackPage() {
   const { user } = useUser();
   const [modalContent, setModalContent] = useState<{ title: string; details: string; } | null>(null);
   const [readItems, setReadItems] = useState<Set<string>>(new Set());
+  const [activeTab, setActiveTab] = useState('0');
+  const [completedModules, setCompletedModules] = useState<Set<number>>(new Set());
 
   const track = educationTracks.find((t) => t.slug === slug);
 
@@ -285,6 +291,27 @@ export default function EducationTrackPage() {
       setModalContent(null);
     }
   };
+
+  const handleNext = () => {
+    setCompletedModules(prev => new Set(prev).add(parseInt(activeTab, 10)));
+    const nextTabIndex = parseInt(activeTab, 10) + 1;
+    if (nextTabIndex < track.content.modules.length) {
+      setActiveTab(String(nextTabIndex));
+    }
+  };
+
+  const handlePrevious = () => {
+    const prevTabIndex = parseInt(activeTab, 10) - 1;
+    if (prevTabIndex >= 0) {
+      setActiveTab(String(prevTabIndex));
+    }
+  };
+
+  const isFinalQuizCompleted = user?.completedTracks?.includes(track.slug) || false;
+  if(isFinalQuizCompleted && !completedModules.has(track.content.modules.length - 1)) {
+    const allModules = new Set(track.content.modules.map((_, i) => i));
+    setCompletedModules(allModules);
+  }
 
   const Icon = track.icon;
 
@@ -301,11 +328,14 @@ export default function EducationTrackPage() {
       case 'tool':
         return <ToolModule key={index} module={module} />;
       case 'finalQuiz':
-        return <FinalQuizModule key={index} module={module} track={track} user={user} />;
+        return <FinalQuizModule key={index} module={module} track={track} user={user} onQuizComplete={handleNext}/>;
       default:
         return null;
     }
   };
+
+  const currentModuleIndex = parseInt(activeTab, 10);
+  const isLastModule = currentModuleIndex === track.content.modules.length - 1;
 
   return (
     <>
@@ -345,9 +375,39 @@ export default function EducationTrackPage() {
           <div className="lead !text-lg !text-muted-foreground">{parseMarkdown(track.content.introduction)}</div>
         </div>
 
-        {track.content.modules.map(renderModule)}
-        
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-1 md:grid-cols-6">
+             {track.content.modules.map((module, index) => (
+                <TabsTrigger
+                  key={index}
+                  value={String(index)}
+                  disabled={index > completedModules.size && index !== 0 && !isFinalQuizCompleted}
+                  className="flex gap-2"
+                >
+                  {completedModules.has(index) && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
+                  <span>Módulo {index + 1}</span>
+                </TabsTrigger>
+             ))}
+          </TabsList>
+          {track.content.modules.map((module, index) => (
+            <TabsContent key={index} value={String(index)} className="mt-6">
+                {renderModule(module, index)}
+                <div className="mt-6 flex justify-between">
+                    <Button onClick={handlePrevious} disabled={currentModuleIndex === 0}>
+                        <ArrowLeft className="mr-2 h-4 w-4" /> Anterior
+                    </Button>
+                     {currentModuleIndex < track.content.modules.length -1 && module.type !== 'finalQuiz' && (
+                        <Button onClick={handleNext}>
+                            Próximo <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                    )}
+                </div>
+            </TabsContent>
+          ))}
+        </Tabs>
       </div>
     </>
   );
 }
+
+    
