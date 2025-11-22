@@ -58,6 +58,7 @@ const formSchema = z.object({
   }),
   description: z.string().optional(),
   isRecurring: z.boolean().default(false),
+  status: z.enum(['paid', 'pending']).default('paid'),
 });
 
 type TransactionFormValues = z.infer<typeof formSchema>;
@@ -85,6 +86,7 @@ export function AddTransactionSheet({
       category: '',
       date: new Date(),
       isRecurring: false,
+      status: 'paid',
     },
   });
 
@@ -113,6 +115,7 @@ export function AddTransactionSheet({
         ...transaction,
         description: transaction.description || '',
         date: parseISO(transaction.date),
+        status: transaction.status || 'paid',
       });
     } else if (isOpen) {
       form.reset({
@@ -121,6 +124,7 @@ export function AddTransactionSheet({
         category: '',
         date: new Date(),
         isRecurring: false,
+        status: 'paid',
       });
     }
   }, [isOpen, transaction, form]);
@@ -320,6 +324,26 @@ export function AddTransactionSheet({
                     <Switch
                       checked={field.value}
                       onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border bg-muted/50 p-3">
+                  <div className="space-y-0.5">
+                    <FormLabel>{transactionType === 'income' ? 'Recebido' : 'Pago'}</FormLabel>
+                    <FormDescription>
+                      Marque se esta transação já foi efetivada.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value === 'paid'}
+                      onCheckedChange={(checked) => field.onChange(checked ? 'paid' : 'pending')}
                     />
                   </FormControl>
                 </FormItem>

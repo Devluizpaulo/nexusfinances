@@ -1,7 +1,7 @@
 "use client"
 
 import { Row } from "@tanstack/react-table"
-import { MoreHorizontal, Pen, Trash2 } from "lucide-react"
+import { MoreHorizontal, Pen, Trash2, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -22,24 +22,42 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useState } from "react"
 import { doc } from "firebase/firestore"
-import { useFirestore, useUser, deleteDocumentNonBlocking } from "@/firebase"
+import { useFirestore, useUser, deleteDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase"
 import { useToast } from "@/hooks/use-toast"
+import type { Transaction } from "@/lib/types"
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
   transactionType: "income" | "expense"
+  onEdit: (transaction: TData) => void;
 }
 
 export function DataTableRowActions<TData>({
   row,
-  transactionType
+  transactionType,
+  onEdit
 }: DataTableRowActionsProps<TData>) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
 
-  const transaction = row.original as { id: string; description: string }
+  const transaction = row.original as Transaction;
+  
+  const collectionName = transactionType === 'income' ? 'incomes' : 'expenses';
+
+  const handleUpdateStatus = () => {
+    if (!user) {
+      toast({ variant: "destructive", title: "Erro", description: "Você não está autenticado." });
+      return;
+    }
+    const docRef = doc(firestore, `users/${user.uid}/${collectionName}`, transaction.id);
+    updateDocumentNonBlocking(docRef, { status: "paid" });
+    toast({
+      title: "Transação atualizada!",
+      description: `A transação foi marcada como ${transactionType === 'income' ? 'recebida' : 'paga'}.`,
+    });
+  }
 
   const handleDelete = () => {
     if (!user) {
@@ -47,7 +65,6 @@ export function DataTableRowActions<TData>({
       return;
     }
 
-    const collectionName = transactionType === 'income' ? 'incomes' : 'expenses';
     const docRef = doc(firestore, `users/${user.uid}/${collectionName}`, transaction.id);
     deleteDocumentNonBlocking(docRef);
 
@@ -88,13 +105,22 @@ export function DataTableRowActions<TData>({
             <span className="sr-only">Abrir menu</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-[160px]">
-          <DropdownMenuItem disabled>
+        <DropdownMenuContent align="end" className="w-[200px]">
+           {transaction.status === 'pending' && (
+            <>
+              <DropdownMenuItem onClick={handleUpdateStatus}>
+                <CheckCircle className="mr-2 h-3.5 w-3.5" />
+                Marcar como {transactionType === 'income' ? 'Recebida' : 'Paga'}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
+          <DropdownMenuItem onClick={() => onEdit(row.original)}>
             <Pen className="mr-2 h-3.5 w-3.5" />
             Editar
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)}>
+          <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-red-600">
             <Trash2 className="mr-2 h-3.5 w-3.5" />
             Excluir
           </DropdownMenuItem>

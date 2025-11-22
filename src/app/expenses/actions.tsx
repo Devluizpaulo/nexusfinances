@@ -1,7 +1,7 @@
 "use client"
 
 import { Row } from "@tanstack/react-table"
-import { MoreHorizontal, Pen, Trash2 } from "lucide-react"
+import { MoreHorizontal, Pen, Trash2, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useState } from "react"
 import { doc } from "firebase/firestore"
-import { useFirestore, useUser, deleteDocumentNonBlocking } from "@/firebase"
+import { useFirestore, useUser, deleteDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase"
 import { useToast } from "@/hooks/use-toast"
 import type { Transaction } from "@/lib/types"
 
@@ -43,6 +43,21 @@ export function DataTableRowActions<TData>({
   const { toast } = useToast();
 
   const transaction = row.original as Transaction;
+  
+  const collectionName = transactionType === 'income' ? 'incomes' : 'expenses';
+
+  const handleUpdateStatus = () => {
+    if (!user) {
+      toast({ variant: "destructive", title: "Erro", description: "Você não está autenticado." });
+      return;
+    }
+    const docRef = doc(firestore, `users/${user.uid}/${collectionName}`, transaction.id);
+    updateDocumentNonBlocking(docRef, { status: "paid" });
+    toast({
+      title: "Transação atualizada!",
+      description: `A transação foi marcada como ${transactionType === 'income' ? 'recebida' : 'paga'}.`,
+    });
+  }
 
   const handleDelete = () => {
     if (!user) {
@@ -50,7 +65,6 @@ export function DataTableRowActions<TData>({
       return;
     }
 
-    const collectionName = transactionType === 'income' ? 'incomes' : 'expenses';
     const docRef = doc(firestore, `users/${user.uid}/${collectionName}`, transaction.id);
     deleteDocumentNonBlocking(docRef);
 
@@ -91,7 +105,16 @@ export function DataTableRowActions<TData>({
             <span className="sr-only">Abrir menu</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-[160px]">
+        <DropdownMenuContent align="end" className="w-[200px]">
+           {transaction.status === 'pending' && (
+            <>
+              <DropdownMenuItem onClick={handleUpdateStatus}>
+                <CheckCircle className="mr-2 h-3.5 w-3.5" />
+                Marcar como {transactionType === 'income' ? 'Recebida' : 'Paga'}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
           <DropdownMenuItem onClick={() => onEdit(row.original)}>
             <Pen className="mr-2 h-3.5 w-3.5" />
             Editar

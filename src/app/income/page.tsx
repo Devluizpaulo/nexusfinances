@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { PlusCircle, Loader2 } from 'lucide-react';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { incomeCategories, type Transaction } from '@/lib/types';
+import { DataTableRowActions } from './actions';
 
 export default function IncomePage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);

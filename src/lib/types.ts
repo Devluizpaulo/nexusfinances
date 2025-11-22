@@ -8,6 +8,7 @@ export type Transaction = {
   isRecurring: boolean;
   userId?: string;
   recurringSourceId?: string;
+  status: 'paid' | 'pending';
 };
 
 export type Debt = {
