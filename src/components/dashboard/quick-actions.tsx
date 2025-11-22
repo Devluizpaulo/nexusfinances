@@ -23,7 +23,7 @@ export function QuickActions({
                  <Button 
                     variant="outline" 
                     onClick={onAddIncome}
-                    className="hover:border-green-500/80 hover:text-green-600 dark:hover:border-green-500/80 dark:hover:text-green-500 transition-colors"
+                    className="hover:border-primary/20 transition-colors"
                  >
                     <Landmark className="mr-2 h-4 w-4" />
                     Adicionar Renda
