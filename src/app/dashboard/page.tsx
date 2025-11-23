@@ -244,11 +244,11 @@ export default function DashboardPage() {
     setInsights(null);
 
     const input: GetFinancialInsightsInput = {
-      incomes: incomeData,
-      expenses: expenseData,
+      userName: user?.displayName?.split(' ')[0] || 'Usuário',
+      incomes: incomeData || [],
+      expenses: expenseData || [],
       debts: debtData || [],
       goals: goalData || [],
-      userName: user?.displayName?.split(' ')[0] || 'Usuário',
     };
 
     try {
@@ -532,6 +532,27 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
+            {hoveredInstallments && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Vencimentos em{' '}
+                    {format(hoveredInstallments.date, "dd 'de' MMMM", { locale: ptBR })}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm">
+                    {hoveredInstallments.items.map((item, index) => (
+                      <li key={index} className="flex items-center justify-between gap-2">
+                        <span className="text-muted-foreground">{item.debtName}</span>
+                        <span className="font-medium">{formatCurrency(item.amount)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
             {monthlyPreview.length > 0 && (
               <Card>
                 <CardHeader className="pb-3">
@@ -555,12 +576,12 @@ export default function DashboardPage() {
                         </span>
                       </div>
                       <div className="flex flex-col items-end gap-0.5">
-                        <span className="text-[11px] text-emerald-700">
+                        {item.income > 0 && <span className="text-[11px] text-emerald-700">
                           + {formatCurrency(item.income)}
-                        </span>
-                        <span className="text-[11px] text-red-600">
+                        </span>}
+                        {item.expense > 0 && <span className="text-[11px] text-red-600">
                           - {formatCurrency(item.expense)}
-                        </span>
+                        </span>}
                         {item.debts > 0 && (
                           <span className="text-[11px] text-amber-700">
                             ↳ {formatCurrency(item.debts)} em dívidas
@@ -569,27 +590,6 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   ))}
-                </CardContent>
-              </Card>
-            )}
-
-            {hoveredInstallments && (
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Vencimentos em{' '}
-                    {format(hoveredInstallments.date, "dd 'de' MMMM", { locale: ptBR })}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 text-sm">
-                    {hoveredInstallments.items.map((item, index) => (
-                      <li key={index} className="flex items-center justify-between gap-2">
-                        <span className="text-muted-foreground">{item.debtName}</span>
-                        <span className="font-medium">{formatCurrency(item.amount)}</span>
-                      </li>
-                    ))}
-                  </ul>
                 </CardContent>
               </Card>
             )}
