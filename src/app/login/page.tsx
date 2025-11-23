@@ -39,6 +39,10 @@ import {
 } from "@/components/ui/form"
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import Image from 'next/image';
+import Link from 'next/link';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { cn } from '@/lib/utils';
 
 const loginSchema = z.object({
   email: z.string().email('Por favor, insira um e-mail válido.'),
@@ -188,6 +192,8 @@ function LoginClient() {
       redirect('/dashboard');
     }
   }, [user]);
+  
+  const loginImage = PlaceHolderImages.find(p => p.id === 'lp-hero');
 
   if (isUserLoading || user) {
     return (
@@ -198,177 +204,161 @@ function LoginClient() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-      <div className="mb-8 flex flex-col items-center text-center">
-         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
-          <DollarSign className="h-8 w-8" />
+    <div className="grid min-h-screen w-full lg:grid-cols-2">
+      <div className="flex items-center justify-center p-6 sm:p-12 animate-in fade-in duration-500">
+        <div className="mx-auto grid w-[350px] gap-6">
+          <div className="grid gap-2 text-center">
+             <Link href="/" className="flex items-center justify-center gap-2 mb-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <DollarSign className="h-6 w-6" />
+                </div>
+                <span className="text-2xl font-bold tracking-tight">xô planilhas</span>
+            </Link>
+            <h1 className="text-3xl font-bold">Acesse sua conta</h1>
+            <p className="text-balance text-muted-foreground">
+              Entre para assumir o controle da sua vida financeira.
+            </p>
+          </div>
+         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="login">Entrar</TabsTrigger>
+              <TabsTrigger value="register">Cadastrar</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="login" className="mt-4">
+               <Form {...loginForm}>
+                  <form onSubmit={loginForm.handleSubmit(handleEmailLogin)} className="space-y-4">
+                    <FormField
+                      control={loginForm.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input type="email" placeholder="seu@email.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={loginForm.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Senha</FormLabel>
+                          <FormControl>
+                            <Input type="password" placeholder="******" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit" className="w-full" disabled={isLoading || !auth}>
+                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Entrar com Email
+                    </Button>
+                  </form>
+                </Form>
+            </TabsContent>
+             <TabsContent value="register" className="mt-4">
+                <Form {...registerForm}>
+                  <form onSubmit={registerForm.handleSubmit(handleEmailRegister)} className="space-y-4">
+                    <FormField
+                      control={registerForm.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nome Completo</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Seu nome" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={registerForm.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input type="email" placeholder="seu@email.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={registerForm.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Senha</FormLabel>
+                          <FormControl>
+                            <Input type="password" placeholder="Mínimo 6 caracteres" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit" className="w-full" disabled={isLoading || !auth}>
+                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Criar Conta Grátis
+                    </Button>
+                  </form>
+                </Form>
+             </TabsContent>
+          </Tabs>
+           <div className="relative my-2">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Ou continue com
+              </span>
+            </div>
+          </div>
+           <Button
+            variant="outline"
+            onClick={handleGoogleSignIn}
+            className="w-full"
+            disabled={isLoading || !auth}
+          >
+            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> :
+              <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+                <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 21.5 174.4 58.9L359.7 127.4c-27.8-26.2-63.5-42.6-111.7-42.6-88.5 0-160.9 72.4-160.9 161.2s72.4 161.2 160.9 161.2c38.3 0 71.3-12.8 96.2-34.4 22.1-19.1 33.4-44.9 36.8-74.6H248V261.8h239.2z"></path>
+              </svg>}
+            Continuar com Google
+          </Button>
+          <div className="mt-4 text-center text-sm">
+            <Link href="/" className="underline underline-offset-2">
+              Voltar para a página inicial
+            </Link>
+          </div>
         </div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          xô planilhas
-        </h1>
-        <p className="mt-2 text-md text-muted-foreground max-w-md">
-          Controle simples do seu dinheiro, sem fórmulas nem planilhas complicadas.
-        </p>
       </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-sm">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="login">Entrar</TabsTrigger>
-          <TabsTrigger value="register">Cadastrar</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="login">
-          <Card>
-            <CardHeader>
-              <CardTitle>Entrar</CardTitle>
-              <CardDescription>Acesse seu painel financeiro em poucos segundos.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Form {...loginForm}>
-                <form onSubmit={loginForm.handleSubmit(handleEmailLogin)} className="space-y-4">
-                  <FormField
-                    control={loginForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input type="email" placeholder="seu@email.com" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={loginForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Senha</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="******" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" className="w-full" disabled={isLoading || !auth}>
-                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Entrar com Email
-                  </Button>
-                </form>
-              </Form>
-
-              <div className="relative my-4">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">
-                    Ou continue com
-                  </span>
-                </div>
-              </div>
-
-               <Button
-                variant="outline"
-                onClick={handleGoogleSignIn}
-                className="w-full"
-                disabled={isLoading || !auth}
-              >
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> :
-                 <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
-                    <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 21.5 174.4 58.9L359.7 127.4c-27.8-26.2-63.5-42.6-111.7-42.6-88.5 0-160.9 72.4-160.9 161.2s72.4 161.2 160.9 161.2c38.3 0 71.3-12.8 96.2-34.4 22.1-19.1 33.4-44.9 36.8-74.6H248V261.8h239.2z"></path>
-                 </svg>}
-                Continuar com Google
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="register">
-          <Card>
-            <CardHeader>
-              <CardTitle>Criar conta</CardTitle>
-              <CardDescription>Comece hoje a sair das planilhas e organizar seu dinheiro.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Form {...registerForm}>
-                <form onSubmit={registerForm.handleSubmit(handleEmailRegister)} className="space-y-4">
-                  <FormField
-                    control={registerForm.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nome Completo</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Seu nome" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={registerForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input type="email" placeholder="seu@email.com" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={registerForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Senha</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="Mínimo 6 caracteres" {...field} />
-                        </FormControl>
-                         <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" className="w-full" disabled={isLoading || !auth}>
-                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Criar Conta
-                  </Button>
-                </form>
-              </Form>
-
-               <div className="relative my-4">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">
-                    Ou cadastre-se com
-                  </span>
-                </div>
-              </div>
-
-               <Button
-                variant="outline"
-                onClick={handleGoogleSignIn}
-                className="w-full"
-                disabled={isLoading || !auth}
-              >
-                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> :
-                 <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
-                    <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 21.5 174.4 58.9L359.7 127.4c-27.8-26.2-63.5-42.6-111.7-42.6-88.5 0-160.9 72.4-160.9 161.2s72.4 161.2 160.9 161.2c38.3 0 71.3-12.8 96.2-34.4 22.1-19.1 33.4-44.9 36.8-74.6H248V261.8h239.2z"></path>
-                 </svg>}
-                Continuar com Google
-              </Button>
-
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      <div className="hidden bg-muted lg:block relative">
+        {loginImage && (
+            <Image
+                src={loginImage.imageUrl}
+                alt={loginImage.description}
+                fill
+                className="object-cover"
+                data-ai-hint={loginImage.imageHint}
+                priority
+            />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-primary/30 to-primary/5"></div>
+         <div className="relative flex h-full flex-col justify-end p-10 text-primary-foreground">
+            <div className="z-10 rounded-lg bg-black/30 p-6 backdrop-blur-sm">
+                <h2 className="text-3xl font-bold">Simples. Visual. Sem estresse.</h2>
+                <p className="mt-2 text-primary-foreground/80">"Finalmente uma ferramenta que entende o que eu preciso. Em minutos, todo o meu fluxo financeiro estava organizado."</p>
+            </div>
+        </div>
+      </div>
     </div>
   );
 }
