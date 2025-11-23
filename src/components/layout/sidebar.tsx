@@ -1,5 +1,5 @@
 'use client';
-import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator } from '@/components/ui/sidebar';
+import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator, SidebarGroup, SidebarGroupLabel } from '@/components/ui/sidebar';
 import { LayoutDashboard, Landmark, CreditCard, Banknote, DollarSign, Loader2, Target, LogOut, UserCircle, LifeBuoy, ShieldCheck, PiggyBank, BarChart3, GraduationCap, Pin, PinOff, Files } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -9,13 +9,19 @@ import { cn } from '@/lib/utils';
 import { useUser } from '@/firebase';
 
 
-const mainMenuItems = [
+const overviewMenuItems = [
   { href: '/dashboard', label: 'Painel', icon: LayoutDashboard },
   { href: '/income', label: 'Renda', icon: Landmark },
   { href: '/expenses', label: 'Despesas', icon: CreditCard },
+];
+
+const planningMenuItems = [
   { href: '/debts', label: 'Dívidas', icon: Banknote },
-  { href: '/goals', label: 'Reservas', icon: PiggyBank },
+  { href: '/goals', label: 'Metas & Reservas', icon: PiggyBank },
   { href: '/budgets', label: 'Orçamentos', icon: Files },
+];
+
+const analysisMenuItems = [
   { href: '/reports', label: 'Relatórios', icon: BarChart3 },
   { href: '/education', label: 'Jornada Financeira', icon: GraduationCap },
 ];
@@ -35,6 +41,19 @@ export function AppSidebar() {
     }
   };
 
+  const renderMenuItems = (items: typeof overviewMenuItems) => (
+    items.map((item) => (
+        <SidebarMenuItem key={item.href}>
+            <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label} onClick={handleMobileClick}>
+                <Link href={item.href}>
+                    <item.icon />
+                    <span>{item.label}</span>
+                </Link>
+            </SidebarMenuButton>
+        </SidebarMenuItem>
+    ))
+  );
+
   return (
     <Sidebar variant="sidebar" collapsible="icon">
         <SidebarHeader className={cn("transition-transform duration-200", state === "collapsed" && "p-1")}>
@@ -46,25 +65,41 @@ export function AppSidebar() {
             </Button>
         </SidebarHeader>
         <SidebarMenu className="flex-1">
-            {mainMenuItems.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label} onClick={handleMobileClick}>
-                        <Link href={item.href}>
-                            <item.icon />
-                            <span>{item.label}</span>
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-            ))}
+            <SidebarGroup>
+                <SidebarGroupLabel>Visão Geral</SidebarGroupLabel>
+                {renderMenuItems(overviewMenuItems)}
+            </SidebarGroup>
+
+            <SidebarSeparator />
+
+            <SidebarGroup>
+                <SidebarGroupLabel>Planejamento</SidebarGroupLabel>
+                {renderMenuItems(planningMenuItems)}
+            </SidebarGroup>
+            
+            <SidebarSeparator />
+
+            <SidebarGroup>
+                <SidebarGroupLabel>Análise</SidebarGroupLabel>
+                 {renderMenuItems(analysisMenuItems)}
+            </SidebarGroup>
+
+
              {user?.role === 'superadmin' && (
-                <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname.startsWith('/admin')} tooltip="Painel Admin" onClick={handleMobileClick}>
-                        <Link href="/admin/dashboard">
-                            <ShieldCheck />
-                            <span>Painel Admin</span>
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
+                <>
+                    <SidebarSeparator />
+                    <SidebarGroup>
+                         <SidebarGroupLabel>Admin</SidebarGroupLabel>
+                        <SidebarMenuItem>
+                            <SidebarMenuButton asChild isActive={pathname.startsWith('/admin')} tooltip="Painel Admin" onClick={handleMobileClick}>
+                                <Link href="/admin/dashboard">
+                                    <ShieldCheck />
+                                    <span>Painel Admin</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </SidebarGroup>
+                </>
             )}
         </SidebarMenu>
         <SidebarFooter className={cn("flex flex-col gap-1 transition-transform duration-200 p-2", state === "collapsed" && "p-1")}>
