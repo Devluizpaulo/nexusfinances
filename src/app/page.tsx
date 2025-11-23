@@ -33,7 +33,7 @@ function ClientRoot() {
       redirect('/dashboard');
     }
   }, [user]);
-  
+
   const handleStart = () => {
     // Redirect to registration page with email pre-filled
     const params = new URLSearchParams();
@@ -487,9 +487,10 @@ function ClientRoot() {
                     Finalmente um app que não me faz sentir burro. Em 15 minutos eu já tinha cadastrado tudo e entendi para onde estava indo meu dinheiro. Economizei 30% no primeiro mês!
                   </p>
                   <div className="mt-6 flex items-center">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-primary/10 to-primary/5 text-primary">
-                      <span className="text-lg font-medium">JS</span>
-                    </div>
+                    <Avatar className="h-12 w-12 border-2 border-primary/20">
+                      <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" />
+                      <AvatarFallback>JS</AvatarFallback>
+                    </Avatar>
                     <div className="ml-4">
                       <p className="font-medium">João Silva</p>
                       <p className="text-sm text-muted-foreground">Freelancer • Usuário desde 2023</p>
@@ -506,9 +507,10 @@ function ClientRoot() {
                     O calendário de vencimentos salvou meu mês. Eu sempre esquecia de pagar alguma conta. Agora, está tudo lá, bem visual. Nunca mais paguei multa por atraso!
                   </p>
                   <div className="mt-6 flex items-center">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-primary/10 to-primary/5 text-primary">
-                      <span className="text-lg font-medium">MC</span>
-                    </div>
+                    <Avatar className="h-12 w-12 border-2 border-primary/20">
+                        <AvatarImage src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" />
+                        <AvatarFallback>MC</AvatarFallback>
+                    </Avatar>
                     <div className="ml-4">
                       <p className="font-medium">Mariana Costa</p>
                       <p className="text-sm text-muted-foreground">Analista de Marketing • Usuária desde 2024</p>
@@ -525,9 +527,10 @@ function ClientRoot() {
                     Eu e meu marido usamos para planejar nossas finanças juntos. A simplicidade para ver o progresso das nossas metas é incrível. Já conseguimos economizar para nossa viagem dos sonhos!
                   </p>
                   <div className="mt-6 flex items-center">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-primary/10 to-primary/5 text-primary">
-                      <span className="text-lg font-medium">CP</span>
-                    </div>
+                    <Avatar className="h-12 w-12 border-2 border-primary/20">
+                        <AvatarImage src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" />
+                        <AvatarFallback>CP</AvatarFallback>
+                    </Avatar>
                     <div className="ml-4">
                       <p className="font-medium">Carla Pereira</p>
                       <p className="text-sm text-muted-foreground">Empreendedora • Usuária desde 2023</p>
