@@ -188,7 +188,7 @@ service cloud.firestore {
        * @description Secures a user's financial goals.
        * @path /users/{userId}/goals/{goalId}
        * @allow (create) User 'user123' creating a goal document at `/users/user123/goals/goalXYZ` with `userId: 'user123'` in the body.
-       * @deny (read) User 'user789' attempting to read a goal document at `/users/user123/goals/goalXYZ`.
+       * @deny (read) User 'user789' attempting to read a goal document at `/users/user12-3/goals/goalXYZ`.
        * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
        */
       match /goals/{goalId} {
@@ -224,7 +224,7 @@ service cloud.firestore {
         allow create: if isSignedIn() && request.resource.data.createdBy == request.auth.uid;
         allow update, delete: if false;
     }
-
+    
     /**
      * @description Manages educational content.
      * @path /education/{trackId}
