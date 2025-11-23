@@ -2,27 +2,27 @@
   "placeholderImages": [
     {
       "id": "lp-hero",
-      "description": "Uma pessoa sorrindo, aliviada, enquanto olha para um laptop ou tablet exibindo gráficos financeiros claros e positivos.",
-      "imageUrl": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxmaW5hbmNpYWwlMjBjbGFyaXR5fGVufDB8fHx8MTc2NTU1ODU1M3ww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "financial clarity"
+      "description": "Pessoa feliz gerenciando finanças com o aplicativo",
+      "imageUrl": "/images/hero-image.png",
+      "imageHint": "Imagem de destaque mostrando uma pessoa sorrindo usando o aplicativo em um dispositivo móvel"
     },
     {
       "id": "lp-feature-1",
-      "description": "Close-up de um dashboard em um tablet mostrando gráficos de pizza e barras coloridos e fáceis de entender.",
-      "imageUrl": "https://images.unsplash.com/photo-1642543348745-03b12b383445?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxmaW5hbmNlJTIwZGFzaGJvYXJkJTIwY2hhcnR8ZW58MHx8fHwxNzY4MTYwMTkyfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "finance dashboard chart"
+      "description": "Gráficos e visualizações de dados financeiros",
+      "imageUrl": "/images/placeholder-charts.png",
+      "imageHint": "Gráficos de pizza e barras mostrando distribuição de gastos"
     },
     {
       "id": "lp-feature-2",
-      "description": "Uma pessoa usando um smartphone para registrar uma despesa rapidamente, com uma interface limpa.",
-      "imageUrl": "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtb2JpbGUlMjBwYXltZW50fGVufDB8fHx8MTc2ODE2MDI1NHww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "mobile payment"
+      "description": "Controle de orçamento e categorias",
+      "imageUrl": "/images/placeholder-budget.png",
+      "imageHint": "Interface de orçamento mostrando categorias e valores"
     },
     {
       "id": "lp-feature-3",
-      "description": "Uma imagem representando uma meta sendo alcançada, como um cofrinho quase cheio ou um gráfico de progresso chegando a 100%.",
-      "imageUrl": "https://images.unsplash.com/photo-1484712401471-05c7215830eb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzYXZpbmdzJTIwZ29hbHxlbnwwfHx8fDE3NjgxNjAzMDZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "savings goal"
+      "description": "Acompanhamento de metas financeiras",
+      "imageUrl": "/images/placeholder-goals.png",
+      "imageHint": "Metas de economia e investimento com progresso"
     }
   ]
 }
