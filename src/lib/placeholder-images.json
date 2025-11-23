@@ -9,20 +9,20 @@
     {
       "id": "lp-feature-1",
       "description": "Close-up de um dashboard em um tablet mostrando gráficos de pizza e barras coloridos e fáceis de entender.",
-      "imageUrl": "https://images.unsplash.com/photo-1757583012526-0a95b5e5b719?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxkYXNoYm9hcmQlMjBjaGFydHN8ZW58MHx8fHwxNzYzNzgzNTA5fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "dashboard charts"
+      "imageUrl": "https://images.unsplash.com/photo-1642543348745-03b12b383445?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxmaW5hbmNlJTIwZGFzaGJvYXJkJTIwY2hhcnR8ZW58MHx8fHwxNzY4MTYwMTkyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "finance dashboard chart"
     },
     {
       "id": "lp-feature-2",
       "description": "Uma pessoa usando um smartphone para registrar uma despesa rapidamente, com uma interface limpa.",
-      "imageUrl": "https://images.unsplash.com/photo-1681826291722-70bd7e9e6fc3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxtb2JpbGUlMjBmaW5hbmNlfGVufDB8fHx8MTc2MzgzMzE0NHww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "mobile finance"
+      "imageUrl": "https://images.unsplash.com/photo-1556740738-b6a63e27c4df?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtb2JpbGUlMjBwYXltZW50fGVufDB8fHx8MTc2ODE2MDI1NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "mobile payment"
     },
     {
       "id": "lp-feature-3",
       "description": "Uma imagem representando uma meta sendo alcançada, como um cofrinho quase cheio ou um gráfico de progresso chegando a 100%.",
-      "imageUrl": "https://images.unsplash.com/photo-1610540604745-3e96fba9ccef?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzYXZpbmclMjBnb2FsfGVufDB8fHx8MTc2MzgzMzE0NHww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "saving goal"
+      "imageUrl": "https://images.unsplash.com/photo-1484712401471-05c7215830eb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzYXZpbmdzJTIwZ29hbHxlbnwwfHx8fDE3NjgxNjAzMDZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "savings goal"
     }
   ]
 }
