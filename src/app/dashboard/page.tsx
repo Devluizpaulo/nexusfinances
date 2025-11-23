@@ -136,6 +136,10 @@ export default function DashboardPage() {
       .sort((a,b) => parseISO(b.date).getTime() - parseISO(a.date).getTime())
       .slice(0, 10);
   }, [allIncomeData, allExpenseData]);
+
+  const transactionsForCharts = useMemo(() => {
+    return [...(incomeData || []), ...(expenseData || [])];
+  }, [incomeData, expenseData]);
   
   const incomeExpenseByDate = useMemo(() => {
     const byDate: Record<string, { income: number; expense: number }> = {};
@@ -472,6 +476,11 @@ export default function DashboardPage() {
                 />
               </div>
             </div>
+            
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <IncomeExpenseChart transactions={transactionsForCharts} />
+              <ExpenseCategoryChart transactions={transactionsForCharts} />
+            </div>
 
             <Separator className="my-4" />
             
@@ -752,3 +761,5 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
