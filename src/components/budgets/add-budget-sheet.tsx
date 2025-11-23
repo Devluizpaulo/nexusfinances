@@ -1,7 +1,7 @@
 'use client';
 
 import { useForm } from 'react-hook-form';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { collection, doc } from 'firebase/firestore';
@@ -91,6 +91,8 @@ export function AddBudgetSheet({ isOpen, onClose, budget }: AddBudgetSheetProps)
       });
     }
   }, [budget, isOpen, form]);
+  
+  const isEditing = !!budget;
 
   const onSubmit = async (values: BudgetFormValues) => {
     if (!user || !firestore) {
@@ -101,25 +103,33 @@ export function AddBudgetSheet({ isOpen, onClose, budget }: AddBudgetSheetProps)
       return;
     }
 
-    const now = new Date();
-    const startDate = values.period === 'monthly' ? startOfMonth(now) : startOfWeek(now, { weekStartsOn: 1 });
-    const endDate = values.period === 'monthly' ? endOfMonth(now) : endOfWeek(now, { weekStartsOn: 1 });
-
-    const budgetData = {
-        ...values,
-        userId: user.uid,
-        startDate: formatISO(startDate),
-        endDate: formatISO(endDate),
-    };
-
     try {
       if (isEditing) {
+        // When editing, preserve the original start and end dates
         const budgetRef = doc(firestore, `users/${user.uid}/budgets`, budget!.id);
-        setDocumentNonBlocking(budgetRef, budgetData, { merge: true });
+        const updatedData = { 
+            ...values,
+            userId: user.uid, // ensure userId is present for security rules if needed
+            startDate: budget.startDate, 
+            endDate: budget.endDate 
+        };
+        setDocumentNonBlocking(budgetRef, updatedData, { merge: true });
         toast({ title: 'Orçamento atualizado!', description: `O orçamento "${values.name}" foi salvo.` });
       } else {
+        // When creating, calculate new start and end dates
+        const now = new Date();
+        const startDate = values.period === 'monthly' ? startOfMonth(now) : startOfWeek(now, { weekStartsOn: 1 });
+        const endDate = values.period === 'monthly' ? endOfMonth(now) : endOfWeek(now, { weekStartsOn: 1 });
+        
+        const newBudgetData = {
+            ...values,
+            userId: user.uid,
+            startDate: formatISO(startDate),
+            endDate: formatISO(endDate),
+        };
+
         const budgetsColRef = collection(firestore, `users/${user.uid}/budgets`);
-        addDocumentNonBlocking(budgetsColRef, budgetData);
+        addDocumentNonBlocking(budgetsColRef, newBudgetData);
         toast({ title: 'Orçamento criado!', description: `O orçamento "${values.name}" foi criado com sucesso.` });
       }
       onClose();
@@ -132,8 +142,6 @@ export function AddBudgetSheet({ isOpen, onClose, budget }: AddBudgetSheetProps)
       });
     }
   };
-  
-  const isEditing = !!budget;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

@@ -206,7 +206,7 @@ service cloud.firestore {
       match /budgets/{budgetId} {
         allow get, list: if isOwner(userId);
         allow create: if isCreatingOwnData(userId);
-        allow update: if isExistingOwner(userId) && isOwnerFieldImmutable();
+        allow update: if isExistingOwner(userId);
         allow delete: if isExistingOwner(userId);
       }
     }
