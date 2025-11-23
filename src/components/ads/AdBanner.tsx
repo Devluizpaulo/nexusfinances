@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 
 declare global {
@@ -11,19 +11,39 @@ declare global {
 
 const AdBanner = () => {
   const pathname = usePathname();
+  const adRef = useRef<HTMLModElement | null>(null);
+  const initialized = useRef(false);
 
   useEffect(() => {
-    try {
-      if (typeof window !== "undefined") {
-        (window.adsbygoogle = window.adsbygoogle || []).push({});
+    if (initialized.current) return;
+    if (typeof window === "undefined") return;
+
+    const tryInit = () => {
+      try {
+        if (!initialized.current && adRef.current && window.adsbygoogle) {
+          initialized.current = true;
+          (window.adsbygoogle = window.adsbygoogle || []).push({});
+        }
+      } catch {
+        // silencia erros do AdSense em dev/local
       }
-    } catch (err) {
-      console.error(err);
+    };
+
+    if (window.adsbygoogle) {
+      tryInit();
+      return;
     }
-  }, []); // Dependência vazia para executar apenas uma vez
+
+    const timeout = setTimeout(tryInit, 1000);
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [pathname]);
 
   return (
     <ins
+      ref={adRef as any}
       className="adsbygoogle"
       style={{ display: "block" }}
       data-ad-client="ca-pub-5750464088623363"

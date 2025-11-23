@@ -33,8 +33,10 @@ export function AuthenticatedLayout({
         <AppSidebar />
         <SidebarInset>
           <Header />
-          <main className="flex-1 overflow-y-auto p-4 lg:p-6">
-            {children}
+          <main className="flex-1 overflow-y-auto bg-muted/20">
+            <div className="mx-auto max-w-8xl p-4 lg:p-8">
+              {children}
+            </div>
           </main>
         </SidebarInset>
       </SidebarProvider>
