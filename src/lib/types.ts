@@ -52,6 +52,18 @@ export type Goal = {
   monthlyContribution?: number;
 };
 
+export type Budget = {
+  id: string;
+  userId: string;
+  name: string;
+  category: string;
+  amount: number;
+  spentAmount?: number;
+  period: 'weekly' | 'monthly';
+  startDate: string;
+  endDate: string;
+};
+
 export type Log = {
     id: string;
     timestamp: any; // Can be Firestore Timestamp
