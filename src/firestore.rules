@@ -197,14 +197,14 @@ service cloud.firestore {
         allow update: if isExistingOwner(userId) && isOwnerFieldImmutable();
         allow delete: if isExistingOwner(userId);
       }
-      
+
       /**
        * @description Secures a user's budgets.
        * @path /users/{userId}/budgets/{budgetId}
        * @principle Restricts access to a user's own budgets and validates ownership on creation/update.
        */
       match /budgets/{budgetId} {
-        allow get, list: if isOwner(userId) || isSuperAdmin();
+        allow get, list: if isOwner(userId);
         allow create: if isCreatingOwnData(userId);
         allow update: if isExistingOwner(userId) && isOwnerFieldImmutable();
         allow delete: if isExistingOwner(userId);
