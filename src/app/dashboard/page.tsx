@@ -28,6 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { getFinancialInsights, type GetFinancialInsightsInput } from '@/ai/flows/financial-insights-flow';
 import AdBanner from '@/components/ads/AdBanner';
+import { OverdueDebtsCard } from '@/components/dashboard/overdue-debts-card';
 
 type InstallmentInfo = {
   debtName: string;
@@ -357,6 +358,8 @@ export default function DashboardPage() {
             <div className="my-6">
                <AdBanner />
             </div>
+
+            <OverdueDebtsCard debts={debtData || []} />
 
             <div className="space-y-5">
               <h2 className="text-lg font-semibold tracking-tight">Resumo do mês</h2>
