@@ -12,7 +12,7 @@ import { collection, query, where, getDocs, orderBy, limit } from 'firebase/fire
 import type { Transaction, Debt, Goal, Installment, Budget } from '@/lib/types';
 import { useManageRecurrences } from '@/hooks/useManageRecurrences';
 import { Calendar } from '@/components/ui/calendar';
-import { startOfMonth, endOfMonth, parseISO, format, startOfDay, isBefore, endOfWeek, addMonths } from 'date-fns';
+import { startOfMonth, endOfMonth, parseISO, format, startOfDay, isBefore, endOfWeek, addMonths, isSameMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { QuickActions } from '@/components/dashboard/quick-actions';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
@@ -735,5 +735,7 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
 
     
