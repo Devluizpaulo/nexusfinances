@@ -96,7 +96,7 @@ function UserMenu() {
 export function Header() {
   const pathname = usePathname();
   const title = getTitle(pathname);
-  const { toggleSidebar, isPinned } = useSidebar();
+  const { toggleSidebar } = useSidebar();
   const isDashboard = pathname.startsWith('/dashboard');
   const dashboardDate = isDashboard ? useDashboardDate() : null;
 
@@ -145,7 +145,7 @@ export function Header() {
             <Bell />
             <span className="sr-only">Notificações</span>
           </Button>
-          {isPinned && <UserMenu />}
+          <UserMenu />
         </div>
       </div>
     </header>
