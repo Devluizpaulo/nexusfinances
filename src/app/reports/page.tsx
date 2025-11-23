@@ -9,13 +9,14 @@ import { DataTable } from '@/components/data-table/data-table';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { format, parseISO, startOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Loader2 } from 'lucide-react';
 import { IncomeExpenseChart } from '@/components/dashboard/income-expense-chart';
 import { LineChart, Line, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { Separator } from '@/components/ui/separator';
 
 type FilterType = 'all' | 'income' | 'expense';
 
@@ -252,39 +253,16 @@ export default function ReportsPage() {
     };
   }, [filteredTransactions]);
 
-  const handleExportCsv = () => {
-    if (!filteredTransactions.length) return;
-
-    const header = ['Data', 'Descrição', 'Categoria', 'Tipo', 'Status', 'Valor'];
-    const rows = filteredTransactions.map((t) => [
-      t.date,
-      t.description,
-      t.category,
-      t.type,
-      t.status,
-      String(t.amount),
-    ]);
-
-    const csvContent = [header, ...rows]
-      .map((cols) => cols.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(','))
-      .join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'relatorios-transacoes.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
   const handleExportPdf = () => {
-    if (!filteredTransactions.length) return;
-    // Usa a funcionalidade nativa do navegador para imprimir/salvar em PDF
     window.print();
   };
+  
+  const allCategories = useMemo(() => {
+    const incomeCats = user?.customIncomeCategories || [];
+    const expenseCats = user?.customExpenseCategories || [];
+    const transactionCats = Array.from(new Set(allTransactions.map((t) => t.category)));
+    return Array.from(new Set([...incomeCats, ...expenseCats, ...transactionCats]));
+  }, [user, allTransactions]);
 
   return (
     <>
@@ -297,49 +275,14 @@ export default function ReportsPage() {
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       ) : (
-        <>
-          <div className="mb-4 grid gap-4 md:grid-cols-3">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Total de Renda (filtro atual)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold text-emerald-600">{summary.incomeTotalFormatted}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Total de Despesas (filtro atual)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold text-red-600">{summary.expenseTotalFormatted}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Saldo (filtro atual)</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold">
-                  {summary.balanceFormatted}
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="mb-6">
-            <IncomeExpenseChart transactions={chartTransactions} />
-          </div>
-
-          <div className="mb-6">
-            <BalanceOverTimeChart transactions={chartTransactions} />
-          </div>
-
-          <DataTable
-            columns={columns}
-            data={filteredTransactions}
-            toolbar={
-              <div className="flex flex-wrap gap-3">
+        <div className="space-y-6 print:space-y-4">
+          <Card className="print:hidden">
+            <CardHeader>
+                <CardTitle>Filtros</CardTitle>
+                <CardDescription>Refine os dados que você deseja visualizar e exportar.</CardDescription>
+            </CardHeader>
+            <CardContent>
+               <div className="flex flex-wrap gap-4">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">Tipo:</span>
                   <select
@@ -378,39 +321,72 @@ export default function ReportsPage() {
                     onChange={(e) => setCategoryFilter(e.target.value)}
                   >
                     <option value="all">Todas</option>
-                    {Array.from(new Set(allTransactions.map((t) => t.category))).map((category) => (
+                    {allCategories.map((category) => (
                       <option key={category} value={category}>
                         {category}
                       </option>
                     ))}
                   </select>
                 </div>
-
-                <Button variant="outline" size="sm" onClick={handleClearFilters}>
-                  Limpar filtros
-                </Button>
-
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={handleExportCsv}
-                  disabled={!filteredTransactions.length}
-                >
-                  Exportar CSV
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleExportPdf}
-                  disabled={!filteredTransactions.length}
-                >
-                  Exportar PDF
-                </Button>
+                 <div className="flex-grow"></div>
+                 <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={handleClearFilters}>
+                      Limpar filtros
+                    </Button>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={handleExportPdf}
+                      disabled={!filteredTransactions.length}
+                    >
+                      Exportar PDF
+                    </Button>
+                 </div>
               </div>
-            }
+            </CardContent>
+          </Card>
+
+          <div className="mb-4 grid gap-4 md:grid-cols-3 print:grid-cols-3">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Total de Renda (filtro atual)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold text-emerald-600">{summary.incomeTotalFormatted}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Total de Despesas (filtro atual)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold text-red-600">{summary.expenseTotalFormatted}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Saldo (filtro atual)</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold">
+                  {summary.balanceFormatted}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <IncomeExpenseChart transactions={chartTransactions} />
+            <BalanceOverTimeChart transactions={chartTransactions} />
+          </div>
+
+          <Separator className="my-6" />
+
+          <DataTable
+            columns={columns}
+            data={filteredTransactions}
           />
-        </>
+        </div>
       )}
     </>
   );
