@@ -5,7 +5,7 @@
 import { useEffect, useState } from 'react';
 import { useUser } from '@/firebase';
 import { redirect } from 'next/navigation';
-import { ArrowRight, CheckCircle2, DollarSign, Quote, BarChart3, Target, Wallet, Loader2, Sparkles, TrendingUp, ShieldCheck, Smartphone, CreditCard, PieChart, PiggyBank, Calendar, GraduationCap } from 'lucide-react';
+import { ArrowRight, CheckCircle2, DollarSign, Quote, BarChart3, Target, Wallet, Loader2, Sparkles, TrendingUp, ShieldCheck, PieChart, PiggyBank, GraduationCap, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -28,6 +28,12 @@ function ClientRoot() {
   const [email, setEmail] = useState('');
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
+  useEffect(() => {
+    if (user) {
+      redirect('/dashboard');
+    }
+  }, [user]);
+  
   const handleStart = () => {
     // Redirect to registration page with email pre-filled
     const params = new URLSearchParams();
@@ -45,12 +51,6 @@ function ClientRoot() {
     });
   };
   
-  useEffect(() => {
-    if (user) {
-      redirect('/dashboard');
-    }
-  }, [user]);
-
   if (isUserLoading || user) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
@@ -138,7 +138,7 @@ function ClientRoot() {
                 Controle financeiro <span className="text-primary">simples</span> e poderoso
               </h1>
               <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground md:mx-0">
-                O app nasce para transformar o controle financeiro pessoal em algo rápido, seguro e organizado. Ele substitui as planilhas frágeis e cheias de fórmulas que vivem quebrando, oferecendo uma experiência moderna, estável e escalável. É a evolução natural para quem quer abandonar a confusão das células e ganhar clareza real sobre o próprio dinheiro.
+                O Xô Planilhas nasce para transformar o controle financeiro pessoal em algo rápido, seguro e organizado. Ele substitui as planilhas frágeis e cheias de fórmulas que vivem quebrando, oferecendo uma experiência moderna, estável e escalável. É a evolução natural para quem quer abandonar a confusão das células e ganhar clareza real sobre o próprio dinheiro.
               </p>
               
               <div className="mt-8 flex flex-col items-center space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0 md:justify-start">
@@ -180,10 +180,15 @@ function ClientRoot() {
               
               <div className="mt-8 flex flex-wrap items-center justify-center gap-4 md:justify-start">
                 <div className="flex -space-x-2">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-10 w-10 overflow-hidden rounded-full border-2 border-background bg-muted">
-                      <div className="h-full w-full bg-muted-foreground/20" />
-                    </div>
+                  {[
+                    'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+                    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
+                    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
+                  ].map((src, i) => (
+                     <Avatar key={i} className="h-10 w-10 border-2 border-background">
+                        <AvatarImage src={src} />
+                        <AvatarFallback>{i}</AvatarFallback>
+                    </Avatar>
                   ))}
                 </div>
                 <div className="text-sm text-muted-foreground">
@@ -199,7 +204,7 @@ function ClientRoot() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
               >
-                <div className="absolute -right-4 -top-4 h-full w-full rounded-2xl bg-primary/10" />
+                
                 <div className="relative h-full w-full overflow-hidden rounded-2xl border border-border/50 bg-background/50 shadow-2xl backdrop-blur-sm">
                   <Image
                     src={heroImage.imageUrl}
@@ -282,7 +287,7 @@ function ClientRoot() {
                   transition={{ duration: 0.5, delay: 0.2 }}
                 >
                   <div className="relative h-80 w-full overflow-hidden rounded-2xl border border-border/50 bg-background/50 shadow-xl backdrop-blur-sm">
-                    <div className="absolute -right-4 -top-4 h-full w-full rounded-2xl bg-primary/5" />
+                    
                     <Image 
                       src={feature1Image.imageUrl} 
                       alt={feature1Image.description} 
@@ -321,7 +326,7 @@ function ClientRoot() {
                   transition={{ duration: 0.5, delay: 0.3 }}
                 >
                   <div className="md:order-2 relative h-80 w-full overflow-hidden rounded-2xl border border-border/50 bg-background/50 shadow-xl backdrop-blur-sm">
-                    <div className="absolute -left-4 -top-4 h-full w-full rounded-2xl bg-secondary/5" />
+                    
                     <Image 
                       src={feature2Image.imageUrl} 
                       alt={feature2Image.description} 
@@ -364,7 +369,7 @@ function ClientRoot() {
                   transition={{ duration: 0.5, delay: 0.4 }}
                 >
                   <div className="relative h-80 w-full overflow-hidden rounded-2xl border border-border/50 bg-background/50 shadow-xl backdrop-blur-sm">
-                    <div className="absolute -right-4 -top-4 h-full w-full rounded-2xl bg-primary/5" />
+                    
                     <Image 
                       src={feature3Image.imageUrl} 
                       alt={feature3Image.description} 
