@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import Script from "next/script";
+import { LgpdBanner } from "@/components/lgpd-banner";
 
 export const metadata: Metadata = {
   title: "Xô Planilhas | Controle Financeiro, Orçamento e Metas",
@@ -49,6 +50,7 @@ export default function RootLayout({
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5750464088623363"
           crossOrigin="anonymous"
         />
+        <LgpdBanner />
       </body>
     </html>
   );
