@@ -411,6 +411,11 @@ export default function DashboardPage() {
                 <p className="text-sm text-muted-foreground max-w-xl">
                   Este é o seu painel de {format(selectedDate, 'MMMM/yyyy', { locale: ptBR })}. Tudo em um só lugar, sem planilhas.
                 </p>
+                 {!isLoading && (
+                    <div className="pt-4">
+                        <AdBanner />
+                    </div>
+                )}
               </div>
               <div className="flex flex-col items-center gap-2 md:flex-row">
                 <QuickActions
@@ -422,10 +427,6 @@ export default function DashboardPage() {
               </div>
             </div>
             
-            <div className="my-6">
-               <AdBanner />
-            </div>
-
             <OverdueDebtsCard debts={debtData || []} />
 
             <div className="space-y-5">
