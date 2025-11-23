@@ -9,7 +9,7 @@ import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebas
 import type { Budget, Transaction } from '@/lib/types';
 import { AddBudgetSheet } from '@/components/budgets/add-budget-sheet';
 import { BudgetCard } from '@/components/budgets/budget-card';
-import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, parseISO } from 'date-fns';
+import { startOfMonth, endOfMonth, parseISO } from 'date-fns';
 
 export default function BudgetsPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -17,25 +17,19 @@ export default function BudgetsPage() {
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
 
-  // 1. Fetch all budgets
   const budgetsQuery = useMemoFirebase(() => {
-    if (!user) return null;
+    if (!user || !firestore) return null;
     return query(collection(firestore, `users/${user.uid}/budgets`));
   }, [firestore, user]);
 
-  const { data: budgetsData, isLoading: isBudgetsLoading } = useCollection<Budget>(budgetsQuery);
-
-  // 2. Fetch all expenses for relevant date ranges to calculate spent amounts
   const expensesQuery = useMemoFirebase(() => {
-    if (!user) return null;
-    // A broader query to get all expenses. Filtering will happen client-side.
-    // This could be optimized if performance becomes an issue.
+    if (!user || !firestore) return null;
     return query(collection(firestore, `users/${user.uid}/expenses`));
   }, [firestore, user]);
-  
+
+  const { data: budgetsData, isLoading: isBudgetsLoading } = useCollection<Budget>(budgetsQuery);
   const { data: expensesData, isLoading: isExpensesLoading } = useCollection<Transaction>(expensesQuery);
-  
-  // 3. Process and combine data
+
   const { monthlyBudgets, weeklyBudgets } = useMemo(() => {
     if (!budgetsData || !expensesData) {
       return { monthlyBudgets: [], weeklyBudgets: [] };
