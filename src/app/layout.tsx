@@ -6,8 +6,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "Xô Planilhas",
-  description: "Organize seu dinheiro sem depender de planilhas.",
+  title: "Xô Planilhas | Controle Financeiro, Orçamento e Metas",
+  description: "Abandone as planilhas! O Xô Planilhas é o app definitivo para controle financeiro pessoal, gestão de despesas, orçamento e planejamento de metas. Simples e poderoso.",
 };
 
 export default function RootLayout({

@@ -1,0 +1,10 @@
+# Allow all user agents
+User-agent: *
+Allow: /
+
+# Disallow admin and private areas from being crawled
+Disallow: /admin/
+Disallow: /profile/
+
+# Sitemap location
+Sitemap: https://xoplanilhas.app.br/sitemap.xml
