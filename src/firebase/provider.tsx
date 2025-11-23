@@ -2,7 +2,7 @@
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, setDoc, getDoc, serverTimestamp, Timestamp, FieldValue, onSnapshot } from 'firebase/firestore';
+import { Firestore, doc, setDoc, getDoc, serverTimestamp, Timestamp, FieldValue, onSnapshot, collection, query, where } from 'firebase/firestore';
 import { FirebaseStorage } from 'firebase/storage';
 import { Auth, User, onAuthStateChanged, UserMetadata } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
@@ -63,48 +63,37 @@ interface FirebaseProviderProps {
 }
 
 
-async function checkAndCreateUserDocument(firestore: Firestore, firebaseUser: User): Promise<AppUser> {
+async function createUserDocument(firestore: Firestore, firebaseUser: User): Promise<AppUser> {
   const userDocRef = doc(firestore, 'users', firebaseUser.uid);
-  const userDocSnap = await getDoc(userDocRef);
 
-  let appUser: AppUser = { ...firebaseUser, phoneNumber: firebaseUser.phoneNumber };
+  const nameParts = (firebaseUser.displayName || firebaseUser.email || '').split(' ');
+  const firstName = nameParts[0];
+  const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+  const registrationDate = serverTimestamp();
+  
+  const newUserDoc = {
+    id: firebaseUser.uid,
+    displayName: firebaseUser.displayName || `${firstName} ${lastName}`.trim(),
+    email: firebaseUser.email,
+    photoURL: firebaseUser.photoURL,
+    registrationDate: registrationDate,
+    firstName: firstName,
+    lastName: lastName,
+    phoneNumber: firebaseUser.phoneNumber || '',
+    role: 'user' as const,
+    completedTracks: [],
+    customIncomeCategories: [],
+    customExpenseCategories: [],
+  };
 
-  if (userDocSnap.exists()) {
-    const firestoreData = userDocSnap.data();
-    appUser = {
-      ...appUser,
-      ...firestoreData,
-    };
-  } else {
-    // Document doesn't exist, create it.
-    const nameParts = (firebaseUser.displayName || firebaseUser.email || '').split(' ');
-    const firstName = nameParts[0];
-    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
-    const registrationDate = serverTimestamp();
-    const newUserDoc = {
-      id: firebaseUser.uid,
-      displayName: firebaseUser.displayName || `${firstName} ${lastName}`.trim(),
-      email: firebaseUser.email,
-      photoURL: firebaseUser.photoURL,
-      registrationDate: registrationDate,
-      firstName: firstName,
-      lastName: lastName,
-      phoneNumber: firebaseUser.phoneNumber || '',
-      role: 'user' as const, // Default role
-      completedTracks: [], // Initialize completedTracks
-      customIncomeCategories: [],
-      customExpenseCategories: [],
-    };
-    
-    await setDoc(userDocRef, newUserDoc, { merge: true });
+  await setDoc(userDocRef, newUserDoc, { merge: true });
 
-    appUser = {
-        ...appUser,
-        ...newUserDoc,
-        registrationDate: new Date().toISOString(), // Use client date as placeholder
-    };
-  }
-  return appUser;
+  return {
+    ...firebaseUser,
+    ...newUserDoc,
+    phoneNumber: firebaseUser.phoneNumber,
+    registrationDate: new Date().toISOString(), // Use client date as placeholder until server timestamp is resolved
+  };
 }
 
 
@@ -135,15 +124,34 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   
     const authUnsubscribe = onAuthStateChanged(
       auth,
-      async (firebaseUser) => {
+      (firebaseUser) => {
         if (firebaseUser) {
-          try {
-            const appUser = await checkAndCreateUserDocument(firestore, firebaseUser);
-            setUserAuthState({ user: appUser, isUserLoading: false, userError: null });
-          } catch (error: any) {
-            console.error("FirebaseProvider: Error creating/getting user document:", error);
-            setUserAuthState({ user: null, isUserLoading: false, userError: error });
-          }
+          const userDocRef = doc(firestore, 'users', firebaseUser.uid);
+          const userUnsubscribe = onSnapshot(userDocRef, 
+            async (snapshot) => {
+                if(snapshot.exists()) {
+                    setUserAuthState({
+                        user: { ...firebaseUser, ...snapshot.data() } as AppUser,
+                        isUserLoading: false,
+                        userError: null,
+                    });
+                } else {
+                    try {
+                        const appUser = await createUserDocument(firestore, firebaseUser);
+                        setUserAuthState({ user: appUser, isUserLoading: false, userError: null });
+                    } catch (error: any) {
+                        console.error("FirebaseProvider: Error creating user document:", error);
+                        setUserAuthState({ user: null, isUserLoading: false, userError: error });
+                    }
+                }
+            },
+            (error) => {
+                console.error("FirebaseProvider: onSnapshot error:", error);
+                setUserAuthState({ user: null, isUserLoading: false, userError: error });
+            }
+          );
+          // Return a cleanup function for the user document listener
+          return () => userUnsubscribe();
         } else {
           // No Firebase user, so set auth state to signed out
           setUserAuthState({ user: null, isUserLoading: false, userError: null });
