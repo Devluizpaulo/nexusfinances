@@ -138,7 +138,7 @@ function ClientRoot() {
                 Controle financeiro <span className="text-primary">simples</span> e poderoso
               </h1>
               <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground md:mx-0">
-                Diga adeus às planilhas e assuma o controle da sua vida financeira com uma ferramenta intuitiva, visual e feita para você.
+                O app nasce para transformar o controle financeiro pessoal em algo rápido, seguro e organizado. Ele substitui as planilhas frágeis e cheias de fórmulas que vivem quebrando, oferecendo uma experiência moderna, estável e escalável. É a evolução natural para quem quer abandonar a confusão das células e ganhar clareza real sobre o próprio dinheiro.
               </p>
               
               <div className="mt-8 flex flex-col items-center space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0 md:justify-start">
