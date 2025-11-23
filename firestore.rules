@@ -99,6 +99,16 @@ service cloud.firestore {
     function isDebtFieldImmutable() {
         return request.resource.data.debtId == resource.data.debtId;
     }
+    
+    /**
+     * Checks if the fields being updated by a user are allowed.
+     * Prevents users from changing their own role or email.
+     */
+    function isAllowedUserUpdate() {
+      let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
+      // Users cannot change their ID, email, or role.
+      return !('id' in changedKeys) && !('email' in changedKeys) && !('role' in changedKeys);
+    }
 
     // ----------------------------------------------------------------------
     // Collection Rules
@@ -115,7 +125,7 @@ service cloud.firestore {
       allow get: if isOwner(userId) || isSuperAdmin();
       allow list: if isSuperAdmin();
       allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if (isOwner(userId) && request.resource.data.id == resource.data.id && request.resource.data.email == resource.data.email && request.resource.data.role == resource.data.role) || isSuperAdmin();
+      allow update: if (isOwner(userId) && isAllowedUserUpdate()) || isSuperAdmin();
       allow delete: if isExistingOwner(userId) || isSuperAdmin();
 
       /**
@@ -178,13 +188,25 @@ service cloud.firestore {
        * @description Secures a user's financial goals.
        * @path /users/{userId}/goals/{goalId}
        * @allow (create) User 'user123' creating a goal document at `/users/user123/goals/goalXYZ` with `userId: 'user123'` in the body.
-       * @deny (read) User 'user789' attempting to read a goal document at `/users/user123/goals/goalXYZ`.
+       * @deny (read) User 'user789' attempting to read a goal document at `/users/user12-3/goals/goalXYZ`.
        * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
        */
       match /goals/{goalId} {
         allow get, list: if isOwner(userId) || isSuperAdmin();
         allow create: if isCreatingOwnData(userId);
         allow update: if isExistingOwner(userId) && isOwnerFieldImmutable();
+        allow delete: if isExistingOwner(userId);
+      }
+
+      /**
+       * @description Secures a user's budgets.
+       * @path /users/{userId}/budgets/{budgetId}
+       * @principle Restricts access to a user's own budgets and validates ownership on creation/update.
+       */
+      match /budgets/{budgetId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isCreatingOwnData(userId);
+        allow update: if isExistingOwner(userId);
         allow delete: if isExistingOwner(userId);
       }
     }
@@ -201,6 +223,18 @@ service cloud.firestore {
         allow get, list: if isSuperAdmin();
         allow create: if isSignedIn() && request.resource.data.createdBy == request.auth.uid;
         allow update, delete: if false;
+    }
+    
+    /**
+     * @description Manages educational content.
+     * @path /education/{trackId}
+     * @allow (read) Any authenticated user can read the educational tracks.
+     * @allow (write) Only superadmins can create, update, or delete educational content.
+     * @principle Makes content public for consumption but restricted for management.
+     */
+    match /education/{trackId} {
+        allow get, list: if isSignedIn();
+        allow write: if isSuperAdmin();
     }
   }
 }
