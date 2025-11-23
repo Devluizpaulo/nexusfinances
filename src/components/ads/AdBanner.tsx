@@ -20,7 +20,7 @@ const AdBanner = () => {
     } catch (err) {
       console.error(err);
     }
-  }, [pathname]);
+  }, []); // Dependência vazia para executar apenas uma vez
 
   return (
     <ins
