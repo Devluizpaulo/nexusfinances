@@ -2,27 +2,27 @@
   "placeholderImages": [
     {
       "id": "lp-hero",
-      "description": "Pessoa feliz gerenciando finanças com o aplicativo",
-      "imageUrl": "https://images.unsplash.com/photo-1761592886799-be9194a5cd02?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxtb2Rlcm4lMjBkYXNoYm9hcmR8ZW58MHx8fHwxNzYzODE3NTEwfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "modern dashboard"
+      "description": "Mulher sorrindo enquanto usa um laptop com gráficos financeiros, representando controle e sucesso",
+      "imageUrl": "https://images.unsplash.com/photo-1554224155-6726b3ff858f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxmaW5hbmNpYWwlMjBwbGFubmluZ3xlbnwwfHx8fDE3NjM5MTg4MjV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "financial planning"
     },
     {
       "id": "lp-feature-1",
-      "description": "Gráficos e visualizações de dados financeiros",
-      "imageUrl": "https://images.unsplash.com/photo-1723987251277-18fc0a1effd0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8ZmluYW5jaWFsJTIwZ3JhcGhzfGVufDB8fHx8MTc2MzkxODI5NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "Close-up de um tablet exibindo gráficos de dados coloridos e dinâmicos",
+      "imageUrl": "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxtb2Rlcm4lMjBkYXNoYm9hcmR8ZW58MHx8fHwxNzYzODE3NTEwfDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "financial graphs"
     },
     {
       "id": "lp-feature-2",
-      "description": "Controle de orçamento e categorias",
-      "imageUrl": "https://images.unsplash.com/photo-1634108936015-cb7c1bc2eafe?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzYWZlJTIwdmF1bHR8ZW58MHx8fHwxNzYzOTE4Mjk1fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "safe vault"
+      "description": "Pessoa interagindo com uma interface de aplicativo financeiro em um smartphone",
+      "imageUrl": "https://images.unsplash.com/photo-1556740758-90de374c12ad?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxwYXltZW50JTIwYXBwfGVufDB8fHx8MTc2MzkxOTAwMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "payment app"
     },
     {
       "id": "lp-feature-3",
-      "description": "Acompanhamento de metas financeiras",
-      "imageUrl": "https://images.unsplash.com/photo-1612441804231-77a36b284856?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxtb3VudGFpbiUyMGxhbmRzY2FwZXxlbnwwfHx8fDE3NjM5MTY0NTJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "mountain landscape"
+      "description": "Uma estrada aberta em direção a montanhas, simbolizando uma jornada para alcançar objetivos",
+      "imageUrl": "https://images.unsplash.com/photo-1473448912268-2022ce9509d8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxyb2FkJTIwdG8lMjBtb3VudGFpbnN8ZW58MHx8fHwxNzYzOTE5MDMzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "road mountains"
     }
   ]
 }
