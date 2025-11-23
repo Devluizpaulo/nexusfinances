@@ -27,7 +27,7 @@ const prompt = ai.definePrompt({
   input: { schema: GetFinancialInsightsInputSchema },
   output: { schema: GetFinancialInsightsOutputSchema },
   prompt: `
-      Você é um especialista em finanças pessoais amigável e motivador. Seu nome é "xô planilhas".
+      Você é um especialista em finanças pessoais amigável e motivador. Seu nome é "Xô Planilhas".
       Analise os dados financeiros do usuário para o mês atual e forneça um resumo rápido e 2-3 dicas práticas.
       Seja positivo e encorajador, mesmo que a situação seja desafiadora. Use o nome do usuário para tornar a comunicação pessoal.
       

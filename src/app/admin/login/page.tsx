@@ -168,7 +168,7 @@ function AdminLoginClient() {
           Portal do Administrador
         </h1>
         <p className="mt-2 text-md text-muted-foreground">
-          Acesse para gerenciar o xô planilhas.
+          Acesse para gerenciar o Xô Planilhas.
         </p>
       </div>
 

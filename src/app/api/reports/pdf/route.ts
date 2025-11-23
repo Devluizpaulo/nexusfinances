@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
       color: rgb(0.04, 0.24, 0.45),
     });
 
-    page.drawText("Relatório financeiro - xô planilhas", {
+    page.drawText("Relatório financeiro - Xô Planilhas", {
       x: margin,
       y: height - headerHeight + 40,
       size: 20,
@@ -297,7 +297,7 @@ export async function POST(req: NextRequest) {
         ({ width, height } = page.getSize());
         y = height - margin;
 
-        page.drawText("Relatório financeiro - xô planilhas", {
+        page.drawText("Relatório financeiro - Xô Planilhas", {
           x: margin,
           y,
           size: 14,
@@ -338,7 +338,7 @@ export async function POST(req: NextRequest) {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": 'attachment; filename="relatorio-nexusfinances.pdf"',
+        "Content-Disposition": 'attachment; filename="relatorio-xoplanilhas.pdf"',
       },
     });
   } catch (err) {

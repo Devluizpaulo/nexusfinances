@@ -26,7 +26,7 @@ const faqItems = [
     },
     {
         question: "Posso alterar minha senha se me cadastrei com o Google?",
-        answer: "Não. Se você se cadastrou usando sua conta do Google, sua autenticação é gerenciada diretamente pelo Google. Para alterar sua senha, você deve fazê-lo através das configurações de segurança da sua própria conta Google. A opção de alterar senha no perfil do xô planilhas funciona apenas para contas criadas com e-mail e senha."
+        answer: "Não. Se você se cadastrou usando sua conta do Google, sua autenticação é gerenciada diretamente pelo Google. Para alterar sua senha, você deve fazê-lo através das configurações de segurança da sua própria conta Google. A opção de alterar senha no perfil do Xô Planilhas funciona apenas para contas criadas com e-mail e senha."
     },
 ];
 

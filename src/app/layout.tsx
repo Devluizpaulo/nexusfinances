@@ -6,7 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import Script from "next/script";
 
 export const metadata: Metadata = {
-  title: "xô planilhas",
+  title: "Xô Planilhas",
   description: "Organize seu dinheiro sem depender de planilhas.",
 };
 

@@ -35,7 +35,7 @@ const getTitle = (pathname: string) => {
     if (pathname.startsWith('/education')) return 'Jornada Financeira'
     if (pathname.startsWith('/profile')) return 'Perfil';
     if (pathname.startsWith('/support')) return 'Suporte';
-    return 'xô planilhas';
+    return 'Xô Planilhas';
 }
 
 function UserMenu() {

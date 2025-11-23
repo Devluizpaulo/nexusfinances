@@ -212,7 +212,7 @@ function LoginClient() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                 <DollarSign className="h-6 w-6" />
                 </div>
-                <span className="text-2xl font-bold tracking-tight">xô planilhas</span>
+                <span className="text-2xl font-bold tracking-tight">Xô Planilhas</span>
             </Link>
             <h1 className="text-3xl font-bold">Acesse sua conta</h1>
             <p className="text-balance text-muted-foreground">
