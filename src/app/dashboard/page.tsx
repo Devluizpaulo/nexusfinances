@@ -89,22 +89,12 @@ export default function DashboardPage() {
   
   const allIncomesQuery = useMemoFirebase(() => {
     if (!user) return null;
-    return query(collection(firestore, `users/${user.uid}/incomes`));
+    return query(collection(firestore, `users/${user.uid}/incomes`), orderBy('date', 'desc'));
   }, [firestore, user]);
   
   const allExpensesQuery = useMemoFirebase(() => {
     if (!user) return null;
-    return query(collection(firestore, `users/${user.uid}/expenses`));
-  }, [firestore, user]);
-
-  const recentTransactionsQuery = useMemoFirebase(() => {
-    if (!user) return null;
-    // Note: This requires a composite index on 'type' and 'date'
-    // For simplicity, we fetch recent incomes and expenses separately and combine them client-side.
-    // This is a trade-off to avoid complex index management for this demo.
-    const incomes = query(collection(firestore, `users/${user.uid}/incomes`), orderBy('date', 'desc'), limit(5));
-    const expenses = query(collection(firestore, `users/${user.uid}/expenses`), orderBy('date', 'desc'), limit(5));
-    return { incomes, expenses };
+    return query(collection(firestore, `users/${user.uid}/expenses`), orderBy('date', 'desc'));
   }, [firestore, user]);
 
   const debtsQuery = useMemoFirebase(() => {
@@ -117,26 +107,19 @@ export default function DashboardPage() {
     return query(collection(firestore, `users/${user.uid}/goals`));
   }, [firestore, user]);
   
-  const budgetsForMonthQuery = useMemoFirebase(() => {
+  const budgetsQuery = useMemoFirebase(() => {
     if (!user) return null;
-    return query(
-        collection(firestore, `users/${user.uid}/budgets`),
-        where('period', '==', 'monthly'),
-        where('startDate', '>=', format(start, 'yyyy-MM-dd')),
-        where('startDate', '<=', format(end, 'yyyy-MM-dd'))
-    );
-  }, [firestore, user, start, end]);
+    return query(collection(firestore, `users/${user.uid}/budgets`));
+  }, [firestore, user]);
 
   // Data fetching
   const { data: incomeData, isLoading: isIncomeLoading } = useCollection<Transaction>(incomesForMonthQuery);
   const { data: expenseData, isLoading: isExpensesLoading } = useCollection<Transaction>(expensesForMonthQuery);
   const { data: allIncomeData, isLoading: isAllIncomeLoading } = useCollection<Transaction>(allIncomesQuery);
   const { data: allExpenseData, isLoading: isAllExpensesLoading } = useCollection<Transaction>(allExpensesQuery);
-  const { data: recentIncomes } = useCollection<Transaction>(recentTransactionsQuery?.incomes);
-  const { data: recentExpenses } = useCollection<Transaction>(recentTransactionsQuery?.expenses);
   const { data: debtData, isLoading: isDebtsLoading } = useCollection<Debt>(debtsQuery);
   const { data: goalData, isLoading: isGoalsLoading } = useCollection<Goal>(goalsQuery);
-  const { data: budgetsForMonth, isLoading: isBudgetsLoading } = useCollection<Budget>(budgetsForMonthQuery);
+  const { data: budgetsData, isLoading: isBudgetsLoading } = useCollection<Budget>(budgetsQuery);
 
   const [installmentOverdueDates, setInstallmentOverdueDates] = useState<Date[]>([]);
   const [installmentUpcomingDates, setInstallmentUpcomingDates] = useState<Date[]>([]);
@@ -147,12 +130,12 @@ export default function DashboardPage() {
   
   // Memos for data processing
   const allTransactions = useMemo(() => {
-    const incomes = (recentIncomes || []).map(t => ({...t, type: 'income' as const}));
-    const expenses = (recentExpenses || []).map(t => ({...t, type: 'expense' as const}));
+    const incomes = (allIncomeData || []).map(t => ({...t, type: 'income' as const}));
+    const expenses = (allExpenseData || []).map(t => ({...t, type: 'expense' as const}));
     return [...incomes, ...expenses]
       .sort((a,b) => parseISO(b.date).getTime() - parseISO(a.date).getTime())
       .slice(0, 10);
-  }, [recentIncomes, recentExpenses]);
+  }, [allIncomeData, allExpenseData]);
   
   const incomeExpenseByDate = useMemo(() => {
     const byDate: Record<string, { income: number; expense: number }> = {};
@@ -173,15 +156,20 @@ export default function DashboardPage() {
   }, [allIncomeData, allExpenseData]);
   
   const monthlyBudgetsWithSpent = useMemo(() => {
-    if (!budgetsForMonth || !expenseData) return [];
+    if (!budgetsData || !expenseData) return [];
     
+    const budgetsForMonth = (budgetsData || []).filter(b => {
+        const budgetStart = parseISO(b.startDate);
+        return isSameMonth(budgetStart, selectedDate) && b.period === 'monthly';
+    });
+
     return budgetsForMonth.map(budget => {
         const spent = expenseData
             .filter(e => e.category === budget.category)
             .reduce((sum, e) => sum + e.amount, 0);
         return { ...budget, spentAmount: spent };
     });
-  }, [budgetsForMonth, expenseData]);
+  }, [budgetsData, expenseData, selectedDate]);
 
   const { totalIncome, totalExpenses, totalDebt, balance } = useMemo(() => {
     const totalIncome = incomeData?.reduce((sum, t) => sum + t.amount, 0) || 0;
@@ -452,12 +440,10 @@ export default function DashboardPage() {
               </div>
             </div>
             
-            {!isLoading && (
-              <div className="space-y-4">
-                  <AdBanner />
-                  <OverdueDebtsCard debts={debtData || []} />
-              </div>
-            )}
+            <div className="space-y-4">
+              {!isLoading && <AdBanner />}
+              <OverdueDebtsCard debts={debtData || []} />
+            </div>
 
             <div className="space-y-5">
               <h2 className="text-lg font-semibold tracking-tight">Resumo do mês</h2>
