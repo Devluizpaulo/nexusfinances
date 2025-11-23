@@ -8,8 +8,8 @@ import { IncomeExpenseChart } from '@/components/dashboard/income-expense-chart'
 import { ExpenseCategoryChart } from '@/components/dashboard/expense-category-chart';
 import { FinancialHealthScore } from '@/components/dashboard/financial-health-score';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
-import type { Transaction, Debt, Goal, Installment } from '@/lib/types';
+import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
+import type { Transaction, Debt, Goal, Installment, Budget } from '@/lib/types';
 import { useManageRecurrences } from '@/hooks/useManageRecurrences';
 import { Calendar } from '@/components/ui/calendar';
 import { startOfMonth, endOfMonth, parseISO, format, startOfDay, isBefore, endOfWeek, addMonths } from 'date-fns';
@@ -29,6 +29,11 @@ import { Button } from '@/components/ui/button';
 import { getFinancialInsights, type GetFinancialInsightsInput } from '@/ai/flows/financial-insights-flow';
 import AdBanner from '@/components/ads/AdBanner';
 import { OverdueDebtsCard } from '@/components/dashboard/overdue-debts-card';
+import { Badge } from '@/components/ui/badge';
+import { GoalCard } from '@/components/goals/goal-card';
+import { BudgetCard } from '@/components/budgets/budget-card';
+import { AddContributionSheet } from '@/components/goals/add-contribution-sheet';
+import { AddBudgetSheet } from '@/components/budgets/add-budget-sheet';
 
 type InstallmentInfo = {
   debtName: string;
@@ -46,10 +51,18 @@ export default function DashboardPage() {
   const [isExpenseSheetOpen, setIsExpenseSheetOpen] = useState(false);
   const [isDebtSheetOpen, setIsDebtSheetOpen] = useState(false);
   const [isGoalSheetOpen, setIsGoalSheetOpen] = useState(false);
+  const [isBudgetSheetOpen, setIsBudgetSheetOpen] = useState(false);
+  const [isContributionSheetOpen, setIsContributionSheetOpen] = useState(false);
+
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
+  const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
+  const [selectedGoalForContribution, setSelectedGoalForContribution] = useState<Goal | null>(null);
   
   const [isInsightsLoading, setIsInsightsLoading] = useState(false);
   const [insights, setInsights] = useState<{ summary: string; actionPoints: string[] } | null>(null);
 
+  // Queries
   const transactionsQuery = useMemoFirebase(() => {
     if (!user) return null;
     return query(collection(firestore, `users/${user.uid}/incomes`));
@@ -58,6 +71,11 @@ export default function DashboardPage() {
   const expensesQuery = useMemoFirebase(() => {
     if (!user) return null;
     return query(collection(firestore, `users/${user.uid}/expenses`));
+  }, [firestore, user]);
+
+  const recentTransactionsQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(collection(firestore, `users/${user.uid}/transactions`), orderBy('date', 'desc'), limit(10));
   }, [firestore, user]);
 
   const debtsQuery = useMemoFirebase(() => {
@@ -70,10 +88,18 @@ export default function DashboardPage() {
     return query(collection(firestore, `users/${user.uid}/goals`));
   }, [firestore, user]);
 
+  const budgetsQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(collection(firestore, `users/${user.uid}/budgets`));
+  }, [firestore, user]);
+
+
+  // Data fetching
   const { data: allIncomeData, isLoading: isIncomeLoading } = useCollection<Transaction>(transactionsQuery);
   const { data: allExpenseData, isLoading: isExpensesLoading } = useCollection<Transaction>(expensesQuery);
   const { data: debtData, isLoading: isDebtsLoading } = useCollection<Debt>(debtsQuery);
   const { data: goalData, isLoading: isGoalsLoading } = useCollection<Goal>(goalsQuery);
+  const { data: budgetsData, isLoading: isBudgetsLoading } = useCollection<Budget>(budgetsQuery);
 
   const [installmentOverdueDates, setInstallmentOverdueDates] = useState<Date[]>([]);
   const [installmentUpcomingDates, setInstallmentUpcomingDates] = useState<Date[]>([]);
@@ -82,6 +108,13 @@ export default function DashboardPage() {
     null,
   );
 
+  // Memos for data processing
+  const allTransactions = useMemo(() => {
+    const incomes = (allIncomeData || []).map(t => ({...t, type: 'income' as const}));
+    const expenses = (allExpenseData || []).map(t => ({...t, type: 'expense' as const}));
+    return [...incomes, ...expenses].sort((a,b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());
+  }, [allIncomeData, allExpenseData]);
+  
   const incomeExpenseByDate = useMemo(() => {
     const byDate: Record<string, { income: number; expense: number }> = {};
 
@@ -99,6 +132,49 @@ export default function DashboardPage() {
 
     return byDate;
   }, [allIncomeData, allExpenseData]);
+  
+  const { incomeData, expenseData, budgetsForMonth, monthlyBudgetsWithSpent } = useMemo(() => {
+    const start = startOfMonth(selectedDate);
+    const end = endOfMonth(selectedDate);
+
+    const filterByMonth = (data: Transaction[] | null) => {
+      if (!data) return [];
+      return data.filter(t => {
+        const transactionDate = parseISO(t.date);
+        return transactionDate >= start && transactionDate <= end;
+      });
+    }
+    
+    const incomeData = filterByMonth(allIncomeData);
+    const expenseData = filterByMonth(allExpenseData);
+    
+    const budgetsForMonth = (budgetsData || []).filter(b => {
+        const budgetStart = parseISO(b.startDate);
+        return isSameMonth(budgetStart, selectedDate) && b.period === 'monthly';
+    });
+
+    const monthlyBudgetsWithSpent = budgetsForMonth.map(budget => {
+        const spent = expenseData
+            .filter(e => e.category === budget.category)
+            .reduce((sum, e) => sum + e.amount, 0);
+        return { ...budget, spentAmount: spent };
+    });
+
+    return { incomeData, expenseData, budgetsForMonth, monthlyBudgetsWithSpent };
+  }, [selectedDate, allIncomeData, allExpenseData, budgetsData]);
+
+  const { totalIncome, totalExpenses, totalDebt, balance } = useMemo(() => {
+    const totalIncome = incomeData?.reduce((sum, t) => sum + t.amount, 0) || 0;
+    const totalExpenses = expenseData?.reduce((sum, t) => sum + t.amount, 0) || 0;
+    const totalDebt = debtData?.reduce((sum, d) => sum + (d.totalAmount - (d.paidAmount || 0)), 0) || 0;
+
+    const allTimeIncome = allIncomeData?.reduce((sum, t) => sum + t.amount, 0) || 0;
+    const allTimeExpenses = allExpenseData?.reduce((sum, t) => sum + t.amount, 0) || 0;
+    const balance = allTimeIncome - allTimeExpenses;
+
+    return { totalIncome, totalExpenses, totalDebt, balance };
+  }, [incomeData, expenseData, debtData, allIncomeData, allExpenseData]);
+
 
   const incomeDates = useMemo(
     () =>
@@ -146,46 +222,23 @@ export default function DashboardPage() {
     return Object.values(byDay).sort((a, b) => a.date.getTime() - b.date.getTime());
   }, [incomeExpenseByDate, installmentsByDate, selectedDate]);
   
+  // Handlers
+  const handleOpenGoalSheet = (goal: Goal | null = null) => {
+    setEditingGoal(goal);
+    setIsGoalSheetOpen(true);
+  }
+  const handleOpenBudgetSheet = (budget: Budget | null = null) => {
+    setEditingBudget(budget);
+    setIsBudgetSheetOpen(true);
+  }
+  const handleOpenContributionSheet = (goal: Goal) => {
+    setSelectedGoalForContribution(goal);
+    setIsContributionSheetOpen(true);
+  };
+  
   useEffect(() => {
     setInsights(null);
   }, [selectedDate]);
-
-  const { incomeData, expenseData } = useMemo(() => {
-    const start = startOfMonth(selectedDate);
-    const end = endOfMonth(selectedDate);
-
-    const filterByMonth = (data: Transaction[] | null) => {
-      if (!data) return [];
-      return data.filter(t => {
-        const transactionDate = parseISO(t.date);
-        return transactionDate >= start && transactionDate <= end;
-      });
-    }
-
-    return {
-      incomeData: filterByMonth(allIncomeData),
-      expenseData: filterByMonth(allExpenseData)
-    };
-  }, [selectedDate, allIncomeData, allExpenseData]);
-
-
-  const allTransactions = useMemo(() => {
-    return [...(allIncomeData || []), ...(allExpenseData || [])];
-  }, [allIncomeData, allExpenseData]);
-
-
-  const { totalIncome, totalExpenses, totalDebt, balance } = useMemo(() => {
-    const totalIncome = incomeData?.reduce((sum, t) => sum + t.amount, 0) || 0;
-    const totalExpenses = expenseData?.reduce((sum, t) => sum + t.amount, 0) || 0;
-    const totalDebt = debtData?.reduce((sum, d) => sum + (d.totalAmount - (d.paidAmount || 0)), 0) || 0;
-
-    const allTimeIncome = allIncomeData?.reduce((sum, t) => sum + t.amount, 0) || 0;
-    const allTimeExpenses = allExpenseData?.reduce((sum, t) => sum + t.amount, 0) || 0;
-    const balance = allTimeIncome - allTimeExpenses;
-
-    return { totalIncome, totalExpenses, totalDebt, balance };
-  }, [incomeData, expenseData, debtData, allIncomeData, allExpenseData]);
-
 
   useEffect(() => {
     const fetchInstallmentDueDates = async () => {
@@ -262,15 +315,14 @@ export default function DashboardPage() {
     }
   }
 
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
     }).format(amount);
   };
-
-  const isLoading = isUserLoading || isIncomeLoading || isExpensesLoading || isDebtsLoading || isGoalsLoading;
+  
+  const isLoading = isUserLoading || isIncomeLoading || isExpensesLoading || isDebtsLoading || isGoalsLoading || isBudgetsLoading;
 
   if (isLoading) {
     return (
@@ -320,20 +372,35 @@ export default function DashboardPage() {
         onClose={() => setIsIncomeSheetOpen(false)}
         transactionType="income"
         categories={incomeCategories}
+        transaction={editingTransaction}
       />
       <AddTransactionSheet
         isOpen={isExpenseSheetOpen}
         onClose={() => setIsExpenseSheetOpen(false)}
         transactionType="expense"
         categories={expenseCategories}
+        transaction={editingTransaction}
       />
       <AddDebtSheet
         isOpen={isDebtSheetOpen}
         onClose={() => setIsDebtSheetOpen(false)}
       />
-      <AddGoalSheet
-        isOpen={isGoalSheetOpen}
-        onClose={() => setIsGoalSheetOpen(false)}
+      <AddGoalSheet 
+        isOpen={isGoalSheetOpen} 
+        onClose={() => handleOpenGoalSheet(null)}
+        goal={editingGoal} 
+      />
+      {selectedGoalForContribution && (
+          <AddContributionSheet 
+            isOpen={isContributionSheetOpen} 
+            onClose={() => setIsContributionSheetOpen(false)} 
+            goal={selectedGoalForContribution} 
+          />
+      )}
+      <AddBudgetSheet 
+        isOpen={isBudgetSheetOpen} 
+        onClose={() => handleOpenBudgetSheet(null)}
+        budget={editingBudget}
       />
       <div className="space-y-8 max-w-8x1 mx-auto">
         <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(360px,1fr)] items-start">
@@ -390,14 +457,17 @@ export default function DashboardPage() {
             </div>
 
             <Separator className="my-4" />
-
-            <Tabs defaultValue="insights" className="w-full">
-              <TabsList>
-                <TabsTrigger value="insights">Insights do Mês com IA</TabsTrigger>
-                <TabsTrigger value="charts">Gráficos do Mês</TabsTrigger>
+            
+             <Tabs defaultValue="insights" className="w-full">
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="insights">Análise com IA</TabsTrigger>
+                <TabsTrigger value="transactions">Últimos Lançamentos</TabsTrigger>
+                <TabsTrigger value="budgets">Orçamentos</TabsTrigger>
+                <TabsTrigger value="goals">Metas</TabsTrigger>
               </TabsList>
-              <TabsContent value="insights">
-                <Card>
+
+               <TabsContent value="insights" className="mt-4">
+                 <Card>
                   <CardHeader>
                     <div className="flex items-center justify-between">
                         <div>
@@ -440,15 +510,73 @@ export default function DashboardPage() {
                   </CardContent>
                 </Card>
               </TabsContent>
-              <TabsContent value="charts">
-                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-                  <div className="lg:col-span-3">
-                    <IncomeExpenseChart transactions={allTransactions} />
-                  </div>
-                  <div className="lg:col-span-2">
-                    <ExpenseCategoryChart transactions={expenseData || []} />
-                  </div>
-                </div>
+
+              <TabsContent value="transactions" className="mt-4">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Últimos Lançamentos</CardTitle>
+                        <CardDescription>As 10 movimentações mais recentes.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-3">
+                            {allTransactions.slice(0, 10).map(t => (
+                                <div key={t.id} className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`flex h-8 w-8 items-center justify-center rounded-full bg-muted ${t.type === 'income' ? 'text-emerald-500' : 'text-red-500'}`}>
+                                            {t.type === 'income' ? <ArrowUpCircle size={20} /> : <ArrowDownCircle size={20} />}
+                                        </div>
+                                        <div>
+                                            <p className="font-medium">{t.description}</p>
+                                            <p className="text-sm text-muted-foreground">{t.category} &bull; {format(parseISO(t.date), "dd/MM")}</p>
+                                        </div>
+                                    </div>
+                                    <p className={`font-semibold ${t.type === 'income' ? 'text-emerald-600' : 'text-red-600'}`}>{formatCurrency(t.amount)}</p>
+                                </div>
+                            ))}
+                             {allTransactions.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">Nenhuma transação encontrada.</p>}
+                        </div>
+                    </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="budgets" className="mt-4">
+                 {monthlyBudgetsWithSpent.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {monthlyBudgetsWithSpent.map(budget => (
+                            <BudgetCard key={budget.id} budget={budget} onEdit={handleOpenBudgetSheet} />
+                        ))}
+                    </div>
+                ) : (
+                    <Card>
+                        <CardContent className="flex flex-col items-center justify-center text-center p-8 min-h-60">
+                            <h3 className="font-semibold">Nenhum orçamento para este mês.</h3>
+                            <p className="mt-1 text-sm text-muted-foreground">Crie orçamentos para ter um controle mais preciso dos seus gastos.</p>
+                            <Button className="mt-4" size="sm" onClick={() => router.push('/budgets')}>
+                                Criar Orçamento
+                            </Button>
+                        </CardContent>
+                    </Card>
+                )}
+              </TabsContent>
+
+              <TabsContent value="goals" className="mt-4">
+                {goalData && goalData.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {goalData.slice(0, 4).map(goal => (
+                            <GoalCard key={goal.id} goal={goal} onAddContribution={handleOpenContributionSheet} onEdit={handleOpenGoalSheet} />
+                        ))}
+                    </div>
+                ) : (
+                     <Card>
+                        <CardContent className="flex flex-col items-center justify-center text-center p-8 min-h-60">
+                            <h3 className="font-semibold">Comece a sonhar!</h3>
+                            <p className="mt-1 text-sm text-muted-foreground">Você ainda não tem nenhuma meta. Que tal criar a primeira?</p>
+                             <Button className="mt-4" size="sm" onClick={() => router.push('/goals')}>
+                                Criar Meta
+                            </Button>
+                        </CardContent>
+                    </Card>
+                )}
               </TabsContent>
             </Tabs>
           </div>
@@ -456,7 +584,7 @@ export default function DashboardPage() {
           <aside className="space-y-6 lg:sticky lg:top-20">
             <Card>
               <CardHeader className="border-b pb-3">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <CalendarIcon className="h-7 w-7 text-primary" />
                   <div>
                     <CardTitle className="text-base">Calendário financeiro</CardTitle>
@@ -607,3 +735,5 @@ export default function DashboardPage() {
     </>
   );
 }
+
+    
