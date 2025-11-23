@@ -44,12 +44,12 @@ function ClientRoot() {
       y: e.clientY - rect.top
     });
   };
-
+  
   useEffect(() => {
-    if (!isUserLoading && user) {
+    if (user) {
       redirect('/dashboard');
     }
-  }, [user, isUserLoading]);
+  }, [user]);
 
   if (isUserLoading || user) {
     return (
@@ -209,7 +209,6 @@ function ClientRoot() {
                     data-ai-hint={heroImage.imageHint}
                     priority
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
                 </div>
                 
                 {/* Elementos flutuantes decorativos */}
@@ -291,7 +290,6 @@ function ClientRoot() {
                       className="object-cover object-top"
                       data-ai-hint={feature1Image.imageHint}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
                   </div>
                   <div>
                     <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -331,7 +329,6 @@ function ClientRoot() {
                       className="object-cover object-top"
                       data-ai-hint={feature2Image.imageHint}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
                   </div>
                   <div className="md:order-1">
                     <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
@@ -375,7 +372,6 @@ function ClientRoot() {
                       className="object-cover object-top"
                       data-ai-hint={feature3Image.imageHint}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />
                   </div>
                   <div>
                     <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
