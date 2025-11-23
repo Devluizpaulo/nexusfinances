@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -25,6 +26,7 @@ import { cn } from '@/lib/utils';
 function ClientRoot() {
   const { user, isUserLoading } = useUser();
   const [email, setEmail] = useState('');
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   const handleStart = () => {
     // Redirect to registration page with email pre-filled
@@ -54,10 +56,6 @@ function ClientRoot() {
   const feature1Image = PlaceHolderImages.find(p => p.id === 'lp-feature-1');
   const feature2Image = PlaceHolderImages.find(p => p.id === 'lp-feature-2');
   const feature3Image = PlaceHolderImages.find(p => p.id === 'lp-feature-3');
-
-
-  // Efeito de gradiente animado
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
