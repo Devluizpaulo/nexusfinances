@@ -5,7 +5,7 @@
 import { useEffect, useState } from 'react';
 import { useUser } from '@/firebase';
 import { redirect } from 'next/navigation';
-import { ArrowRight, CheckCircle2, DollarSign, Quote, BarChart3, Target, Wallet, Loader2, Sparkles, TrendingUp, ShieldCheck, Smartphone, CreditCard, PieChart, PiggyBank } from 'lucide-react';
+import { ArrowRight, CheckCircle2, DollarSign, Quote, BarChart3, Target, Wallet, Loader2, Sparkles, TrendingUp, ShieldCheck, Smartphone, CreditCard, PieChart, PiggyBank, Calendar, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -37,6 +37,13 @@ function ClientRoot() {
     redirect(`/login?${params.toString()}`);
   };
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePosition({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+  };
 
   useEffect(() => {
     if (!isUserLoading && user) {
@@ -57,14 +64,6 @@ function ClientRoot() {
   const feature2Image = PlaceHolderImages.find(p => p.id === 'lp-feature-2');
   const feature3Image = PlaceHolderImages.find(p => p.id === 'lp-feature-3');
   
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    setMousePosition({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    });
-  };
-
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground overflow-x-hidden">
       {/* Efeito de partículas no fundo */}
@@ -344,14 +343,14 @@ function ClientRoot() {
                     </p>
                     <div className="mt-6 grid grid-cols-2 gap-4">
                       <div className="rounded-xl border border-border/50 bg-background/50 p-4 backdrop-blur-sm">
-                        <CreditCard className="h-6 w-6 text-primary" />
-                        <h4 className="mt-2 font-semibold">Contas Bancárias</h4>
-                        <p className="mt-1 text-sm text-muted-foreground">Gerencie todas as suas contas em um só lugar</p>
+                        <Calendar className="h-6 w-6 text-primary" />
+                        <h4 className="mt-2 font-semibold">Calendário Financeiro</h4>
+                        <p className="mt-1 text-sm text-muted-foreground">Visualize todos os seus vencimentos em um só lugar.</p>
                       </div>
                       <div className="rounded-xl border border-border/50 bg-background/50 p-4 backdrop-blur-sm">
-                        <Smartphone className="h-6 w-6 text-primary" />
-                        <h4 className="mt-2 font-semibold">App Móvel</h4>
-                        <p className="mt-1 text-sm text-muted-foreground">Acesse de qualquer lugar, a qualquer hora</p>
+                        <GraduationCap className="h-6 w-6 text-primary" />
+                        <h4 className="mt-2 font-semibold">Jornada Financeira</h4>
+                        <p className="mt-1 text-sm text-muted-foreground">Aprenda a cuidar do seu dinheiro com trilhas de conhecimento.</p>
                       </div>
                     </div>
                   </div>
