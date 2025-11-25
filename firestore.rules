@@ -109,6 +109,14 @@ service cloud.firestore {
       // Users cannot change their ID, email, or role.
       return !('id' in changedKeys) && !('email' in changedKeys) && !('role' in changedKeys);
     }
+    
+    /**
+     * Checks if the user is only updating the `isRead` status of a notification.
+     */
+    function isUpdatingNotificationStatusOnly() {
+        let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
+        return changedKeys.size() == 1 && 'isRead' in changedKeys;
+    }
 
     // ----------------------------------------------------------------------
     // Collection Rules
@@ -206,8 +214,20 @@ service cloud.firestore {
       match /budgets/{budgetId} {
         allow get, list: if isOwner(userId);
         allow create: if isCreatingOwnData(userId);
-        allow update: if isExistingOwner(userId);
+        allow update: if isExistingOwner(userId) && isOwnerFieldImmutable();
         allow delete: if isExistingOwner(userId);
+      }
+      
+      /**
+       * @description Secures user notifications.
+       * @path /users/{userId}/notifications/{notificationId}
+       * @principle Users can read and delete their own notifications. They can only update the `isRead` status. Creation is handled by backend logic.
+       */
+      match /notifications/{notificationId} {
+        allow get, list: if isOwner(userId);
+        allow create: if false; // Only backend can create
+        allow update: if isOwner(userId) && isUpdatingNotificationStatusOnly();
+        allow delete: if isOwner(userId);
       }
     }
     
