@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -9,7 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Plus, Trash2 } from 'lucide-react';
+import { Loader2, Plus, Trash2, Link as LinkIcon, Lock, Banknote } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { updateProfile, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
@@ -30,6 +31,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { incomeCategories, expenseCategories } from '@/lib/types';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 const profileFormSchema = z.object({
@@ -40,7 +42,7 @@ const profileFormSchema = z.object({
 
 const passwordFormSchema = z.object({
   currentPassword: z.string().min(1, 'A senha atual é obrigatória.'),
-  newPassword: z.string().regex(/^\d{6}$/, 'A nova senha deve conter exatamente 6 dígitos numéricos.'),
+  newPassword: z.string().min(6, 'A nova senha deve ter no mínimo 6 caracteres.'),
   confirmPassword: z.string(),
 }).refine(data => data.newPassword === data.confirmPassword, {
   message: 'As novas senhas não coincidem.',
@@ -246,210 +248,288 @@ export default function ProfilePage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <PageHeader title="Perfil & Configuração" description="Gerencie suas informações de conta e preferências." />
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Informações do Perfil</CardTitle>
-            <CardDescription>Estes são os detalhes da sua conta.</CardDescription>
-          </CardHeader>
-          <Form {...profileForm}>
-            <form onSubmit={profileForm.handleSubmit(onProfileSubmit)}>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-16 w-16">
-                    <AvatarImage src={user?.photoURL || undefined} />
-                    <AvatarFallback>{user?.firstName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/png, image/jpeg, image/gif" hidden/>
-                    <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
-                        {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                        Mudar foto
-                    </Button>
-                    <p className="text-xs text-muted-foreground mt-2">JPG, GIF ou PNG. 1MB max.</p>
+      <PageHeader title="Perfil & Configurações" description="Gerencie suas informações de conta, segurança, categorias e conexões." />
+      
+      <Tabs defaultValue="profile" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="profile">Perfil</TabsTrigger>
+          <TabsTrigger value="categories">Categorias</TabsTrigger>
+          <TabsTrigger value="security">Segurança</TabsTrigger>
+          <TabsTrigger value="connections">Conexões</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="profile" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Informações do Perfil</CardTitle>
+              <CardDescription>Estes são os detalhes da sua conta.</CardDescription>
+            </CardHeader>
+            <Form {...profileForm}>
+              <form onSubmit={profileForm.handleSubmit(onProfileSubmit)}>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-16 w-16">
+                      <AvatarImage src={user?.photoURL || undefined} />
+                      <AvatarFallback>{user?.firstName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/png, image/jpeg, image/gif" hidden/>
+                      <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
+                          {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                          Mudar foto
+                      </Button>
+                      <p className="text-xs text-muted-foreground mt-2">JPG, GIF ou PNG. 1MB max.</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                     <FormField
+                      control={profileForm.control}
+                      name="firstName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nome</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                     <FormField
+                      control={profileForm.control}
+                      name="lastName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Sobrenome</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input id="email" defaultValue={user?.email || ''} readOnly disabled />
+                    </div>
+                     <FormField
+                      control={profileForm.control}
+                      name="phoneNumber"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Celular</FormLabel>
+                          <FormControl>
+                            <Input {...field} type="tel" placeholder="(00) 00000-0000" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <Button type="submit" disabled={profileForm.formState.isSubmitting}>
+                     {profileForm.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Salvar Alterações
+                  </Button>
+                </CardContent>
+              </form>
+            </Form>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="categories" className="mt-6">
+           <Card>
+            <CardHeader>
+              <CardTitle>Gerenciar Categorias</CardTitle>
+              <CardDescription>Adicione ou remova categorias de renda e despesa para personalizar sua organização.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-8 md:grid-cols-2">
+              <div className="space-y-4">
+                <h3 className="font-medium">Categorias de Renda</h3>
+                <div className="flex items-center gap-2">
+                  <Input value={newIncomeCategory} onChange={(e) => setNewIncomeCategory(e.target.value)} placeholder="Nova categoria de renda" />
+                  <Button onClick={() => handleAddCategory('income')} size="icon" disabled={!newIncomeCategory.trim()}><Plus className="h-4 w-4" /></Button>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Categorias Padrão</p>
+                  <div className="flex flex-wrap gap-2">
+                    {incomeCategories.map(cat => <Badge key={cat} variant="secondary">{cat}</Badge>)}
                   </div>
                 </div>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                   <FormField
-                    control={profileForm.control}
-                    name="firstName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nome</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                   <FormField
-                    control={profileForm.control}
-                    name="lastName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Sobrenome</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" defaultValue={user?.email || ''} readOnly disabled />
+                <Separator />
+                 <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Suas Categorias</p>
+                  <div className="flex flex-wrap gap-2">
+                    {user?.customIncomeCategories?.map(cat => (
+                      <Badge key={cat} variant="outline" className="group pr-1">
+                        {cat}
+                        <button onClick={() => handleRemoveCategory('income', cat)} className="ml-2 opacity-50 hover:opacity-100 transition-opacity">
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                    {(user?.customIncomeCategories?.length || 0) === 0 && <p className="text-xs text-muted-foreground">Nenhuma categoria personalizada.</p>}
                   </div>
-                   <FormField
-                    control={profileForm.control}
-                    name="phoneNumber"
+                </div>
+              </div>
+               <div className="space-y-4">
+                <h3 className="font-medium">Categorias de Despesa</h3>
+                 <div className="flex items-center gap-2">
+                  <Input value={newExpenseCategory} onChange={(e) => setNewExpenseCategory(e.target.value)} placeholder="Nova categoria de despesa" />
+                  <Button onClick={() => handleAddCategory('expense')} size="icon" disabled={!newExpenseCategory.trim()}><Plus className="h-4 w-4" /></Button>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Categorias Padrão</p>
+                  <div className="flex flex-wrap gap-2">
+                    {expenseCategories.map(cat => <Badge key={cat} variant="secondary">{cat}</Badge>)}
+                  </div>
+                </div>
+                <Separator />
+                 <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Suas Categorias</p>
+                  <div className="flex flex-wrap gap-2">
+                    {user?.customExpenseCategories?.map(cat => (
+                      <Badge key={cat} variant="outline" className="group pr-1">
+                        {cat}
+                         <button onClick={() => handleRemoveCategory('expense', cat)} className="ml-2 opacity-50 hover:opacity-100 transition-opacity">
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                     {(user?.customExpenseCategories?.length || 0) === 0 && <p className="text-xs text-muted-foreground">Nenhuma categoria personalizada.</p>}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="security" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Segurança</CardTitle>
+              <CardDescription>Altere sua senha de acesso.</CardDescription>
+               {isGoogleUser && (
+                  <p className="!mt-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                    Você está logado com o Google. A alteração de senha deve ser feita através da sua conta Google.
+                  </p>
+              )}
+            </CardHeader>
+             <Form {...passwordForm}>
+              <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)}>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={passwordForm.control}
+                    name="currentPassword"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Celular</FormLabel>
+                        <FormLabel>Senha Atual</FormLabel>
                         <FormControl>
-                          <Input {...field} type="tel" placeholder="(00) 00000-0000" />
+                          <Input type="password" {...field} disabled={isGoogleUser || passwordForm.formState.isSubmitting} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                </div>
-                <Button type="submit" disabled={profileForm.formState.isSubmitting}>
-                   {profileForm.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Salvar Alterações
-                </Button>
-              </CardContent>
-            </form>
-          </Form>
-        </Card>
+                   <FormField
+                    control={passwordForm.control}
+                    name="newPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nova Senha</FormLabel>
+                        <FormControl>
+                          <Input type="password" {...field} disabled={isGoogleUser || passwordForm.formState.isSubmitting} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                   <FormField
+                    control={passwordForm.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Confirmar Nova Senha</FormLabel>
+                        <FormControl>
+                          <Input type="password" {...field} disabled={isGoogleUser || passwordForm.formState.isSubmitting} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                   <Button type="submit" disabled={isGoogleUser || passwordForm.formState.isSubmitting}>
+                      {passwordForm.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Alterar Senha
+                  </Button>
+                </CardContent>
+              </form>
+            </Form>
+          </Card>
+        </TabsContent>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Gerenciar Categorias</CardTitle>
-            <CardDescription>Adicione ou remova categorias de renda e despesa.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-6 md:grid-cols-2">
-            <div className="space-y-4">
-              <h3 className="font-medium">Categorias de Renda</h3>
-              <div className="flex items-center gap-2">
-                <Input value={newIncomeCategory} onChange={(e) => setNewIncomeCategory(e.target.value)} placeholder="Nova categoria de renda" />
-                <Button onClick={() => handleAddCategory('income')} size="icon" disabled={!newIncomeCategory.trim()}><Plus className="h-4 w-4" /></Button>
-              </div>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Categorias Padrão</p>
-                <div className="flex flex-wrap gap-2">
-                  {incomeCategories.map(cat => <Badge key={cat} variant="secondary">{cat}</Badge>)}
-                </div>
-              </div>
-              <Separator />
-               <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Suas Categorias</p>
-                <div className="flex flex-wrap gap-2">
-                  {user?.customIncomeCategories?.map(cat => (
-                    <Badge key={cat} variant="outline" className="group">
-                      {cat}
-                      <button onClick={() => handleRemoveCategory('income', cat)} className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                  {(user?.customIncomeCategories?.length || 0) === 0 && <p className="text-xs text-muted-foreground">Nenhuma categoria personalizada.</p>}
-                </div>
-              </div>
-            </div>
-             <div className="space-y-4">
-              <h3 className="font-medium">Categorias de Despesa</h3>
-               <div className="flex items-center gap-2">
-                <Input value={newExpenseCategory} onChange={(e) => setNewExpenseCategory(e.target.value)} placeholder="Nova categoria de despesa" />
-                <Button onClick={() => handleAddCategory('expense')} size="icon" disabled={!newExpenseCategory.trim()}><Plus className="h-4 w-4" /></Button>
-              </div>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Categorias Padrão</p>
-                <div className="flex flex-wrap gap-2">
-                  {expenseCategories.map(cat => <Badge key={cat} variant="secondary">{cat}</Badge>)}
-                </div>
-              </div>
-              <Separator />
-               <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">Suas Categorias</p>
-                <div className="flex flex-wrap gap-2">
-                  {user?.customExpenseCategories?.map(cat => (
-                    <Badge key={cat} variant="outline" className="group">
-                      {cat}
-                       <button onClick={() => handleRemoveCategory('expense', cat)} className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                   {(user?.customExpenseCategories?.length || 0) === 0 && <p className="text-xs text-muted-foreground">Nenhuma categoria personalizada.</p>}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <TabsContent value="connections" className="mt-6">
+            <Card>
+                <CardHeader>
+                    <div className="flex items-start gap-4">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                            <LinkIcon className="h-6 w-6 text-primary" />
+                        </div>
+                        <div>
+                            <CardTitle>Conexões com Bancos</CardTitle>
+                            <CardDescription>Automatize seu controle financeiro importando extratos.</CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="prose prose-sm max-w-full text-foreground/80 dark:prose-invert">
+                        <p>A integração com serviços como <strong>Nubank</strong> ou <strong>Mercado Pago</strong> para importar transações automaticamente é uma funcionalidade avançada que eleva o nível do controle financeiro. No entanto, ela envolve um processo técnico complexo e seguro.</p>
+                        
+                        <h4>Como funciona?</h4>
+                        <p>A conexão com instituições financeiras geralmente segue o padrão <strong>Open Finance</strong>, que é regulamentado para garantir a segurança dos seus dados. O processo técnico envolve:</p>
+                        
+                        <ol>
+                            <li>
+                                <strong><div className="flex items-center gap-2"><Lock className="h-4 w-4" /><span>Backend Seguro (Cloud Functions)</span></div></strong>
+                                <p>Toda a comunicação com o banco não pode acontecer diretamente do seu navegador. É necessário um servidor seguro (backend) para proteger suas credenciais e gerenciar a conexão. Usaríamos <strong>Cloud Functions for Firebase</strong> para isso.</p>
+                            </li>
+                            <li>
+                                <strong><div className="flex items-center gap-2"><Banknote className="h-4 w-4" /><span>API do Banco e Credenciais</span></div></strong>
+                                <p>Seria preciso obter credenciais de desenvolvedor junto ao Nubank ou Mercado Pago. A função no backend usaria essas credenciais para se autenticar na API do banco de forma segura.</p>
+                            </li>
+                             <li>
+                                <strong><div className="flex items-center gap-2"><LinkIcon className="h-4 w-4" /><span>Fluxo de Autorização (OAuth2)</span></div></strong>
+                                <p>Você, como usuário, seria redirecionado para uma página do próprio banco para autorizar o acesso. Em nenhum momento o Xô Planilhas armazenaria sua senha do banco. Apenas um "token" de acesso temporário seria concedido.</p>
+                            </li>
+                        </ol>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Segurança</CardTitle>
-            <CardDescription>Altere sua senha.</CardDescription>
-             {isGoogleUser && (
-                <p className="pt-2 text-sm text-muted-foreground">
-                  Você está logado com o Google. A alteração de senha deve ser feita através da sua conta Google.
-                </p>
-            )}
-          </CardHeader>
-           <Form {...passwordForm}>
-            <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)}>
-              <CardContent className="space-y-4">
-                <FormField
-                  control={passwordForm.control}
-                  name="currentPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Senha Atual</FormLabel>
-                      <FormControl>
-                        <Input type="password" {...field} disabled={isGoogleUser || passwordForm.formState.isSubmitting} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-                  control={passwordForm.control}
-                  name="newPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nova Senha</FormLabel>
-                      <FormControl>
-                        <Input type="password" {...field} disabled={isGoogleUser || passwordForm.formState.isSubmitting} maxLength={6} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <FormField
-                  control={passwordForm.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Confirmar Nova Senha</FormLabel>
-                      <FormControl>
-                        <Input type="password" {...field} disabled={isGoogleUser || passwordForm.formState.isSubmitting} maxLength={6} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                 <Button type="submit" disabled={isGoogleUser || passwordForm.formState.isSubmitting}>
-                    {passwordForm.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Alterar Senha
-                </Button>
-              </CardContent>
-            </form>
-          </Form>
-        </Card>
-      </div>
+                        <h4>Próximos Passos para Implementação</h4>
+                        <p>Implementar essa funcionalidade é um projeto robusto. Os próximos passos seriam:</p>
+                        <ul className="list-none space-y-2 p-0">
+                            <li className="flex items-start gap-3 rounded-md border p-3">
+                                <span className="font-semibold text-primary">1.</span>
+                                <div>
+                                    <strong>Desenvolver o Backend</strong>: Criar as Cloud Functions para lidar com a autenticação e a busca de dados.
+                                </div>
+                            </li>
+                             <li className="flex items-start gap-3 rounded-md border p-3">
+                                <span className="font-semibold text-primary">2.</span>
+                                <div>
+                                    <strong>Construir a Interface de Conexão</strong>: Criar as telas onde você poderia escolher o banco e iniciar o processo de autorização.
+                                </div>
+                            </li>
+                             <li className="flex items-start gap-3 rounded-md border p-3">
+                                <span className="font-semibold text-primary">3.</span>
+                                <div>
+                                    <strong>Processar os Dados</strong>: Criar a lógica para "traduzir" o extrato do banco em transações de renda e despesa dentro do Xô Planilhas.
+                                </div>
+                            </li>
+                        </ul>
+                         <p className="mt-4">Por enquanto, esta seção serve como um guia. À medida que o Xô Planilhas evolui, esta será uma das próximas grandes fronteiras a serem conquistadas!</p>
+                    </div>
+                </CardContent>
+            </Card>
+        </TabsContent>
+      </Tabs>
     </>
   );
 }
+
