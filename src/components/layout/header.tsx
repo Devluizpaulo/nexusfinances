@@ -1,16 +1,16 @@
 'use client';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { Bell, PanelLeft, ChevronLeft, ChevronRight, UserCircle, LogOut } from 'lucide-react';
+import { Bell, PanelLeft, ChevronLeft, ChevronRight, UserCircle, LogOut, Mail } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '../ui/sidebar';
 import { ThemeToggle } from '../theme-toggle';
 import { useDashboardDate } from '@/context/dashboard-date-context';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { addMonths } from 'date-fns';
 import { EducationLevelBadge } from '../education/EducationLevelBadge';
-import { useUser, useAuth } from '@/firebase';
+import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import Link from 'next/link';
 import {
@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { cn } from '@/lib/utils';
+import { collection, query, orderBy, limit, doc } from 'firebase/firestore';
+import type { Notification } from '@/lib/types';
 
 
 const getTitle = (pathname: string) => {
@@ -94,20 +96,86 @@ function UserMenu() {
 }
 
 function NotificationsMenu() {
+    const { user } = useUser();
+    const firestore = useFirestore();
+
+    const notificationsQuery = useMemoFirebase(() => {
+        if (!user) return null;
+        return query(
+            collection(firestore, `users/${user.uid}/notifications`),
+            orderBy('timestamp', 'desc'),
+            limit(10)
+        );
+    }, [user, firestore]);
+
+    const { data: notifications, isLoading } = useCollection<Notification>(notificationsQuery);
+    
+    const unreadCount = notifications?.filter(n => !n.isRead).length || 0;
+
+    const handleMarkAsRead = (notificationId: string) => {
+        if (!user) return;
+        const notificationRef = doc(firestore, `users/${user.uid}/notifications`, notificationId);
+        updateDocumentNonBlocking(notificationRef, { isRead: true });
+    };
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="relative">
                     <Bell />
+                    {unreadCount > 0 && (
+                        <span className="absolute top-2 right-2 flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                        </span>
+                    )}
                     <span className="sr-only">Notificações</span>
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-80">
                 <DropdownMenuLabel>Notificações</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <div className="p-4 text-center text-sm text-muted-foreground">
-                    <p>Em breve, suas notificações aparecerão aqui.</p>
-                </div>
+                {isLoading ? (
+                    <div className="p-4 text-center text-sm text-muted-foreground">Carregando...</div>
+                ) : notifications && notifications.length > 0 ? (
+                    notifications.map(notification => (
+                        <DropdownMenuItem key={notification.id} asChild className="cursor-pointer">
+                            <Link href={notification.link || '#'}>
+                                <div className="flex items-start gap-3 py-2">
+                                     {!notification.isRead && (
+                                        <div className="h-2 w-2 rounded-full bg-primary mt-1.5 shrink-0" />
+                                    )}
+                                    <div className={cn("flex-grow", notification.isRead && "pl-4")}>
+                                        <p className="text-sm">{notification.message}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                             {formatDistanceToNow(parseISO(notification.timestamp as string), { addSuffix: true, locale: ptBR })}
+                                        </p>
+                                    </div>
+                                    {!notification.isRead && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-auto px-2 py-1 text-xs"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                handleMarkAsRead(notification.id)
+                                            }}
+                                        >
+                                            Marcar como lida
+                                        </Button>
+                                    )}
+                                </div>
+                            </Link>
+                        </DropdownMenuItem>
+                    ))
+                ) : (
+                     <div className="p-4 text-center text-sm text-muted-foreground flex flex-col items-center gap-2">
+                        <Mail className="h-8 w-8 text-muted-foreground/50"/>
+                        <p>Sua caixa de entrada está vazia.</p>
+                        <p className="text-xs">Novas notificações aparecerão aqui.</p>
+                    </div>
+                )}
             </DropdownMenuContent>
         </DropdownMenu>
     )
