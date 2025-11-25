@@ -93,6 +93,26 @@ function UserMenu() {
     )
 }
 
+function NotificationsMenu() {
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                    <Bell />
+                    <span className="sr-only">Notificações</span>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80">
+                <DropdownMenuLabel>Notificações</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <div className="p-4 text-center text-sm text-muted-foreground">
+                    <p>Em breve, suas notificações aparecerão aqui.</p>
+                </div>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    )
+}
+
 export function Header() {
   const pathname = usePathname();
   const title = getTitle(pathname);
@@ -141,10 +161,7 @@ export function Header() {
         <div className="flex items-center gap-1 sm:gap-2">
           <ThemeToggle />
           <EducationLevelBadge />
-          <Button variant="ghost" size="icon">
-            <Bell />
-            <span className="sr-only">Notificações</span>
-          </Button>
+          <NotificationsMenu />
           <UserMenu />
         </div>
       </div>
