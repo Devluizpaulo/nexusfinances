@@ -10,7 +10,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2, FileUp, FileCheck2, AlertTriangle, Wallet, Check, ChevronsUpDown } from 'lucide-react';
+import { Loader2, FileUp, FileCheck2, AlertTriangle, Wallet, Check, ChevronsUpDown, FileText, CreditCard } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useDropzone } from 'react-dropzone';
 import { cn } from '@/lib/utils';
@@ -47,10 +47,20 @@ type ReviewTransaction = ExtractedTransaction & {
   selected: boolean;
 };
 
+type DocumentType = 'bankStatement' | 'creditCardBill' | 'taxDocument';
+
+const documentTypes: Record<DocumentType, { label: string, icon: React.FC<any> }> = {
+  bankStatement: { label: 'Extrato de Conta Corrente', icon: Wallet },
+  creditCardBill: { label: 'Fatura de Cartão de Crédito', icon: CreditCard },
+  taxDocument: { label: 'Comprovante de Imposto', icon: FileText },
+};
+
+
 export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsSheetProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [reviewTransactions, setReviewTransactions] = useState<ReviewTransaction[]>([]);
+  const [documentType, setDocumentType] = useState<DocumentType>('bankStatement');
   const { toast } = useToast();
 
   const onDrop = (acceptedFiles: File[]) => {
@@ -84,6 +94,14 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
 
   const handleImport = async () => {
     if (!file) return;
+
+    if (documentType !== 'bankStatement') {
+      toast({
+        title: 'Em breve!',
+        description: `A importação de ${documentTypes[documentType].label} ainda está em desenvolvimento.`,
+      });
+      return;
+    }
 
     setIsProcessing(true);
     
@@ -152,10 +170,10 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
     <Dialog open={isOpen} onOpenChange={handleReset}>
       <DialogContent className="max-w-4xl">
         <DialogHeader>
-          <DialogTitle>Importar Extrato Bancário</DialogTitle>
+          <DialogTitle>Importar Documento PDF</DialogTitle>
           <DialogDescription>
             {reviewTransactions.length === 0 
-                ? "Envie seu extrato em PDF para importar suas transações automaticamente."
+                ? "Envie seu extrato, fatura ou comprovante para importar suas transações automaticamente."
                 : "Revise as transações extraídas antes de salvá-las."
             }
           </DialogDescription>
@@ -164,6 +182,25 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
         {reviewTransactions.length === 0 ? (
           <>
             <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label htmlFor="document-type" className="text-sm font-medium">Tipo de Documento</label>
+                 <Select value={documentType} onValueChange={(value) => setDocumentType(value as DocumentType)}>
+                    <SelectTrigger id="document-type">
+                      <SelectValue placeholder="Selecione o tipo de documento..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(documentTypes).map(([key, {label, icon: Icon}]) => (
+                        <SelectItem key={key} value={key}>
+                          <div className="flex items-center gap-2">
+                            <Icon className="h-4 w-4 text-muted-foreground" />
+                            <span>{label}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+              </div>
+
               <div
                 {...getRootProps()}
                 className={cn(
