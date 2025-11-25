@@ -89,6 +89,7 @@ export function useManageRecurrences() {
           date: formatISO(newDate),
           isRecurring: false, // CRITICAL: The generated instance is not a recurring template
           recurringSourceId: templateId, // Link back to the original template
+          status: 'pending', // Always create new recurring transactions as pending
         };
         
         addDocumentNonBlocking(collection(firestore, `users/${user.uid}/${type}`), newTransaction);
