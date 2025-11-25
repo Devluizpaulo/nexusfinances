@@ -7,14 +7,16 @@ import { DataTable } from '@/components/data-table/data-table';
 import { columns } from './columns';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Loader2 } from 'lucide-react';
+import { PlusCircle, Loader2, Upload } from 'lucide-react';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { expenseCategories, type Transaction } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
 
 export default function ExpensesPage() {
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
+  const [isImportSheetOpen, setIsImportSheetOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   
   const firestore = useFirestore();
@@ -42,11 +44,11 @@ export default function ExpensesPage() {
 
   const handleOpenSheet = (transaction: Transaction | null = null) => {
     setEditingTransaction(transaction);
-    setIsSheetOpen(true);
+    setIsAddSheetOpen(true);
   };
 
   const handleCloseSheet = () => {
-    setIsSheetOpen(false);
+    setIsAddSheetOpen(false);
     setEditingTransaction(null);
   };
 
@@ -73,16 +75,24 @@ export default function ExpensesPage() {
   return (
     <>
       <AddTransactionSheet
-        isOpen={isSheetOpen}
+        isOpen={isAddSheetOpen}
         onClose={handleCloseSheet}
         transactionType="expense"
         categories={expenseCategories}
         transaction={editingTransaction}
       />
+      <ImportTransactionsSheet 
+        isOpen={isImportSheetOpen}
+        onClose={() => setIsImportSheetOpen(false)}
+      />
       <PageHeader
         title="Despesas"
         description="Anote seus gastos em segundos e veja o impacto direto no seu mês, sem planilhas."
       >
+        <Button variant="outline" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>
+            <Upload className="mr-2 h-4 w-4" />
+            Importar Extrato PDF
+        </Button>
         <Button onClick={() => handleOpenSheet()} disabled={!user}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Registrar gasto
