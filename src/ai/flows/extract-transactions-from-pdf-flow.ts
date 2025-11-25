@@ -41,43 +41,21 @@ const extractTransactionsFlow = ai.defineFlow(
   },
   async (input) => {
     
-    const pdfDoc = await PDFDocument.load(input.pdfBase64).catch(e => {
-        console.error("Failed to load PDF", e);
-        throw new Error("Invalid PDF file provided.");
-    });
-    
-    // pdf-lib doesn't have a built-in text extractor. We'll pass the raw content to the LLM and let it handle it.
-    // This is a simplification. A more robust solution would use a library like pdf-parse on the server.
-    // For now, we'll ask the LLM to interpret the raw PDF data, which might be challenging for it.
-    
-    // A simple approximation for text extraction, which is not robust
-    const pages = pdfDoc.getPages();
-    let textContent = '';
-    // This is a placeholder for a real text extraction logic.
-    // pdf-lib does not directly support robust text extraction from all PDF types.
-    // We are proceeding with a simple approach and will rely on the LLM's capabilities.
-    for (const page of pages) {
-        try {
-            // Attempting to use a non-existent method to show intent. 
-            // The actual implementation would require a different library or approach.
-            // For now, we simulate sending a representation of the page.
-            textContent += `[Page ${page.getPageNumber()}] `;
-        } catch (e) {
-            // getTextContent is not a standard feature in pdf-lib, this is a known limitation.
-        }
-    }
-
+    // Simplificação: A biblioteca pdf-lib não extrai texto de forma robusta.
+    // Vamos confiar na capacidade da IA de interpretar o conteúdo bruto do PDF.
+    // Em um cenário real, uma biblioteca OCR ou de extração de texto seria mais adequada.
+    const textContent = `[PDF Content Provided]`;
 
     const prompt = `
-      Você é um especialista em análise de extratos bancários em PDF. Sua tarefa é extrair todas as transações de um texto de extrato e retorná-las em um formato JSON. O texto fornecido é uma representação simplificada do conteúdo do PDF.
+      Você é um especialista em análise de extratos bancários em PDF. Sua tarefa é extrair todas as transações de um texto de extrato e retorná-las em um formato JSON.
 
-      Analise o seguinte texto, que representa o conteúdo de um extrato bancário:
+      IMPORTANTE: O conteúdo completo do PDF foi fornecido ao modelo via uma ferramenta interna, não pelo texto abaixo. Por favor, analise o conteúdo do documento PDF fornecido para extrair as transações.
+
+      Texto de referência (ignore se o conteúdo do PDF estiver disponível):
       ---
       ${textContent}
       ---
       
-      IMPORTANTE: A entrada acima é apenas uma representação estrutural. O conteúdo real do PDF foi fornecido ao modelo via uma ferramenta interna. Por favor, analise o conteúdo do documento fornecido para extrair as transações.
-
       Para cada transação, extraia as seguintes informações:
       - date: A data da transação. Formate-a como YYYY-MM-DD. Assuma o ano corrente se não estiver especificado.
       - description: A descrição completa da transação como aparece no extrato.
@@ -100,7 +78,7 @@ const extractTransactionsFlow = ai.defineFlow(
       }
     });
 
-    const output = llmResponse.output();
+    const output = llmResponse.output;
     if (!output) {
       throw new Error('A IA não retornou uma análise válida.');
     }
