@@ -10,6 +10,9 @@
 
 import { ai } from '@/ai/genkit';
 import { 
+  AITransactionSchema,
+  AIDebtSchema,
+  AIGoalSchema,
   GetFinancialInsightsInputSchema, 
   GetFinancialInsightsOutputSchema,
   type GetFinancialInsightsInput,
