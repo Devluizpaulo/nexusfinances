@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser } from '@/firebase';
@@ -8,6 +9,9 @@ import { Header } from '@/components/layout/header';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { DashboardDateProvider } from '@/context/dashboard-date-context';
 import { useNotificationGenerator } from '@/hooks/useNotificationGenerator';
+import { useManageRecurrences } from '@/hooks/useManageRecurrences';
+import { RecurringSummaryDialog } from '@/components/dashboard/recurring-summary-dialog';
+
 
 export function AuthenticatedLayout({
   children,
@@ -16,6 +20,7 @@ export function AuthenticatedLayout({
 }) {
   const { user, isUserLoading } = useUser();
   useNotificationGenerator(); // Gera notificações de sistema
+  const { newlyCreatedTransactions, clearNewlyCreatedTransactions } = useManageRecurrences();
 
   if (isUserLoading) {
     return (
@@ -31,6 +36,10 @@ export function AuthenticatedLayout({
 
   return (
     <DashboardDateProvider>
+      <RecurringSummaryDialog 
+        transactions={newlyCreatedTransactions}
+        onClose={clearNewlyCreatedTransactions}
+      />
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
