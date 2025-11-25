@@ -3,31 +3,17 @@
  * @fileOverview Um fluxo de IA para extrair transações financeiras de um texto de extrato bancário.
  *
  * - extractTransactionsFromPdf - Função principal que recebe o conteúdo de um PDF e retorna as transações.
- * - ExtractTransactionsInput - O tipo de entrada para a função.
- * - ExtractTransactionsOutput - O tipo de retorno para a função.
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
 import { PDFDocument } from 'pdf-lib';
+import { 
+  ExtractTransactionsInputSchema,
+  ExtractTransactionsOutputSchema,
+  type ExtractTransactionsInput,
+  type ExtractTransactionsOutput
+} from '@/lib/types';
 
-export const ExtractedTransactionSchema = z.object({
-  date: z.string().describe('A data da transação no formato YYYY-MM-DD.'),
-  description: z.string().describe('A descrição completa da transação como aparece no extrato.'),
-  amount: z.number().describe('O valor da transação. Deve ser negativo para despesas e positivo para receitas.'),
-  suggestedCategory: z.string().describe('Uma categoria sugerida para a transação (ex: "Alimentação", "Transporte", "Salário").'),
-});
-export type ExtractedTransaction = z.infer<typeof ExtractedTransactionSchema>;
-
-export const ExtractTransactionsInputSchema = z.object({
-  pdfBase64: z.string().describe("O conteúdo do arquivo PDF codificado em Base64."),
-});
-export type ExtractTransactionsInput = z.infer<typeof ExtractTransactionsInputSchema>;
-
-export const ExtractTransactionsOutputSchema = z.object({
-  transactions: z.array(ExtractedTransactionSchema),
-});
-export type ExtractTransactionsOutput = z.infer<typeof ExtractTransactionsOutputSchema>;
 
 export async function extractTransactionsFromPdf(input: ExtractTransactionsInput): Promise<ExtractTransactionsOutput> {
   return extractTransactionsFlow(input);

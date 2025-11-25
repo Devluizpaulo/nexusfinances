@@ -14,8 +14,8 @@ import { Loader2, FileUp, FileCheck2, AlertTriangle, Wallet, Check, ChevronsUpDo
 import { useToast } from '@/hooks/use-toast';
 import { useDropzone } from 'react-dropzone';
 import { cn } from '@/lib/utils';
-import { extractTransactionsFromPdf, ExtractedTransaction } from '@/ai/flows/extract-transactions-from-pdf-flow';
-import { expenseCategories, incomeCategories, Transaction } from '@/lib/types';
+import { extractTransactionsFromPdf } from '@/ai/flows/extract-transactions-from-pdf-flow';
+import { expenseCategories, incomeCategories, Transaction, type ExtractedTransaction } from '@/lib/types';
 import {
   Table,
   TableBody,
