@@ -79,6 +79,23 @@
         "lastName"
       ]
     },
+    "Notification": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Notification",
+      "type": "object",
+      "description": "Represents a user notification within the system.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique ID for the notification." },
+        "userId": { "type": "string", "description": "The ID of the user this notification belongs to." },
+        "type": { "type": "string", "enum": ["debt_due", "goal_reached", "budget_warning"], "description": "The type of notification." },
+        "message": { "type": "string", "description": "The content of the notification message." },
+        "isRead": { "type": "boolean", "description": "Indicates if the user has read the notification." },
+        "link": { "type": "string", "description": "A URL path to navigate to when the notification is clicked." },
+        "timestamp": { "type": "string", "format": "date-time", "description": "When the notification was created." },
+        "entityId": { "type": "string", "description": "The ID of the entity this notification relates to (e.g., an installment ID)." }
+      },
+      "required": ["userId", "type", "message", "isRead", "timestamp"]
+    },
     "Income": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Income",
@@ -435,6 +452,18 @@
               "name": "userId",
               "description": "The unique identifier of the user."
             }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/notifications/{notificationId}",
+        "definition": {
+          "entityName": "Notification",
+          "schema": { "$ref": "#/backend/entities/Notification" },
+          "description": "Stores notifications for a specific user.",
+          "params": [
+            { "name": "userId", "description": "The unique identifier of the user." },
+            { "name": "notificationId", "description": "The unique identifier of the notification." }
           ]
         }
       },

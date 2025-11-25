@@ -7,6 +7,7 @@ import { AppSidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { DashboardDateProvider } from '@/context/dashboard-date-context';
+import { useNotificationGenerator } from '@/hooks/useNotificationGenerator';
 
 export function AuthenticatedLayout({
   children,
@@ -14,6 +15,7 @@ export function AuthenticatedLayout({
   children: React.ReactNode;
 }) {
   const { user, isUserLoading } = useUser();
+  useNotificationGenerator(); // Gera notificações de sistema
 
   if (isUserLoading) {
     return (
