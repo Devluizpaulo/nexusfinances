@@ -35,7 +35,7 @@ export function AppSidebar() {
   const { state, isMobile, setOpenMobile, isPinned, togglePinned } = useSidebar();
   const { user } = useUser();
   const [isExpensesOpen, setIsExpensesOpen] = useState(
-    pathname.startsWith('/expenses') || pathname.startsWith('/recurrences')
+    pathname.startsWith('/expenses') || pathname.startsWith('/recurrences') || pathname.startsWith('/credit-cards')
   );
   const [isIncomeOpen, setIsIncomeOpen] = useState(pathname.startsWith('/income'));
 

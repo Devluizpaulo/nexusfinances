@@ -142,14 +142,13 @@ service cloud.firestore {
        * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
        */
       match /incomes/{incomeId} {
-        // leitura (documento individual e list da coleção)
-        allow get, list: if isOwner(userId);
-        // criar apenas se o documento tiver o userId correto
+        allow get, update, delete: if isOwner(userId);
         allow create: if isCreatingOwnData(userId);
-        // atualizar/excluir apenas se for dono
-        allow update, delete: if isOwner(userId);
       }
-
+      match /incomes/{document=**} {
+        allow list: if isOwner(userId);
+      }
+      
       /**
        * @description Secures a user's private expense entries.
        * @path /users/{userId}/expenses/{expenseId}
@@ -221,10 +220,8 @@ service cloud.firestore {
        * @principle Restricts access to a user's own budgets and validates ownership on creation/update.
        */
       match /budgets/{budgetId} {
-        allow get: if isOwner(userId);
+        allow get, update, delete: if isOwner(userId);
         allow create: if isCreatingOwnData(userId);
-        allow update: if isExistingOwner(userId) && isOwnerFieldImmutable();
-        allow delete: if isExistingOwner(userId);
       }
       match /budgets/{document=**} {
         allow list: if isOwner(userId);
