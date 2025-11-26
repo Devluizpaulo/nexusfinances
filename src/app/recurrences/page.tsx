@@ -52,8 +52,8 @@ export default function RecurrencesPage() {
   return (
     <>
       <PageHeader
-        title="Recorrências"
-        description="Gerencie suas rendas e despesas recorrentes (assinaturas, salários, etc.) em um só lugar."
+        title="Streams & Assinaturas"
+        description="Gerencie suas despesas recorrentes (assinaturas, mensalidades, etc.) em um só lugar."
       />
 
       <div className="mb-8 grid gap-4 md:grid-cols-3">

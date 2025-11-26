@@ -14,13 +14,13 @@ const overviewMenuItems = [
   { href: '/dashboard', label: 'Painel', icon: LayoutDashboard },
   { href: '/income', label: 'Renda', icon: Landmark },
   { href: '/expenses', label: 'Despesas', icon: CreditCard },
+  { href: '/recurrences', label: 'Streams & Assinaturas', icon: Repeat },
 ];
 
 const planningMenuItems = [
   { href: '/debts', label: 'Dívidas', icon: Banknote },
   { href: '/goals', label: 'Metas & Reservas', icon: PiggyBank },
   { href: '/budgets', label: 'Limites de Gasto', icon: Files },
-  { href: '/recurrences', label: 'Recorrências', icon: Repeat },
 ];
 
 const analysisMenuItems = [
