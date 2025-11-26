@@ -27,7 +27,6 @@ import { useDashboardDate } from '@/context/dashboard-date-context';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { getFinancialInsights, type GetFinancialInsightsInput } from '@/ai/flows/financial-insights-flow';
-import AdBanner from '@/components/ads/AdBanner';
 import { OverdueDebtsCard } from '@/components/dashboard/overdue-debts-card';
 import { Badge } from '@/components/ui/badge';
 import { GoalCard } from '@/components/goals/goal-card';
@@ -445,7 +444,6 @@ export default function DashboardPage() {
             </div>
             
             <div className="space-y-4">
-              {!isLoading && <AdBanner />}
               <OverdueDebtsCard debts={debtData || []} />
             </div>
 

@@ -111,11 +111,6 @@ function ClientRoot() {
       </header>
 
       <main>
-        {/* Ad container for verification */}
-        <div style={{ display: 'none' }}>
-            <AdBanner />
-        </div>
-
         {/* Hero Section */}
         <section className="relative overflow-hidden border-b bg-gradient-to-br from-primary/5 via-background to-background pt-16 pb-24 md:pt-24 md:pb-32">
           {/* Elementos decorativos */}
@@ -248,6 +243,12 @@ function ClientRoot() {
               </motion.div>
             )}
           </div>
+        </section>
+
+        <section className="py-8">
+            <div className="container mx-auto">
+                <AdBanner />
+            </div>
         </section>
 
         {/* Features Section */}
