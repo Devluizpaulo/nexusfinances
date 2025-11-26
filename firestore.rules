@@ -144,7 +144,7 @@ service cloud.firestore {
        * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
        */
       match /incomes/{incomeId} {
-        allow get, update, delete: if isOwner(userId);
+        allow read, update, delete: if isOwner(userId);
         allow create: if isCreatingOwnData(userId);
       }
       allow list: if isOwner(userId);
@@ -157,7 +157,7 @@ service cloud.firestore {
        * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
        */
       match /expenses/{expenseId} {
-        allow get, update, delete: if isOwner(userId);
+        allow read, update, delete: if isOwner(userId);
         allow create: if isCreatingOwnData(userId);
       }
       allow list: if isOwner(userId);
@@ -168,7 +168,7 @@ service cloud.firestore {
        * @principle Restricts access to a user's own credit cards and validates ownership on creation/update.
        */
       match /creditCards/{cardId} {
-        allow get, update, delete: if isOwner(userId);
+        allow read, update, delete: if isOwner(userId);
         allow create: if isCreatingOwnData(userId);
       }
       allow list: if isOwner(userId);
@@ -181,7 +181,7 @@ service cloud.firestore {
        * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
        */
       match /debts/{debtId} {
-        allow get, update, delete: if isOwner(userId);
+        allow read, update, delete: if isOwner(userId);
         allow create: if isCreatingOwnData(userId);
         /**
          * @description Secures installment payments for a user's debt.
@@ -197,7 +197,7 @@ service cloud.firestore {
           allow delete: if (isOwnerOfParentDebt(userId, debtId) && resource != null) || isSuperAdmin();
         }
       }
-      allow list: if isOwner(userId);
+       allow list: if isOwner(userId);
       
       /**
        * @description Secures a user's financial goals.
@@ -207,7 +207,7 @@ service cloud.firestore {
        * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
        */
       match /goals/{goalId} {
-        allow get, update, delete: if isOwner(userId);
+        allow read, update, delete: if isOwner(userId);
         allow create: if isCreatingOwnData(userId);
       }
       allow list: if isOwner(userId);
@@ -218,7 +218,7 @@ service cloud.firestore {
        * @principle Restricts access to a user's own budgets and validates ownership on creation/update.
        */
       match /budgets/{budgetId} {
-        allow get, list: if isOwner(userId);
+        allow read, list: if isOwner(userId);
         allow create: if isCreatingOwnData(userId);
         allow update: if isExistingOwner(userId) && isOwnerFieldImmutable();
         allow delete: if isExistingOwner(userId);
