@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -38,10 +39,10 @@ export default function DebtsPage() {
   return (
     <>
       <AddDebtSheet isOpen={isSheetOpen} onClose={() => setIsSheetOpen(false)} />
-      <PageHeader title="Dívidas" description="Veja todas as dívidas em um só lugar e pare de controlar vencimentos em planilhas.">
+      <PageHeader title="Parcelamentos & Dívidas" description="Gerencie empréstimos, financiamentos e compras parceladas em um só lugar.">
         <Button onClick={() => setIsSheetOpen(true)} disabled={!user}>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Adicionar Dívida
+          Adicionar Parcelamento/Dívida
         </Button>
       </PageHeader>
       <div className="grid gap-6 md:grid-cols-2">
@@ -53,7 +54,7 @@ export default function DebtsPage() {
         <div className="col-span-full mt-10 flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-transparent p-8 text-center">
             <h3 className="text-xl font-semibold tracking-tight">Nenhuma dívida encontrada</h3>
             <p className="mt-2 text-sm text-muted-foreground">
-              Adicione suas dívidas aqui para não depender mais de planilhas e anotações soltas.
+              Adicione suas dívidas, financiamentos e parcelamentos aqui para ter um controle centralizado.
             </p>
             <Button className="mt-4" onClick={() => setIsSheetOpen(true)}>
               <PlusCircle className="mr-2 h-4 w-4" />

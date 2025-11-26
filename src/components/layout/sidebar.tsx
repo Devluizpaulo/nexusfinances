@@ -18,7 +18,7 @@ const overviewMenuItems = [
 ];
 
 const planningMenuItems = [
-  { href: '/debts', label: 'Dívidas', icon: Banknote },
+  { href: '/debts', label: 'Parcelamentos & Dívidas', icon: Banknote },
   { href: '/goals', label: 'Metas & Reservas', icon: PiggyBank },
   { href: '/budgets', label: 'Limites de Gasto', icon: Files },
 ];
@@ -86,11 +86,11 @@ export function AppSidebar() {
                                     <CreditCard />
                                     <span>Despesas</span>
                                 </div>
-                                <ChevronDown className={cn("transition-transform", (state === "collapsed" || (state === "expanded" && !isExpensesOpen)) && "group-data-[collapsed]:hidden", isExpensesOpen && "rotate-180")} />
+                                <ChevronDown className={cn("transition-transform", (state === "collapsed" || (state === "expanded" && !isExpensesOpen)) && "hidden", isExpensesOpen && "rotate-180")} />
                             </SidebarMenuButton>
                         </CollapsibleTrigger>
                     </SidebarMenuItem>
-                     <CollapsibleContent className={cn("group-data-[collapsed]:hidden", state === "collapsed" ? "hidden" : "group-data-[collapsed]:hidden")}>
+                     <CollapsibleContent className={cn(state === "collapsed" ? "hidden" : "")}>
                         <SidebarMenuItem className="ml-5 border-l border-border pl-3">
                              <SidebarMenuButton asChild isActive={pathname === '/expenses'} tooltip={'Todos os Gastos'} onClick={handleMobileClick}>
                                 <Link href="/expenses">
@@ -98,52 +98,52 @@ export function AppSidebar() {
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
-                        <SidebarMenuItem className="ml-5 border-l border-border pl-3">
+                         <SidebarMenuItem className="ml-5 border-l border-border pl-3">
                              <SidebarMenuButton asChild isActive={pathname.startsWith('/expenses/housing')} tooltip={'Moradia'} onClick={handleMobileClick}>
                                 <Link href="/expenses/housing">
-                                    <span>Moradia</span>
+                                    Moradia
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                         <SidebarMenuItem className="ml-5 border-l border-border pl-3">
                              <SidebarMenuButton asChild isActive={pathname.startsWith('/expenses/utilities')} tooltip={'Contas de Consumo'} onClick={handleMobileClick}>
                                 <Link href="/expenses/utilities">
-                                    <span>Contas de Consumo</span>
+                                    Contas de Consumo
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                         <SidebarMenuItem className="ml-5 border-l border-border pl-3">
                              <SidebarMenuButton asChild isActive={pathname.startsWith('/expenses/taxes')} tooltip={'Impostos e Taxas'} onClick={handleMobileClick}>
                                 <Link href="/expenses/taxes">
-                                    <span>Impostos e Taxas</span>
+                                    Impostos e Taxas
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                         <SidebarMenuItem className="ml-5 border-l border-border pl-3">
                              <SidebarMenuButton asChild isActive={pathname.startsWith('/expenses/health')} tooltip={'Saúde e Bem-estar'} onClick={handleMobileClick}>
                                 <Link href="/expenses/health">
-                                    <span>Saúde & Bem-estar</span>
-                                </Link>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                         <SidebarMenuItem className="ml-5 border-l border-border pl-3">
-                             <SidebarMenuButton asChild isActive={pathname === '/recurrences'} tooltip={'Contas Fixas'} onClick={handleMobileClick}>
-                                <Link href="/recurrences">
-                                    <span>Outras Contas Fixas</span>
+                                    Saúde & Bem-estar
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                          <SidebarMenuItem className="ml-5 border-l border-border pl-3">
                              <SidebarMenuButton asChild isActive={pathname.startsWith('/expenses/subscriptions')} tooltip={'Streams & Assinaturas'} onClick={handleMobileClick}>
                                 <Link href="/expenses/subscriptions">
-                                    <span>Streams & Assinaturas</span>
+                                    Streams & Assinaturas
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                         <SidebarMenuItem className="ml-5 border-l border-border pl-3">
+                             <SidebarMenuButton asChild isActive={pathname === '/recurrences'} tooltip={'Contas Fixas'} onClick={handleMobileClick}>
+                                <Link href="/recurrences">
+                                    Outras Contas Fixas
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                          <SidebarMenuItem className="ml-5 border-l border-border pl-3">
                              <SidebarMenuButton asChild isActive={pathname.startsWith('/credit-cards')} tooltip={'Cartões de Crédito'} onClick={handleMobileClick}>
                                 <Link href="/credit-cards">
-                                    <span>Cartões de Crédito</span>
+                                    Cartões de Crédito
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
