@@ -98,7 +98,7 @@ export default function RecurrencesPage() {
   return (
     <>
       <PageHeader
-        title="Pagamentos Recorrentes"
+        title="Contas Fixas"
         description="Gerencie suas despesas fixas como contas, aluguel e outras em um só lugar."
       />
 

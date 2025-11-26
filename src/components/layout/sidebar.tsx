@@ -36,7 +36,10 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { state, isMobile, setOpenMobile, isPinned, togglePinned } = useSidebar();
   const { user } = useUser();
-  const [isExpensesOpen, setIsExpensesOpen] = useState(pathname.startsWith('/expenses') || pathname.startsWith('/recurrences'));
+  const [isExpensesOpen, setIsExpensesOpen] = useState(
+    pathname.startsWith('/expenses') || pathname.startsWith('/recurrences') || pathname.startsWith('/credit-cards')
+  );
+
 
   const handleMobileClick = () => {
     if (isMobile) {
@@ -75,7 +78,7 @@ export function AppSidebar() {
                     <SidebarMenuItem>
                         <CollapsibleTrigger asChild>
                             <SidebarMenuButton
-                                isActive={pathname.startsWith('/expenses') || pathname.startsWith('/recurrences')}
+                                isActive={pathname.startsWith('/expenses') || pathname.startsWith('/recurrences') || pathname.startsWith('/credit-cards')}
                                 tooltip={'Despesas'}
                                 className="justify-between"
                             >
@@ -96,17 +99,26 @@ export function AppSidebar() {
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                          <SidebarMenuItem className="ml-5 border-l border-border pl-3">
-                             <SidebarMenuButton asChild isActive={pathname.startsWith('/recurrences')} tooltip={'Pagamentos Recorrentes'} onClick={handleMobileClick}>
+                             <SidebarMenuButton asChild isActive={pathname.startsWith('/recurrences')} tooltip={'Contas Fixas'} onClick={handleMobileClick}>
                                 <Link href="/recurrences">
                                     <Repeat />
-                                    <span>Pagamentos Recorrentes</span>
+                                    <span>Contas Fixas</span>
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                          <SidebarMenuItem className="ml-5 border-l border-border pl-3">
                              <SidebarMenuButton asChild isActive={pathname.startsWith('/expenses/subscriptions')} tooltip={'Streams & Assinaturas'} onClick={handleMobileClick}>
                                 <Link href="/expenses/subscriptions">
+                                     <Clapperboard />
                                     <span>Streams & Assinaturas</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                         <SidebarMenuItem className="ml-5 border-l border-border pl-3">
+                             <SidebarMenuButton asChild isActive={pathname.startsWith('/credit-cards')} tooltip={'Cartões de Crédito'} onClick={handleMobileClick}>
+                                <Link href="/credit-cards">
+                                    <CreditCard />
+                                    <span>Cartões de Crédito</span>
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
