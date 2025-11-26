@@ -1,6 +1,6 @@
 'use client';
 
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, type FieldValues } from 'react-hook-form';
 import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -55,9 +55,9 @@ export function PlanForm({ isOpen, onClose, plan }: PlanFormProps) {
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove } = useFieldArray<PlanFormValues, 'features'>({
     control: form.control,
-    name: "features"
+    name: 'features',
   });
 
   const firestore = useFirestore();
