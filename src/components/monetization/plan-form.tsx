@@ -55,7 +55,7 @@ export function PlanForm({ isOpen, onClose, plan }: PlanFormProps) {
     },
   });
 
-  const { fields, append, remove } = useFieldArray<PlanFormValues, 'features', 'id'>({
+  const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: 'features',
   });
