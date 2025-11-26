@@ -187,7 +187,6 @@ service cloud.firestore {
        */
       match /debts/{debtId} {
         allow get: if isOwner(userId) || isSuperAdmin();
-        allow list: if isOwner(userId) || isSuperAdmin();
         allow create: if isCreatingOwnData(userId);
         allow update: if isExistingOwner(userId) && isOwnerFieldImmutable();
         allow delete: if isExistingOwner(userId);
@@ -206,6 +205,7 @@ service cloud.firestore {
           allow delete: if (isOwnerOfParentDebt(userId, debtId) && resource != null) || isSuperAdmin();
         }
       }
+      allow list: if isOwner(userId) || isSuperAdmin();
       
       /**
        * @description Secures a user's financial goals.
@@ -216,11 +216,11 @@ service cloud.firestore {
        */
       match /goals/{goalId} {
         allow get: if isOwner(userId) || isSuperAdmin();
-        allow list: if isOwner(userId) || isSuperAdmin();
         allow create: if isCreatingOwnData(userId);
         allow update: if isExistingOwner(userId) && isOwnerFieldImmutable();
         allow delete: if isExistingOwner(userId);
       }
+      allow list: if isOwner(userId) || isSuperAdmin();
 
       /**
        * @description Secures a user's budgets.
@@ -286,5 +286,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
