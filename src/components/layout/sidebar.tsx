@@ -36,7 +36,7 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { state, isMobile, setOpenMobile, isPinned, togglePinned } = useSidebar();
   const { user } = useUser();
-  const [isExpensesOpen, setIsExpensesOpen] = useState(pathname.startsWith('/expenses'));
+  const [isExpensesOpen, setIsExpensesOpen] = useState(pathname.startsWith('/expenses') || pathname.startsWith('/recurrences'));
 
   const handleMobileClick = () => {
     if (isMobile) {
@@ -75,7 +75,7 @@ export function AppSidebar() {
                     <SidebarMenuItem>
                         <CollapsibleTrigger asChild>
                             <SidebarMenuButton
-                                isActive={pathname.startsWith('/expenses')}
+                                isActive={pathname.startsWith('/expenses') || pathname.startsWith('/recurrences')}
                                 tooltip={'Despesas'}
                                 className="justify-between"
                             >
@@ -96,6 +96,14 @@ export function AppSidebar() {
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                          <SidebarMenuItem className="ml-5 border-l border-border pl-3">
+                             <SidebarMenuButton asChild isActive={pathname.startsWith('/recurrences')} tooltip={'Pagamentos Recorrentes'} onClick={handleMobileClick}>
+                                <Link href="/recurrences">
+                                    <Repeat />
+                                    <span>Pagamentos Recorrentes</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                         <SidebarMenuItem className="ml-5 border-l border-border pl-3">
                              <SidebarMenuButton asChild isActive={pathname.startsWith('/expenses/subscriptions')} tooltip={'Streams & Assinaturas'} onClick={handleMobileClick}>
                                 <Link href="/expenses/subscriptions">
                                     <span>Streams & Assinaturas</span>
@@ -104,14 +112,6 @@ export function AppSidebar() {
                         </SidebarMenuItem>
                     </CollapsibleContent>
                 </Collapsible>
-                 <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname === '/recurrences'} tooltip={'Pagamentos Recorrentes'} onClick={handleMobileClick}>
-                        <Link href="/recurrences">
-                            <Repeat />
-                            <span>Pagamentos Recorrentes</span>
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
             </SidebarGroup>
 
             <SidebarSeparator />
