@@ -136,6 +136,7 @@ export function AddTransactionSheet({
         date: parseISO(transaction.date),
         status: transaction.status || 'paid',
         paymentMethod: transaction.creditCardId ? 'creditCard' : 'cash',
+        creditCardId: transaction.creditCardId || undefined,
       });
     } else if (isOpen) {
       form.reset({
@@ -146,6 +147,7 @@ export function AddTransactionSheet({
         isRecurring: false,
         status: 'paid',
         paymentMethod: 'cash',
+        creditCardId: undefined,
       });
     }
   }, [isOpen, transaction, form]);

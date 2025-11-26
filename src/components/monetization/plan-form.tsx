@@ -23,6 +23,7 @@ import { CurrencyInput } from '../ui/currency-input';
 import type { SubscriptionPlan } from '@/lib/types';
 import { Switch } from '../ui/switch';
 import { Textarea } from '../ui/textarea';
+import { Label } from '../ui/label';
 
 const formSchema = z.object({
   name: z.string().min(3, 'O nome do plano deve ter pelo menos 3 caracteres.'),
@@ -205,5 +206,3 @@ export function PlanForm({ isOpen, onClose, plan }: PlanFormProps) {
     </Dialog>
   );
 }
-
-    

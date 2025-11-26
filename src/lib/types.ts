@@ -99,6 +99,18 @@ export type Log = {
     createdByName: string;
 }
 
+export type Notification = {
+  id: string;
+  userId: string;
+  type: 'debt_due' | 'goal_reached' | 'budget_warning';
+  message: string;
+  isRead: boolean;
+  link?: string;
+  timestamp: string; // ISO string
+  entityId?: string;
+}
+
+
 export const expenseCategories = [
   'Mercado',
   'Contas',
@@ -139,7 +151,7 @@ export type GoalCategory = typeof goalCategories[number];
 
 
 // Schemas and types for AI Financial Insights Flow
-const AITransactionSchema = z.object({
+export const AITransactionSchema = z.object({
   id: z.string(),
   type: z.enum(['income', 'expense']),
   amount: z.number(),
@@ -150,7 +162,7 @@ const AITransactionSchema = z.object({
   status: z.enum(['paid', 'pending']),
 });
 
-const AIDebtSchema = z.object({
+export const AIDebtSchema = z.object({
   id: z.string(),
   name: z.string(),
   totalAmount: z.number(),
@@ -158,7 +170,7 @@ const AIDebtSchema = z.object({
   creditor: z.string(),
 });
 
-const AIGoalSchema = z.object({
+export const AIGoalSchema = z.object({
   id: z.string(),
   name: z.string(),
   targetAmount: z.number(),
