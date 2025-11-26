@@ -1,6 +1,6 @@
 'use client';
 
-import { useForm, useFieldArray, type FieldValues } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -55,7 +55,7 @@ export function PlanForm({ isOpen, onClose, plan }: PlanFormProps) {
     },
   });
 
-  const { fields, append, remove } = useFieldArray<PlanFormValues, 'features'>({
+  const { fields, append, remove } = useFieldArray<PlanFormValues, 'features', 'id'>({
     control: form.control,
     name: 'features',
   });
