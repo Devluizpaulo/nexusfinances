@@ -150,6 +150,7 @@ export const goalCategories = [
     'Aposentadoria',
     'Investir',
     'Quitar Dívidas',
+    'Eletrônicos',
     'Outros'
 ] as const;
 

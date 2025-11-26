@@ -250,6 +250,8 @@ export function AddGoalSheet({ isOpen, onClose, goal }: AddGoalSheetProps) {
                           Eletrônicos: '💻',
                           Educação: '🎓',
                           Aposentadoria: '💼',
+                          Investir: '📈',
+                          'Quitar Dívidas': '📉',
                           Outros: '✨',
                         };
                         const icon = iconMap[category] || '🎯';
