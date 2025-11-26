@@ -1,7 +1,7 @@
 
 'use client';
 import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator, SidebarGroup, SidebarGroupLabel } from '@/components/ui/sidebar';
-import { LayoutDashboard, Landmark, CreditCard, Banknote, DollarSign, Loader2, Target, LogOut, UserCircle, LifeBuoy, ShieldCheck, PiggyBank, BarChart3, GraduationCap, Pin, PinOff, Files, Repeat } from 'lucide-react';
+import { LayoutDashboard, Landmark, CreditCard, Banknote, DollarSign, Loader2, Target, LogOut, UserCircle, LifeBuoy, ShieldCheck, PiggyBank, BarChart3, GraduationCap, Pin, PinOff, Files, Repeat, Clapperboard } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '../ui/button';
@@ -13,8 +13,6 @@ import { useUser } from '@/firebase';
 const overviewMenuItems = [
   { href: '/dashboard', label: 'Painel', icon: LayoutDashboard },
   { href: '/income', label: 'Renda', icon: Landmark },
-  { href: '/expenses', label: 'Despesas', icon: CreditCard },
-  { href: '/recurrences', label: 'Pagamentos Recorrentes', icon: Repeat },
 ];
 
 const planningMenuItems = [
@@ -70,6 +68,22 @@ export function AppSidebar() {
             <SidebarGroup>
                 <SidebarGroupLabel>Visão Geral</SidebarGroupLabel>
                 {renderMenuItems(overviewMenuItems)}
+                 <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname === '/expenses'} tooltip={'Despesas'} onClick={handleMobileClick}>
+                        <Link href="/expenses">
+                            <CreditCard />
+                            <span>Despesas</span>
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+                 <SidebarMenuItem>
+                    <SidebarMenuButton asChild isActive={pathname === '/recurrences'} tooltip={'Pagamentos Recorrentes'} onClick={handleMobileClick}>
+                        <Link href="/recurrences">
+                            <Repeat />
+                            <span>Pagamentos Recorrentes</span>
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
             </SidebarGroup>
 
             <SidebarSeparator />

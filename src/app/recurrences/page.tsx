@@ -6,13 +6,13 @@ import { PageHeader } from '@/components/page-header';
 import { collection, query, where } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Recurrence } from '@/lib/types';
-import { Loader2, Repeat, TrendingDown, TrendingUp, Film, HeartPulse, Cpu, Newspaper, Home, Zap } from 'lucide-react';
+import { Loader2, Repeat, TrendingDown, TrendingUp, Home, Zap } from 'lucide-react';
 import { RecurrenceCard } from '@/components/recurrences/recurrence-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 // Define as categorias e seus ícones
-const subscriptionCategories = [
+const recurringCategories = [
   { 
     title: 'Moradia',
     keywords: ['Aluguel', 'Condomínio', 'Hipoteca'],
@@ -23,26 +23,6 @@ const subscriptionCategories = [
     keywords: ['Luz', 'Água', 'Gás', 'Internet', 'Celular', 'Plano'],
     icon: Zap,
   },
-  { 
-    title: 'Streaming & Mídia',
-    keywords: ['Netflix', 'YouTube', 'Spotify', 'Amazon Prime', 'Disney+', 'HBO Max', 'Música', 'Filmes'],
-    icon: Film,
-  },
-  { 
-    title: 'Bem-estar & Academia',
-    keywords: ['Academia', 'Gympass', 'Yoga', 'Meditação', 'Saúde'],
-    icon: HeartPulse
-  },
-  { 
-    title: 'Software & IAs',
-    keywords: ['Software', 'Assinatura', 'IA', 'Adobe', 'Office', 'Nuvem', 'Produtividade'],
-    icon: Cpu
-  },
-  {
-    title: 'Notícias & Leitura',
-    keywords: ['Jornal', 'Revista', 'Notícias', 'Kindle', 'Livros'],
-    icon: Newspaper
-  }
 ];
 
 export default function RecurrencesPage() {
@@ -67,10 +47,10 @@ export default function RecurrencesPage() {
     const expenses = expenseData?.reduce((sum, item) => sum + item.amount, 0) || 0;
 
     const grouped: Record<string, Recurrence[]> = { 'Outras Recorrências': [] };
-    subscriptionCategories.forEach(cat => { grouped[cat.title] = [] });
+    recurringCategories.forEach(cat => { grouped[cat.title] = [] });
 
     (expenseData || []).forEach(expense => {
-      const foundCategory = subscriptionCategories.find(cat => 
+      const foundCategory = recurringCategories.find(cat => 
         cat.keywords.some(keyword => 
           expense.category.toLowerCase().includes(keyword.toLowerCase()) || 
           expense.description.toLowerCase().includes(keyword.toLowerCase())
@@ -80,7 +60,15 @@ export default function RecurrencesPage() {
       if (foundCategory) {
         grouped[foundCategory.title].push(expense);
       } else {
-        grouped['Outras Recorrências'].push(expense);
+        // Exclude streamings from "Other Recurrences"
+        const streamingKeywords = ['Netflix', 'YouTube', 'Spotify', 'Amazon Prime', 'Disney+', 'HBO Max', 'Música', 'Filmes'];
+        const isStreaming = streamingKeywords.some(keyword =>
+          expense.category.toLowerCase().includes(keyword.toLowerCase()) ||
+          expense.description.toLowerCase().includes(keyword.toLowerCase())
+        );
+        if (!isStreaming) {
+          grouped['Outras Recorrências'].push(expense);
+        }
       }
     });
 
@@ -105,13 +93,13 @@ export default function RecurrencesPage() {
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
-  const allCategories = [...subscriptionCategories, { title: 'Outras Recorrências', icon: Repeat, keywords: [] }];
+  const allCategories = [...recurringCategories, { title: 'Outras Recorrências', icon: Repeat, keywords: [] }];
 
   return (
     <>
       <PageHeader
         title="Pagamentos Recorrentes"
-        description="Gerencie suas despesas fixas (contas, aluguel, assinaturas) em um só lugar."
+        description="Gerencie suas despesas fixas como contas, aluguel e outras em um só lugar."
       />
 
       <div className="mb-8 grid gap-4 md:grid-cols-3">
