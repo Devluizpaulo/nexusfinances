@@ -486,7 +486,7 @@ export default function DashboardPage() {
               <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="insights">Análise com IA</TabsTrigger>
                 <TabsTrigger value="transactions">Últimos Lançamentos</TabsTrigger>
-                <TabsTrigger value="budgets">Orçamentos</TabsTrigger>
+                <TabsTrigger value="budgets">Limites</TabsTrigger>
                 <TabsTrigger value="goals">Metas</TabsTrigger>
               </TabsList>
 
@@ -573,10 +573,10 @@ export default function DashboardPage() {
                 ) : (
                     <Card>
                         <CardContent className="flex flex-col items-center justify-center text-center p-8 min-h-60">
-                            <h3 className="font-semibold">Nenhum orçamento para este mês.</h3>
-                            <p className="mt-1 text-sm text-muted-foreground">Crie orçamentos para ter um controle mais preciso dos seus gastos.</p>
+                            <h3 className="font-semibold">Nenhum limite de gasto para este mês.</h3>
+                            <p className="mt-1 text-sm text-muted-foreground">Crie limites para ter um controle mais preciso dos seus gastos.</p>
                             <Button className="mt-4" size="sm" onClick={() => router.push('/budgets')}>
-                                Criar Orçamento
+                                Criar Limite
                             </Button>
                         </CardContent>
                     </Card>
@@ -759,5 +759,3 @@ export default function DashboardPage() {
     </>
   );
 }
-
-    

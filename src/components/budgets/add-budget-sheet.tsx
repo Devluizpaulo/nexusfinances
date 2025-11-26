@@ -41,7 +41,7 @@ import { formatISO, startOfMonth, endOfMonth } from 'date-fns';
 const formSchema = z.object({
   name: z.string().min(1, 'O nome é obrigatório.'),
   category: z.string().min(1, 'A categoria é obrigatória.'),
-  amount: z.coerce.number().positive('O valor do orçamento deve ser positivo.'),
+  amount: z.coerce.number().positive('O valor do limite deve ser positivo.'),
 });
 
 type BudgetFormValues = z.infer<typeof formSchema>;
@@ -111,7 +111,7 @@ export function AddBudgetSheet({ isOpen, onClose, budget }: AddBudgetSheetProps)
             endDate: budget.endDate || formatISO(endOfMonth(new Date()))
         };
         setDocumentNonBlocking(budgetRef, updatedData, { merge: true });
-        toast({ title: 'Orçamento atualizado!', description: `O orçamento "${values.name}" foi salvo.` });
+        toast({ title: 'Limite atualizado!', description: `O limite de gasto "${values.name}" foi salvo.` });
       } else {
         // When creating, always calculate new start and end dates for the current month
         const now = new Date();
@@ -128,7 +128,7 @@ export function AddBudgetSheet({ isOpen, onClose, budget }: AddBudgetSheetProps)
 
         const budgetsColRef = collection(firestore, `users/${user.uid}/budgets`);
         addDocumentNonBlocking(budgetsColRef, newBudgetData);
-        toast({ title: 'Orçamento criado!', description: `O orçamento "${values.name}" foi criado com sucesso.` });
+        toast({ title: 'Limite de gasto criado!', description: `O limite "${values.name}" foi criado com sucesso.` });
       }
       onClose();
     } catch (error) {
@@ -136,7 +136,7 @@ export function AddBudgetSheet({ isOpen, onClose, budget }: AddBudgetSheetProps)
       toast({
         variant: 'destructive',
         title: 'Erro ao salvar',
-        description: 'Não foi possível salvar o orçamento. Tente novamente.',
+        description: 'Não foi possível salvar o limite de gasto. Tente novamente.',
       });
     }
   };
@@ -145,7 +145,7 @@ export function AddBudgetSheet({ isOpen, onClose, budget }: AddBudgetSheetProps)
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Editar Orçamento' : 'Criar Novo Orçamento'}</DialogTitle>
+          <DialogTitle>{isEditing ? 'Editar Limite de Gasto' : 'Criar Novo Limite de Gasto'}</DialogTitle>
           <DialogDescription>
             Defina um limite de gastos para uma categoria para o mês atual.
           </DialogDescription>
@@ -157,7 +157,7 @@ export function AddBudgetSheet({ isOpen, onClose, budget }: AddBudgetSheetProps)
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nome do Orçamento</FormLabel>
+                  <FormLabel>Nome do Limite</FormLabel>
                   <FormControl>
                     <Input placeholder="Ex: Mercado do mês" {...field} />
                   </FormControl>
@@ -174,7 +174,7 @@ export function AddBudgetSheet({ isOpen, onClose, budget }: AddBudgetSheetProps)
                    <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione a categoria para orçar" />
+                        <SelectValue placeholder="Selecione a categoria para definir um limite" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -194,7 +194,7 @@ export function AddBudgetSheet({ isOpen, onClose, budget }: AddBudgetSheetProps)
               name="amount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Valor Orçado (R$)</FormLabel>
+                  <FormLabel>Valor Limite (R$)</FormLabel>
                   <FormControl>
                     <CurrencyInput
                       value={field.value}
@@ -214,7 +214,7 @@ export function AddBudgetSheet({ isOpen, onClose, budget }: AddBudgetSheetProps)
                 {form.formState.isSubmitting && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                {isEditing ? 'Salvar Alterações' : 'Salvar Orçamento'}
+                {isEditing ? 'Salvar Alterações' : 'Salvar Limite'}
                 </Button>
             </DialogFooter>
           </form>

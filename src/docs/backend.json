@@ -312,7 +312,7 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Budget",
       "type": "object",
-      "description": "Represents a budget for a specific category over a period.",
+      "description": "Represents a spending limit for a specific category over a period.",
       "properties": {
         "id": { "type": "string" },
         "userId": { "type": "string" },
@@ -592,7 +592,7 @@
         "definition": {
           "entityName": "Budget",
           "schema": { "$ref": "#/backend/entities/Budget" },
-          "description": "Stores user-defined budgets for expense categories.",
+          "description": "Stores user-defined spending limits for expense categories.",
           "params": [
             { "name": "userId", "description": "The unique identifier of the user." },
             { "name": "budgetId", "description": "The unique identifier of the budget." }

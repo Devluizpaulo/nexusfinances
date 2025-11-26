@@ -49,8 +49,8 @@ export function BudgetCard({ budget, onEdit }: BudgetCardProps) {
     const budgetRef = doc(firestore, `users/${user.uid}/budgets`, budget.id);
     deleteDocumentNonBlocking(budgetRef);
     toast({
-        title: "Orçamento excluído",
-        description: `O orçamento "${budget.name}" foi removido.`
+        title: "Limite de gasto excluído",
+        description: `O limite "${budget.name}" foi removido.`
     });
     setIsDeleteDialogOpen(false);
   };
@@ -73,7 +73,7 @@ export function BudgetCard({ budget, onEdit }: BudgetCardProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita e excluirá permanentemente o orçamento "{budget.name}".
+              Esta ação não pode ser desfeita e excluirá permanentemente o limite de gasto "{budget.name}".
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

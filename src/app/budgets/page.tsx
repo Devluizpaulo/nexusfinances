@@ -86,16 +86,16 @@ export default function BudgetsPage() {
         onClose={handleCloseSheet} 
         budget={editingBudget}
       />
-      <PageHeader title="Orçamentos" description="Defina limites de gastos por categoria e acompanhe seu progresso.">
+      <PageHeader title="Limites de Gasto" description="Defina limites de gastos por categoria e acompanhe seu progresso.">
         <Button onClick={() => setIsSheetOpen(true)} disabled={!user}>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Criar Orçamento
+          Criar Limite
         </Button>
       </PageHeader>
       
       <div className="space-y-8">
         <div>
-          <h2 className="text-xl font-semibold mb-4">Seus Orçamentos</h2>
+          <h2 className="text-xl font-semibold mb-4">Seus Limites</h2>
           {monthlyBudgets.length > 0 ? (
             <div className="space-y-4 rounded-lg border p-4">
               {monthlyBudgets.map((budget) => (
@@ -107,11 +107,11 @@ export default function BudgetsPage() {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
-              <h3 className="font-semibold">Nenhum orçamento definido</h3>
-              <p className="mt-1 text-sm text-muted-foreground">Crie orçamentos para controlar seus gastos mensais.</p>
+              <h3 className="font-semibold">Nenhum limite de gasto definido</h3>
+              <p className="mt-1 text-sm text-muted-foreground">Crie limites para controlar seus gastos mensais.</p>
                <Button className="mt-4" onClick={() => setIsSheetOpen(true)}>
                 <PlusCircle className="mr-2 h-4 w-4" />
-                Criar Primeiro Orçamento
+                Criar Primeiro Limite
               </Button>
             </div>
           )}

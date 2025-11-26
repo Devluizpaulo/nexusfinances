@@ -18,7 +18,7 @@ const overviewMenuItems = [
 const planningMenuItems = [
   { href: '/debts', label: 'Dívidas', icon: Banknote },
   { href: '/goals', label: 'Metas & Reservas', icon: PiggyBank },
-  { href: '/budgets', label: 'Orçamentos', icon: Files },
+  { href: '/budgets', label: 'Limites de Gasto', icon: Files },
 ];
 
 const analysisMenuItems = [
