@@ -2,13 +2,14 @@
 
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Loader2 } from 'lucide-react';
+import { PlusCircle, Loader2, Target } from 'lucide-react';
 import { collection, query, where } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Budget, Transaction } from '@/lib/types';
 import { AddBudgetSheet } from '@/components/budgets/add-budget-sheet';
 import { BudgetCard } from '@/components/budgets/budget-card';
 import { startOfMonth, endOfMonth, parseISO } from 'date-fns';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function BudgetsPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -105,14 +106,32 @@ export default function BudgetsPage() {
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
-              <h3 className="font-semibold">Nenhum limite de gasto definido</h3>
-              <p className="mt-1 text-sm text-muted-foreground">Crie limites para controlar seus gastos mensais.</p>
-               <Button className="mt-4" onClick={() => setIsSheetOpen(true)}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Criar Primeiro Limite
-              </Button>
-            </div>
+            <Card className="bg-muted/30">
+              <CardHeader className="items-center text-center">
+                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-2">
+                  <Target className="h-8 w-8 text-primary" />
+                </div>
+                <CardTitle>Crie seu primeiro limite de gastos</CardTitle>
+                <CardDescription className="max-w-md">
+                  Os limites ajudam você a não gastar mais do que o planejado em categorias específicas.
+                  Assim que criar o primeiro, ele aparecerá aqui.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col items-center">
+                  <div className="w-full max-w-sm rounded-lg border bg-background/50 p-4">
+                    <p className="mb-2 text-center text-sm font-medium text-muted-foreground">Exemplos de limites:</p>
+                    <ul className="space-y-1 text-center text-sm text-muted-foreground">
+                      <li>"Limite de R$ 800 para Mercado"</li>
+                      <li>"Até R$ 300 para Lazer e Restaurantes"</li>
+                      <li>"Não ultrapassar R$ 150 em Compras"</li>
+                    </ul>
+                  </div>
+                   <Button className="mt-6" onClick={() => setIsSheetOpen(true)}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Criar Primeiro Limite
+                  </Button>
+              </CardContent>
+            </Card>
           )}
         </div>
       </div>
