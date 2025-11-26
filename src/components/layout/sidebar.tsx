@@ -13,23 +13,23 @@ import { useState } from 'react';
 
 
 const overviewMenuItems = [
-  { href: '/dashboard', label: 'Painel', icon: LayoutDashboard },
-  { href: '/income', label: 'Renda', icon: Landmark },
+  { href: '/dashboard', label: 'Painel', icon: LayoutDashboard, className: "text-sky-500" },
+  { href: '/income', label: 'Renda', icon: Landmark, className: "text-emerald-500" },
 ];
 
 const planningMenuItems = [
-  { href: '/debts', label: 'Parcelamentos & Dívidas', icon: Banknote },
-  { href: '/goals', label: 'Metas & Reservas', icon: PiggyBank },
-  { href: '/budgets', label: 'Limites de Gasto', icon: Files },
+  { href: '/debts', label: 'Parcelamentos & Dívidas', icon: Banknote, className: "text-amber-500" },
+  { href: '/goals', label: 'Metas & Reservas', icon: PiggyBank, className: "text-blue-500" },
+  { href: '/budgets', label: 'Limites de Gasto', icon: Files, className: "text-violet-500" },
 ];
 
 const analysisMenuItems = [
-  { href: '/reports', label: 'Relatórios', icon: BarChart3 },
-  { href: '/education', label: 'Jornada Financeira', icon: GraduationCap },
+  { href: '/reports', label: 'Relatórios', icon: BarChart3, className: "text-indigo-500" },
+  { href: '/education', label: 'Jornada Financeira', icon: GraduationCap, className: "text-teal-500" },
 ];
 
 const secondaryMenuItems = [
-    { href: '/support', label: 'Suporte', icon: LifeBuoy },
+    { href: '/support', label: 'Suporte', icon: LifeBuoy, className: "text-gray-500" },
 ];
 
 export function AppSidebar() {
@@ -37,7 +37,7 @@ export function AppSidebar() {
   const { state, isMobile, setOpenMobile, isPinned, togglePinned } = useSidebar();
   const { user } = useUser();
   const [isExpensesOpen, setIsExpensesOpen] = useState(
-    pathname.startsWith('/expenses') || pathname.startsWith('/recurrences') || pathname.startsWith('/credit-cards')
+    pathname.startsWith('/expenses') || pathname.startsWith('/recurrences')
   );
 
 
@@ -50,9 +50,9 @@ export function AppSidebar() {
   const renderMenuItems = (items: typeof overviewMenuItems) => (
     items.map((item) => (
         <SidebarMenuItem key={item.href}>
-            <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label} onClick={handleMobileClick}>
+            <SidebarMenuButton asChild isActive={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))} tooltip={item.label} onClick={handleMobileClick}>
                 <Link href={item.href}>
-                    <item.icon />
+                    <item.icon className={cn(item.className)} />
                     <span>{item.label}</span>
                 </Link>
             </SidebarMenuButton>
@@ -78,15 +78,15 @@ export function AppSidebar() {
                     <SidebarMenuItem>
                         <CollapsibleTrigger asChild>
                             <SidebarMenuButton
-                                isActive={pathname.startsWith('/expenses') || pathname.startsWith('/recurrences') || pathname.startsWith('/credit-cards')}
+                                isActive={pathname.startsWith('/expenses') || pathname.startsWith('/recurrences')}
                                 tooltip={'Despesas'}
                                 className="justify-between"
                             >
                                 <div className="flex items-center gap-2">
-                                    <CreditCard />
+                                    <CreditCard className="text-red-500" />
                                     <span>Despesas</span>
                                 </div>
-                                <ChevronDown className={cn("transition-transform", (state === "collapsed" || (state === "expanded" && !isExpensesOpen)) && "hidden", isExpensesOpen && "rotate-180")} />
+                                <ChevronDown className={cn("transition-transform", (state === "collapsed" || (state === "expanded" && !isExpensesOpen)) ? "hidden" : "", isExpensesOpen && "rotate-180")} />
                             </SidebarMenuButton>
                         </CollapsibleTrigger>
                     </SidebarMenuItem>
@@ -94,7 +94,7 @@ export function AppSidebar() {
                         <SidebarMenuItem className="ml-5 border-l border-border pl-3">
                              <SidebarMenuButton asChild isActive={pathname === '/expenses'} tooltip={'Todos os Gastos'} onClick={handleMobileClick}>
                                 <Link href="/expenses">
-                                    <span>Todos os Gastos</span>
+                                    Todos os Gastos
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
@@ -140,13 +140,6 @@ export function AppSidebar() {
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
-                         <SidebarMenuItem className="ml-5 border-l border-border pl-3">
-                             <SidebarMenuButton asChild isActive={pathname.startsWith('/credit-cards')} tooltip={'Cartões de Crédito'} onClick={handleMobileClick}>
-                                <Link href="/credit-cards">
-                                    Cartões de Crédito
-                                </Link>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
                     </CollapsibleContent>
                 </Collapsible>
             </SidebarGroup>
@@ -174,7 +167,7 @@ export function AppSidebar() {
                         <SidebarMenuItem>
                             <SidebarMenuButton asChild isActive={pathname.startsWith('/admin')} tooltip="Painel Admin" onClick={handleMobileClick}>
                                 <Link href="/admin/dashboard">
-                                    <ShieldCheck />
+                                    <ShieldCheck className="text-rose-500" />
                                     <span>Painel Admin</span>
                                 </Link>
                             </SidebarMenuButton>
@@ -189,7 +182,7 @@ export function AppSidebar() {
                     <SidebarMenuItem key={item.href}>
                         <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label} onClick={handleMobileClick}>
                             <Link href={item.href}>
-                                <item.icon />
+                                <item.icon className={item.className} />
                                 <span>{item.label}</span>
                             </Link>
                         </SidebarMenuButton>
