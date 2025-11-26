@@ -7,13 +7,12 @@ import { DataTable } from '@/components/data-table/data-table';
 import { columns } from './columns';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Loader2, Upload, Star } from 'lucide-react';
+import { PlusCircle, Loader2, Upload } from 'lucide-react';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { expenseCategories, type Transaction } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function ExpensesPage() {
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
@@ -25,8 +24,6 @@ export default function ExpensesPage() {
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const router = useRouter();
-
-  const isPremiumUser = user?.subscription?.status === 'active';
 
   const expensesQuery = useMemoFirebase(() => {
     if (!user) return null;
@@ -76,7 +73,7 @@ export default function ExpensesPage() {
   }
   
   return (
-    <TooltipProvider>
+    <>
       <AddTransactionSheet
         isOpen={isAddSheetOpen}
         onClose={handleCloseSheet}
@@ -92,26 +89,10 @@ export default function ExpensesPage() {
         title="Despesas"
         description="Anote seus gastos em segundos e veja o impacto direto no seu mês, sem planilhas."
       >
-        <Tooltip>
-            <TooltipTrigger asChild>
-                <div className="relative">
-                    <Button variant="outline" onClick={() => setIsImportSheetOpen(true)} disabled={!isPremiumUser || !user}>
-                        <Upload className="mr-2 h-4 w-4" />
-                        Importar Extrato PDF
-                    </Button>
-                    {!isPremiumUser && (
-                        <div className="absolute -top-2 -right-2">
-                           <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
-                        </div>
-                    )}
-                </div>
-            </TooltipTrigger>
-             {!isPremiumUser && (
-                <TooltipContent>
-                    <p>Funcionalidade Premium: Faça upgrade para importar extratos.</p>
-                </TooltipContent>
-            )}
-        </Tooltip>
+        <Button variant="outline" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>
+            <Upload className="mr-2 h-4 w-4" />
+            Importar Extrato PDF
+        </Button>
 
         <Button onClick={() => handleOpenSheet()} disabled={!user}>
           <PlusCircle className="mr-2 h-4 w-4" />
@@ -137,8 +118,6 @@ export default function ExpensesPage() {
         columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
         data={filteredExpenseData}
       />
-    </TooltipProvider>
+    </>
   );
 }
-
-    

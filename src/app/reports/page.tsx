@@ -29,9 +29,7 @@ import {
   Tag,
   Filter as Funnel,
   FileDown,
-  Star,
 } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type FilterType = 'all' | 'income' | 'expense';
 type ReportType = 'overview' | 'income' | 'expense' | 'categories';
@@ -191,8 +189,6 @@ function BalanceOverTimeChart({ transactions }: { transactions: Transaction[] })
 export default function ReportsPage() {
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
-
-  const isPremiumUser = user?.subscription?.status === 'active';
 
   const [filterType, setFilterType] = useState<FilterType>('all');
   const [reportType, setReportType] = useState<ReportType>('overview');
@@ -389,7 +385,7 @@ export default function ReportsPage() {
       return {
         count: 0,
         avgTicket: 0,
-        avgTicketFormatted: 'R$ 0,00',
+        avgTicketFormatted: 'R$ 0,00',
         topIncomeCategory: null as string | null,
         topExpenseCategory: null as string | null,
       };
@@ -426,7 +422,7 @@ export default function ReportsPage() {
   }, [filteredTransactions]);
 
   return (
-    <TooltipProvider>
+    <>
       <PageHeader
         title="Relatórios"
         description="Explore diferentes visões dos seus números sem depender de planilhas."
@@ -538,32 +534,16 @@ export default function ReportsPage() {
                   >
                     Limpar filtros
                   </Button>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <div className="relative">
-                                <Button
-                                    variant="default"
-                                    size="sm"
-                                    className="gap-1 text-xs"
-                                    onClick={handleExportPdf}
-                                    disabled={!filteredTransactions.length || !isPremiumUser}
-                                >
-                                    <FileDown className="h-3 w-3" />
-                                    Exportar PDF
-                                </Button>
-                                 {!isPremiumUser && (
-                                    <div className="absolute -top-1 -right-1">
-                                    <Star className="h-3 w-3 text-amber-400 fill-amber-400" />
-                                    </div>
-                                )}
-                            </div>
-                        </TooltipTrigger>
-                        {!isPremiumUser && (
-                            <TooltipContent>
-                                <p>Funcionalidade Premium: Faça upgrade para exportar relatórios.</p>
-                            </TooltipContent>
-                        )}
-                    </Tooltip>
+                  <Button
+                      variant="default"
+                      size="sm"
+                      className="gap-1 text-xs"
+                      onClick={handleExportPdf}
+                      disabled={!filteredTransactions.length}
+                  >
+                      <FileDown className="h-3 w-3" />
+                      Exportar PDF
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -847,8 +827,6 @@ export default function ReportsPage() {
           />
         </div>
       )}
-    </TooltipProvider>
+    </>
   );
 }
-
-    

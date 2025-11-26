@@ -325,6 +325,22 @@
       },
       "required": ["id", "userId", "name", "category", "amount", "period", "startDate", "endDate"]
     },
+    "SubscriptionPlan": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Subscription Plan",
+      "type": "object",
+      "description": "Defines a subscription plan available for users.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "description": "Name of the plan (e.g., 'Premium', 'Pro')." },
+        "description": { "type": "string", "description": "A short description of the plan." },
+        "price": { "type": "number", "description": "The monthly price of the plan." },
+        "features": { "type": "array", "items": { "type": "string" }, "description": "A list of features included in the plan." },
+        "paymentGatewayId": { "type": "string", "description": "The ID of this plan in the payment gateway (e.g., Mercado Pago, Stripe)." },
+        "active": { "type": "boolean", "description": "Whether the plan is currently available for new subscriptions." }
+      },
+      "required": ["name", "price", "features", "active"]
+    },
     "Log": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Log",
@@ -580,6 +596,17 @@
           "params": [
             { "name": "userId", "description": "The unique identifier of the user." },
             { "name": "budgetId", "description": "The unique identifier of the budget." }
+          ]
+        }
+      },
+      {
+        "path": "/subscriptionPlans/{planId}",
+        "definition": {
+          "entityName": "SubscriptionPlan",
+          "schema": { "$ref": "#/backend/entities/SubscriptionPlan" },
+          "description": "Stores the available subscription plans. This collection is public to read but restricted to write.",
+          "params": [
+            { "name": "planId", "description": "The unique identifier for the subscription plan." }
           ]
         }
       },
