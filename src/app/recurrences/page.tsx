@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -8,6 +9,7 @@ import type { Recurrence } from '@/lib/types';
 import { Loader2, Repeat, TrendingDown, TrendingUp, Film, HeartPulse, Cpu, Newspaper } from 'lucide-react';
 import { RecurrenceCard } from '@/components/recurrences/recurrence-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 // Define as categorias e seus ícones
 const subscriptionCategories = [
