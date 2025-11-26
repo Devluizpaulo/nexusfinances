@@ -72,6 +72,8 @@ const goalIcons: Record<GoalCategory, string> = {
     Eletrônicos: '💻',
     Educação: '🎓',
     Aposentadoria: '💼',
+    Investir: '📈',
+    'Quitar Dívidas': '💸',
     Outros: '✨',
 };
 
