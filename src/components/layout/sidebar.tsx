@@ -86,7 +86,7 @@ export function AppSidebar() {
                                     <CreditCard />
                                     <span>Despesas</span>
                                 </div>
-                                <ChevronDown className={cn("transition-transform", isExpensesOpen && "rotate-180")} />
+                                <ChevronDown className={cn("transition-transform group-data-[collapsed]:hidden", isExpensesOpen && "rotate-180")} />
                             </SidebarMenuButton>
                         </CollapsibleTrigger>
                     </SidebarMenuItem>
@@ -101,7 +101,7 @@ export function AppSidebar() {
                          <SidebarMenuItem className="ml-5 border-l border-border pl-3">
                              <SidebarMenuButton asChild isActive={pathname.startsWith('/recurrences')} tooltip={'Contas Fixas'} onClick={handleMobileClick}>
                                 <Link href="/recurrences">
-                                    <Repeat />
+                                     <Repeat />
                                     <span>Contas Fixas</span>
                                 </Link>
                             </SidebarMenuButton>
