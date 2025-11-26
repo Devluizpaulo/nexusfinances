@@ -1,13 +1,15 @@
 
 'use client';
 import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator, SidebarGroup, SidebarGroupLabel } from '@/components/ui/sidebar';
-import { LayoutDashboard, Landmark, CreditCard, Banknote, DollarSign, Loader2, Target, LogOut, UserCircle, LifeBuoy, ShieldCheck, PiggyBank, BarChart3, GraduationCap, Pin, PinOff, Files, Repeat, Clapperboard } from 'lucide-react';
+import { LayoutDashboard, Landmark, CreditCard, Banknote, DollarSign, Loader2, Target, LogOut, UserCircle, LifeBuoy, ShieldCheck, PiggyBank, BarChart3, GraduationCap, Pin, PinOff, Files, Repeat, Clapperboard, ChevronDown } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 import { useSidebar } from '../ui/sidebar';
 import { cn } from '@/lib/utils';
 import { useUser } from '@/firebase';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
+import { useState } from 'react';
 
 
 const overviewMenuItems = [
@@ -34,6 +36,7 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { state, isMobile, setOpenMobile, isPinned, togglePinned } = useSidebar();
   const { user } = useUser();
+  const [isExpensesOpen, setIsExpensesOpen] = useState(pathname.startsWith('/expenses'));
 
   const handleMobileClick = () => {
     if (isMobile) {
@@ -68,14 +71,39 @@ export function AppSidebar() {
             <SidebarGroup>
                 <SidebarGroupLabel>Visão Geral</SidebarGroupLabel>
                 {renderMenuItems(overviewMenuItems)}
-                 <SidebarMenuItem>
-                    <SidebarMenuButton asChild isActive={pathname === '/expenses'} tooltip={'Despesas'} onClick={handleMobileClick}>
-                        <Link href="/expenses">
-                            <CreditCard />
-                            <span>Despesas</span>
-                        </Link>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
+                 <Collapsible open={isExpensesOpen} onOpenChange={setIsExpensesOpen}>
+                    <SidebarMenuItem>
+                        <CollapsibleTrigger asChild>
+                            <SidebarMenuButton
+                                isActive={pathname.startsWith('/expenses')}
+                                tooltip={'Despesas'}
+                                className="justify-between"
+                            >
+                                <div className="flex items-center gap-2">
+                                    <CreditCard />
+                                    <span>Despesas</span>
+                                </div>
+                                <ChevronDown className={cn("transition-transform", isExpensesOpen && "rotate-180")} />
+                            </SidebarMenuButton>
+                        </CollapsibleTrigger>
+                    </SidebarMenuItem>
+                     <CollapsibleContent className="group-data-[collapsed]:hidden">
+                        <SidebarMenuItem className="ml-5 border-l border-border pl-3">
+                             <SidebarMenuButton asChild isActive={pathname === '/expenses'} tooltip={'Todos os Gastos'} onClick={handleMobileClick}>
+                                <Link href="/expenses">
+                                    <span>Todos os Gastos</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                         <SidebarMenuItem className="ml-5 border-l border-border pl-3">
+                             <SidebarMenuButton asChild isActive={pathname.startsWith('/expenses/subscriptions')} tooltip={'Streams & Assinaturas'} onClick={handleMobileClick}>
+                                <Link href="/expenses/subscriptions">
+                                    <span>Streams & Assinaturas</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </CollapsibleContent>
+                </Collapsible>
                  <SidebarMenuItem>
                     <SidebarMenuButton asChild isActive={pathname === '/recurrences'} tooltip={'Pagamentos Recorrentes'} onClick={handleMobileClick}>
                         <Link href="/recurrences">
