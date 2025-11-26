@@ -10,6 +10,7 @@ import { RecurrenceCard } from '@/components/recurrences/recurrence-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { expenseCategories } from '@/lib/types';
+import { PageHeader } from '@/components/page-header';
 
 const housingKeywords = ['aluguel', 'condomínio', 'hipoteca', 'iptu', 'moradia'];
 
@@ -54,36 +55,40 @@ export default function HousingPage() {
 
   return (
     <>
-       <AddTransactionSheet
+      <AddTransactionSheet
         isOpen={isAddSheetOpen}
         onClose={handleCloseSheet}
         transactionType="expense"
         categories={expenseCategories}
       />
-      <div className="flex items-center justify-end mb-6">
+
+      <PageHeader
+        title="Despesas"
+        description="Moradia"
+      >
         <Button onClick={handleOpenSheet} disabled={!user}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Adicionar Despesa de Moradia
         </Button>
-      </div>
+      </PageHeader>
 
-      <Card>
+      <Card className="mt-4">
         <CardHeader>
           <div className="flex items-center gap-3">
-              <Home className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg">Despesas de Moradia</CardTitle>
+            <Home className="h-5 w-5 text-primary" />
+            <CardTitle className="text-lg">Despesas de Moradia</CardTitle>
           </div>
           <CardDescription>Lista de despesas recorrentes relacionadas à sua moradia.</CardDescription>
         </CardHeader>
         <CardContent>
           {housingExpenses.length > 0 ? (
-             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {housingExpenses.map((item) => (
-                  <RecurrenceCard key={item.id} recurrence={item} />
-                ))}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {housingExpenses.map((item) => (
+                <RecurrenceCard key={item.id} recurrence={item} />
+              ))}
             </div>
           ) : (
-             <div className="flex h-40 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
+            <div className="flex h-40 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
               <h3 className="font-semibold">Nenhuma despesa de moradia encontrada</h3>
               <p className="mt-1 text-sm text-muted-foreground">Adicione seu aluguel ou condomínio como uma despesa recorrente.</p>
             </div>
