@@ -116,6 +116,7 @@ function LoginClient() {
       await signInWithPopup(auth, provider);
       // The onAuthStateChanged listener in FirebaseProvider will handle user doc creation/check
     } catch (error: any) {
+      // Only show a toast if the error is not the user closing the popup
       if (error.code !== 'auth/popup-closed-by-user') {
         console.error('Erro no login com Google:', error);
         toast({
@@ -137,17 +138,34 @@ function LoginClient() {
       // The onAuthStateChanged listener in FirebaseProvider will handle user state
     } catch (error: any) {
       console.error('Erro no login com E-mail:', error);
-      let description = "E-mail ou senha incorretos. Verifique seus dados e tente novamente.";
+       const authErrors = [
+          'auth/invalid-credential',
+          'auth/wrong-password',
+          'auth/invalid-email',
+          'auth/user-disabled',
+        ];
+
       if (error.code === 'auth/user-not-found') {
-        description = "Usuário não encontrado. Que tal se cadastrar?";
+        toast({
+          variant: "destructive",
+          title: "Usuário não encontrado",
+          description: "Que tal se cadastrar?",
+        });
         setActiveTab('register');
         registerForm.setValue('email', values.email);
-      }
-      toast({
+      } else if (authErrors.includes(error.code)) {
+         toast({
           variant: "destructive",
           title: "Erro de Login",
-          description,
+          description: "E-mail ou senha incorretos. Verifique seus dados e tente novamente.",
         });
+      } else {
+         toast({
+          variant: "destructive",
+          title: "Erro de Login",
+          description: "Ocorreu um erro inesperado. Tente novamente mais tarde.",
+        });
+      }
     } finally {
         setIsLoading(false);
     }
