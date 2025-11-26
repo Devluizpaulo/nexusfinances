@@ -256,5 +256,19 @@ service cloud.firestore {
         allow get, list: if isSignedIn();
         allow write: if isSuperAdmin();
     }
+
+    /**
+     * @description Manages subscription plans.
+     * @path /subscriptionPlans/{planId}
+     * @allow (read) Any authenticated user can read the available plans.
+     * @allow (write) Only superadmins can create, update, or delete plans.
+     * @principle Makes plans public for users to see, but management is restricted.
+     */
+    match /subscriptionPlans/{planId} {
+        allow get, list: if isSignedIn();
+        allow write: if isSuperAdmin();
+    }
   }
 }
+
+    

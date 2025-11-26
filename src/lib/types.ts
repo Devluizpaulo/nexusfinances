@@ -65,6 +65,16 @@ export type Budget = {
   endDate: string;
 };
 
+export type SubscriptionPlan = {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  features: string[];
+  paymentGatewayId: string;
+  active: boolean;
+};
+
 export type Log = {
     id: string;
     timestamp: any; // Can be Firestore Timestamp
@@ -231,3 +241,5 @@ export const ExtractTransactionsOutputSchema = z.object({
   transactions: z.array(ExtractedTransactionSchema),
 });
 export type ExtractTransactionsOutput = z.infer<typeof ExtractTransactionsOutputSchema>;
+
+    

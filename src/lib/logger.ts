@@ -30,3 +30,5 @@ export function logEvent(firestore: Firestore, payload: LogPayload) {
 
   addDocumentNonBlocking(logsCollection, logData);
 }
+
+    

@@ -324,6 +324,22 @@
       },
       "required": ["id", "userId", "name", "category", "amount", "period", "startDate", "endDate"]
     },
+    "SubscriptionPlan": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Subscription Plan",
+      "type": "object",
+      "description": "Defines a subscription plan available for users.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "description": "Name of the plan (e.g., 'Premium', 'Pro')." },
+        "description": { "type": "string", "description": "A short description of the plan." },
+        "price": { "type": "number", "description": "The monthly price of the plan." },
+        "features": { "type": "array", "items": { "type": "string" }, "description": "A list of features included in the plan." },
+        "paymentGatewayId": { "type": "string", "description": "The ID of this plan in the payment gateway (e.g., Mercado Pago, Stripe)." },
+        "active": { "type": "boolean", "description": "Whether the plan is currently available for new subscriptions." }
+      },
+      "required": ["name", "price", "features", "active"]
+    },
     "Log": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Log",
@@ -583,6 +599,17 @@
         }
       },
       {
+        "path": "/subscriptionPlans/{planId}",
+        "definition": {
+          "entityName": "SubscriptionPlan",
+          "schema": { "$ref": "#/backend/entities/SubscriptionPlan" },
+          "description": "Stores the available subscription plans. This collection is public to read but restricted to write.",
+          "params": [
+            { "name": "planId", "description": "The unique identifier for the subscription plan." }
+          ]
+        }
+      },
+      {
         "path": "/logs/{logId}",
         "definition": {
           "entityName": "Log",
@@ -616,3 +643,5 @@
     "reasoning": "The Firestore data structure is designed to support the xô planilhas application, focusing on secure and efficient data management for user finances.  The design follows the core principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), QAPs (Queries are not Filters), and Invariants.\n\n**Authorization Independence:** Achieved through denormalization of the `userId` field in the `incomes`, `expenses`, `debts`, `installments` and `goals` collections. This eliminates the need for `get()` calls to parent documents (users) in security rules, enabling atomic operations (transactions/batches) and simplifying debugging.\n\n**Structural Segregation:**  Employed by storing all `incomes`, `expenses`, `debts`, and `installments` for a given user under the `/users/{userId}` path. This ensures that all documents within these subcollections share the same security requirements, simplifying rules and improving maintainability. All private user data is segregated under the user's document.\n\n**Access Modeling:** Path-based ownership is consistently used for all user-owned data (incomes, expenses, debts, installments, goals). This makes security rules simple and efficient.\n\n**QAPs (Rules Are Not Filters):** The structure enables secure list operations. Because all documents within a collection share the same security requirements and authorization information (`userId`), it's possible to write rules that allow listing only the documents that the user has access to, without having to filter based on document content.\n\n**Invariants:** Enforced through clear ownership (`userId` in child collections) and consistent naming conventions. Timestamps can be added to each entity to track creation and modification times, if required.\n\n**Logging:** A top-level `/logs` collection is added to store system-wide events. Access is restricted to superadmins for reading, while creation is allowed for any authenticated user to enable client-side event logging."
   }
 }
+
+    
