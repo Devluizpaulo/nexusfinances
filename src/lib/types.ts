@@ -254,3 +254,18 @@ export const ExtractTransactionsOutputSchema = z.object({
   transactions: z.array(ExtractedTransactionSchema),
 });
 export type ExtractTransactionsOutput = z.infer<typeof ExtractTransactionsOutputSchema>;
+
+// Schemas and types for Payslip Extraction Flow
+export const ExtractPayslipInputSchema = z.object({
+  pdfBase64: z.string().describe("O conteúdo do arquivo PDF (holerite ou nota fiscal) codificado em Base64."),
+});
+export type ExtractPayslipInput = z.infer<typeof ExtractPayslipInputSchema>;
+
+export const ExtractPayslipOutputSchema = z.object({
+  netAmount: z.number().describe("O valor líquido final (salário líquido) encontrado no documento."),
+  grossAmount: z.number().optional().describe("O valor bruto total (salário bruto) antes dos descontos."),
+  totalDeductions: z.number().optional().describe("A soma de todos os descontos (INSS, IRRF, etc.)."),
+  issueDate: z.string().optional().describe("A data de emissão ou competência do documento no formato YYYY-MM-DD."),
+  description: z.string().optional().describe("Uma breve descrição da origem do pagamento (ex: 'Salário referente a Abril/2024').")
+});
+export type ExtractPayslipOutput = z.infer<typeof ExtractPayslipOutputSchema>;

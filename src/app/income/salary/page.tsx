@@ -11,6 +11,7 @@ import { RecurrenceCard } from '@/components/recurrences/recurrence-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { incomeCategories } from '@/lib/types';
+import { ImportPayslipCard } from '@/components/income/import-payslip-card';
 
 const salaryKeywords = ['salário', 'pagamento', 'vencimento'];
 
@@ -70,6 +71,10 @@ export default function SalaryPage() {
           Adicionar Renda Fixa
         </Button>
       </PageHeader>
+
+      <div className="mb-8">
+        <ImportPayslipCard />
+      </div>
 
       <Card>
         <CardHeader>
