@@ -86,11 +86,11 @@ export function AppSidebar() {
                                     <CreditCard />
                                     <span>Despesas</span>
                                 </div>
-                                <ChevronDown className={cn("transition-transform", state === "collapsed" ? "hidden" : "group-data-[collapsed]:hidden", isExpensesOpen && "rotate-180")} />
+                                <ChevronDown className={cn("transition-transform", (state === "collapsed" || (state === "expanded" && !isExpensesOpen)) && "group-data-[collapsed]:hidden", isExpensesOpen && "rotate-180")} />
                             </SidebarMenuButton>
                         </CollapsibleTrigger>
                     </SidebarMenuItem>
-                     <CollapsibleContent className={cn(state === "collapsed" ? "hidden" : "group-data-[collapsed]:hidden")}>
+                     <CollapsibleContent className={cn("group-data-[collapsed]:hidden", state === "collapsed" ? "hidden" : "group-data-[collapsed]:hidden")}>
                         <SidebarMenuItem className="ml-5 border-l border-border pl-3">
                              <SidebarMenuButton asChild isActive={pathname === '/expenses'} tooltip={'Todos os Gastos'} onClick={handleMobileClick}>
                                 <Link href="/expenses">
@@ -101,7 +101,6 @@ export function AppSidebar() {
                         <SidebarMenuItem className="ml-5 border-l border-border pl-3">
                              <SidebarMenuButton asChild isActive={pathname.startsWith('/expenses/housing')} tooltip={'Moradia'} onClick={handleMobileClick}>
                                 <Link href="/expenses/housing">
-                                     <Home />
                                     <span>Moradia</span>
                                 </Link>
                             </SidebarMenuButton>
@@ -109,7 +108,6 @@ export function AppSidebar() {
                         <SidebarMenuItem className="ml-5 border-l border-border pl-3">
                              <SidebarMenuButton asChild isActive={pathname.startsWith('/expenses/utilities')} tooltip={'Contas de Consumo'} onClick={handleMobileClick}>
                                 <Link href="/expenses/utilities">
-                                     <Zap />
                                     <span>Contas de Consumo</span>
                                 </Link>
                             </SidebarMenuButton>
@@ -117,7 +115,6 @@ export function AppSidebar() {
                         <SidebarMenuItem className="ml-5 border-l border-border pl-3">
                              <SidebarMenuButton asChild isActive={pathname.startsWith('/expenses/taxes')} tooltip={'Impostos e Taxas'} onClick={handleMobileClick}>
                                 <Link href="/expenses/taxes">
-                                     <Landmark />
                                     <span>Impostos e Taxas</span>
                                 </Link>
                             </SidebarMenuButton>
@@ -125,7 +122,6 @@ export function AppSidebar() {
                         <SidebarMenuItem className="ml-5 border-l border-border pl-3">
                              <SidebarMenuButton asChild isActive={pathname.startsWith('/expenses/health')} tooltip={'Saúde e Bem-estar'} onClick={handleMobileClick}>
                                 <Link href="/expenses/health">
-                                     <HeartPulse />
                                     <span>Saúde & Bem-estar</span>
                                 </Link>
                             </SidebarMenuButton>
@@ -133,7 +129,6 @@ export function AppSidebar() {
                          <SidebarMenuItem className="ml-5 border-l border-border pl-3">
                              <SidebarMenuButton asChild isActive={pathname === '/recurrences'} tooltip={'Contas Fixas'} onClick={handleMobileClick}>
                                 <Link href="/recurrences">
-                                     <Repeat />
                                     <span>Outras Contas Fixas</span>
                                 </Link>
                             </SidebarMenuButton>
@@ -141,7 +136,6 @@ export function AppSidebar() {
                          <SidebarMenuItem className="ml-5 border-l border-border pl-3">
                              <SidebarMenuButton asChild isActive={pathname.startsWith('/expenses/subscriptions')} tooltip={'Streams & Assinaturas'} onClick={handleMobileClick}>
                                 <Link href="/expenses/subscriptions">
-                                     <Clapperboard />
                                     <span>Streams & Assinaturas</span>
                                 </Link>
                             </SidebarMenuButton>
@@ -149,7 +143,6 @@ export function AppSidebar() {
                          <SidebarMenuItem className="ml-5 border-l border-border pl-3">
                              <SidebarMenuButton asChild isActive={pathname.startsWith('/credit-cards')} tooltip={'Cartões de Crédito'} onClick={handleMobileClick}>
                                 <Link href="/credit-cards">
-                                    <CreditCard />
                                     <span>Cartões de Crédito</span>
                                 </Link>
                             </SidebarMenuButton>
