@@ -63,8 +63,13 @@ export default function PrivacyPolicyPage() {
         <h2>7. Alterações nesta Política</h2>
         <p>Podemos atualizar esta Política de Privacidade de tempos em tempos. Notificaremos você sobre quaisquer alterações significativas através do aplicativo ou por e-mail.</p>
 
-        <h2>8. Contato</h2>
-        <p>Se você tiver alguma dúvida sobre esta Política de Privacidade, entre em contato conosco através da seção de Suporte no aplicativo.</p>
+        <h2>8. Contato e Informações do Controlador</h2>
+        <p>Se você tiver alguma dúvida sobre esta Política de Privacidade, ou desejar exercer seus direitos de titular de dados, entre em contato conosco. O controlador dos seus dados é:</p>
+        <ul>
+            <li><strong>Empresa:</strong> LUIZ PAULO GONCALVES MIGUEL DE JESUS DESENVOLVIMENTO DE SOFTWARE LTDA</li>
+            <li><strong>CNPJ:</strong> 62.618.880/0001-11</li>
+            <li><strong>Endereço:</strong> R PAIS LEME, Nº 215, CONJ 1713, PINHEIROS, SAO PAULO - SP, CEP: 05.424-150</li>
+        </ul>
       </CardContent>
     </Card>
   );
