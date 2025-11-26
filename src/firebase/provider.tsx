@@ -6,6 +6,8 @@ import { Firestore, doc, setDoc, getDoc, serverTimestamp, Timestamp, FieldValue,
 import { FirebaseStorage } from 'firebase/storage';
 import { Auth, User, onAuthStateChanged, UserMetadata } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
+import type { UserSubscription } from '@/lib/types';
+
 
 // Extends the default Firebase User type to include our custom fields
 export interface AppUser extends Omit<User, 'metadata' | 'phoneNumber'> {
@@ -13,6 +15,7 @@ export interface AppUser extends Omit<User, 'metadata' | 'phoneNumber'> {
   lastName?: string;
   phoneNumber?: string | null;
   role?: 'user' | 'superadmin';
+  subscription?: UserSubscription;
   registrationDate?: Timestamp | string | FieldValue;
   metadata: UserMetadata;
   customIncomeCategories?: string[];
@@ -266,3 +269,5 @@ export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | 
   
   return memoized;
 }
+
+    
