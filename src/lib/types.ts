@@ -112,26 +112,31 @@ export type Notification = {
 
 
 export const expenseCategories = [
-  'Mercado',
-  'Contas',
-  'Aluguel/Hipoteca',
-  'Transporte',
-  'Lazer',
-  'Saúde',
-  'Assinaturas',
-  'Compras',
-  'Outros',
+    'Alimentação',
+    'Moradia',
+    'Contas de Consumo',
+    'Transporte',
+    'Saúde',
+    'Educação',
+    'Lazer',
+    'Compras',
+    'Assinaturas & Serviços',
+    'Impostos & Taxas',
+    'Investimentos',
+    'Outros',
 ] as const;
 
 export type ExpenseCategory = typeof expenseCategories[number];
 
 export const incomeCategories = [
-  'Salário',
-  'Freelance',
-  'Comissão',
-  'Investimento',
-  'Presente',
-  'Outros',
+    'Salário',
+    'Freelance',
+    'Vendas',
+    'Comissão',
+    'Rendimento de Investimentos',
+    'Aluguel',
+    'Presente',
+    'Outros',
 ] as const;
 
 export type IncomeCategory = typeof incomeCategories[number];
@@ -141,9 +146,10 @@ export const goalCategories = [
     'Viagem',
     'Carro',
     'Casa',
-    'Eletrônicos',
     'Educação',
     'Aposentadoria',
+    'Investir',
+    'Quitar Dívidas',
     'Outros'
 ] as const;
 

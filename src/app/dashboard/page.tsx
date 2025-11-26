@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { KpiCard } from '@/components/dashboard/kpi-card';
-import { Banknote, Landmark, CreditCard, Scale, Calendar as CalendarIcon, ArrowUpCircle, ArrowDownCircle, ChevronLeft, ChevronRight, Sparkles, Loader2 as LoaderSpinner } from 'lucide-react';
+import { Banknote, Landmark, CreditCard, Scale, Calendar as CalendarIcon, ArrowUpCircle, ArrowDownCircle, ChevronLeft, ChevronRight, Sparkles, Loader2 as LoaderSpinner, Files } from 'lucide-react';
 import { IncomeExpenseChart } from '@/components/dashboard/income-expense-chart';
 import { ExpenseCategoryChart } from '@/components/dashboard/expense-category-chart';
 import { FinancialHealthScore } from '@/components/dashboard/financial-health-score';
@@ -437,6 +437,7 @@ export default function DashboardPage() {
                 onAddExpense={() => setIsExpenseSheetOpen(true)}
                 onAddDebt={() => setIsDebtSheetOpen(true)}
                 onAddGoal={() => setIsGoalSheetOpen(true)}
+                onAddBudget={() => setIsBudgetSheetOpen(true)}
             />
             </div>
         </div>
