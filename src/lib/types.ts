@@ -15,6 +15,17 @@ export type Transaction = {
   userId?: string;
   recurringSourceId?: string;
   status: 'paid' | 'pending';
+  creditCardId?: string | null;
+};
+
+export type CreditCard = {
+  id: string;
+  name: string;
+  lastFourDigits: string;
+  limit: number;
+  dueDate: number; // Day of the month
+  closingDate: number; // Day of the month
+  userId?: string;
 };
 
 export type Debt = {

@@ -175,6 +175,10 @@
         "recurrenceSchedule": {
           "type": "string",
           "description": "Schedule for recurring expense (e.g., monthly, weekly)."
+        },
+        "creditCardId": {
+            "type": "string",
+            "description": "Optional reference to a CreditCard. If present, this expense is part of a credit card bill."
         }
       },
       "required": [
@@ -325,6 +329,22 @@
       },
       "required": ["id", "userId", "name", "category", "amount", "period", "startDate", "endDate"]
     },
+    "CreditCard": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CreditCard",
+      "type": "object",
+      "description": "Represents a user's credit card.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "name": { "type": "string", "description": "A nickname for the card (e.g., 'Nubank Roxo', 'Inter Gold')." },
+        "lastFourDigits": { "type": "string", "description": "The last four digits of the card number." },
+        "limit": { "type": "number", "description": "The total credit limit of the card." },
+        "dueDate": { "type": "number", "description": "The day of the month the bill is due." },
+        "closingDate": { "type": "number", "description": "The day of the month the bill closes." }
+      },
+      "required": ["userId", "name", "lastFourDigits", "limit", "dueDate", "closingDate"]
+    },
     "SubscriptionPlan": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Subscription Plan",
@@ -468,6 +488,18 @@
               "name": "userId",
               "description": "The unique identifier of the user."
             }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/creditCards/{cardId}",
+        "definition": {
+          "entityName": "CreditCard",
+          "schema": { "$ref": "#/backend/entities/CreditCard" },
+          "description": "Stores the user's registered credit cards.",
+          "params": [
+            { "name": "userId", "description": "The user's unique ID." },
+            { "name": "cardId", "description": "The credit card's unique ID." }
           ]
         }
       },

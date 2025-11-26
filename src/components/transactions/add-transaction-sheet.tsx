@@ -7,7 +7,7 @@ import * as z from 'zod';
 import { formatISO, format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { collection, doc, arrayUnion, updateDoc } from 'firebase/firestore';
-import { useFirestore, useUser, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useUser, addDocumentNonBlocking, setDocumentNonBlocking, useCollection, useMemoFirebase } from '@/firebase';
 import { cn } from '@/lib/utils';
 import {
   Dialog,
@@ -44,7 +44,7 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import type { Transaction } from '@/lib/types';
+import type { Transaction, CreditCard } from '@/lib/types';
 import { Textarea } from '../ui/textarea';
 import { CurrencyInput } from '../ui/currency-input';
 import { Separator } from '../ui/separator';
@@ -59,7 +59,18 @@ const formSchema = z.object({
   description: z.string().optional(),
   isRecurring: z.boolean().default(false),
   status: z.enum(['paid', 'pending']).default('paid'),
+  paymentMethod: z.enum(['cash', 'creditCard']).default('cash'),
+  creditCardId: z.string().optional(),
+}).refine(data => {
+    if (data.paymentMethod === 'creditCard') {
+        return !!data.creditCardId;
+    }
+    return true;
+}, {
+    message: "Selecione um cartão de crédito.",
+    path: ["creditCardId"],
 });
+
 
 type TransactionFormValues = z.infer<typeof formSchema>;
 
@@ -87,6 +98,7 @@ export function AddTransactionSheet({
       date: new Date(),
       isRecurring: false,
       status: 'paid',
+      paymentMethod: 'cash',
     },
   });
 
@@ -96,6 +108,15 @@ export function AddTransactionSheet({
   
   const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
+
+  const paymentMethod = form.watch('paymentMethod');
+  
+  const creditCardsQuery = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return collection(firestore, `users/${user.uid}/creditCards`);
+  }, [user, firestore]);
+
+  const { data: creditCardsData } = useCollection<CreditCard>(creditCardsQuery);
 
   const allCategories = useMemo(() => {
     const customCategories = transactionType === 'income' 
@@ -114,6 +135,7 @@ export function AddTransactionSheet({
         description: transaction.description || '',
         date: parseISO(transaction.date),
         status: transaction.status || 'paid',
+        paymentMethod: transaction.creditCardId ? 'creditCard' : 'cash',
       });
     } else if (isOpen) {
       form.reset({
@@ -123,6 +145,7 @@ export function AddTransactionSheet({
         date: new Date(),
         isRecurring: false,
         status: 'paid',
+        paymentMethod: 'cash',
       });
     }
   }, [isOpen, transaction, form]);
@@ -145,6 +168,7 @@ export function AddTransactionSheet({
       date: formatISO(values.date),
       userId: user.uid,
       type: transactionType,
+      creditCardId: values.paymentMethod === 'creditCard' ? values.creditCardId : null,
     };
 
     if (transaction) {
@@ -177,7 +201,6 @@ export function AddTransactionSheet({
       });
       toast({ title: 'Categoria adicionada', description: `"${newCategoryName.trim()}" foi incluída na sua lista.` });
       
-      // Set the newly added category in the form
       form.setValue('category', newCategoryName.trim());
       
       setNewCategoryName('');
@@ -305,6 +328,64 @@ export function AddTransactionSheet({
                 </FormItem>
               )}
             />
+
+            {transactionType === 'expense' && (
+              <>
+                <Separator />
+                <FormField
+                  control={form.control}
+                  name="paymentMethod"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Forma de Pagamento</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="cash">À vista (dinheiro/débito)</SelectItem>
+                          <SelectItem value="creditCard">Cartão de Crédito</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {paymentMethod === 'creditCard' && (
+                  <FormField
+                    control={form.control}
+                    name="creditCardId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Cartão de Crédito</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione um cartão" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {creditCardsData?.map((card) => (
+                              <SelectItem key={card.id} value={card.id}>
+                                {card.name} (final {card.lastFourDigits})
+                              </SelectItem>
+                            ))}
+                            {(!creditCardsData || creditCardsData.length === 0) && (
+                                <p className="p-4 text-sm text-muted-foreground">Nenhum cartão cadastrado.</p>
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+                <Separator />
+              </>
+            )}
+
             <FormField
               control={form.control}
               name="isRecurring"
