@@ -57,6 +57,7 @@ const formSchema = z.object({
     required_error: 'Escolha uma data.',
   }),
   description: z.string().optional(),
+  vendor: z.string().optional(),
   isRecurring: z.boolean().default(false),
   status: z.enum(['paid', 'pending']).default('paid'),
   paymentMethod: z.enum(['cash', 'creditCard']).default('cash'),
@@ -93,6 +94,7 @@ export function AddTransactionSheet({
     resolver: zodResolver(formSchema),
     defaultValues: {
       description: '',
+      vendor: '',
       amount: 0,
       category: '',
       date: new Date(),
@@ -133,6 +135,7 @@ export function AddTransactionSheet({
       form.reset({
         ...transaction,
         description: transaction.description || '',
+        vendor: (transaction as any).vendor || '',
         date: parseISO(transaction.date),
         status: transaction.status || 'paid',
         paymentMethod: transaction.creditCardId ? 'creditCard' : 'cash',
@@ -141,6 +144,7 @@ export function AddTransactionSheet({
     } else if (isOpen) {
       form.reset({
         description: '',
+        vendor: '',
         amount: 0,
         category: '',
         date: new Date(),
@@ -325,6 +329,19 @@ export function AddTransactionSheet({
                   <FormLabel>Descrição (Opcional)</FormLabel>
                   <FormControl>
                     <Textarea placeholder="Ex: Salário da empresa, compra do mês no mercado X..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="vendor"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Prestador / Empresa</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex: Netflix, Contabilizei, Mercado X..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
