@@ -2,13 +2,14 @@
 
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Loader2 } from 'lucide-react';
+import { PlusCircle, Loader2, PiggyBank } from 'lucide-react';
 import { collection, query } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Goal } from '@/lib/types';
 import { AddGoalSheet } from '@/components/goals/add-goal-sheet';
 import { GoalCard } from '@/components/goals/goal-card';
 import { AddContributionSheet } from '@/components/goals/add-contribution-sheet';
+import { PageHeader } from '@/components/page-header';
 
 export default function GoalsPage() {
   const [isAddGoalSheetOpen, setIsAddGoalSheetOpen] = useState(false);
@@ -93,28 +94,35 @@ export default function GoalsPage() {
             goal={selectedGoalForContribution} 
           />
       )}
-      <div className="flex items-center justify-between mb-6">
-          <div/>
+      <PageHeader
+        title="Metas e Reservas"
+        description="Acompanhe o progresso dos seus sonhos e objetivos financeiros."
+      >
           <Button onClick={() => setIsAddGoalSheetOpen(true)} disabled={!user}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Adicionar Reserva/Investimento
           </Button>
-      </div>
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {orderedGoals.map((goal) => (
-          <GoalCard key={goal.id} goal={goal} onAddContribution={handleOpenContributionSheet} onEdit={handleOpenEditSheet} />
-        ))}
-      </div>
-       {(!goalData || goalData.length === 0) && !isLoading && (
-        <div className="col-span-full mt-10 flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-transparent p-8 text-center" style={{minHeight: '300px'}}>
-            <h3 className="text-xl font-semibold tracking-tight">Nenhuma meta cadastrada ainda</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Cadastre sua primeira reserva para o xô planilhas mostrar o quanto você já avançou.
+      </PageHeader>
+      
+      {(!goalData || goalData.length === 0) ? (
+         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center" style={{minHeight: '400px'}}>
+           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-4">
+              <PiggyBank className="h-8 w-8 text-primary" />
+            </div>
+            <h3 className="text-xl font-semibold">Defina seu primeiro objetivo</h3>
+            <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+              Cadastre sua primeira reserva ou meta de investimento para ver seu progresso, visualizar o quanto falta e manter a motivação em alta.
             </p>
-            <Button className="mt-4" onClick={() => setIsAddGoalSheetOpen(true)}>
+            <Button className="mt-6" onClick={() => setIsAddGoalSheetOpen(true)}>
               <PlusCircle className="mr-2 h-4 w-4" />
-              Adicionar Reserva/Investimento
+              Adicionar Primeira Meta
             </Button>
+        </div>
+      ) : (
+         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {orderedGoals.map((goal) => (
+            <GoalCard key={goal.id} goal={goal} onAddContribution={handleOpenContributionSheet} onEdit={handleOpenEditSheet} />
+          ))}
         </div>
       )}
     </>

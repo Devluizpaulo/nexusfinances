@@ -12,6 +12,7 @@ import { incomeCategories, type Transaction } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
+import { PageHeader } from '@/components/page-header';
 
 export default function IncomePage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -84,16 +85,19 @@ export default function IncomePage() {
         isOpen={isImportSheetOpen}
         onClose={() => setIsImportSheetOpen(false)}
       />
-       <div className="flex items-center justify-end gap-2 mb-6">
+       <PageHeader
+        title="Todas as Rendas"
+        description="Liste todos os seus ganhos, sejam eles salários, trabalhos freelance ou outras fontes."
+      >
         <Button variant="outline" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>
             <Upload className="mr-2 h-4 w-4" />
-            Importar Extrato PDF
+            Importar PDF
         </Button>
         <Button onClick={() => handleOpenSheet()} disabled={!user}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Registrar renda
         </Button>
-      </div>
+      </PageHeader>
       {searchParams.get('date') && (
         <div className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
           <span>

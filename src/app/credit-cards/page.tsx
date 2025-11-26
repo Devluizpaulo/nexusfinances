@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Loader2 } from 'lucide-react';
+import { PlusCircle, Loader2, CreditCard as CreditCardIcon } from 'lucide-react';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { CreditCard, Transaction } from '@/lib/types';
 import { AddCreditCardSheet } from '@/components/credit-cards/add-credit-card-sheet';
 import { CreditCardCard } from '@/components/credit-cards/credit-card-card';
+import { PageHeader } from '@/components/page-header';
 
 export default function CreditCardsPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -57,13 +58,15 @@ export default function CreditCardsPage() {
         onClose={handleCloseSheet} 
         card={editingCard}
       />
-      <div className="flex items-center justify-between mb-6">
-        <div/>
+      <PageHeader
+        title="Cartões de Crédito"
+        description="Gerencie suas faturas e controle seus gastos no crédito."
+      >
         <Button onClick={() => setIsSheetOpen(true)} disabled={!user}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Adicionar Cartão
         </Button>
-      </div>
+      </PageHeader>
       
       <div className="space-y-8">
         {cardsData && cardsData.length > 0 ? (
@@ -78,10 +81,13 @@ export default function CreditCardsPage() {
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center">
+          <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center" style={{minHeight: '400px'}}>
+             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-4">
+              <CreditCardIcon className="h-8 w-8 text-primary" />
+            </div>
             <h3 className="text-xl font-semibold">Nenhum cartão de crédito cadastrado</h3>
-            <p className="mt-2 text-sm text-muted-foreground">Adicione seus cartões para controlar as faturas e os gastos.</p>
-            <Button className="mt-4" onClick={() => setIsSheetOpen(true)}>
+            <p className="mt-2 max-w-sm text-sm text-muted-foreground">Adicione seus cartões para controlar as faturas e ter uma visão clara de para onde seu dinheiro está indo.</p>
+            <Button className="mt-6" onClick={() => setIsSheetOpen(true)}>
               <PlusCircle className="mr-2 h-4 w-4" />
               Adicionar Primeiro Cartão
             </Button>

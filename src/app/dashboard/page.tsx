@@ -423,26 +423,26 @@ export default function DashboardPage() {
         onClose={() => handleOpenBudgetSheet(null)}
         budget={editingBudget}
       />
-      <div className="space-y-8 max-w-8x1 mx-auto">
+      <div className="space-y-8">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-1">
+            <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Olá, {getFirstName(user?.displayName)}! 👋</h1>
+            <p className="text-sm text-muted-foreground max-w-xl">
+                Este é o seu painel de {format(selectedDate, 'MMMM/yyyy', { locale: ptBR })}. Tudo em um só lugar, sem planilhas.
+            </p>
+            </div>
+            <div className="flex flex-col items-center gap-2 md:flex-row">
+            <QuickActions
+                onAddIncome={() => setIsIncomeSheetOpen(true)}
+                onAddExpense={() => setIsExpenseSheetOpen(true)}
+                onAddDebt={() => setIsDebtSheetOpen(true)}
+                onAddGoal={() => setIsGoalSheetOpen(true)}
+            />
+            </div>
+        </div>
+
         <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(360px,1fr)] items-start">
           <div className="space-y-8">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div className="space-y-1">
-                <h1 className="text-3xl font-semibold tracking-tight">Olá, {getFirstName(user?.displayName)}! 👋</h1>
-                <p className="text-sm text-muted-foreground max-w-xl">
-                  Este é o seu painel de {format(selectedDate, 'MMMM/yyyy', { locale: ptBR })}. Tudo em um só lugar, sem planilhas.
-                </p>
-              </div>
-              <div className="flex flex-col items-center gap-2 md:flex-row">
-                <QuickActions
-                  onAddIncome={() => setIsIncomeSheetOpen(true)}
-                  onAddExpense={() => setIsExpenseSheetOpen(true)}
-                  onAddDebt={() => setIsDebtSheetOpen(true)}
-                  onAddGoal={() => setIsGoalSheetOpen(true)}
-                />
-              </div>
-            </div>
-            
             <div className="space-y-4">
               <OverdueDebtsCard debts={debtData || []} />
             </div>
