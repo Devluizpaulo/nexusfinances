@@ -86,7 +86,7 @@ export default function ExpensesPage() {
         onClose={() => setIsImportSheetOpen(false)}
       />
       <PageHeader
-        title="Despesas"
+        title="Todos os Gastos"
         description="Anote seus gastos em segundos e veja o impacto direto no seu mês, sem planilhas."
       >
         <Button variant="outline" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>

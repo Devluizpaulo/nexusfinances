@@ -12,15 +12,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 
 // Define as categorias e seus ícones
-const recurringCategories = [
+const mainRecurringCategories = [
   { 
     title: 'Moradia',
-    keywords: ['Aluguel', 'Condomínio', 'Hipoteca'],
+    keywords: ['aluguel', 'condomínio', 'hipoteca', 'iptu'],
     icon: Home,
   },
   {
     title: 'Contas de Consumo',
-    keywords: ['Luz', 'Água', 'Gás', 'Internet', 'Celular', 'Plano'],
+    keywords: ['luz', 'energia', 'água', 'gás', 'internet', 'celular', 'plano', 'fatura'],
     icon: Zap,
   },
 ];
@@ -42,41 +42,28 @@ export default function RecurrencesPage() {
   const { data: incomeData, isLoading: isIncomeLoading } = useCollection<Recurrence>(recurringIncomesQuery);
   const { data: expenseData, isLoading: isExpensesLoading } = useCollection<Recurrence>(recurringExpensesQuery);
 
-  const { totalIncome, totalExpenses, monthlyBalance, groupedExpenses } = useMemo(() => {
+  const { totalIncome, totalExpenses, monthlyBalance, otherRecurrences } = useMemo(() => {
     const income = incomeData?.reduce((sum, item) => sum + item.amount, 0) || 0;
     const expenses = expenseData?.reduce((sum, item) => sum + item.amount, 0) || 0;
 
-    const grouped: Record<string, Recurrence[]> = { 'Outras Recorrências': [] };
-    recurringCategories.forEach(cat => { grouped[cat.title] = [] });
+    const allCategorizedKeywords = mainRecurringCategories.flatMap(c => c.keywords);
+    const streamingKeywords = ['netflix', 'youtube', 'spotify', 'amazon prime', 'disney+', 'hbo max', 'música', 'filmes', 'software', 'assinatura', 'ia', 'adobe', 'office', 'nuvem', 'produtividade', 'jornal', 'revista', 'notícias', 'kindle', 'livros'];
+    
+    const others = (expenseData || []).filter(expense => {
+        const description = expense.description.toLowerCase();
+        const category = expense.category.toLowerCase();
+        
+        const isMainCategory = allCategorizedKeywords.some(keyword => category.includes(keyword) || description.includes(keyword));
+        const isStreaming = streamingKeywords.some(keyword => category.includes(keyword) || description.includes(keyword));
 
-    (expenseData || []).forEach(expense => {
-      const foundCategory = recurringCategories.find(cat => 
-        cat.keywords.some(keyword => 
-          expense.category.toLowerCase().includes(keyword.toLowerCase()) || 
-          expense.description.toLowerCase().includes(keyword.toLowerCase())
-        )
-      );
-      
-      if (foundCategory) {
-        grouped[foundCategory.title].push(expense);
-      } else {
-        // Exclude streamings from "Other Recurrences"
-        const streamingKeywords = ['Netflix', 'YouTube', 'Spotify', 'Amazon Prime', 'Disney+', 'HBO Max', 'Música', 'Filmes'];
-        const isStreaming = streamingKeywords.some(keyword =>
-          expense.category.toLowerCase().includes(keyword.toLowerCase()) ||
-          expense.description.toLowerCase().includes(keyword.toLowerCase())
-        );
-        if (!isStreaming) {
-          grouped['Outras Recorrências'].push(expense);
-        }
-      }
+        return !isMainCategory && !isStreaming;
     });
 
     return {
       totalIncome: income,
       totalExpenses: expenses,
       monthlyBalance: income - expenses,
-      groupedExpenses: grouped
+      otherRecurrences: others
     };
   }, [incomeData, expenseData]);
 
@@ -93,13 +80,11 @@ export default function RecurrencesPage() {
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
-  const allCategories = [...recurringCategories, { title: 'Outras Recorrências', icon: Repeat, keywords: [] }];
-
   return (
     <>
       <PageHeader
-        title="Contas Fixas"
-        description="Gerencie suas despesas fixas como contas, aluguel e outras em um só lugar."
+        title="Outras Contas Fixas"
+        description="Gerencie outras despesas fixas que não se encaixam nas categorias principais."
       />
 
       <div className="mb-8 grid gap-4 md:grid-cols-3">
@@ -138,39 +123,29 @@ export default function RecurrencesPage() {
       </div>
 
       <div className="space-y-6">
-        {allCategories.map(({ title, icon: Icon }) => {
-          const items = groupedExpenses[title];
-          if (!items || items.length === 0) return null;
-          
-          const categoryTotal = items.reduce((sum, item) => sum + item.amount, 0);
-
-          return (
-             <Card key={title}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                   <div className="flex items-center gap-3">
-                      <Icon className="h-5 w-5 text-primary" />
-                      <CardTitle className="text-lg">{title}</CardTitle>
-                   </div>
-                   <Badge variant="secondary">{formatCurrency(categoryTotal)}/mês</Badge>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Repeat className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-lg">Outras Recorrências</CardTitle>
                 </div>
-              </CardHeader>
-              <CardContent>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {otherRecurrences.length > 0 ? (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {items.map((item) => (
+                    {otherRecurrences.map((item) => (
                       <RecurrenceCard key={item.id} recurrence={item} />
                     ))}
                 </div>
-              </CardContent>
-            </Card>
-          )
-        })}
-
-        {Object.values(groupedExpenses).every(arr => arr.length === 0) && (
-             <div className="flex h-40 items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
-              <p className="text-sm text-muted-foreground">Nenhuma despesa recorrente encontrada. Adicione uma na tela de Despesas.</p>
-            </div>
-        )}
+            ) : (
+                <div className="flex h-40 items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
+                  <p className="text-sm text-muted-foreground">Nenhuma outra despesa recorrente encontrada.</p>
+                </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </>
   );

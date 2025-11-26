@@ -1,7 +1,7 @@
 
 'use client';
 import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator, SidebarGroup, SidebarGroupLabel } from '@/components/ui/sidebar';
-import { LayoutDashboard, Landmark, CreditCard, Banknote, DollarSign, Loader2, Target, LogOut, UserCircle, LifeBuoy, ShieldCheck, PiggyBank, BarChart3, GraduationCap, Pin, PinOff, Files, Repeat, Clapperboard, ChevronDown } from 'lucide-react';
+import { LayoutDashboard, Landmark, CreditCard, Banknote, DollarSign, Loader2, Target, LogOut, UserCircle, LifeBuoy, ShieldCheck, PiggyBank, BarChart3, GraduationCap, Pin, PinOff, Files, Repeat, Clapperboard, ChevronDown, Home, Zap, FileText } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '../ui/button';
@@ -98,11 +98,35 @@ export function AppSidebar() {
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
+                        <SidebarMenuItem className="ml-5 border-l border-border pl-3">
+                             <SidebarMenuButton asChild isActive={pathname.startsWith('/expenses/housing')} tooltip={'Moradia'} onClick={handleMobileClick}>
+                                <Link href="/expenses/housing">
+                                     <Home />
+                                    <span>Moradia</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                        <SidebarMenuItem className="ml-5 border-l border-border pl-3">
+                             <SidebarMenuButton asChild isActive={pathname.startsWith('/expenses/utilities')} tooltip={'Contas de Consumo'} onClick={handleMobileClick}>
+                                <Link href="/expenses/utilities">
+                                     <Zap />
+                                    <span>Contas de Consumo</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                        <SidebarMenuItem className="ml-5 border-l border-border pl-3">
+                             <SidebarMenuButton asChild isActive={pathname.startsWith('/expenses/taxes')} tooltip={'Impostos e Taxas'} onClick={handleMobileClick}>
+                                <Link href="/expenses/taxes">
+                                     <Landmark />
+                                    <span>Impostos e Taxas</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
                          <SidebarMenuItem className="ml-5 border-l border-border pl-3">
                              <SidebarMenuButton asChild isActive={pathname.startsWith('/recurrences')} tooltip={'Contas Fixas'} onClick={handleMobileClick}>
                                 <Link href="/recurrences">
                                      <Repeat />
-                                    <span>Contas Fixas</span>
+                                    <span>Outras Contas Fixas</span>
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
