@@ -1,4 +1,3 @@
-
 'use client';
 import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator, SidebarGroup, SidebarGroupLabel } from '@/components/ui/sidebar';
 import { LayoutDashboard, Landmark, CreditCard, Banknote, DollarSign, Loader2, Target, LogOut, UserCircle, LifeBuoy, ShieldCheck, PiggyBank, BarChart3, GraduationCap, Pin, PinOff, Files, Repeat, Clapperboard, ChevronDown, Home, Zap, FileText, HeartPulse } from 'lucide-react';
@@ -86,15 +85,22 @@ export function AppSidebar() {
                                     <CreditCard className="text-red-500" />
                                     <span>Despesas</span>
                                 </div>
-                                <ChevronDown className={cn("transition-transform", (state === "collapsed" || (state === "expanded" && !isExpensesOpen)) ? "hidden" : "", isExpensesOpen && "rotate-180")} />
+                                <ChevronDown className={cn("transition-transform", state === "collapsed" ? "hidden" : "", isExpensesOpen && "rotate-180")} />
                             </SidebarMenuButton>
                         </CollapsibleTrigger>
                     </SidebarMenuItem>
-                     <CollapsibleContent className={cn(state === "collapsed" ? "hidden" : "")}>
+                     <CollapsibleContent className={cn("my-1 space-y-1", state === "collapsed" ? "hidden" : "")}>
                         <SidebarMenuItem className="ml-5 border-l border-border pl-3">
                              <SidebarMenuButton asChild isActive={pathname === '/expenses'} tooltip={'Todos os Gastos'} onClick={handleMobileClick}>
                                 <Link href="/expenses">
                                     Todos os Gastos
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                        <SidebarMenuItem className="ml-5 border-l border-border pl-3">
+                             <SidebarMenuButton asChild isActive={pathname.startsWith('/credit-cards')} tooltip={'Cartões de Crédito'} onClick={handleMobileClick}>
+                                <Link href="/credit-cards">
+                                    Cartões de Crédito
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
