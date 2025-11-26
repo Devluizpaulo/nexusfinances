@@ -2,7 +2,6 @@
 'use client';
 
 import { useMemo } from 'react';
-import { PageHeader } from '@/components/page-header';
 import { collection, query, where } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Recurrence } from '@/lib/types';
@@ -82,11 +81,6 @@ export default function RecurrencesPage() {
 
   return (
     <>
-      <PageHeader
-        title="Outras Contas Fixas"
-        description="Gerencie outras despesas fixas que não se encaixam nas categorias principais."
-      />
-
       <div className="mb-8 grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

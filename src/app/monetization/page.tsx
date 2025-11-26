@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Loader2, PlusCircle, Star } from 'lucide-react';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
@@ -37,15 +36,14 @@ export default function MonetizationPage() {
     <>
       <PlanForm isOpen={isFormOpen} onClose={handleCloseForm} plan={editingPlan} />
 
-      <PageHeader
-        title="Gerenciamento de Assinaturas"
-        description="Crie e gerencie os planos de assinatura disponíveis para os usuários."
-      >
+      <div className="flex items-center justify-between mb-6">
+        <div/>
         <Button onClick={() => setIsFormOpen(true)}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Novo Plano
         </Button>
-      </PageHeader>
+      </div>
+
 
       {arePlansLoading ? (
         <div className="flex h-64 items-center justify-center">
@@ -75,5 +73,3 @@ export default function MonetizationPage() {
     </>
   );
 }
-
-    

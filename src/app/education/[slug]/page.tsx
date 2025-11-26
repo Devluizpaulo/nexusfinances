@@ -3,7 +3,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { notFound, useParams } from 'next/navigation';
-import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import * as LucideIcons from 'lucide-react';
@@ -460,11 +459,12 @@ export default function EducationTrackPage() {
       </Dialog>
 
       <div className="space-y-8">
-        <PageHeader title={track.title}>
-          <Button asChild variant="outline">
-            <Link href="/education">Voltar para a Jornada</Link>
-          </Button>
-        </PageHeader>
+        <div className="flex items-center justify-between">
+            <div/>
+            <Button asChild variant="outline">
+                <Link href="/education">Voltar para a Jornada</Link>
+            </Button>
+        </div>
 
         <div className="prose prose-sm sm:prose-base max-w-none text-foreground dark:prose-invert prose-headings:text-foreground">
           <div className="lead !text-lg !text-muted-foreground">{parseMarkdown(track.content.introduction)}</div>
@@ -505,5 +505,3 @@ export default function EducationTrackPage() {
     </>
   );
 }
-
-    

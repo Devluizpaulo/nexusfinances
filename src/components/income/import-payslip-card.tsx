@@ -79,6 +79,8 @@ export function ImportPayslipCard() {
         status: 'paid' as const,
         userId: user.uid,
         type: 'income' as const,
+        grossAmount: result.grossAmount,
+        totalDeductions: result.totalDeductions,
       };
       await addDocumentNonBlocking(incomesColRef, incomeData);
       toast({ title: 'Renda Adicionada!', description: `A renda de ${formatCurrency(result.netAmount)} foi registrada com sucesso.` });

@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from 'react';
-import { PageHeader } from '@/components/page-header';
 import { useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import type { Transaction } from '@/lib/types';
@@ -423,10 +422,6 @@ export default function ReportsPage() {
 
   return (
     <>
-      <PageHeader
-        title="Relatórios"
-        description="Explore diferentes visões dos seus números sem depender de planilhas."
-      />
       {isLoading ? (
         <div className="flex h-64 items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />

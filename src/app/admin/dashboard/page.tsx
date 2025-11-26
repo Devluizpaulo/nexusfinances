@@ -1,7 +1,6 @@
 'use client';
 
 import { redirect } from 'next/navigation';
-import { PageHeader } from '@/components/page-header';
 import { useCollection, useFirestore, useUser, useMemoFirebase, type AppUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { UsersTable } from './users/users-table';
@@ -83,11 +82,6 @@ export default function AdminDashboardPage() {
 
   return (
     <>
-      <PageHeader
-        title="Painel do Administrador"
-        description="Gerencie usuários, conteúdo educacional, logs e mais."
-      />
-
       <div className="mb-6 flex flex-wrap gap-2 border-b pb-2">
         <Button
           variant={activeSection === 'overview' ? 'secondary' : 'ghost'}
@@ -242,5 +236,3 @@ export default function AdminDashboardPage() {
     </>
   );
 }
-
-    

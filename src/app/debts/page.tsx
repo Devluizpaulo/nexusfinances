@@ -2,7 +2,6 @@
 'use client';
 
 import { useState } from 'react';
-import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Loader2 } from 'lucide-react';
 import { collection, query } from 'firebase/firestore';
@@ -39,12 +38,13 @@ export default function DebtsPage() {
   return (
     <>
       <AddDebtSheet isOpen={isSheetOpen} onClose={() => setIsSheetOpen(false)} />
-      <PageHeader title="Parcelamentos & Dívidas" description="Gerencie empréstimos, financiamentos e compras parceladas em um só lugar.">
+      <div className="flex items-center justify-between mb-6">
+        <div />
         <Button onClick={() => setIsSheetOpen(true)} disabled={!user}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Adicionar Parcelamento/Dívida
         </Button>
-      </PageHeader>
+      </div>
       <div className="grid gap-6 md:grid-cols-2">
         {(debtData || []).map((debt) => (
           <DebtCard key={debt.id} debt={debt} selectedDueDate={selectedDueDate || undefined} />

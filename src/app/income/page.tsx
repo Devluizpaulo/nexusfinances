@@ -5,7 +5,6 @@ import { collection, query, orderBy, doc } from 'firebase/firestore';
 import { useCollection, useFirestore, useUser, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
 import { DataTable } from '@/components/data-table/data-table';
 import { columns } from './columns';
-import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Loader2, Upload } from 'lucide-react';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
@@ -85,10 +84,7 @@ export default function IncomePage() {
         isOpen={isImportSheetOpen}
         onClose={() => setIsImportSheetOpen(false)}
       />
-      <PageHeader
-        title="Renda"
-        description="Registre o que entra no mês sem precisar atualizar planilhas manualmente."
-      >
+       <div className="flex items-center justify-end gap-2 mb-6">
         <Button variant="outline" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>
             <Upload className="mr-2 h-4 w-4" />
             Importar Extrato PDF
@@ -97,7 +93,7 @@ export default function IncomePage() {
           <PlusCircle className="mr-2 h-4 w-4" />
           Registrar renda
         </Button>
-      </PageHeader>
+      </div>
       {searchParams.get('date') && (
         <div className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
           <span>

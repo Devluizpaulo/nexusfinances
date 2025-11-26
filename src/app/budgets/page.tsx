@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Loader2 } from 'lucide-react';
 import { collection, query, where } from 'firebase/firestore';
@@ -86,12 +85,12 @@ export default function BudgetsPage() {
         onClose={handleCloseSheet} 
         budget={editingBudget}
       />
-      <PageHeader title="Limites de Gasto" description="Defina limites de gastos por categoria e acompanhe seu progresso.">
+      <div className="flex items-center justify-between mb-6">
         <Button onClick={() => setIsSheetOpen(true)} disabled={!user}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Criar Limite
         </Button>
-      </PageHeader>
+      </div>
       
       <div className="space-y-8">
         <div>

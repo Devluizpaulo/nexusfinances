@@ -1,6 +1,5 @@
 'use client';
 
-import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +14,6 @@ export default function SupportPage() {
 
   return (
     <>
-      <PageHeader title="Suporte & FAQ" description="Precisa de ajuda? Encontre respostas ou entre em contato conosco." />
       <div className="grid gap-8 md:grid-cols-2">
         <Card>
           <CardHeader>

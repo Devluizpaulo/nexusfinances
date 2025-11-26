@@ -1,7 +1,6 @@
 
 'use client';
 
-import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
@@ -97,10 +96,6 @@ export default function EducationPage() {
   if (isLoading) {
     return (
         <div className="space-y-8">
-            <PageHeader
-                title="Jornada da Saúde Financeira"
-                description="Aprenda a lidar com suas finanças de forma leve, intuitiva e conquiste a tranquilidade."
-            />
             <div className="grid gap-8 lg:grid-cols-[1fr,300px]">
               <div className="space-y-4">
                 <Skeleton className="h-10 w-64" />
@@ -117,11 +112,6 @@ export default function EducationPage() {
 
   return (
     <>
-      <PageHeader
-        title="Jornada da Saúde Financeira"
-        description="Aprenda a lidar com suas finanças de forma leve, intuitiva e conquiste a tranquilidade."
-      />
-
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr,320px]">
         <div className="space-y-6">
             <h2 className="text-xl font-bold tracking-tight">Próximas Missões</h2>

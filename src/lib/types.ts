@@ -16,6 +16,8 @@ export type Transaction = {
   recurringSourceId?: string;
   status: 'paid' | 'pending';
   creditCardId?: string | null;
+  grossAmount?: number;
+  totalDeductions?: number;
 };
 
 export type CreditCard = {

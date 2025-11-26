@@ -29,14 +29,25 @@ import type { Notification } from '@/lib/types';
 
 const getTitle = (pathname: string) => {
     if (pathname.startsWith('/dashboard')) return 'Painel';
+    if (pathname.startsWith('/income/salary')) return 'Renda: Salário';
+    if (pathname.startsWith('/income/freelancer')) return 'Renda: Freelancer';
     if (pathname.startsWith('/income')) return 'Renda';
+    if (pathname.startsWith('/expenses/housing')) return 'Despesas: Moradia';
+    if (pathname.startsWith('/expenses/utilities')) return 'Despesas: Contas de Consumo';
+    if (pathname.startsWith('/expenses/taxes')) return 'Despesas: Impostos e Taxas';
+    if (pathname.startsWith('/expenses/health')) return 'Despesas: Saúde & Bem-estar';
+    if (pathname.startsWith('/expenses/subscriptions')) return 'Despesas: Streams & Assinaturas';
     if (pathname.startsWith('/expenses')) return 'Despesas';
-    if (pathname.startsWith('/debts')) return 'Dívidas';
+    if (pathname.startsWith('/recurrences')) return 'Contas Fixas';
+    if (pathname.startsWith('/debts')) return 'Parcelamentos & Dívidas';
     if (pathname.startsWith('/goals')) return 'Metas & Reservas';
+    if (pathname.startsWith('/budgets')) return 'Limites de Gasto';
     if (pathname.startsWith('/reports')) return 'Relatórios';
     if (pathname.startsWith('/education')) return 'Jornada Financeira'
-    if (pathname.startsWith('/profile')) return 'Perfil';
-    if (pathname.startsWith('/support')) return 'Suporte';
+    if (pathname.startsWith('/profile')) return 'Perfil & Configurações';
+    if (pathname.startsWith('/support')) return 'Suporte & FAQ';
+    if (pathname.startsWith('/monetization')) return 'Monetização';
+    if (pathname.startsWith('/admin')) return 'Painel do Administrador';
     return 'Xô Planilhas';
 }
 
@@ -197,7 +208,12 @@ export function Header() {
             <PanelLeft />
             <span className="sr-only">Alternar Barra Lateral</span>
           </Button>
-          <h1 className="truncate text-base font-semibold sm:text-lg">{title}</h1>
+          <div className="flex flex-col">
+            <h1 className="truncate text-base font-semibold sm:text-lg">{title.split(':')[0]}</h1>
+            {title.includes(':') && (
+                <p className="text-xs text-muted-foreground truncate">{title.split(':')[1]}</p>
+            )}
+          </div>
         </div>
 
         {/* Centro: seletor de mês do dashboard */}

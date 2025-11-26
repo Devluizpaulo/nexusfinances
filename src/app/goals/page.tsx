@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Loader2 } from 'lucide-react';
 import { collection, query } from 'firebase/firestore';
@@ -94,12 +93,13 @@ export default function GoalsPage() {
             goal={selectedGoalForContribution} 
           />
       )}
-      <PageHeader title="Metas & Reservas" description="Crie metas simples de reserva e investimento e veja quanto falta para chegar lá.">
-        <Button onClick={() => setIsAddGoalSheetOpen(true)} disabled={!user}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Adicionar Reserva/Investimento
-        </Button>
-      </PageHeader>
+      <div className="flex items-center justify-between mb-6">
+          <div/>
+          <Button onClick={() => setIsAddGoalSheetOpen(true)} disabled={!user}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Adicionar Reserva/Investimento
+          </Button>
+      </div>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
         {orderedGoals.map((goal) => (
           <GoalCard key={goal.id} goal={goal} onAddContribution={handleOpenContributionSheet} onEdit={handleOpenEditSheet} />
