@@ -60,8 +60,7 @@ export default function FreelancerPage() {
         transactionType="income"
         categories={incomeCategories}
       />
-      <div className="flex items-center justify-between mb-6">
-        <div/>
+      <div className="flex items-center justify-end mb-6">
         <Button onClick={handleOpenSheet} disabled={!user}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Adicionar Renda de Freelance

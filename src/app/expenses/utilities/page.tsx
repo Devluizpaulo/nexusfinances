@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { collection, query, where } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -61,15 +60,12 @@ export default function UtilitiesPage() {
         transactionType="expense"
         categories={expenseCategories}
       />
-      <PageHeader
-        title="Contas de Consumo"
-        description="Gerencie suas contas de água, luz, internet, telefone e outras utilidades."
-      >
+      <div className="flex items-center justify-end mb-6">
         <Button onClick={handleOpenSheet} disabled={!user}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Adicionar Conta
         </Button>
-      </PageHeader>
+      </div>
 
       <Card>
         <CardHeader>

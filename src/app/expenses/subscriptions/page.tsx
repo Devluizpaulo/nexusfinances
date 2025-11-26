@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { collection, query, where } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
@@ -110,15 +109,12 @@ export default function SubscriptionsPage() {
         transactionType="expense"
         categories={expenseCategories}
       />
-      <PageHeader
-        title="Streams & Assinaturas"
-        description="Gerencie seus serviços de streaming, softwares e outras assinaturas."
-      >
+      <div className="flex items-center justify-end mb-6">
         <Button onClick={handleOpenSheet} disabled={!user}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Adicionar Assinatura
         </Button>
-      </PageHeader>
+      </div>
 
 
       <div className="space-y-6">
