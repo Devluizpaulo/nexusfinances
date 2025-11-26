@@ -139,27 +139,27 @@ service cloud.firestore {
       /**
        * @description Secures a user's private income entries.
        * @path /users/{userId}/incomes/{incomeId}
-       * @allow (create) User 'user123' creating an income document at `/users/user123/incomes/inc456` with `userId: 'user123'` in the body.
-       * @deny (read) User 'user789' attempting to read an income document at `/users/user123/incomes/inc456`.
        * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
        */
       match /incomes/{incomeId} {
-        allow list: if isOwner(userId);
-        allow read, update, delete: if isOwner(userId);
+        allow get, update, delete: if isOwner(userId);
         allow create: if isCreatingOwnData(userId);
+      }
+      match /incomes/{document=**} {
+        allow list: if isOwner(userId);
       }
 
       /**
        * @description Secures a user's private expense entries.
        * @path /users/{userId}/expenses/{expenseId}
-       * @allow (list) User 'user123' listing all their expenses under `/users/user123/expenses`.
-       * @deny (update) User 'user789' attempting to modify an expense at `/users/user123/expenses/exp789`.
        * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
        */
       match /expenses/{expenseId} {
-        allow list: if isOwner(userId);
-        allow read, update, delete: if isOwner(userId);
+        allow get, update, delete: if isOwner(userId);
         allow create: if isCreatingOwnData(userId);
+      }
+      match /expenses/{document=**} {
+        allow list: if isOwner(userId);
       }
       
       /**
@@ -168,48 +168,50 @@ service cloud.firestore {
        * @principle Restricts access to a user's own credit cards and validates ownership on creation/update.
        */
       match /creditCards/{cardId} {
-        allow list: if isOwner(userId);
-        allow read, update, delete: if isOwner(userId);
+        allow get, update, delete: if isOwner(userId);
         allow create: if isCreatingOwnData(userId);
+      }
+       match /creditCards/{document=**} {
+        allow list: if isOwner(userId);
       }
 
       /**
        * @description Secures a user's private debt information.
        * @path /users/{userId}/debts/{debtId}
-       * @allow (delete) User 'user123' deleting a debt at `/users/user123/debts/debtABC`.
-       * @deny (create) An anonymous user attempting to create a debt document.
        * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
        */
       match /debts/{debtId} {
-        allow list: if isOwner(userId);
-        allow read, update, delete: if isOwner(userId);
+        allow get, update, delete: if isOwner(userId);
         allow create: if isCreatingOwnData(userId);
+
         /**
          * @description Secures installment payments for a user's debt.
          * @path /users/{userId}/debts/{debtId}/installments/{installmentId}
-         * @allow (read) User 'user123' reading an installment at `/users/user123/debts/debtABC/installments/inst1`.
-         * @deny (read) User 'user789' attempting to read an installment, even if they know the full path, because the parent debt check will fail.
          * @principle Enforces ownership by looking up the parent debt document. Validates relational integrity with the parent debt.
          */
         match /installments/{installmentId} {
-          allow get, list: if isOwnerOfParentDebt(userId, debtId) || isSuperAdmin();
+          allow get, update, delete: if isOwnerOfParentDebt(userId, debtId);
           allow create: if isOwnerOfParentDebt(userId, debtId) && isCreatingValidInstallment(debtId);
-          allow update: if (isOwnerOfParentDebt(userId, debtId) && resource != null && isDebtFieldImmutable()) || isSuperAdmin();
-          allow delete: if (isOwnerOfParentDebt(userId, debtId) && resource != null) || isSuperAdmin();
         }
+         match /installments/{document=**} {
+          allow list: if isOwnerOfParentDebt(userId, debtId);
+        }
+      }
+       match /debts/{document=**} {
+        allow list: if isOwner(userId);
       }
       
       /**
        * @description Secures a user's financial goals.
        * @path /users/{userId}/goals/{goalId}
-       * @allow (create) User 'user123' creating a goal document at `/users/user123/goals/goalXYZ` with `userId: 'user123'` in the body.
-       * @deny (read) User 'user789' attempting to read a goal document at `/users/user12-3/goals/goalXYZ`.
        * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
        */
       match /goals/{goalId} {
-        allow list: if isOwner(userId);
-        allow read, update, delete: if isOwner(userId);
+        allow get, update, delete: if isOwner(userId);
         allow create: if isCreatingOwnData(userId);
+      }
+       match /goals/{document=**} {
+        allow list: if isOwner(userId);
       }
 
       /**
@@ -218,10 +220,13 @@ service cloud.firestore {
        * @principle Restricts access to a user's own budgets and validates ownership on creation/update.
        */
       match /budgets/{budgetId} {
-        allow read, list: if isOwner(userId);
+        allow get: if isOwner(userId);
         allow create: if isCreatingOwnData(userId);
         allow update: if isExistingOwner(userId) && isOwnerFieldImmutable();
         allow delete: if isExistingOwner(userId);
+      }
+      match /budgets/{document=**} {
+        allow list: if isOwner(userId);
       }
       
       /**
@@ -230,19 +235,19 @@ service cloud.firestore {
        * @principle Users can read and delete their own notifications. They can only update the `isRead` status. Creation is handled by backend logic.
        */
       match /notifications/{notificationId} {
-        allow get, list: if isOwner(userId);
+        allow get: if isOwner(userId);
         allow create: if false; // Only backend can create
         allow update: if isOwner(userId) && isUpdatingNotificationStatusOnly();
         allow delete: if isOwner(userId);
+      }
+       match /notifications/{document=**} {
+        allow list: if isOwner(userId);
       }
     }
     
     /**
      * @description Manages system log entries.
      * @path /logs/{logId}
-     * @allow (read) Superadmins can read all logs.
-     * @allow (create) Any authenticated user can create a log entry. This is to allow client-side logging.
-     * @deny (update, delete) Logs are immutable.
      * @principle Segregates logs and restricts access. Reading is for admins, creation is open for event capture.
      */
     match /logs/{logId} {
@@ -254,8 +259,6 @@ service cloud.firestore {
     /**
      * @description Manages educational content.
      * @path /education/{trackId}
-     * @allow (read) Any authenticated user can read the educational tracks.
-     * @allow (write) Only superadmins can create, update, or delete educational content.
      * @principle Makes content public for consumption but restricted for management.
      */
     match /education/{trackId} {
@@ -266,8 +269,6 @@ service cloud.firestore {
     /**
      * @description Manages subscription plans.
      * @path /subscriptionPlans/{planId}
-     * @allow (read) Any authenticated user can read the available plans.
-     * @allow (write) Only superadmins can create, update, or delete plans.
      * @principle Makes plans public for users to see, but management is restricted.
      */
     match /subscriptionPlans/{planId} {
