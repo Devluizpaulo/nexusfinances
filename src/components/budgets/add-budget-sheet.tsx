@@ -36,13 +36,12 @@ import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { CurrencyInput } from '../ui/currency-input';
 import { expenseCategories, type Budget } from '@/lib/types';
-import { formatISO, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from 'date-fns';
+import { formatISO, startOfMonth, endOfMonth } from 'date-fns';
 
 const formSchema = z.object({
   name: z.string().min(1, 'O nome é obrigatório.'),
   category: z.string().min(1, 'A categoria é obrigatória.'),
   amount: z.coerce.number().positive('O valor do orçamento deve ser positivo.'),
-  period: z.enum(['monthly', 'weekly'], { required_error: 'Selecione um período.' }),
 });
 
 type BudgetFormValues = z.infer<typeof formSchema>;
@@ -60,7 +59,6 @@ export function AddBudgetSheet({ isOpen, onClose, budget }: AddBudgetSheetProps)
       name: '',
       category: '',
       amount: 0,
-      period: 'monthly',
     },
   });
 
@@ -80,14 +78,12 @@ export function AddBudgetSheet({ isOpen, onClose, budget }: AddBudgetSheetProps)
         name: budget.name,
         category: budget.category,
         amount: budget.amount,
-        period: budget.period,
       });
     } else {
        form.reset({
         name: '',
         category: '',
         amount: 0,
-        period: 'monthly',
       });
     }
   }, [budget, isOpen, form]);
@@ -105,25 +101,27 @@ export function AddBudgetSheet({ isOpen, onClose, budget }: AddBudgetSheetProps)
 
     try {
       if (isEditing) {
-        // When editing, preserve the original start and end dates
+        // When editing, preserve the original start and end dates if they exist, otherwise calculate
         const budgetRef = doc(firestore, `users/${user.uid}/budgets`, budget!.id);
         const updatedData = { 
             ...values,
             userId: user.uid, // ensure userId is present for security rules if needed
-            startDate: budget.startDate, 
-            endDate: budget.endDate 
+            period: 'monthly' as const,
+            startDate: budget.startDate || formatISO(startOfMonth(new Date())), 
+            endDate: budget.endDate || formatISO(endOfMonth(new Date()))
         };
         setDocumentNonBlocking(budgetRef, updatedData, { merge: true });
         toast({ title: 'Orçamento atualizado!', description: `O orçamento "${values.name}" foi salvo.` });
       } else {
-        // When creating, calculate new start and end dates
+        // When creating, always calculate new start and end dates for the current month
         const now = new Date();
-        const startDate = values.period === 'monthly' ? startOfMonth(now) : startOfWeek(now, { weekStartsOn: 1 });
-        const endDate = values.period === 'monthly' ? endOfMonth(now) : endOfWeek(now, { weekStartsOn: 1 });
+        const startDate = startOfMonth(now);
+        const endDate = endOfMonth(now);
         
         const newBudgetData = {
             ...values,
             userId: user.uid,
+            period: 'monthly' as const,
             startDate: formatISO(startDate),
             endDate: formatISO(endDate),
         };
@@ -149,7 +147,7 @@ export function AddBudgetSheet({ isOpen, onClose, budget }: AddBudgetSheetProps)
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Editar Orçamento' : 'Criar Novo Orçamento'}</DialogTitle>
           <DialogDescription>
-            Defina um limite de gastos para uma categoria em um período específico.
+            Defina um limite de gastos para uma categoria para o mês atual.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -161,7 +159,7 @@ export function AddBudgetSheet({ isOpen, onClose, budget }: AddBudgetSheetProps)
                 <FormItem>
                   <FormLabel>Nome do Orçamento</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ex: Mercado da semana" {...field} />
+                    <Input placeholder="Ex: Mercado do mês" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -203,28 +201,6 @@ export function AddBudgetSheet({ isOpen, onClose, budget }: AddBudgetSheetProps)
                       onValueChange={field.onChange}
                     />
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="period"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Período</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value} disabled={isEditing}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o período" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                        <SelectItem value="monthly">Mensal</SelectItem>
-                        <SelectItem value="weekly">Semanal</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>O orçamento será para o mês ou semana atual.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

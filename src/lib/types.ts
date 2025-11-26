@@ -60,7 +60,7 @@ export type Budget = {
   category: string;
   amount: number;
   spentAmount?: number;
-  period: 'weekly' | 'monthly';
+  period: 'monthly';
   startDate: string;
   endDate: string;
 };

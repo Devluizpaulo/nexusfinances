@@ -30,9 +30,9 @@ export default function BudgetsPage() {
   const { data: budgetsData, isLoading: isBudgetsLoading } = useCollection<Budget>(budgetsQuery);
   const { data: expensesData, isLoading: isExpensesLoading } = useCollection<Transaction>(expensesQuery);
 
-  const { monthlyBudgets, weeklyBudgets } = useMemo(() => {
+  const monthlyBudgets = useMemo(() => {
     if (!budgetsData || !expensesData) {
-      return { monthlyBudgets: [], weeklyBudgets: [] };
+      return [];
     }
 
     const processedBudgets = budgetsData.map(budget => {
@@ -49,11 +49,9 @@ export default function BudgetsPage() {
       
       return { ...budget, spentAmount };
     });
-
-    return {
-      monthlyBudgets: processedBudgets.filter(b => b.period === 'monthly'),
-      weeklyBudgets: processedBudgets.filter(b => b.period === 'weekly'),
-    }
+    
+    // Agora todos os orçamentos são mensais
+    return processedBudgets;
 
   }, [budgetsData, expensesData]);
 
@@ -97,7 +95,7 @@ export default function BudgetsPage() {
       
       <div className="space-y-8">
         <div>
-          <h2 className="text-xl font-semibold mb-4">Orçamentos Mensais</h2>
+          <h2 className="text-xl font-semibold mb-4">Seus Orçamentos</h2>
           {monthlyBudgets.length > 0 ? (
             <div className="space-y-4 rounded-lg border p-4">
               {monthlyBudgets.map((budget) => (
@@ -109,26 +107,14 @@ export default function BudgetsPage() {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
-              <h3 className="font-semibold">Nenhum orçamento mensal</h3>
+              <h3 className="font-semibold">Nenhum orçamento definido</h3>
               <p className="mt-1 text-sm text-muted-foreground">Crie orçamentos para controlar seus gastos mensais.</p>
+               <Button className="mt-4" onClick={() => setIsSheetOpen(true)}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Criar Primeiro Orçamento
+              </Button>
             </div>
           )}
-        </div>
-
-        <div>
-           <h2 className="text-xl font-semibold mb-4">Orçamentos Semanais</h2>
-            {weeklyBudgets.length > 0 ? (
-                <div className="space-y-4 rounded-lg border p-4">
-                {weeklyBudgets.map((budget) => (
-                    <BudgetCard key={budget.id} budget={budget} onEdit={handleEditBudget} />
-                ))}
-                </div>
-            ) : (
-                <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
-                    <h3 className="font-semibold">Nenhum orçamento semanal</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">Defina metas de gastos para períodos mais curtos.</p>
-                </div>
-            )}
         </div>
       </div>
     </>
