@@ -33,7 +33,7 @@ export type Installment = {
   installmentNumber: number;
   amount: number;
   dueDate: string; // ISO string
-  status: 'paid' | 'unpaid' | 'overdue';
+  status: 'paid' | 'unpaid';
 };
 
 export type Goal = {
@@ -64,6 +64,8 @@ export type Budget = {
   startDate: string;
   endDate: string;
 };
+
+export type Recurrence = Transaction;
 
 export type SubscriptionPlan = {
   id: string;

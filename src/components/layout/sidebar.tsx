@@ -1,6 +1,7 @@
+
 'use client';
 import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator, SidebarGroup, SidebarGroupLabel } from '@/components/ui/sidebar';
-import { LayoutDashboard, Landmark, CreditCard, Banknote, DollarSign, Loader2, Target, LogOut, UserCircle, LifeBuoy, ShieldCheck, PiggyBank, BarChart3, GraduationCap, Pin, PinOff, Files } from 'lucide-react';
+import { LayoutDashboard, Landmark, CreditCard, Banknote, DollarSign, Loader2, Target, LogOut, UserCircle, LifeBuoy, ShieldCheck, PiggyBank, BarChart3, GraduationCap, Pin, PinOff, Files, Repeat } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '../ui/button';
@@ -19,6 +20,7 @@ const planningMenuItems = [
   { href: '/debts', label: 'Dívidas', icon: Banknote },
   { href: '/goals', label: 'Metas & Reservas', icon: PiggyBank },
   { href: '/budgets', label: 'Limites de Gasto', icon: Files },
+  { href: '/recurrences', label: 'Recorrências', icon: Repeat },
 ];
 
 const analysisMenuItems = [
