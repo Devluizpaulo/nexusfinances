@@ -15,7 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useDropzone } from 'react-dropzone';
 import { cn } from '@/lib/utils';
 import { extractTransactionsFromPdf } from '@/ai/flows/extract-transactions-from-pdf-flow';
-import { expenseCategories, incomeCategories, Transaction, type ExtractedTransaction } from '@/lib/types';
+import { expenseCategories, incomeCategories, type ExtractedTransaction } from '@/lib/types';
 import {
   Table,
   TableBody,
@@ -31,8 +31,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Checkbox } from '../ui/checkbox';
+import { useFirestore, useUser } from '@/firebase';
+import { collection, doc, writeBatch } from 'firebase/firestore';
 
 
 type ImportTransactionsSheetProps = {
@@ -62,6 +63,8 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
   const [reviewTransactions, setReviewTransactions] = useState<ReviewTransaction[]>([]);
   const [documentType, setDocumentType] = useState<DocumentType>('bankStatement');
   const { toast } = useToast();
+  const { user } = useUser();
+  const firestore = useFirestore();
 
   const onDrop = (acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -156,15 +159,65 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
     setReviewTransactions(prev => prev.map(t => t.id === id ? { ...t, type } : t));
   };
   
-  const handleSave = () => {
-    const selectedCount = reviewTransactions.filter(t => t.selected).length;
-    toast({
-        title: "Em desenvolvimento...",
-        description: `A lógica para salvar as ${selectedCount} transações selecionadas ainda será implementada.`,
-    });
+  const handleSave = async () => {
+    if (!user || !firestore) {
+      toast({ variant: 'destructive', title: 'Erro', description: 'Você não está autenticado.' });
+      return;
+    }
+
+    const transactionsToSave = reviewTransactions.filter(t => t.selected);
+    if (transactionsToSave.length === 0) {
+      toast({ variant: 'destructive', title: 'Nenhuma transação selecionada', description: 'Selecione as transações que deseja salvar.' });
+      return;
+    }
+
+    setIsProcessing(true);
+    
+    try {
+      const batch = writeBatch(firestore);
+
+      transactionsToSave.forEach(t => {
+        const collectionName = t.type === 'income' ? 'incomes' : 'expenses';
+        const docRef = doc(collection(firestore, `users/${user.uid}/${collectionName}`));
+        
+        const newTransaction = {
+            id: docRef.id,
+            userId: user.uid,
+            type: t.type,
+            amount: Math.abs(t.amount), // Always store as positive
+            date: t.date,
+            description: t.description,
+            category: t.category,
+            isRecurring: false,
+            status: 'paid' as const, // Assume imported transactions are already paid
+        };
+
+        batch.set(docRef, newTransaction);
+      });
+
+      await batch.commit();
+
+      toast({
+        title: 'Transações salvas!',
+        description: `${transactionsToSave.length} transações foram importadas com sucesso.`,
+      });
+
+      handleReset();
+
+    } catch (error) {
+      console.error("Error saving transactions:", error);
+       toast({
+        variant: 'destructive',
+        title: 'Erro ao salvar',
+        description: 'Não foi possível salvar as transações importadas. Tente novamente.',
+      });
+    } finally {
+        setIsProcessing(false);
+    }
   }
 
-  const allCategories = [...incomeCategories, ...expenseCategories, 'Outros'];
+  const allCategories = [...incomeCategories, ...expenseCategories, ...user?.customIncomeCategories || [], ...user?.customExpenseCategories || []];
+  const uniqueCategories = Array.from(new Set(allCategories));
 
   return (
     <Dialog open={isOpen} onOpenChange={handleReset}>
@@ -278,7 +331,7 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                {allCategories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                                {uniqueCategories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                             </SelectContent>
                         </Select>
                       </TableCell>
@@ -292,7 +345,8 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={handleReset}>Cancelar</Button>
-              <Button onClick={handleSave} disabled={reviewTransactions.filter(t => t.selected).length === 0}>
+              <Button onClick={handleSave} disabled={reviewTransactions.filter(t => t.selected).length === 0 || isProcessing}>
+                {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Salvar Transações ({reviewTransactions.filter(t => t.selected).length})
               </Button>
             </DialogFooter>
