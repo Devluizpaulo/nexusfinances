@@ -1,7 +1,7 @@
 
 'use client';
 import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator, SidebarGroup, SidebarGroupLabel } from '@/components/ui/sidebar';
-import { LayoutDashboard, Landmark, CreditCard, Banknote, DollarSign, Loader2, Target, LogOut, UserCircle, LifeBuoy, ShieldCheck, PiggyBank, BarChart3, GraduationCap, Pin, PinOff, Files, Repeat, Clapperboard, ChevronDown, Home, Zap, FileText } from 'lucide-react';
+import { LayoutDashboard, Landmark, CreditCard, Banknote, DollarSign, Loader2, Target, LogOut, UserCircle, LifeBuoy, ShieldCheck, PiggyBank, BarChart3, GraduationCap, Pin, PinOff, Files, Repeat, Clapperboard, ChevronDown, Home, Zap, FileText, HeartPulse } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '../ui/button';
@@ -86,11 +86,11 @@ export function AppSidebar() {
                                     <CreditCard />
                                     <span>Despesas</span>
                                 </div>
-                                <ChevronDown className={cn("transition-transform group-data-[collapsed]:hidden", isExpensesOpen && "rotate-180")} />
+                                <ChevronDown className={cn("transition-transform", state === "collapsed" ? "hidden" : "group-data-[collapsed]:hidden", isExpensesOpen && "rotate-180")} />
                             </SidebarMenuButton>
                         </CollapsibleTrigger>
                     </SidebarMenuItem>
-                     <CollapsibleContent className="group-data-[collapsed]:hidden">
+                     <CollapsibleContent className={cn(state === "collapsed" ? "hidden" : "group-data-[collapsed]:hidden")}>
                         <SidebarMenuItem className="ml-5 border-l border-border pl-3">
                              <SidebarMenuButton asChild isActive={pathname === '/expenses'} tooltip={'Todos os Gastos'} onClick={handleMobileClick}>
                                 <Link href="/expenses">
@@ -122,8 +122,16 @@ export function AppSidebar() {
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
+                        <SidebarMenuItem className="ml-5 border-l border-border pl-3">
+                             <SidebarMenuButton asChild isActive={pathname.startsWith('/expenses/health')} tooltip={'Saúde e Bem-estar'} onClick={handleMobileClick}>
+                                <Link href="/expenses/health">
+                                     <HeartPulse />
+                                    <span>Saúde & Bem-estar</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
                          <SidebarMenuItem className="ml-5 border-l border-border pl-3">
-                             <SidebarMenuButton asChild isActive={pathname.startsWith('/recurrences')} tooltip={'Contas Fixas'} onClick={handleMobileClick}>
+                             <SidebarMenuButton asChild isActive={pathname === '/recurrences'} tooltip={'Contas Fixas'} onClick={handleMobileClick}>
                                 <Link href="/recurrences">
                                      <Repeat />
                                     <span>Outras Contas Fixas</span>
