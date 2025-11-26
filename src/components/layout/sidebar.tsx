@@ -1,6 +1,6 @@
 'use client';
 import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator, SidebarGroup, SidebarGroupLabel } from '@/components/ui/sidebar';
-import { LayoutDashboard, Landmark, CreditCard, Banknote, DollarSign, Loader2, Target, LogOut, UserCircle, LifeBuoy, ShieldCheck, PiggyBank, BarChart3, GraduationCap, Pin, PinOff, Files, Repeat, Clapperboard, ChevronDown, Home, Zap, FileText, HeartPulse } from 'lucide-react';
+import { LayoutDashboard, Landmark, CreditCard, Banknote, DollarSign, Loader2, Target, LogOut, UserCircle, LifeBuoy, ShieldCheck, PiggyBank, BarChart3, GraduationCap, Pin, PinOff, Files, Repeat, Clapperboard, ChevronDown, Home, Zap, FileText, HeartPulse, Briefcase, PenSquare } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '../ui/button';
@@ -13,7 +13,6 @@ import { useState } from 'react';
 
 const overviewMenuItems = [
   { href: '/dashboard', label: 'Painel', icon: LayoutDashboard, className: "text-sky-500" },
-  { href: '/income', label: 'Renda', icon: Landmark, className: "text-emerald-500" },
 ];
 
 const planningMenuItems = [
@@ -38,6 +37,7 @@ export function AppSidebar() {
   const [isExpensesOpen, setIsExpensesOpen] = useState(
     pathname.startsWith('/expenses') || pathname.startsWith('/recurrences')
   );
+  const [isIncomeOpen, setIsIncomeOpen] = useState(pathname.startsWith('/income'));
 
 
   const handleMobileClick = () => {
@@ -73,6 +73,48 @@ export function AppSidebar() {
             <SidebarGroup>
                 <SidebarGroupLabel>Visão Geral</SidebarGroupLabel>
                 {renderMenuItems(overviewMenuItems)}
+
+                <Collapsible open={isIncomeOpen} onOpenChange={setIsIncomeOpen}>
+                    <SidebarMenuItem>
+                        <CollapsibleTrigger asChild>
+                            <SidebarMenuButton
+                                isActive={pathname.startsWith('/income')}
+                                tooltip={'Renda'}
+                                className="justify-between"
+                            >
+                                <div className="flex items-center gap-2">
+                                    <Landmark className="text-emerald-500" />
+                                    <span>Renda</span>
+                                </div>
+                                <ChevronDown className={cn("transition-transform", state === "collapsed" ? "hidden" : "", isIncomeOpen && "rotate-180")} />
+                            </SidebarMenuButton>
+                        </CollapsibleTrigger>
+                    </SidebarMenuItem>
+                     <CollapsibleContent className={cn("my-1 space-y-1", state === "collapsed" ? "hidden" : "")}>
+                        <SidebarMenuItem className="ml-5 border-l border-border pl-3">
+                             <SidebarMenuButton asChild isActive={pathname === '/income'} tooltip={'Todas as Rendas'} onClick={handleMobileClick}>
+                                <Link href="/income">
+                                    Todas as Rendas
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                        <SidebarMenuItem className="ml-5 border-l border-border pl-3">
+                             <SidebarMenuButton asChild isActive={pathname.startsWith('/income/salary')} tooltip={'Salário'} onClick={handleMobileClick}>
+                                <Link href="/income/salary">
+                                    Salário
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                         <SidebarMenuItem className="ml-5 border-l border-border pl-3">
+                             <SidebarMenuButton asChild isActive={pathname.startsWith('/income/freelancer')} tooltip={'Freelancer'} onClick={handleMobileClick}>
+                                <Link href="/income/freelancer">
+                                    Freelancer
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </CollapsibleContent>
+                </Collapsible>
+
                  <Collapsible open={isExpensesOpen} onOpenChange={setIsExpensesOpen}>
                     <SidebarMenuItem>
                         <CollapsibleTrigger asChild>
