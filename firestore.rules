@@ -144,11 +144,12 @@ service cloud.firestore {
        * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
        */
       match /incomes/{incomeId} {
-        allow get, list: if isOwner(userId) || isSuperAdmin();
+        allow get: if isOwner(userId) || isSuperAdmin();
         allow create: if isCreatingOwnData(userId);
         allow update: if isExistingOwner(userId) && isOwnerFieldImmutable();
         allow delete: if isExistingOwner(userId);
       }
+      allow list: if isOwner(userId) || isSuperAdmin();
 
       /**
        * @description Secures a user's private expense entries.
@@ -158,11 +159,12 @@ service cloud.firestore {
        * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
        */
       match /expenses/{expenseId} {
-        allow get, list: if isOwner(userId) || isSuperAdmin();
+        allow get: if isOwner(userId) || isSuperAdmin();
         allow create: if isCreatingOwnData(userId);
         allow update: if isExistingOwner(userId) && isOwnerFieldImmutable();
         allow delete: if isExistingOwner(userId);
       }
+       allow list: if isOwner(userId) || isSuperAdmin();
       
       /**
        * @description Secures a user's credit cards.
@@ -184,7 +186,8 @@ service cloud.firestore {
        * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
        */
       match /debts/{debtId} {
-        allow get, list: if isOwner(userId) || isSuperAdmin();
+        allow get: if isOwner(userId) || isSuperAdmin();
+        allow list: if isOwner(userId) || isSuperAdmin();
         allow create: if isCreatingOwnData(userId);
         allow update: if isExistingOwner(userId) && isOwnerFieldImmutable();
         allow delete: if isExistingOwner(userId);
@@ -212,7 +215,8 @@ service cloud.firestore {
        * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
        */
       match /goals/{goalId} {
-        allow get, list: if isOwner(userId) || isSuperAdmin();
+        allow get: if isOwner(userId) || isSuperAdmin();
+        allow list: if isOwner(userId) || isSuperAdmin();
         allow create: if isCreatingOwnData(userId);
         allow update: if isExistingOwner(userId) && isOwnerFieldImmutable();
         allow delete: if isExistingOwner(userId);
@@ -282,3 +286,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
