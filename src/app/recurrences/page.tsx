@@ -67,7 +67,7 @@ export default function RecurrencesPage() {
     const expenses = expenseData?.reduce((sum, item) => sum + item.amount, 0) || 0;
 
     const grouped: Record<string, Recurrence[]> = { 'Outras Recorrências': [] };
-    subscriptionCategories.forEach(cat => grouped[cat.title] = [];
+    subscriptionCategories.forEach(cat => { grouped[cat.title] = [] });
 
     (expenseData || []).forEach(expense => {
       const foundCategory = subscriptionCategories.find(cat => 
