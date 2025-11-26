@@ -626,8 +626,8 @@ function ClientRoot() {
                   © {new Date().getFullYear()} Xô Planilhas. Todos os direitos reservados.
               </p>
               <div className="flex gap-4">
-                  <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">Termos</Link>
-                  <Link href="#" className="text-sm text-muted-foreground hover:text-foreground">Privacidade</Link>
+                  <Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground">Termos</Link>
+                  <Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground">Privacidade</Link>
               </div>
           </div>
       </footer>

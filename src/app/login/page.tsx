@@ -351,6 +351,25 @@ function LoginClient() {
               </svg>}
             Continuar com Google
           </Button>
+
+          <p className="mt-4 px-8 text-center text-xs text-muted-foreground">
+            Ao clicar em continuar, você concorda com nossos{" "}
+            <Link
+              href="/terms"
+              className="underline underline-offset-4 hover:text-primary"
+            >
+              Termos de Uso
+            </Link>{" "}
+            e{" "}
+            <Link
+              href="/privacy"
+              className="underline underline-offset-4 hover:text-primary"
+            >
+              Política de Privacidade
+            </Link>
+            .
+          </p>
+
           <div className="mt-4 text-center text-sm">
             <Link href="/" className="underline underline-offset-2">
               Voltar para a página inicial
