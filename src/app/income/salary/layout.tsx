@@ -5,5 +5,5 @@ export default function SalaryLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <AuthenticatedLayout>{children}</AuthenticatedLayout>;
+  return children;
 }

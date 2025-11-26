@@ -142,11 +142,12 @@ service cloud.firestore {
        * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
        */
       match /incomes/{incomeId} {
-        allow get, update, delete: if isOwner(userId);
+        // leitura (documento individual e list da coleção)
+        allow get, list: if isOwner(userId);
+        // criar apenas se o documento tiver o userId correto
         allow create: if isCreatingOwnData(userId);
-      }
-      match /incomes/{document=**} {
-        allow list: if isOwner(userId);
+        // atualizar/excluir apenas se for dono
+        allow update, delete: if isOwner(userId);
       }
 
       /**
