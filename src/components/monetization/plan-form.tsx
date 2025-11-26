@@ -1,6 +1,6 @@
 'use client';
 
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -17,19 +17,31 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { CurrencyInput } from '../ui/currency-input';
 import type { SubscriptionPlan } from '@/lib/types';
 import { Switch } from '../ui/switch';
 import { Textarea } from '../ui/textarea';
+import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
+
+const allFeatures = [
+  'Sincronização bancária automática',
+  'Relatórios avançados e exportação (PDF, CSV)',
+  'Análises e insights com IA ilimitados',
+  'Criação de orçamentos (limites) por categoria',
+  'Suporte prioritário',
+  'Remoção de anúncios',
+  'Múltiplas carteiras/contas',
+  'Planejamento de aposentadoria',
+];
 
 const formSchema = z.object({
   name: z.string().min(3, 'O nome do plano deve ter pelo menos 3 caracteres.'),
   description: z.string().min(10, 'A descrição deve ter pelo menos 10 caracteres.'),
   price: z.coerce.number().min(0, 'O preço não pode ser negativo.'),
-  features: z.array(z.string().min(1, 'A funcionalidade não pode estar em branco.')).min(1, 'Adicione pelo menos uma funcionalidade.'),
+  features: z.array(z.string()).min(1, 'Selecione pelo menos uma funcionalidade.'),
   paymentGatewayId: z.string().optional(),
   active: z.boolean().default(true),
 });
@@ -49,15 +61,10 @@ export function PlanForm({ isOpen, onClose, plan }: PlanFormProps) {
       name: '',
       description: '',
       price: 0,
-      features: [''],
+      features: [],
       paymentGatewayId: '',
       active: true,
     },
-  });
-
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: 'features',
   });
 
   const firestore = useFirestore();
@@ -71,7 +78,7 @@ export function PlanForm({ isOpen, onClose, plan }: PlanFormProps) {
         name: plan.name,
         description: plan.description,
         price: plan.price,
-        features: plan.features.length > 0 ? plan.features : [''],
+        features: plan.features.length > 0 ? plan.features : [],
         paymentGatewayId: plan.paymentGatewayId || '',
         active: plan.active,
       });
@@ -80,7 +87,7 @@ export function PlanForm({ isOpen, onClose, plan }: PlanFormProps) {
         name: '',
         description: '',
         price: 0,
-        features: [''],
+        features: [],
         paymentGatewayId: '',
         active: true,
       });
@@ -150,32 +157,65 @@ export function PlanForm({ isOpen, onClose, plan }: PlanFormProps) {
                   <FormMessage />
                 </FormItem>
             )}/>
-            <div>
-              <Label>Funcionalidades Incluídas</Label>
-              <div className="mt-2 space-y-2">
-                {fields.map((field, index) => (
-                  <div key={field.id} className="flex items-center gap-2">
-                     <FormField
-                        control={form.control}
-                        name={`features.${index}`}
-                        render={({ field }) => (
-                            <FormItem className="flex-grow">
-                                <FormControl><Input placeholder="Ex: Sincronização bancária" {...field} /></FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                    <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} disabled={fields.length <= 1}>
-                        <Trash2 className="h-4 w-4" />
-                    </Button>
+            <FormField
+              control={form.control}
+              name="features"
+              render={() => (
+                <FormItem>
+                  <div className="mb-4">
+                    <FormLabel className="text-base">Funcionalidades Incluídas</FormLabel>
+                     <div className="flex items-center justify-end">
+                      <Button
+                        type="button"
+                        variant="link"
+                        size="sm"
+                        className="text-xs h-auto p-0"
+                        onClick={() => form.setValue('features', allFeatures, { shouldValidate: true })}
+                      >
+                        Selecionar Tudo
+                      </Button>
+                    </div>
                   </div>
-                ))}
-                <Button type="button" variant="outline" size="sm" onClick={() => append('')}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Adicionar funcionalidade
-                </Button>
-              </div>
-            </div>
+                  <div className="space-y-3 rounded-md border p-4 max-h-60 overflow-y-auto">
+                    {allFeatures.map((item) => (
+                      <FormField
+                        key={item}
+                        control={form.control}
+                        name="features"
+                        render={({ field }) => {
+                          return (
+                            <FormItem
+                              key={item}
+                              className="flex flex-row items-start space-x-3 space-y-0"
+                            >
+                              <FormControl>
+                                <Checkbox
+                                  checked={field.value?.includes(item)}
+                                  onCheckedChange={(checked) => {
+                                    return checked
+                                      ? field.onChange([...field.value, item])
+                                      : field.onChange(
+                                          field.value?.filter(
+                                            (value) => value !== item
+                                          )
+                                        )
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                {item}
+                              </FormLabel>
+                            </FormItem>
+                          )
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField control={form.control} name="paymentGatewayId" render={({ field }) => (
                 <FormItem>
                   <FormLabel>ID do Gateway de Pagamento (Opcional)</FormLabel>
