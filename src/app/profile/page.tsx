@@ -251,11 +251,10 @@ export default function ProfilePage() {
       <PageHeader title="Perfil & Configurações" description="Gerencie suas informações de conta, segurança, categorias e conexões." />
       
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="profile">Perfil</TabsTrigger>
           <TabsTrigger value="categories">Categorias</TabsTrigger>
           <TabsTrigger value="security">Segurança</TabsTrigger>
-          <TabsTrigger value="connections">Conexões</TabsTrigger>
         </TabsList>
         
         <TabsContent value="profile" className="mt-6">
@@ -465,71 +464,7 @@ export default function ProfilePage() {
             </Form>
           </Card>
         </TabsContent>
-
-        <TabsContent value="connections" className="mt-6">
-            <Card>
-                <CardHeader>
-                    <div className="flex items-start gap-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                            <LinkIcon className="h-6 w-6 text-primary" />
-                        </div>
-                        <div>
-                            <CardTitle>Conexões com Bancos</CardTitle>
-                            <CardDescription>Automatize seu controle financeiro importando extratos.</CardDescription>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="prose prose-sm max-w-full text-foreground/80 dark:prose-invert">
-                        <p>A integração com serviços como <strong>Nubank</strong> ou <strong>Mercado Pago</strong> para importar transações automaticamente é uma funcionalidade avançada que eleva o nível do controle financeiro. No entanto, ela envolve um processo técnico complexo e seguro.</p>
-                        
-                        <h4>Como funciona?</h4>
-                        <p>A conexão com instituições financeiras geralmente segue o padrão <strong>Open Finance</strong>, que é regulamentado para garantir a segurança dos seus dados. O processo técnico envolve:</p>
-                        
-                        <ol>
-                            <li>
-                                <strong><div className="flex items-center gap-2"><Lock className="h-4 w-4" /><span>Backend Seguro (Cloud Functions)</span></div></strong>
-                                <p>Toda a comunicação com o banco não pode acontecer diretamente do seu navegador. É necessário um servidor seguro (backend) para proteger suas credenciais e gerenciar a conexão. Usaríamos <strong>Cloud Functions for Firebase</strong> para isso.</p>
-                            </li>
-                            <li>
-                                <strong><div className="flex items-center gap-2"><Banknote className="h-4 w-4" /><span>API do Banco e Credenciais</span></div></strong>
-                                <p>Seria preciso obter credenciais de desenvolvedor junto ao Nubank ou Mercado Pago. A função no backend usaria essas credenciais para se autenticar na API do banco de forma segura.</p>
-                            </li>
-                             <li>
-                                <strong><div className="flex items-center gap-2"><LinkIcon className="h-4 w-4" /><span>Fluxo de Autorização (OAuth2)</span></div></strong>
-                                <p>Você, como usuário, seria redirecionado para uma página do próprio banco para autorizar o acesso. Em nenhum momento o Xô Planilhas armazenaria sua senha do banco. Apenas um "token" de acesso temporário seria concedido.</p>
-                            </li>
-                        </ol>
-
-                        <h4>Próximos Passos para Implementação</h4>
-                        <p>Implementar essa funcionalidade é um projeto robusto. Os próximos passos seriam:</p>
-                        <ul className="list-none space-y-2 p-0">
-                            <li className="flex items-start gap-3 rounded-md border p-3">
-                                <span className="font-semibold text-primary">1.</span>
-                                <div>
-                                    <strong>Desenvolver o Backend</strong>: Criar as Cloud Functions para lidar com a autenticação e a busca de dados.
-                                </div>
-                            </li>
-                             <li className="flex items-start gap-3 rounded-md border p-3">
-                                <span className="font-semibold text-primary">2.</span>
-                                <div>
-                                    <strong>Construir a Interface de Conexão</strong>: Criar as telas onde você poderia escolher o banco e iniciar o processo de autorização.
-                                </div>
-                            </li>
-                             <li className="flex items-start gap-3 rounded-md border p-3">
-                                <span className="font-semibold text-primary">3.</span>
-                                <div>
-                                    <strong>Processar os Dados</strong>: Criar a lógica para "traduzir" o extrato do banco em transações de renda e despesa dentro do Xô Planilhas.
-                                </div>
-                            </li>
-                        </ul>
-                         <p className="mt-4">Por enquanto, esta seção serve como um guia. À medida que o Xô Planilhas evolui, esta será uma das próximas grandes fronteiras a serem conquistadas!</p>
-                    </div>
-                </CardContent>
-            </Card>
-        </TabsContent>
       </Tabs>
     </>
   );
 }
-
