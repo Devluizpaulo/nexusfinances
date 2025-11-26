@@ -4,10 +4,34 @@ import { useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { collection, query, where } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import type { Recurrence, Transaction } from '@/lib/types';
-import { Loader2, Repeat, TrendingDown, TrendingUp } from 'lucide-react';
+import type { Recurrence } from '@/lib/types';
+import { Loader2, Repeat, TrendingDown, TrendingUp, Film, HeartPulse, Cpu, Newspaper } from 'lucide-react';
 import { RecurrenceCard } from '@/components/recurrences/recurrence-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+// Define as categorias e seus ícones
+const subscriptionCategories = [
+  { 
+    title: 'Streaming & Mídia',
+    keywords: ['Netflix', 'YouTube', 'Spotify', 'Amazon Prime', 'Disney+', 'HBO Max', 'Música', 'Filmes'],
+    icon: Film,
+  },
+  { 
+    title: 'Bem-estar & Academia',
+    keywords: ['Academia', 'Gympass', 'Yoga', 'Meditação', 'Saúde'],
+    icon: HeartPulse
+  },
+  { 
+    title: 'Software & IAs',
+    keywords: ['Software', 'Assinatura', 'IA', 'Adobe', 'Office', 'Nuvem', 'Produtividade'],
+    icon: Cpu
+  },
+  {
+    title: 'Notícias & Leitura',
+    keywords: ['Jornal', 'Revista', 'Notícias', 'Kindle', 'Livros'],
+    icon: Newspaper
+  }
+];
 
 export default function RecurrencesPage() {
   const firestore = useFirestore();
@@ -26,13 +50,33 @@ export default function RecurrencesPage() {
   const { data: incomeData, isLoading: isIncomeLoading } = useCollection<Recurrence>(recurringIncomesQuery);
   const { data: expenseData, isLoading: isExpensesLoading } = useCollection<Recurrence>(recurringExpensesQuery);
 
-  const { totalIncome, totalExpenses, monthlyBalance } = useMemo(() => {
+  const { totalIncome, totalExpenses, monthlyBalance, groupedExpenses } = useMemo(() => {
     const income = incomeData?.reduce((sum, item) => sum + item.amount, 0) || 0;
     const expenses = expenseData?.reduce((sum, item) => sum + item.amount, 0) || 0;
+
+    const grouped: Record<string, Recurrence[]> = { 'Outras Assinaturas': [] };
+    subscriptionCategories.forEach(cat => grouped[cat.title] = []);
+
+    (expenseData || []).forEach(expense => {
+      const foundCategory = subscriptionCategories.find(cat => 
+        cat.keywords.some(keyword => 
+          expense.category.toLowerCase().includes(keyword.toLowerCase()) || 
+          expense.description.toLowerCase().includes(keyword.toLowerCase())
+        )
+      );
+      
+      if (foundCategory) {
+        grouped[foundCategory.title].push(expense);
+      } else {
+        grouped['Outras Assinaturas'].push(expense);
+      }
+    });
+
     return {
       totalIncome: income,
       totalExpenses: expenses,
       monthlyBalance: income - expenses,
+      groupedExpenses: grouped
     };
   }, [incomeData, expenseData]);
 
@@ -49,6 +93,8 @@ export default function RecurrencesPage() {
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
+  const allCategories = [...subscriptionCategories, { title: 'Outras Assinaturas', icon: Repeat, keywords: [] }];
+
   return (
     <>
       <PageHeader
@@ -57,16 +103,6 @@ export default function RecurrencesPage() {
       />
 
       <div className="mb-8 grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Renda Recorrente Total</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-emerald-600">{formatCurrency(totalIncome)}</div>
-            <p className="text-xs text-muted-foreground">Soma de todas as suas entradas mensais fixas.</p>
-          </CardContent>
-        </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Despesa Recorrente Total</CardTitle>
@@ -79,6 +115,16 @@ export default function RecurrencesPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Renda Recorrente Total</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-emerald-600">{formatCurrency(totalIncome)}</div>
+            <p className="text-xs text-muted-foreground">Soma de todas as suas entradas mensais fixas.</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Balanço Recorrente</CardTitle>
             <Repeat className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -86,40 +132,45 @@ export default function RecurrencesPage() {
             <div className={`text-2xl font-bold ${monthlyBalance >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
               {formatCurrency(monthlyBalance)}
             </div>
-            <p className="text-xs text-muted-foreground">A diferença entre suas recorrências de renda e despesa.</p>
+            <p className="text-xs text-muted-foreground">O impacto mensal das suas recorrências.</p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-8 md:grid-cols-2">
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Rendas Recorrentes</h2>
-          {incomeData && incomeData.length > 0 ? (
-            <div className="space-y-4">
-              {incomeData.map((item) => (
-                <RecurrenceCard key={item.id} recurrence={item} />
-              ))}
+      <div className="space-y-6">
+        {allCategories.map(({ title, icon: Icon }) => {
+          const items = groupedExpenses[title];
+          if (!items || items.length === 0) return null;
+          
+          const categoryTotal = items.reduce((sum, item) => sum + item.amount, 0);
+
+          return (
+             <Card key={title}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                   <div className="flex items-center gap-3">
+                      <Icon className="h-5 w-5 text-primary" />
+                      <CardTitle className="text-lg">{title}</CardTitle>
+                   </div>
+                   <Badge variant="secondary">{formatCurrency(categoryTotal)}/mês</Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {items.map((item) => (
+                      <RecurrenceCard key={item.id} recurrence={item} />
+                    ))}
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })}
+
+        {Object.values(groupedExpenses).every(arr => arr.length === 0) && (
+             <div className="flex h-40 items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
+              <p className="text-sm text-muted-foreground">Nenhuma despesa recorrente encontrada. Adicione uma na tela de Despesas.</p>
             </div>
-          ) : (
-            <div className="flex h-40 items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
-              <p className="text-sm text-muted-foreground">Nenhuma renda recorrente encontrada.</p>
-            </div>
-          )}
-        </div>
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Despesas Recorrentes</h2>
-          {expenseData && expenseData.length > 0 ? (
-            <div className="space-y-4">
-              {expenseData.map((item) => (
-                <RecurrenceCard key={item.id} recurrence={item} />
-              ))}
-            </div>
-          ) : (
-            <div className="flex h-40 items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
-              <p className="text-sm text-muted-foreground">Nenhuma despesa recorrente encontrada.</p>
-            </div>
-          )}
-        </div>
+        )}
       </div>
     </>
   );
