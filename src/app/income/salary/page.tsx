@@ -4,9 +4,8 @@ import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { collection, query, where, orderBy } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import type { Recurrence, Transaction } from '@/lib/types';
+import type { Transaction } from '@/lib/types';
 import { Loader2, Briefcase, PlusCircle, TrendingUp, TrendingDown } from 'lucide-react';
-import { RecurrenceCard } from '@/components/recurrences/recurrence-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { incomeCategories } from '@/lib/types';
@@ -39,9 +38,9 @@ export default function SalaryPage() {
   } = useMemo(() => {
     if (!salaryData) return { avgGross: 0, avgNet: 0, avgDeductions: 0, salaryHistory: [] };
 
-    const salaries = salaryData.filter(t => t.grossAmount !== undefined);
+    const salaries = salaryData.filter(t => t.grossAmount !== undefined && t.grossAmount > 0);
     
-    if (salaries.length === 0) return { avgGross: 0, avgNet: 0, avgDeductions: 0, salaryHistory: [] };
+    if (salaries.length === 0) return { avgGross: 0, avgNet: 0, avgDeductions: 0, salaryHistory: salaryData.slice(0, 6) };
 
     const totalNet = salaries.reduce((sum, s) => sum + s.amount, 0);
     const totalGross = salaries.reduce((sum, s) => sum + (s.grossAmount || 0), 0);
@@ -51,7 +50,7 @@ export default function SalaryPage() {
       avgNet: totalNet / salaries.length,
       avgGross: totalGross / salaries.length,
       avgDeductions: totalDeductions / salaries.length,
-      salaryHistory: salaries.slice(0, 6) // Last 6 salaries
+      salaryHistory: salaryData.slice(0, 6) // Last 6 salaries, regardless of having gross amount
     };
   }, [salaryData]);
 
@@ -80,11 +79,12 @@ export default function SalaryPage() {
         onClose={handleCloseSheet}
         transactionType="income"
         categories={incomeCategories}
+        transaction={null} 
       />
       <div className="flex items-center justify-end mb-6">
         <Button onClick={handleOpenSheet} disabled={!user}>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Adicionar Renda Fixa
+          Adicionar Salário
         </Button>
       </div>
 
@@ -134,10 +134,16 @@ export default function SalaryPage() {
                               {format(new Date(item.date), 'PPP', { locale: ptBR })}
                             </p>
                         </div>
-                         <div className="text-right text-xs">
-                           <p>Bruto: {formatCurrency(item.grossAmount || 0)}</p>
-                           <p className="text-red-500">Descontos: {formatCurrency(item.totalDeductions || 0)}</p>
-                        </div>
+                         {item.grossAmount && item.grossAmount > 0 ? (
+                            <div className="text-right text-xs">
+                                <p>Bruto: {formatCurrency(item.grossAmount || 0)}</p>
+                                <p className="text-red-500">Descontos: {formatCurrency(item.totalDeductions || 0)}</p>
+                            </div>
+                         ) : (
+                           <div className="text-right text-xs text-muted-foreground">
+                             Detalhes não disponíveis
+                           </div>
+                         )}
                     </div>
                   </Card>
                 ))}
