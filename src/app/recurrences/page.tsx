@@ -6,13 +6,23 @@ import { PageHeader } from '@/components/page-header';
 import { collection, query, where } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Recurrence } from '@/lib/types';
-import { Loader2, Repeat, TrendingDown, TrendingUp, Film, HeartPulse, Cpu, Newspaper } from 'lucide-react';
+import { Loader2, Repeat, TrendingDown, TrendingUp, Film, HeartPulse, Cpu, Newspaper, Home, Zap } from 'lucide-react';
 import { RecurrenceCard } from '@/components/recurrences/recurrence-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 // Define as categorias e seus ícones
 const subscriptionCategories = [
+  { 
+    title: 'Moradia',
+    keywords: ['Aluguel', 'Condomínio', 'Hipoteca'],
+    icon: Home,
+  },
+  {
+    title: 'Contas de Consumo',
+    keywords: ['Luz', 'Água', 'Gás', 'Internet', 'Celular', 'Plano'],
+    icon: Zap,
+  },
   { 
     title: 'Streaming & Mídia',
     keywords: ['Netflix', 'YouTube', 'Spotify', 'Amazon Prime', 'Disney+', 'HBO Max', 'Música', 'Filmes'],
@@ -56,8 +66,8 @@ export default function RecurrencesPage() {
     const income = incomeData?.reduce((sum, item) => sum + item.amount, 0) || 0;
     const expenses = expenseData?.reduce((sum, item) => sum + item.amount, 0) || 0;
 
-    const grouped: Record<string, Recurrence[]> = { 'Outras Assinaturas': [] };
-    subscriptionCategories.forEach(cat => grouped[cat.title] = []);
+    const grouped: Record<string, Recurrence[]> = { 'Outras Recorrências': [] };
+    subscriptionCategories.forEach(cat => grouped[cat.title] = [];
 
     (expenseData || []).forEach(expense => {
       const foundCategory = subscriptionCategories.find(cat => 
@@ -70,7 +80,7 @@ export default function RecurrencesPage() {
       if (foundCategory) {
         grouped[foundCategory.title].push(expense);
       } else {
-        grouped['Outras Assinaturas'].push(expense);
+        grouped['Outras Recorrências'].push(expense);
       }
     });
 
@@ -95,13 +105,13 @@ export default function RecurrencesPage() {
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
-  const allCategories = [...subscriptionCategories, { title: 'Outras Assinaturas', icon: Repeat, keywords: [] }];
+  const allCategories = [...subscriptionCategories, { title: 'Outras Recorrências', icon: Repeat, keywords: [] }];
 
   return (
     <>
       <PageHeader
-        title="Streams & Assinaturas"
-        description="Gerencie suas despesas recorrentes (assinaturas, mensalidades, etc.) em um só lugar."
+        title="Pagamentos Recorrentes"
+        description="Gerencie suas despesas fixas (contas, aluguel, assinaturas) em um só lugar."
       />
 
       <div className="mb-8 grid gap-4 md:grid-cols-3">
