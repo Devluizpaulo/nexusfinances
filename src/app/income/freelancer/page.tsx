@@ -78,7 +78,7 @@ export default function FreelancerPage() {
 
       {/* Cards de Estatísticas */}
       {freelancerIncomes.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-3 mb-8">
+        <div className="mt-2 grid gap-4 md:grid-cols-3 mb-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Renda Mensal Total</CardTitle>

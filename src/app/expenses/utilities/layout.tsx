@@ -1,9 +1,9 @@
 import { AuthenticatedLayout } from "@/components/layout/authenticated-layout";
 
-export default function UtilitiesLayout({
+export default function SalaryLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <AuthenticatedLayout>{children}</AuthenticatedLayout>;
+  return children;
 }
