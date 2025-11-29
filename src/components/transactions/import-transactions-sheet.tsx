@@ -256,35 +256,35 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
                   </Select>
               </div>
 
-              <motion.div
-                {...getRootProps()}
-                className={cn(
-                  'flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer transition-colors',
-                  isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
-                )}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              >
-                <input {...getInputProps()} />
-                {file ? (
-                    <motion.div 
-                        className="text-center text-emerald-600"
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
+               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <div
+                  {...getRootProps()}
+                  className={cn(
+                    'flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer transition-colors',
+                    isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
+                  )}
+                >
+                  <input {...getInputProps()} />
+                  {file ? (
+                    <motion.div
+                      className="text-center text-emerald-600"
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
                     >
-                        <FileCheck2 className="mx-auto h-12 w-12" />
-                        <p className="mt-2 font-semibold">Arquivo selecionado!</p>
-                        <p className="text-xs">{file.name}</p>
+                      <FileCheck2 className="mx-auto h-12 w-12" />
+                      <p className="mt-2 font-semibold">Arquivo selecionado!</p>
+                      <p className="text-xs">{file.name}</p>
                     </motion.div>
-                ) : isDragActive ? (
-                  <p>Solte o arquivo aqui...</p>
-                ) : (
-                  <div className="text-center text-muted-foreground">
-                    <FileUp className="mx-auto h-12 w-12" />
-                    <p className="mt-2">Arraste e solte o arquivo PDF aqui,</p>
-                    <p className="text-xs">ou clique para selecionar</p>
-                  </div>
-                )}
+                  ) : isDragActive ? (
+                    <p>Solte o arquivo aqui...</p>
+                  ) : (
+                    <div className="text-center text-muted-foreground">
+                      <FileUp className="mx-auto h-12 w-12" />
+                      <p className="mt-2">Arraste e solte o arquivo PDF aqui,</p>
+                      <p className="text-xs">ou clique para selecionar</p>
+                    </div>
+                  )}
+                </div>
               </motion.div>
             </div>
             <DialogFooter>

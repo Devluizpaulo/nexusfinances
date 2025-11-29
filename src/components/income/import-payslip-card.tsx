@@ -156,32 +156,32 @@ export function ImportPayslipCard() {
       </CardHeader>
       <CardContent className="space-y-4">
         {!editableResult ? (
-          <motion.div
-            {...getRootProps()}
-            className={cn(
-              'flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer transition-colors',
-              isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
-            )}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            <input {...getInputProps()} />
-            {file ? (
-              <motion.div 
-                className="text-center text-emerald-600"
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-              >
-                <FileCheck2 className="mx-auto h-10 w-10" />
-                <p className="mt-2 font-semibold">Arquivo selecionado!</p>
-                <p className="text-xs">{file.name}</p>
-              </motion.div>
-            ) : (
-              <div className="text-center text-muted-foreground">
-                <FileUp className="mx-auto h-10 w-10" />
-                <p className="mt-2">Arraste e solte o arquivo PDF aqui, ou clique para selecionar</p>
-              </div>
-            )}
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <div
+              {...getRootProps()}
+              className={cn(
+                'flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer transition-colors',
+                isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
+              )}
+            >
+              <input {...getInputProps()} />
+              {file ? (
+                <motion.div
+                  className="text-center text-emerald-600"
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                >
+                  <FileCheck2 className="mx-auto h-10 w-10" />
+                  <p className="mt-2 font-semibold">Arquivo selecionado!</p>
+                  <p className="text-xs">{file.name}</p>
+                </motion.div>
+              ) : (
+                <div className="text-center text-muted-foreground">
+                  <FileUp className="mx-auto h-10 w-10" />
+                  <p className="mt-2">Arraste e solte o arquivo PDF aqui, ou clique para selecionar</p>
+                </div>
+              )}
+            </div>
           </motion.div>
         ) : (
           <motion.div 
@@ -276,7 +276,7 @@ export function ImportPayslipCard() {
                       </PopoverContent>
                     </Popover>
                 </div>
-                 {editableResult.fgtsAmount !== undefined && (
+                 {editableResult.fgtsAmount !== undefined && editableResult.fgtsAmount !== null && (
                     <div className="space-y-1 rounded-md bg-background p-3">
                         <label className="text-sm font-medium text-muted-foreground flex items-center gap-1.5"><Banknote className="h-4 w-4"/> FGTS do Mês</label>
                         <CurrencyInput value={editableResult.fgtsAmount || 0} onValueChange={value => handleFieldChange('fgtsAmount', value)}/>
