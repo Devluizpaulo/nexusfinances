@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -145,12 +146,12 @@ export function DebtCard({ debt, selectedDueDate }: DebtCardProps) {
 
   const getInstallmentStatus = (installment: Installment) => {
     if (installment.status === 'paid') {
-      return { text: 'Pago', variant: 'paid' };
+      return { text: 'Pago', variant: 'paid' as const };
     }
     if (isPast(parseISO(installment.dueDate))) {
-      return { text: 'Vencida', variant: 'overdue' };
+      return { text: 'Vencida', variant: 'overdue' as const };
     }
-    return { text: 'Pendente', variant: 'unpaid' };
+    return { text: 'Pendente', variant: 'unpaid' as const };
   };
 
   const paidAmount = debt.paidAmount || 0;
@@ -279,5 +280,3 @@ export function DebtCard({ debt, selectedDueDate }: DebtCardProps) {
     </>
   );
 }
-
-    

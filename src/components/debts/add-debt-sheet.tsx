@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -109,7 +110,7 @@ export function AddDebtSheet({ isOpen, onClose }: AddDebtSheetProps) {
           installmentNumber: i + 1,
           amount: installmentAmount,
           dueDate: formatISO(addMonths(values.startDate, i)),
-          status: 'unpaid',
+          status: 'unpaid' as const,
         };
         batch.set(installmentRef, installmentData);
       }

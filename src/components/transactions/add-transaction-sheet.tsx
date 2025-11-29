@@ -36,7 +36,7 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { CalendarIcon, Loader2, PlusCircle, FileUp, FileCheck2, Sparkles, X, FileText } from 'lucide-react';
+import { CalendarIcon, Loader2, PlusCircle } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -50,8 +50,6 @@ import { Textarea } from '../ui/textarea';
 import { CurrencyInput } from '../ui/currency-input';
 import { Separator } from '../ui/separator';
 import { Label } from '@/components/ui/label';
-import { useDropzone } from 'react-dropzone';
-import { extractPayslipData } from '@/ai/flows/extract-payslip-data-flow';
 
 const formSchema = z.object({
   category: z.string().min(1, 'Escolha uma categoria.'),
@@ -113,10 +111,6 @@ export function AddTransactionSheet({
   
   const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
-  
-  const [isAiSectionOpen, setIsAiSectionOpen] = useState(false);
-  const [isProcessingPdf, setIsProcessingPdf] = useState(false);
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
 
   const paymentMethod = form.watch('paymentMethod');
   
@@ -137,22 +131,6 @@ export function AddTransactionSheet({
     return Array.from(combined);
   }, [categories, user, transactionType]);
 
-  const resetFormAndAi = () => {
-    form.reset({
-      description: '',
-      vendor: '',
-      amount: 0,
-      category: '',
-      date: new Date(),
-      isRecurring: false,
-      status: 'paid',
-      paymentMethod: 'cash',
-      creditCardId: undefined,
-    });
-    setPdfFile(null);
-    setIsAiSectionOpen(false);
-    setIsProcessingPdf(false);
-  }
 
   useEffect(() => {
     if (isOpen && transaction) {
@@ -166,65 +144,20 @@ export function AddTransactionSheet({
         creditCardId: transaction.creditCardId || undefined,
       });
     } else if (isOpen) {
-      resetFormAndAi();
+      form.reset({
+        description: '',
+        vendor: '',
+        amount: 0,
+        category: '',
+        date: new Date(),
+        isRecurring: false,
+        status: 'paid',
+        paymentMethod: 'cash',
+        creditCardId: undefined,
+      });
     }
   }, [isOpen, transaction, form]);
   
-   const onDrop = (acceptedFiles: File[]) => {
-    if (acceptedFiles.length > 0) {
-      const selectedFile = acceptedFiles[0];
-      if (selectedFile.type !== 'application/pdf') {
-        toast({ variant: 'destructive', title: 'Arquivo inválido', description: 'Por favor, selecione apenas arquivos PDF.' });
-        return;
-      }
-      setPdfFile(selectedFile);
-    }
-  };
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    multiple: false,
-    accept: { 'application/pdf': ['.pdf'] },
-  });
-
-  const handleExtractFromPdf = async () => {
-    if (!pdfFile) return;
-    setIsProcessingPdf(true);
-    try {
-      const reader = new FileReader();
-      reader.readAsDataURL(pdfFile);
-      reader.onload = async () => {
-        const dataUri = reader.result as string;
-        const extractedData = await extractPayslipData({ pdfBase64: dataUri });
-
-        if (extractedData && extractedData.netAmount) {
-            form.setValue('amount', extractedData.netAmount, { shouldValidate: true });
-            if (extractedData.description) {
-                form.setValue('description', extractedData.description, { shouldValidate: true });
-            }
-            if (extractedData.issueDate) {
-                form.setValue('date', parseISO(extractedData.issueDate), { shouldValidate: true });
-            }
-            
-            toast({ title: 'Dados Extraídos!', description: 'Os campos foram preenchidos. Revise antes de salvar.' });
-            setPdfFile(null);
-            setIsAiSectionOpen(false);
-        } else {
-            toast({
-                variant: 'destructive',
-                title: 'Análise Falhou',
-                description: 'A IA não conseguiu extrair os dados. O documento pode ser muito complexo. Por favor, preencha manualmente.',
-            });
-        }
-      };
-    } catch (error) {
-      console.error("Error processing payslip:", error);
-      toast({ variant: 'destructive', title: 'Erro na Análise', description: 'Não foi possível extrair os dados. Tente um arquivo mais simples.' });
-    } finally {
-      setIsProcessingPdf(false);
-    }
-  };
-
   const onSubmit = (values: TransactionFormValues) => {
     if (!user) {
       toast({
@@ -291,60 +224,12 @@ export function AddTransactionSheet({
 
   return (
     <>
-    <Dialog open={isOpen} onOpenChange={(open) => {
-        if (!open) {
-            onClose();
-            resetFormAndAi();
-        }
-    }}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
          <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
-        
-         {transactionType === 'income' && !transaction && (
-            <div className="space-y-2">
-                 <Button variant="outline" className="w-full" onClick={() => setIsAiSectionOpen(!isAiSectionOpen)}>
-                    <Sparkles className="mr-2 h-4 w-4 text-amber-500" />
-                    {isAiSectionOpen ? 'Fechar Leitura com IA' : 'Ler PDF com IA'}
-                 </Button>
-                {isAiSectionOpen && (
-                    <div className="space-y-3 rounded-lg border bg-muted/50 p-4 animate-in fade-in-50">
-                        <div
-                            {...getRootProps()}
-                            className={cn(
-                            'flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors',
-                            isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
-                            )}
-                        >
-                            <input {...getInputProps()} />
-                            {pdfFile ? (
-                                <div className="text-center text-emerald-600">
-                                    <FileCheck2 className="mx-auto h-8 w-8" />
-                                    <p className="mt-1 font-semibold text-sm">Arquivo selecionado!</p>
-                                    <p className="text-xs">{pdfFile.name}</p>
-                                </div>
-                            ) : (
-                                <div className="text-center text-muted-foreground">
-                                    <FileUp className="mx-auto h-8 w-8" />
-                                    <p className="mt-1 text-sm">Arraste um PDF aqui</p>
-                                    <p className="text-xs">ou clique para selecionar</p>
-                                </div>
-                            )}
-                        </div>
-                        <div className="flex justify-end gap-2">
-                           <Button type="button" variant="ghost" size="sm" onClick={() => setPdfFile(null)} disabled={!pdfFile || isProcessingPdf}>Limpar</Button>
-                           <Button type="button" size="sm" onClick={handleExtractFromPdf} disabled={!pdfFile || isProcessingPdf}>
-                             {isProcessingPdf ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
-                             Extrair Dados
-                           </Button>
-                        </div>
-                    </div>
-                )}
-                <Separator />
-            </div>
-        )}
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -457,9 +342,9 @@ export function AddTransactionSheet({
               name="vendor"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Prestador / Empresa</FormLabel>
+                  <FormLabel>Estabelecimento (Opcional)</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ex: Netflix, Contabilizei, Mercado X..." {...field} />
+                    <Input placeholder="Ex: Netflix, Padaria do Zé, Mercado X..." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

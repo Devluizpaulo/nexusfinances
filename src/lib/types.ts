@@ -52,6 +52,7 @@ export type Installment = {
   amount: number;
   dueDate: string; // ISO string
   status: 'paid' | 'unpaid';
+  userId?: string;
 };
 
 export type Goal = {
