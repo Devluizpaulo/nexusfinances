@@ -124,10 +124,6 @@ export default function SubscriptionsPage() {
             <Upload className="mr-2 h-4 w-4" />
             Importar PDF com IA
         </Button>
-        <Button onClick={handleOpenSheet} disabled={!user}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Adicionar Assinatura
-        </Button>
       </PageHeader>
 
 
@@ -170,3 +166,5 @@ export default function SubscriptionsPage() {
     </>
   );
 }
+
+    

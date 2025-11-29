@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { collection, deleteDoc, doc, getDocs, setDoc, updateDoc, query, where } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase, deleteDocumentNonBlocking } from '@/firebase';
 import type { Transaction } from '@/lib/types';
-import { Loader2, Briefcase, PlusCircle, TrendingUp, TrendingDown, Edit, Star, Trash2, MoreVertical } from 'lucide-react';
+import { Loader2, Briefcase, PlusCircle, TrendingUp, TrendingDown, Edit, Star, Trash2, MoreVertical, Upload } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { incomeCategories } from '@/lib/types';
@@ -22,6 +22,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Badge } from '@/components/ui/badge';
 import { ImportPayslipCard } from '@/components/income/import-payslip-card';
 import { useToast } from '@/hooks/use-toast';
+import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -37,6 +38,7 @@ type SalaryContract = {
 
 export default function SalaryPage() {
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
+  const [isImportSheetOpen, setIsImportSheetOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [isContractsModalOpen, setIsContractsModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -279,6 +281,10 @@ export default function SalaryPage() {
         categories={incomeCategories}
         transaction={editingTransaction} 
       />
+       <ImportTransactionsSheet 
+        isOpen={isImportSheetOpen}
+        onClose={() => setIsImportSheetOpen(false)}
+      />
 
        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
@@ -311,9 +317,9 @@ export default function SalaryPage() {
             <Briefcase className="mr-2 h-4 w-4" />
             Gerenciar contratos
           </Button>
-          <Button onClick={() => handleOpenSheet(null)} disabled={!user}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Adicionar Salário
+           <Button variant="outline" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>
+            <Upload className="mr-2 h-4 w-4" />
+            Importar PDF
           </Button>
         </div>
       </div>
@@ -574,3 +580,5 @@ export default function SalaryPage() {
     </>
   );
 }
+
+    

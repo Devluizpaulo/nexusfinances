@@ -76,10 +76,6 @@ export default function OthersIncomePage() {
           <Upload className="mr-2 h-4 w-4" />
           Importar PDF com IA
         </Button>
-        <Button onClick={handleOpenSheet} disabled={!user}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Adicionar Outra Renda
-        </Button>
       </PageHeader>
 
       <Card className="mt-4">
@@ -110,3 +106,5 @@ export default function OthersIncomePage() {
     </>
   );
 }
+
+    

@@ -6,17 +6,19 @@ import { Badge } from '@/components/ui/badge';
 import { collection, query, where } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Recurrence } from '@/lib/types';
-import { Loader2, PenSquare, PlusCircle, Calendar, DollarSign, Users } from 'lucide-react';
+import { Loader2, PenSquare, PlusCircle, Calendar, DollarSign, Users, Upload } from 'lucide-react';
 import { RecurrenceCard } from '@/components/recurrences/recurrence-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { incomeCategories } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
+import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
 
 const freelancerKeywords = ['freelance', 'projeto', 'consultoria', 'cliente', 'contrato', 'serviço'];
 
 export default function FreelancerPage() {
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
+  const [isImportSheetOpen, setIsImportSheetOpen] = useState(false);
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
 
@@ -75,10 +77,14 @@ export default function FreelancerPage() {
         transactionType="income"
         categories={incomeCategories}
       />
-      <div className="mb-6 flex items-center justify-end">
-        <Button onClick={handleOpenSheet} disabled={!user}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Adicionar Renda de Freelance
+       <ImportTransactionsSheet 
+        isOpen={isImportSheetOpen}
+        onClose={() => setIsImportSheetOpen(false)}
+      />
+      <div className="mb-6 flex items-center justify-end gap-2">
+         <Button variant="outline" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>
+            <Upload className="mr-2 h-4 w-4" />
+            Importar Nota Fiscal (IA)
         </Button>
       </div>
 
@@ -197,3 +203,5 @@ export default function FreelancerPage() {
     </>
   );
 }
+
+    
