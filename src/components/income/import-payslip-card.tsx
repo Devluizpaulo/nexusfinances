@@ -20,7 +20,7 @@ import { CurrencyInput } from '../ui/currency-input';
 import { Textarea } from '../ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 
 export function ImportPayslipCard() {
@@ -155,8 +155,8 @@ export function ImportPayslipCard() {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {!editableResult ? (
-          isProcessing ? (
+        <AnimatePresence mode="wait">
+          {isProcessing ? (
              <motion.div
               key="loading"
               initial={{ opacity: 0, y: -10 }}
@@ -167,8 +167,8 @@ export function ImportPayslipCard() {
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
               <p className="mt-4 text-sm font-medium text-muted-foreground">Analisando documento...</p>
             </motion.div>
-          ) : (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="dropzone">
+          ) : !editableResult ? (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{opacity: 0}} key="dropzone">
               <div
                 {...getRootProps()}
                 className={cn(
@@ -178,15 +178,11 @@ export function ImportPayslipCard() {
               >
                 <input {...getInputProps()} />
                 {file ? (
-                  <motion.div
-                    className="text-center text-emerald-600"
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                  >
+                  <div className="text-center text-emerald-600">
                     <FileCheck2 className="mx-auto h-10 w-10" />
                     <p className="mt-2 font-semibold">Arquivo selecionado!</p>
                     <p className="text-xs">{file.name}</p>
-                  </motion.div>
+                  </div>
                 ) : (
                   <div className="text-center text-muted-foreground">
                     <FileUp className="mx-auto h-10 w-10" />
@@ -195,14 +191,14 @@ export function ImportPayslipCard() {
                 )}
               </div>
             </motion.div>
-          )
-        ) : (
-          <motion.div 
-            className="space-y-4 rounded-lg border bg-muted/50 p-4"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
+          ) : (
+            <motion.div 
+              key="results"
+              className="space-y-4 rounded-lg border bg-muted/50 p-4"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
              <div className="space-y-1">
                 <label className="text-sm font-medium text-muted-foreground">Pagador</label>
                 <Input value={editableResult.companyName || ''} onChange={(e) => handleFieldChange('companyName', e.target.value)} />
@@ -308,7 +304,8 @@ export function ImportPayslipCard() {
              </div>
 
           </motion.div>
-        )}
+          )}
+        </AnimatePresence>
       </CardContent>
       <CardFooter className="flex justify-end gap-2">
         {editableResult && <Button variant="outline" onClick={handleReset}>Cancelar</Button>}

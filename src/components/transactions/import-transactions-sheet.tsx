@@ -35,7 +35,7 @@ import {
 import { Checkbox } from '../ui/checkbox';
 import { useFirestore, useUser } from '@/firebase';
 import { collection, doc, writeBatch } from 'firebase/firestore';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 
 type ImportTransactionsSheetProps = {
@@ -234,150 +234,145 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
           </DialogDescription>
         </DialogHeader>
         
-        {reviewTransactions.length === 0 ? (
-          <>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <label htmlFor="document-type" className="text-sm font-medium">Tipo de Documento</label>
-                 <Select value={documentType} onValueChange={(value) => setDocumentType(value as DocumentType)}>
-                    <SelectTrigger id="document-type">
-                      <SelectValue placeholder="Selecione o tipo de documento..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(documentTypes).map(([key, {label, icon: Icon}]) => (
-                        <SelectItem key={key} value={key}>
-                          <div className="flex items-center gap-2">
-                            <Icon className="h-4 w-4 text-muted-foreground" />
-                            <span>{label}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-              </div>
-
-               {isProcessing ? (
-                <motion.div
-                  key="loading"
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg"
+        <AnimatePresence mode="wait">
+          {isProcessing ? (
+            <motion.div
+              key="loading"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="flex flex-col items-center justify-center w-full h-96 border-2 border-dashed rounded-lg"
+            >
+              <Loader2 className="h-12 w-12 animate-spin text-primary" />
+              <p className="mt-4 text-sm font-medium text-muted-foreground">
+                {reviewTransactions.length > 0 ? 'Salvando transações...' : 'Analisando documento...'}
+              </p>
+              <p className="text-xs text-muted-foreground">Isso pode levar alguns segundos.</p>
+            </motion.div>
+          ) : reviewTransactions.length === 0 ? (
+            <motion.div key="upload-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <label htmlFor="document-type" className="text-sm font-medium">Tipo de Documento</label>
+                  <Select value={documentType} onValueChange={(value) => setDocumentType(value as DocumentType)}>
+                      <SelectTrigger id="document-type">
+                        <SelectValue placeholder="Selecione o tipo de documento..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(documentTypes).map(([key, {label, icon: Icon}]) => (
+                          <SelectItem key={key} value={key}>
+                            <div className="flex items-center gap-2">
+                              <Icon className="h-4 w-4 text-muted-foreground" />
+                              <span>{label}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                </div>
+                <div
+                  {...getRootProps()}
+                  className={cn(
+                    'flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer transition-colors',
+                    isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
+                  )}
                 >
-                  <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                  <p className="mt-4 text-sm font-medium text-muted-foreground">Analisando documento...</p>
-                  <p className="text-xs text-muted-foreground">Isso pode levar alguns segundos.</p>
-                </motion.div>
-              ) : (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="dropzone">
-                  <div
-                    {...getRootProps()}
-                    className={cn(
-                      'flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer transition-colors',
-                      isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
-                    )}
-                  >
-                    <input {...getInputProps()} />
-                    {file ? (
-                      <motion.div
-                        className="text-center text-emerald-600"
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                      >
-                        <FileCheck2 className="mx-auto h-12 w-12" />
-                        <p className="mt-2 font-semibold">Arquivo selecionado!</p>
-                        <p className="text-xs">{file.name}</p>
-                      </motion.div>
-                    ) : isDragActive ? (
-                      <p>Solte o arquivo aqui...</p>
-                    ) : (
-                      <div className="text-center text-muted-foreground">
-                        <FileUp className="mx-auto h-12 w-12" />
-                        <p className="mt-2">Arraste e solte o arquivo PDF aqui,</p>
-                        <p className="text-xs">ou clique para selecionar</p>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={handleReset}>Cancelar</Button>
-              <Button onClick={handleImport} disabled={!file || isProcessing}>
-                {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isProcessing ? 'Analisando...' : 'Extrair Transações'}
-              </Button>
-            </DialogFooter>
-          </>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="max-h-[60vh] overflow-y-auto pr-2">
-               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">
-                      <Checkbox 
-                        checked={reviewTransactions.every(t => t.selected)}
-                        onCheckedChange={(checked) => handleSelectAll(Boolean(checked))}
-                      />
-                    </TableHead>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Descrição</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Categoria</TableHead>
-                    <TableHead className="text-right">Valor</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {reviewTransactions.map(t => (
-                    <TableRow key={t.id} className={cn(!t.selected && "bg-muted/50 text-muted-foreground")}>
-                      <TableCell>
-                        <Checkbox checked={t.selected} onCheckedChange={() => handleToggleSelect(t.id)} />
-                      </TableCell>
-                      <TableCell>{t.date}</TableCell>
-                      <TableCell>{t.description}</TableCell>
-                       <TableCell>
-                        <Select value={t.type} onValueChange={(value: 'income' | 'expense') => handleTypeChange(t.id, value)}>
-                            <SelectTrigger className="h-8 w-28 text-xs">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="expense">Despesa</SelectItem>
-                                <SelectItem value="income">Renda</SelectItem>
-                            </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell>
-                        <Select value={t.category} onValueChange={(value) => handleCategoryChange(t.id, value)}>
-                           <SelectTrigger className="h-8 w-36 text-xs">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {uniqueCategories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell className={cn("text-right font-medium", t.amount > 0 ? 'text-emerald-600' : 'text-red-600')}>
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(t.amount)}
-                      </TableCell>
+                  <input {...getInputProps()} />
+                  {file ? (
+                    <div className="text-center text-emerald-600">
+                      <FileCheck2 className="mx-auto h-12 w-12" />
+                      <p className="mt-2 font-semibold">Arquivo selecionado!</p>
+                      <p className="text-xs">{file.name}</p>
+                    </div>
+                  ) : isDragActive ? (
+                    <p>Solte o arquivo aqui...</p>
+                  ) : (
+                    <div className="text-center text-muted-foreground">
+                      <FileUp className="mx-auto h-12 w-12" />
+                      <p className="mt-2">Arraste e solte o arquivo PDF aqui,</p>
+                      <p className="text-xs">ou clique para selecionar</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={handleReset}>Cancelar</Button>
+                <Button onClick={handleImport} disabled={!file || isProcessing}>
+                  {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Extrair Transações
+                </Button>
+              </DialogFooter>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="review-view"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="max-h-[60vh] overflow-y-auto pr-2">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">
+                        <Checkbox 
+                          checked={reviewTransactions.every(t => t.selected)}
+                          onCheckedChange={(checked) => handleSelectAll(Boolean(checked))}
+                        />
+                      </TableHead>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Descrição</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Categoria</TableHead>
+                      <TableHead className="text-right">Valor</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-               </Table>
-            </div>
-            <DialogFooter className="mt-4">
-              <Button variant="outline" onClick={handleReset}>Cancelar</Button>
-              <Button onClick={handleSave} disabled={reviewTransactions.filter(t => t.selected).length === 0 || isProcessing}>
-                {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Salvar Transações ({reviewTransactions.filter(t => t.selected).length})
-              </Button>
-            </DialogFooter>
-          </motion.div>
-        )}
+                  </TableHeader>
+                  <TableBody>
+                    {reviewTransactions.map(t => (
+                      <TableRow key={t.id} className={cn(!t.selected && "bg-muted/50 text-muted-foreground")}>
+                        <TableCell>
+                          <Checkbox checked={t.selected} onCheckedChange={() => handleToggleSelect(t.id)} />
+                        </TableCell>
+                        <TableCell>{t.date}</TableCell>
+                        <TableCell>{t.description}</TableCell>
+                        <TableCell>
+                          <Select value={t.type} onValueChange={(value: 'income' | 'expense') => handleTypeChange(t.id, value)}>
+                              <SelectTrigger className="h-8 w-28 text-xs">
+                                  <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                  <SelectItem value="expense">Despesa</SelectItem>
+                                  <SelectItem value="income">Renda</SelectItem>
+                              </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell>
+                          <Select value={t.category} onValueChange={(value) => handleCategoryChange(t.id, value)}>
+                            <SelectTrigger className="h-8 w-36 text-xs">
+                                  <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                  {uniqueCategories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                              </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell className={cn("text-right font-medium", t.amount > 0 ? 'text-emerald-600' : 'text-red-600')}>
+                          {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(t.amount)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <DialogFooter className="mt-4">
+                <Button variant="outline" onClick={handleReset}>Cancelar</Button>
+                <Button onClick={handleSave} disabled={reviewTransactions.filter(t => t.selected).length === 0 || isProcessing}>
+                  Salvar Transações ({reviewTransactions.filter(t => t.selected).length})
+                </Button>
+              </DialogFooter>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </DialogContent>
     </Dialog>
   );
