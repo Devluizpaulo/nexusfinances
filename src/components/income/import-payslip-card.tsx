@@ -20,6 +20,7 @@ import { CurrencyInput } from '../ui/currency-input';
 import { Textarea } from '../ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
+import { motion } from 'framer-motion';
 
 
 export function ImportPayslipCard() {
@@ -74,7 +75,7 @@ export function ImportPayslipCard() {
             toast({
                 variant: 'destructive',
                 title: 'Análise Falhou',
-                description: 'A IA não conseguiu extrair os dados. O documento pode ser muito complexo ou não ser um holerite/NF. Por favor, preencha manualmente.',
+                description: 'A IA não conseguiu extrair os dados. O documento pode ser muito complexo ou não ser um holerite/NF. Por favor, preencha manually.',
             });
             setOriginalResult(null);
         } else {
@@ -155,29 +156,40 @@ export function ImportPayslipCard() {
       </CardHeader>
       <CardContent className="space-y-4">
         {!editableResult ? (
-          <div
+          <motion.div
             {...getRootProps()}
             className={cn(
               'flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer transition-colors',
               isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
             )}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
           >
             <input {...getInputProps()} />
             {file ? (
-              <div className="text-center text-emerald-600">
+              <motion.div 
+                className="text-center text-emerald-600"
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+              >
                 <FileCheck2 className="mx-auto h-10 w-10" />
                 <p className="mt-2 font-semibold">Arquivo selecionado!</p>
                 <p className="text-xs">{file.name}</p>
-              </div>
+              </motion.div>
             ) : (
               <div className="text-center text-muted-foreground">
                 <FileUp className="mx-auto h-10 w-10" />
                 <p className="mt-2">Arraste e solte o arquivo PDF aqui, ou clique para selecionar</p>
               </div>
             )}
-          </div>
+          </motion.div>
         ) : (
-          <div className="space-y-4 rounded-lg border bg-muted/50 p-4">
+          <motion.div 
+            className="space-y-4 rounded-lg border bg-muted/50 p-4"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
              <div className="space-y-1">
                 <label className="text-sm font-medium text-muted-foreground">Pagador</label>
                 <Input value={editableResult.companyName || ''} onChange={(e) => handleFieldChange('companyName', e.target.value)} />
@@ -282,7 +294,7 @@ export function ImportPayslipCard() {
                 <Textarea value={editableResult.description || ''} onChange={(e) => handleFieldChange('description', e.target.value)} placeholder="Adicione uma descrição para esta renda..."/>
              </div>
 
-          </div>
+          </motion.div>
         )}
       </CardContent>
       <CardFooter className="flex justify-end gap-2">
@@ -295,7 +307,7 @@ export function ImportPayslipCard() {
         ) : (
           <Button onClick={handleExtract} disabled={!file || isProcessing}>
             {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
-            Analisar Documento
+            {isProcessing ? 'Analisando...' : 'Analisar Documento'}
           </Button>
         )}
       </CardFooter>

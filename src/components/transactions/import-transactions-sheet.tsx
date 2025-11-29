@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -34,6 +35,7 @@ import {
 import { Checkbox } from '../ui/checkbox';
 import { useFirestore, useUser } from '@/firebase';
 import { collection, doc, writeBatch } from 'firebase/firestore';
+import { motion } from 'framer-motion';
 
 
 type ImportTransactionsSheetProps = {
@@ -112,7 +114,7 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = async () => {
-            const base64File = (reader.result as string).split(',')[1];
+            const base64File = reader.result as string; // Already a data URI
             const result = await extractTransactionsFromPdf({ pdfBase64: base64File });
 
             const transactionsToReview: ReviewTransaction[] = result.transactions.map((t, i) => ({
@@ -254,20 +256,26 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
                   </Select>
               </div>
 
-              <div
+              <motion.div
                 {...getRootProps()}
                 className={cn(
                   'flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer transition-colors',
                   isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
                 )}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
               >
                 <input {...getInputProps()} />
                 {file ? (
-                    <div className="text-center text-emerald-600">
+                    <motion.div 
+                        className="text-center text-emerald-600"
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                    >
                         <FileCheck2 className="mx-auto h-12 w-12" />
                         <p className="mt-2 font-semibold">Arquivo selecionado!</p>
                         <p className="text-xs">{file.name}</p>
-                    </div>
+                    </motion.div>
                 ) : isDragActive ? (
                   <p>Solte o arquivo aqui...</p>
                 ) : (
@@ -277,18 +285,22 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
                     <p className="text-xs">ou clique para selecionar</p>
                   </div>
                 )}
-              </div>
+              </motion.div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={handleReset}>Cancelar</Button>
               <Button onClick={handleImport} disabled={!file || isProcessing}>
                 {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Extrair Transações
+                {isProcessing ? 'Analisando...' : 'Extrair Transações'}
               </Button>
             </DialogFooter>
           </>
         ) : (
-          <>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
             <div className="max-h-[60vh] overflow-y-auto pr-2">
                <Table>
                 <TableHeader>
@@ -343,14 +355,14 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
                 </TableBody>
                </Table>
             </div>
-            <DialogFooter>
+            <DialogFooter className="mt-4">
               <Button variant="outline" onClick={handleReset}>Cancelar</Button>
               <Button onClick={handleSave} disabled={reviewTransactions.filter(t => t.selected).length === 0 || isProcessing}>
                 {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Salvar Transações ({reviewTransactions.filter(t => t.selected).length})
               </Button>
             </DialogFooter>
-          </>
+          </motion.div>
         )}
       </DialogContent>
     </Dialog>
