@@ -19,6 +19,7 @@ import { PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts';
 import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { calculateScore, type Mission } from '@/lib/education-data';
+import Link from 'next/link';
 
 interface FinancialHealthScoreProps {
   income: number;
@@ -52,6 +53,29 @@ export function FinancialHealthScore({
       : score < 80
         ? 'Bom caminho! Continue acompanhando e cumprindo as missões.'
         : 'Excelente! Mantenha seus hábitos e revise suas metas periodicamente.';
+  
+  const getLinkForMission = (id: string): string | undefined => {
+    switch (id) {
+      case 'm2':
+      case 'm2b':
+      case 'm6':
+        return '/goals';
+      case 'm3':
+        return '/debts';
+      case 'm4':
+        return '/expenses';
+      default:
+        return undefined;
+    }
+  }
+
+  const MissionWrapper = ({ mission, children }: { mission: Mission; children: React.ReactNode }) => {
+    const href = getLinkForMission(mission.id);
+    if (!mission.isCompleted && href) {
+      return <Link href={href}>{children}</Link>;
+    }
+    return <>{children}</>;
+  };
   
   return (
     <Card className="flex flex-col h-full">
@@ -104,24 +128,26 @@ export function FinancialHealthScore({
             </div>
              <div className="space-y-2">
                {visibleMissions.map((mission) => (
-                  <div
-                    key={mission.id}
-                    className={cn(
-                      'flex items-start gap-2 rounded-md border p-2 text-xs',
-                      mission.isCompleted
-                        ? 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-900/60 dark:bg-emerald-900/10'
-                        : 'border-border bg-background'
-                    )}
-                  >
-                      {mission.isCompleted ? (
-                          <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
-                      ) : (
-                          <XCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/60" />
+                  <MissionWrapper key={mission.id} mission={mission}>
+                    <div
+                      className={cn(
+                        'flex items-start gap-2 rounded-md border p-2 text-xs transition-colors',
+                        mission.isCompleted
+                          ? 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-900/60 dark:bg-emerald-900/10'
+                          : 'border-border bg-background',
+                        !mission.isCompleted && getLinkForMission(mission.id) && 'cursor-pointer hover:border-primary/50 hover:bg-muted'
                       )}
-                      <span className={cn('text-xs', mission.isCompleted ? 'text-emerald-900 dark:text-emerald-50' : 'text-foreground')}>
-                          {mission.description}
-                      </span>
-                  </div>
+                    >
+                        {mission.isCompleted ? (
+                            <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                        ) : (
+                            <XCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/60" />
+                        )}
+                        <span className={cn('text-xs', mission.isCompleted ? 'text-emerald-900 dark:text-emerald-50' : 'text-foreground')}>
+                            {mission.description}
+                        </span>
+                    </div>
+                  </MissionWrapper>
               ))}
              </div>
         </div>
