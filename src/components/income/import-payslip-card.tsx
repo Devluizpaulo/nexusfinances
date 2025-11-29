@@ -112,12 +112,12 @@ export function ImportPayslipCard() {
         status: 'paid' as const,
         userId: user.uid,
         type: 'income' as const,
-        grossAmount: editableResult.grossAmount,
-        totalDeductions: editableResult.totalDeductions,
+        grossAmount: editableResult.grossAmount ?? null,
+        totalDeductions: editableResult.totalDeductions ?? null,
         earnings: editableResult.earnings || [],
         deductions: editableResult.deductions || [],
-        fgtsAmount: editableResult.fgtsAmount,
-        companyName: editableResult.companyName,
+        fgtsAmount: editableResult.fgtsAmount ?? null,
+        companyName: editableResult.companyName ?? null,
         notes,
       };
       await addDocumentNonBlocking(incomesColRef, incomeData);

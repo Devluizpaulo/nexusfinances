@@ -1,24 +1,37 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Função helper simplificada
+    // Função helper para verificar se o usuário é o dono do documento
     function isOwner(userId) {
       return request.auth != null && request.auth.uid == userId;
     }
 
-    // Regra para documento do usuário
+    // REGRA DE USUÁRIOS
+    // Cada usuário só pode ler e escrever em seu próprio documento.
     match /users/{userId} {
       allow read, write: if isOwner(userId);
+
+      // REGRA PARA SUBCOLEÇÕES DO USUÁRIO
+      // Permite acesso total a todas as subcoleções (incomes, expenses, etc.)
+      // APENAS se o usuário for o dono do documento pai (user).
+      match /{subcollection}/{documentId} {
+         allow read, write: if isOwner(userId);
+      }
+    }
+    
+    // REGRA PARA CONSULTA DE GRUPO (Collection Group Query)
+    // Permite que um usuário leia a subcoleção 'installments' de qualquer dívida,
+    // DESDE QUE o userId no documento da parcela seja o seu próprio.
+    // Isso é necessário para o calendário encontrar parcelas vencidas em todas as dívidas.
+    match /{path=**}/installments/{installmentId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
-    // Regra para TODAS as subcoleções do usuário
-    match /users/{userId}/{document=**} {
-      allow read, write: if isOwner(userId);
-    }
-
-    // Coleções públicas (somente leitura)
+    // COLEÇÕES PÚBLICAS
+    // Qualquer usuário autenticado pode ler os dados de educação e planos.
     match /education/{document} {
       allow read: if request.auth != null;
     }
@@ -27,9 +40,11 @@ service cloud.firestore {
       allow read: if request.auth != null;
     }
 
-    // Logs (somente criação)
+    // LOGS
+    // Qualquer usuário autenticado pode criar um log, mas ninguém (exceto via console) pode ler ou alterar.
     match /logs/{document} {
       allow create: if request.auth != null;
+      allow read, update, delete: if false;
     }
   }
 }
