@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Plus, Trash2, Link as LinkIcon, Lock, Banknote, Star } from 'lucide-react';
+import { Loader2, Plus, Trash2, Link as LinkIcon, Lock, Banknote } from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { updateProfile, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
@@ -251,7 +251,7 @@ export default function ProfilePage() {
       <Tabs defaultValue="profile" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="profile">Perfil</TabsTrigger>
-          <TabsTrigger value="subscription">Assinatura</TabsTrigger>
+          <TabsTrigger value="categories">Categorias</TabsTrigger>
           <TabsTrigger value="security">Segurança</TabsTrigger>
         </TabsList>
         
@@ -333,29 +333,70 @@ export default function ProfilePage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="subscription" className="mt-6">
+        <TabsContent value="categories" className="mt-6">
            <Card>
             <CardHeader>
-              <CardTitle>Gerenciar Assinatura</CardTitle>
-              <CardDescription>Visualize o status do seu plano e gerencie sua assinatura.</CardDescription>
+              <CardTitle>Gerenciar Categorias</CardTitle>
+              <CardDescription>Adicione ou remova categorias de renda e despesa para personalizar sua organização.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="rounded-lg border bg-muted/50 p-6 flex flex-col items-center text-center">
-                 <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-                    <Star className="h-8 w-8 text-primary" />
+            <CardContent className="grid gap-8 md:grid-cols-2">
+              <div className="space-y-4">
+                <h3 className="font-medium">Categorias de Renda</h3>
+                <div className="flex items-center gap-2">
+                  <Input value={newIncomeCategory} onChange={(e) => setNewIncomeCategory(e.target.value)} placeholder="Nova categoria de renda" />
+                  <Button onClick={() => handleAddCategory('income')} size="icon" disabled={!newIncomeCategory.trim()}><Plus className="h-4 w-4" /></Button>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Categorias Padrão</p>
+                  <div className="flex flex-wrap gap-2">
+                    {incomeCategories.map(cat => <Badge key={cat} variant="secondary">{cat}</Badge>)}
                   </div>
-                  <p className="text-sm font-medium text-muted-foreground">Seu plano atual</p>
-                  <p className="text-2xl font-bold">{user?.subscriptionPlan?.name || 'Gratuito'}</p>
-                   {user?.subscription?.status === 'active' && (
-                     <Badge className="mt-1 bg-green-100 text-green-800">Ativo</Badge>
-                   )}
+                </div>
+                <Separator />
+                 <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Suas Categorias</p>
+                  <div className="flex flex-wrap gap-2">
+                    {user?.customIncomeCategories?.map(cat => (
+                      <Badge key={cat} variant="outline" className="group pr-1">
+                        {cat}
+                        <button onClick={() => handleRemoveCategory('income', cat)} className="ml-2 opacity-50 hover:opacity-100 transition-opacity">
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                    {(user?.customIncomeCategories?.length || 0) === 0 && <p className="text-xs text-muted-foreground">Nenhuma categoria personalizada.</p>}
+                  </div>
+                </div>
+              </div>
+               <div className="space-y-4">
+                <h3 className="font-medium">Categorias de Despesa</h3>
+                 <div className="flex items-center gap-2">
+                  <Input value={newExpenseCategory} onChange={(e) => setNewExpenseCategory(e.target.value)} placeholder="Nova categoria de despesa" />
+                  <Button onClick={() => handleAddCategory('expense')} size="icon" disabled={!newExpenseCategory.trim()}><Plus className="h-4 w-4" /></Button>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Categorias Padrão</p>
+                  <div className="flex flex-wrap gap-2">
+                    {expenseCategories.map(cat => <Badge key={cat} variant="secondary">{cat}</Badge>)}
+                  </div>
+                </div>
+                <Separator />
+                 <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Suas Categorias</p>
+                  <div className="flex flex-wrap gap-2">
+                    {user?.customExpenseCategories?.map(cat => (
+                      <Badge key={cat} variant="outline" className="group pr-1">
+                        {cat}
+                         <button onClick={() => handleRemoveCategory('expense', cat)} className="ml-2 opacity-50 hover:opacity-100 transition-opacity">
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                     {(user?.customExpenseCategories?.length || 0) === 0 && <p className="text-xs text-muted-foreground">Nenhuma categoria personalizada.</p>}
+                  </div>
+                </div>
               </div>
             </CardContent>
-            <CardFooter>
-                 <Button variant="outline" asChild>
-                    <a href="https://www.mercadopago.com.br/subscriptions" target="_blank" rel="noopener noreferrer">Gerenciar no Mercado Pago</a>
-                </Button>
-            </CardFooter>
           </Card>
         </TabsContent>
 
