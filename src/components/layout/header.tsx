@@ -1,7 +1,7 @@
 'use client';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { Bell, PanelLeft, ChevronLeft, ChevronRight, UserCircle, LogOut, Mail } from 'lucide-react';
+import { Bell, PanelLeft, ChevronLeft, ChevronRight, UserCircle, LogOut, Mail, Menu } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '../ui/sidebar';
 import { ThemeToggle } from '../theme-toggle';
@@ -205,7 +205,7 @@ export function Header() {
         {/* Esquerda: título + botão sidebar mobile */}
         <div className="flex items-center gap-3 min-w-0">
           <Button onClick={toggleSidebar} variant="ghost" size="icon" className="md:hidden">
-            <PanelLeft />
+            <Menu />
             <span className="sr-only">Alternar Barra Lateral</span>
           </Button>
           <div className="flex flex-col">
