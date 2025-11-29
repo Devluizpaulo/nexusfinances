@@ -55,8 +55,18 @@ export function ImportPayslipCard() {
       reader.onload = async () => {
         const base64File = (reader.result as string).split(',')[1];
         const extractedData = await extractPayslipData({ pdfBase64: base64File });
-        setResult(extractedData);
-        toast({ title: 'Análise Concluída!', description: 'Confira os dados extraídos abaixo e confirme.' });
+        
+        if (!extractedData || !extractedData.netAmount) {
+            toast({
+                variant: 'destructive',
+                title: 'Análise Falhou',
+                description: 'A IA não conseguiu extrair os dados. O documento pode ser muito complexo ou não ser um holerite/NF. Por favor, preencha manualmente.',
+            });
+            setResult(null);
+        } else {
+            setResult(extractedData);
+            toast({ title: 'Análise Concluída!', description: 'Confira os dados extraídos abaixo e confirme.' });
+        }
       };
     } catch (error) {
       console.error("Error processing payslip:", error);
