@@ -1,10 +1,10 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { collection, deleteDoc, doc, getDocs, query, setDoc, updateDoc, where, orderBy } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Transaction } from '@/lib/types';
 import { Loader2, Briefcase, PlusCircle, TrendingUp, TrendingDown } from 'lucide-react';
@@ -15,11 +15,9 @@ import { ImportPayslipCard } from '@/components/income/import-payslip-card';
 import { KpiCard } from '@/components/dashboard/kpi-card';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useEffect } from 'react';
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-
 
 type SalaryContract = {
   id?: string;
@@ -44,7 +42,7 @@ export default function SalaryPage() {
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
 
-  // QUERY SIMPLIFICADA - sem orderBy para evitar problemas de índice
+  // Query para buscar salários
   const salaryIncomesQuery = useMemoFirebase(() => {
     if (!user) return null;
     return query(
@@ -55,7 +53,7 @@ export default function SalaryPage() {
 
   const { data: salaryData, isLoading: isIncomesLoading } = useCollection<Transaction>(salaryIncomesQuery);
 
-  // ORDENAÇÃO NO CLIENTE
+  // Ordenação no cliente
   const sortedSalaryData = useMemo(() => {
     if (!salaryData) return [];
     return [...salaryData].sort((a, b) => 
@@ -63,14 +61,11 @@ export default function SalaryPage() {
     );
   }, [salaryData]);
 
+  // Buscar contratos
   useEffect(() => {
     if (!user) {
       setContracts([]);
-      setBaseAmountInput('');
-      setCompanyNameInput('');
-      setStartDateInput('');
-      setContractTypeInput('');
-      setEditingContractId(null);
+      resetForm();
       return;
     }
 
@@ -94,6 +89,16 @@ export default function SalaryPage() {
     fetchConfig();
   }, [firestore, user]);
 
+  // Reset do formulário
+  const resetForm = () => {
+    setBaseAmountInput('');
+    setCompanyNameInput('');
+    setStartDateInput('');
+    setContractTypeInput('');
+    setEditingContractId(null);
+  };
+
+  // Salvar configuração do salário
   const handleSaveSalaryConfig = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -113,36 +118,29 @@ export default function SalaryPage() {
         contractType: contractTypeInput || undefined,
         userId: user.uid,
       };
+
       if (editingContractId) {
         const contractDocRef = doc(contractsCollection, editingContractId);
         await setDoc(contractDocRef, payload, { merge: true });
-
         setContracts((prev) =>
           prev.map((c) => (c.id === editingContractId ? { ...c, ...payload } : c))
         );
       } else {
         const newContractRef = doc(contractsCollection);
         await setDoc(newContractRef, payload, { merge: true });
-
         setContracts((prev) => [
           ...prev,
-          {
-            ...payload,
-            id: newContractRef.id,
-          },
+          { ...payload, id: newContractRef.id },
         ]);
       }
 
-      setBaseAmountInput('');
-      setCompanyNameInput('');
-      setStartDateInput('');
-      setContractTypeInput('');
-      setEditingContractId(null);
+      resetForm();
     } finally {
       setIsSavingConfig(false);
     }
   };
 
+  // Editar contrato
   const handleEditContract = (contract: SalaryContract) => {
     setEditingContractId(contract.id ?? null);
     setBaseAmountInput(String(contract.baseAmount));
@@ -151,14 +149,7 @@ export default function SalaryPage() {
     setContractTypeInput(contract.contractType ?? '');
   };
 
-  const handleCancelEdit = () => {
-    setEditingContractId(null);
-    setBaseAmountInput('');
-    setCompanyNameInput('');
-    setStartDateInput('');
-    setContractTypeInput('');
-  };
-
+  // Deletar contrato
   const handleDeleteContract = async (contractId: string | undefined) => {
     if (!user || !contractId) return;
 
@@ -169,10 +160,11 @@ export default function SalaryPage() {
     setContracts((prev) => prev.filter((c) => c.id !== contractId));
 
     if (editingContractId === contractId) {
-      handleCancelEdit();
+      resetForm();
     }
   };
 
+  // Definir contrato primário
   const handleSetPrimaryContract = async (contractId: string | undefined) => {
     if (!user || !contractId) return;
 
@@ -195,14 +187,14 @@ export default function SalaryPage() {
     );
   };
 
-  // CÁLCULOS ATUALIZADOS para usar sortedSalaryData
-  const {
-    avgGross,
-    avgNet,
-    avgDeductions,
-    salaryHistory,
-  } = useMemo(() => {
-    if (!sortedSalaryData) return { avgGross: 0, avgNet: 0, avgDeductions: 0, salaryHistory: [] };
+  // Cálculos dos salários
+  const { avgGross, avgNet, avgDeductions, salaryHistory } = useMemo(() => {
+    if (!sortedSalaryData) return { 
+      avgGross: 0, 
+      avgNet: 0, 
+      avgDeductions: 0, 
+      salaryHistory: [] 
+    };
 
     const salaries = sortedSalaryData.filter(t => t.grossAmount !== undefined && t.grossAmount > 0);
     
@@ -221,9 +213,13 @@ export default function SalaryPage() {
       avgNet: totalNet / salaries.length,
       avgGross: totalGross / salaries.length,
       avgDeductions: totalDeductions / salaries.length,
-      salaryHistory: sortedSalaryData.slice(0, 6) // Usa os dados já ordenados
+      salaryHistory: sortedSalaryData.slice(0, 6)
     };
   }, [sortedSalaryData]);
+
+  // Handlers para o sheet
+  const handleOpenSheet = () => setIsAddSheetOpen(true);
+  const handleCloseSheet = () => setIsAddSheetOpen(false);
 
   const isLoading = isUserLoading || isIncomesLoading || isLoadingConfig;
 
@@ -234,249 +230,211 @@ export default function SalaryPage() {
       </div>
     );
   }
-  
-  const handleOpenSheet = () => {
-    setIsAddSheetOpen(true);
-  };
-
-  const handleCloseSheet = () => {
-    setIsAddSheetOpen(false);
-  };
 
   return (
     <>
-       <AddTransactionSheet
+      <AddTransactionSheet
         isOpen={isAddSheetOpen}
         onClose={handleCloseSheet}
         transactionType="income"
         categories={incomeCategories}
         transaction={null} 
       />
-      <div className="grid gap-4 mb-6 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <div className="flex items-center justify-start">
-          <Button onClick={handleOpenSheet} disabled={!user}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Adicionar Salário
-          </Button>
+
+      {/* Header da página */}
+      <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Salário</h2>
+          <p className="text-muted-foreground">
+            Configure seus contratos e acompanhe salários líquidos, brutos e descontos.
+          </p>
         </div>
 
+        <Button onClick={handleOpenSheet} disabled={!user}>
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Adicionar Salário
+        </Button>
+      </div>
+
+      {/* Grid principal */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Contratos */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Configuração de salários / contratos</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Briefcase className="h-5 w-5" />
+              Contratos de Trabalho
+            </CardTitle>
             <CardDescription>
-              Cadastre múltiplas empresas ou contratos com seus respectivos salários base.
+              Gerencie seus contratos e salários base
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form className="space-y-3" onSubmit={handleSaveSalaryConfig}>
-              <div className="space-y-1">
-                <Label htmlFor="baseAmount">Valor base do salário</Label>
+            <form onSubmit={handleSaveSalaryConfig} className="space-y-4">
+              <div className="grid gap-3">
+                <Label htmlFor="companyName">Empresa</Label>
+                <Input
+                  id="companyName"
+                  value={companyNameInput}
+                  onChange={(e) => setCompanyNameInput(e.target.value)}
+                  placeholder="Nome da empresa"
+                  required
+                />
+              </div>
+
+              <div className="grid gap-3">
+                <Label htmlFor="baseAmount">Salário Base (R$)</Label>
                 <Input
                   id="baseAmount"
                   type="number"
                   step="0.01"
-                  min="0"
                   value={baseAmountInput}
                   onChange={(e) => setBaseAmountInput(e.target.value)}
-                  placeholder="Ex: 5000,00"
-                  disabled={!user || isSavingConfig}
+                  placeholder="0,00"
+                  required
                 />
               </div>
 
-              <div className="space-y-1">
-                <Label htmlFor="companyName">Empresa ou contratante</Label>
-                <Input
-                  id="companyName"
-                  type="text"
-                  value={companyNameInput}
-                  onChange={(e) => setCompanyNameInput(e.target.value)}
-                  placeholder="Nome da empresa ou contratante"
-                  disabled={!user || isSavingConfig}
-                />
-              </div>
-
-              <div className="space-y-1 grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <Label htmlFor="startDate">Data de início</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-2">
+                  <Label htmlFor="startDate">Data de Início</Label>
                   <Input
                     id="startDate"
                     type="date"
                     value={startDateInput}
                     onChange={(e) => setStartDateInput(e.target.value)}
-                    disabled={!user || isSavingConfig}
                   />
                 </div>
-
-                <div className="space-y-1">
-                  <Label htmlFor="contractType">Tipo de contrato</Label>
+                <div className="grid gap-2">
+                  <Label htmlFor="contractType">Tipo de Contrato</Label>
                   <Input
                     id="contractType"
-                    type="text"
                     value={contractTypeInput}
                     onChange={(e) => setContractTypeInput(e.target.value)}
-                    placeholder="CLT, PJ, estágio, etc."
-                    disabled={!user || isSavingConfig}
+                    placeholder="CLT, PJ, etc."
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-1">
-                <div className="text-xs text-muted-foreground">
-                  {contracts.length > 0 ? (
-                    <span>
-                      {contracts.length} contrato(s) cadastrado(s).
-                      {' '}
-                      {contracts.some((c) => c.isPrimary) &&
-                        '· 1 contrato principal definido.'}
-                    </span>
-                  ) : (
-                    <span>Nenhum contrato cadastrado ainda.</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  {editingContractId && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCancelEdit}
-                      disabled={isSavingConfig}
-                    >
-                      Cancelar
-                    </Button>
-                  )}
-                  <Button type="submit" size="sm" disabled={!user || isSavingConfig}>
-                    {isSavingConfig && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
-                    {editingContractId ? 'Salvar alterações' : 'Adicionar contrato'}
+              <div className="flex gap-2">
+                <Button type="submit" disabled={isSavingConfig}>
+                  {isSavingConfig && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {editingContractId ? 'Atualizar' : 'Adicionar'} Contrato
+                </Button>
+                {editingContractId && (
+                  <Button type="button" variant="outline" onClick={resetForm}>
+                    Cancelar
                   </Button>
-                </div>
+                )}
               </div>
             </form>
 
-            {contracts.length > 0 && (
-              <div className="mt-4 space-y-2">
-                {contracts.map((contract) => (
-                  <div
-                    key={contract.id}
-                    className="flex items-center justify-between rounded-md border px-3 py-2 text-xs"
-                  >
-                    <div>
-                      <p className="font-medium">
-                        {formatCurrency(contract.baseAmount)}
-                        {contract.companyName ? ` · ${contract.companyName}` : ''}
-                      </p>
-                      <p className="text-muted-foreground">
-                        {contract.contractType && <span>{contract.contractType}</span>}
-                        {contract.contractType && contract.startDate && <span> · </span>}
-                        {contract.startDate && (
-                          <span>
-                            Início: {format(new Date(contract.startDate), 'PP', { locale: ptBR })}
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        variant={contract.isPrimary ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => handleSetPrimaryContract(contract.id)}
-                      >
-                        {contract.isPrimary ? 'Principal' : 'Tornar principal'}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEditContract(contract)}
-                      >
-                        Editar
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDeleteContract(contract.id)}
-                      >
-                        Excluir
-                      </Button>
-                    </div>
+            {/* Lista de contratos */}
+            <div className="mt-6 space-y-3">
+              {contracts.map((contract) => (
+                <div key={contract.id} className="flex items-center justify-between rounded-lg border p-3">
+                  <div>
+                    <p className="font-medium">{contract.companyName}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {formatCurrency(contract.baseAmount)} • {contract.contractType}
+                      {contract.isPrimary && ' • Principal'}
+                    </p>
                   </div>
-                ))}
-              </div>
-            )}
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditContract(contract)}
+                    >
+                      Editar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSetPrimaryContract(contract.id)}
+                    >
+                      Principal
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDeleteContract(contract.id)}
+                    >
+                      Excluir
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </CardContent>
         </Card>
-      </div>
 
-      <div className="mb-8">
-        <ImportPayslipCard />
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-3 mb-8">
-         <KpiCard
-            title="Salário Líquido Médio"
-            value={formatCurrency(avgNet)}
-            icon={TrendingUp}
-            description="Média dos últimos salários líquidos."
-        />
-         <KpiCard
-            title="Salário Bruto Médio"
-            value={formatCurrency(avgGross)}
-            icon={TrendingUp}
-            description="Média dos últimos salários brutos."
-        />
-        <KpiCard
-            title="Descontos Médios"
-            value={formatCurrency(avgDeductions)}
-            icon={TrendingDown}
-            description="Média dos descontos (INSS, IRRF, etc.)."
-        />
-      </div>
-
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-3">
-              <Briefcase className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg">Histórico de Salários</CardTitle>
+        {/* KPIs e Histórico */}
+        <div className="space-y-6">
+          {/* KPIs */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <KpiCard
+              title="Média Bruta"
+              value={formatCurrency(avgGross)}
+              icon={TrendingUp}
+              description="Valor médio bruto"
+            />
+            <KpiCard
+              title="Média Líquida"
+              value={formatCurrency(avgNet)}
+              icon={TrendingDown}
+              description="Valor médio líquido"
+            />
           </div>
-          <CardDescription>Seus últimos salários importados ou cadastrados como "Salário".</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {salaryHistory.length > 0 ? (
-             <div className="space-y-3">
-                {salaryHistory.map((item) => (
-                  <Card key={item.id} className="p-3">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="font-semibold">{formatCurrency(item.amount)} <span className="text-xs text-muted-foreground">(Líquido)</span></p>
-                            <p className="text-sm text-muted-foreground">{item.description}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {format(new Date(item.date), 'PPP', { locale: ptBR })}
-                            </p>
+
+          {/* Histórico */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Histórico Recente</CardTitle>
+              <CardDescription>
+                Seus últimos salários registrados
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {salaryHistory.length > 0 ? (
+                <div className="space-y-3">
+                  {salaryHistory.map((item) => (
+                    <div key={item.id} className="flex items-center justify-between rounded-lg border p-3">
+                      <div>
+                        <p className="font-semibold">
+                          {formatCurrency(item.amount)} 
+                          <span className="text-xs text-muted-foreground"> (Líquido)</span>
+                        </p>
+                        <p className="text-sm text-muted-foreground">{item.description}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date(item.date), 'PPP', { locale: ptBR })}
+                        </p>
+                      </div>
+                      {item.grossAmount && item.grossAmount > 0 ? (
+                        <div className="text-right text-xs">
+                          <p>Bruto: {formatCurrency(item.grossAmount || 0)}</p>
+                          <p className="text-red-500">Descontos: {formatCurrency(item.totalDeductions || 0)}</p>
                         </div>
-                         {item.grossAmount && item.grossAmount > 0 ? (
-                            <div className="text-right text-xs">
-                                <p>Bruto: {formatCurrency(item.grossAmount || 0)}</p>
-                                <p className="text-red-500">Descontos: {formatCurrency(item.totalDeductions || 0)}</p>
-                            </div>
-                         ) : (
-                           <div className="text-right text-xs text-muted-foreground">
-                             Detalhes não disponíveis
-                           </div>
-                         )}
+                      ) : (
+                        <div className="text-right text-xs text-muted-foreground">
+                          Detalhes não disponíveis
+                        </div>
+                      )}
                     </div>
-                  </Card>
-                ))}
-            </div>
-          ) : (
-             <div className="flex h-40 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
-              <h3 className="font-semibold">Nenhum histórico de salário encontrado</h3>
-              <p className="mt-1 text-sm text-muted-foreground">Importe um holerite ou cadastre uma renda na categoria "Salário" para começar.</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex h-40 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
+                  <h3 className="font-semibold">Nenhum histórico de salário</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Adicone salários para ver o histórico aqui.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </>
   );
 }
