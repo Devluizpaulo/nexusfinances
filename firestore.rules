@@ -31,17 +31,22 @@ service cloud.firestore {
       allow create: if isOwner(userId);
     }
 
-    // Subcollection Rules
+    // Subcollection Rules - any collection under a user is accessible only by that user
     match /users/{userId}/{collection}/{docId} {
       allow get, update, delete: if isOwner(userId);
       allow create: if isCreatingOwnData(userId);
-      allow list: if isOwner(userId) && collection in ['incomes', 'expenses', 'debts', 'goals', 'budgets', 'creditCards', 'notifications'];
+      allow list: if isOwner(userId);
     }
     
     match /users/{userId}/debts/{debtId}/installments/{installmentId} {
         allow get, update, delete: if isOwnerOfParentDebt(userId, debtId);
         allow create: if isOwnerOfParentDebt(userId, debtId);
         allow list: if isOwnerOfParentDebt(userId, debtId);
+    }
+
+    // Collection group access for installments used in dashboard calendar
+    match /{path=**}/installments/{installmentId} {
+        allow get, list: if isSignedIn() && request.auth.uid == resource.data.userId;
     }
 
     // Public/Admin Collections

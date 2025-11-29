@@ -101,19 +101,7 @@ export function OverdueDebtsCard({ debts }: OverdueDebtsCardProps) {
   }
 
   if (overdueInstallments.length === 0) {
-    return (
-        <Card className="bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800">
-             <CardHeader className="flex flex-row items-center gap-4">
-                <Info className="h-6 w-6 text-green-600 dark:text-green-500" />
-                <div>
-                    <CardTitle className="text-green-800 dark:text-green-300">Tudo em dia!</CardTitle>
-                    <CardDescription className="text-green-700 dark:text-green-400">
-                        Você não possui nenhuma parcela vencida no momento.
-                    </CardDescription>
-                </div>
-            </CardHeader>
-        </Card>
-    );
+    return null;
   }
 
   return (
