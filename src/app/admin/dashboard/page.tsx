@@ -1,10 +1,11 @@
+
 'use client';
 
 import { redirect } from 'next/navigation';
 import { useCollection, useFirestore, useUser, useMemoFirebase, type AppUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { UsersTable } from './users/users-table';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { collection, query, orderBy, where, Timestamp } from 'firebase/firestore';
 import { KpiCard } from '@/components/dashboard/kpi-card';
 import { Users, UserPlus, Loader2 } from 'lucide-react';
