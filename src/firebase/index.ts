@@ -2,7 +2,7 @@
 
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth, type Auth } from 'firebase/auth';
+import { getAuth, type Auth, signInAnonymously } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 import { getStorage, type FirebaseStorage } from 'firebase/storage';
 
@@ -38,9 +38,22 @@ export function initializeFirebase() {
 }
 
 export function getSdks(firebaseApp: FirebaseApp) {
-  const firestore = getFirestore(firebaseApp);
+  // Initialize Auth first to ensure it's ready.
   const auth = getAuth(firebaseApp);
+  
+  // Initiate a non-blocking anonymous sign-in. This ensures an auth
+  // token is available for Firestore before any user interaction.
+  // The `onAuthStateChanged` listener will handle the user state.
+  signInAnonymously(auth).catch((error) => {
+    // This can fail if there are network issues, but we don't block.
+    // The SDK will retry.
+    console.error('Initial anonymous sign-in failed quietly:', error);
+  });
+  
+  // Now initialize other services.
+  const firestore = getFirestore(firebaseApp);
   const storage = getStorage(firebaseApp);
+
   return {
     firebaseApp,
     auth,
