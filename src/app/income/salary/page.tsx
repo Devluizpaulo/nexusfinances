@@ -4,19 +4,22 @@ import { useMemo, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { collection, deleteDoc, doc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, deleteDoc, doc, getDocs, setDoc, updateDoc } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, useMemoFirebase, deleteDocumentNonBlocking } from '@/firebase';
 import type { Transaction } from '@/lib/types';
-import { Loader2, Briefcase, PlusCircle, TrendingUp, TrendingDown, Edit, Star, Trash2 } from 'lucide-react';
+import { Loader2, Briefcase, PlusCircle, TrendingUp, TrendingDown, Edit, Star, Trash2, MoreVertical } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { incomeCategories } from '@/lib/types';
 import { KpiCard } from '@/components/dashboard/kpi-card';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+
 import { Badge } from '@/components/ui/badge';
 import { ImportPayslipCard } from '@/components/income/import-payslip-card';
+import { useToast } from '@/hooks/use-toast';
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -32,7 +35,11 @@ type SalaryContract = {
 
 export default function SalaryPage() {
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [isContractsModalOpen, setIsContractsModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
+
   const [contracts, setContracts] = useState<SalaryContract[]>([]);
   const [baseAmountInput, setBaseAmountInput] = useState('');
   const [companyNameInput, setCompanyNameInput] = useState('');
@@ -41,6 +48,7 @@ export default function SalaryPage() {
   const [editingContractId, setEditingContractId] = useState<string | null>(null);
   const [isSavingConfig, setIsSavingConfig] = useState(false);
   const [isLoadingConfig, setIsLoadingConfig] = useState(false);
+  const { toast } = useToast();
 
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
@@ -221,8 +229,34 @@ export default function SalaryPage() {
   }, [sortedSalaryData]);
 
   // Handlers para o sheet
-  const handleOpenSheet = () => setIsAddSheetOpen(true);
-  const handleCloseSheet = () => setIsAddSheetOpen(false);
+  const handleOpenSheet = (transaction: Transaction | null = null) => {
+    setEditingTransaction(transaction);
+    setIsAddSheetOpen(true);
+  };
+  const handleCloseSheet = () => {
+    setIsAddSheetOpen(false);
+    setEditingTransaction(null);
+  };
+  
+  const openDeleteDialog = (transaction: Transaction) => {
+    setTransactionToDelete(transaction);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteTransaction = () => {
+    if (!user || !firestore || !transactionToDelete) return;
+
+    const docRef = doc(firestore, `users/${user.uid}/incomes`, transactionToDelete.id);
+    deleteDocumentNonBlocking(docRef);
+
+    toast({
+      title: "Salário excluído",
+      description: `O registro de salário de ${formatCurrency(transactionToDelete.amount)} foi removido.`,
+    });
+    
+    setIsDeleteDialogOpen(false);
+    setTransactionToDelete(null);
+  }
 
   const isLoading = isUserLoading || isIncomesLoading || isLoadingConfig;
 
@@ -241,8 +275,25 @@ export default function SalaryPage() {
         onClose={handleCloseSheet}
         transactionType="income"
         categories={incomeCategories}
-        transaction={null} 
+        transaction={editingTransaction} 
       />
+
+       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Isso excluirá permanentemente o registro de salário.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteTransaction} className="bg-destructive hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Header da página */}
       <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -258,7 +309,7 @@ export default function SalaryPage() {
             <Briefcase className="mr-2 h-4 w-4" />
             Gerenciar contratos
           </Button>
-          <Button onClick={handleOpenSheet} disabled={!user}>
+          <Button onClick={() => handleOpenSheet(null)} disabled={!user}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Adicionar Salário
           </Button>
@@ -303,8 +354,8 @@ export default function SalaryPage() {
             {salaryHistory.length > 0 ? (
               <div className="space-y-3">
                 {salaryHistory.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between rounded-lg border p-3">
-                    <div>
+                  <div key={item.id} className="group flex items-start justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50">
+                    <div className="flex-1">
                       <p className="font-semibold">
                         {formatCurrency(item.amount)} 
                         <span className="text-xs text-muted-foreground"> (Líquido)</span>
@@ -314,16 +365,36 @@ export default function SalaryPage() {
                         {format(new Date(item.date), 'PPP', { locale: ptBR })}
                       </p>
                     </div>
-                    {item.grossAmount && item.grossAmount > 0 ? (
-                      <div className="text-right text-xs">
-                        <p>Bruto: {formatCurrency(item.grossAmount || 0)}</p>
-                        <p className="text-red-500">Descontos: {formatCurrency(item.totalDeductions || 0)}</p>
-                      </div>
-                    ) : (
-                      <div className="text-right text-xs text-muted-foreground">
-                        Detalhes não disponíveis
-                      </div>
-                    )}
+                    <div className="flex items-center gap-4">
+                      {item.grossAmount && item.grossAmount > 0 ? (
+                        <div className="text-right text-xs">
+                          <p>Bruto: {formatCurrency(item.grossAmount || 0)}</p>
+                          <p className="text-red-500">Descontos: {formatCurrency(item.totalDeductions || 0)}</p>
+                        </div>
+                      ) : (
+                        <div className="text-right text-xs text-muted-foreground">
+                          Detalhes não disponíveis
+                        </div>
+                      )}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                           <DropdownMenuItem onClick={() => handleOpenSheet(item)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => openDeleteDialog(item)} className="text-destructive">
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
                 ))}
               </div>
