@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -193,8 +194,8 @@ export function AddTransactionSheet({
       const reader = new FileReader();
       reader.readAsDataURL(pdfFile);
       reader.onload = async () => {
-        const base64File = (reader.result as string).split(',')[1];
-        const extractedData = await extractPayslipData({ pdfBase64: base64File });
+        const dataUri = reader.result as string;
+        const extractedData = await extractPayslipData({ pdfBase64: dataUri });
 
         if (extractedData && extractedData.netAmount) {
             form.setValue('amount', extractedData.netAmount, { shouldValidate: true });
