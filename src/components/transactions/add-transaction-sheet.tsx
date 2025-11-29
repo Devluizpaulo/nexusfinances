@@ -195,18 +195,26 @@ export function AddTransactionSheet({
       reader.onload = async () => {
         const base64File = (reader.result as string).split(',')[1];
         const extractedData = await extractPayslipData({ pdfBase64: base64File });
-        
-        form.setValue('amount', extractedData.netAmount, { shouldValidate: true });
-        if (extractedData.description) {
-            form.setValue('description', extractedData.description, { shouldValidate: true });
+
+        if (extractedData && extractedData.netAmount) {
+            form.setValue('amount', extractedData.netAmount, { shouldValidate: true });
+            if (extractedData.description) {
+                form.setValue('description', extractedData.description, { shouldValidate: true });
+            }
+            if (extractedData.issueDate) {
+                form.setValue('date', parseISO(extractedData.issueDate), { shouldValidate: true });
+            }
+            
+            toast({ title: 'Dados Extraídos!', description: 'Os campos foram preenchidos. Revise antes de salvar.' });
+            setPdfFile(null);
+            setIsAiSectionOpen(false);
+        } else {
+            toast({
+                variant: 'destructive',
+                title: 'Análise Falhou',
+                description: 'A IA não conseguiu extrair os dados. O documento pode ser muito complexo. Por favor, preencha manualmente.',
+            });
         }
-        if (extractedData.issueDate) {
-            form.setValue('date', parseISO(extractedData.issueDate), { shouldValidate: true });
-        }
-        
-        toast({ title: 'Dados Extraídos!', description: 'Os campos foram preenchidos. Revise antes de salvar.' });
-        setPdfFile(null);
-        setIsAiSectionOpen(false);
       };
     } catch (error) {
       console.error("Error processing payslip:", error);
@@ -234,7 +242,7 @@ export function AddTransactionSheet({
       date: formatISO(values.date),
       userId: user.uid,
       type: transactionType,
-      creditCardId: values.paymentMethod === 'creditCard' ? values.creditCardId : null,
+      creditCardId: values.paymentMethod === 'creditCard' ? values.creditCardId : undefined,
     };
 
     if (transaction) {

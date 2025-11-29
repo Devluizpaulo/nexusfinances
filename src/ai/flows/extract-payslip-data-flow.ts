@@ -14,7 +14,7 @@ import {
 } from '@/lib/types';
 
 
-export async function extractPayslipData(input: ExtractPayslipInput): Promise<ExtractPayslipOutput> {
+export async function extractPayslipData(input: ExtractPayslipInput): Promise<ExtractPayslipOutput | null> {
   return extractPayslipDataFlow(input);
 }
 
@@ -23,7 +23,9 @@ const prompt = ai.definePrompt({
     input: { schema: ExtractPayslipInputSchema },
     output: { schema: ExtractPayslipOutputSchema },
     prompt: `
-        Você é um assistente de IA especialista em análise de documentos financeiros como holerites (recibos de pagamento) e notas fiscais de serviço. Sua tarefa é extrair as seguintes informações do documento PDF fornecido:
+        Você é um assistente de IA especialista em análise de documentos financeiros como holerites (recibos de pagamento) e notas fiscais de serviço. Sua tarefa é extrair as seguintes informações do documento PDF fornecido.
+
+        IMPORTANTE: O conteúdo completo do PDF foi fornecido ao modelo via uma ferramenta interna ({{media url=pdfBase64}}). Por favor, analise o CONTEÚDO VISUAL do documento PDF fornecido para extrair as transações, não apenas o texto.
 
         1.  **netAmount (Valor Líquido)**: O valor final que a pessoa ou empresa recebeu. Este é o campo mais importante. Procure por termos como "Líquido a Receber", "Valor Líquido", "Total Líquido".
         2.  **grossAmount (Valor Bruto)**: O valor total antes de qualquer desconto. Procure por "Total de Proventos", "Salário Bruto", "Valor Bruto".
@@ -33,7 +35,7 @@ const prompt = ai.definePrompt({
         6.  **issueDate (Data de Emissão/Competência)**: A data a que o pagamento se refere. Se houver múltiplas datas, prefira a data de competência ou a data de pagamento. Formate-a como YYYY-MM-DD. Se encontrar apenas mês/ano, use o dia 01.
         7.  **description (Descrição)**: Crie uma descrição curta e informativa. Ex: "Salário referente a Abril/2024" ou "Pagamento de serviço para Empresa X". Tente incluir o nome da empresa pagadora se encontrar.
 
-        Analise o documento PDF fornecido via contexto de mídia para extrair esses dados com a maior precisão possível. Se algum campo opcional não for encontrado, omita-o da resposta JSON. O campo 'netAmount' é obrigatório.
+        Analise o documento PDF fornecido para extrair esses dados com a maior precisão possível. Se algum campo opcional não for encontrado, omita-o da resposta JSON. O campo 'netAmount' é obrigatório.
     `,
 });
 
@@ -48,7 +50,8 @@ const extractPayslipDataFlow = ai.defineFlow(
     const { output } = await prompt({ pdfBase64: input.pdfBase64 });
 
     if (!output || !output.netAmount) {
-      throw new Error('A IA não conseguiu determinar o valor líquido do documento.');
+      // Retorna null para ser tratado pela UI, em vez de lançar um erro.
+      return null;
     }
     
     return output;
