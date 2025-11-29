@@ -105,6 +105,7 @@ export function AddDebtSheet({ isOpen, onClose }: AddDebtSheetProps) {
         const installmentData = {
           id: installmentRef.id,
           debtId: newDebtRef.id,
+          userId: user.uid, // Denormalize userId for security rules
           installmentNumber: i + 1,
           amount: installmentAmount,
           dueDate: formatISO(addMonths(values.startDate, i)),

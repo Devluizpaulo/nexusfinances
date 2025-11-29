@@ -103,13 +103,14 @@ export function PlanForm({ isOpen, onClose, plan }: PlanFormProps) {
     }
     setIsSaving(true);
     try {
+      const dataToSave = { ...values, userId: user.uid };
       if (isEditing) {
         const planRef = doc(firestore, 'subscriptionPlans', plan!.id);
-        setDocumentNonBlocking(planRef, values, { merge: true });
+        setDocumentNonBlocking(planRef, dataToSave, { merge: true });
         toast({ title: 'Plano atualizado!', description: `O plano "${values.name}" foi salvo.` });
       } else {
         const plansColRef = collection(firestore, 'subscriptionPlans');
-        addDocumentNonBlocking(plansColRef, values);
+        addDocumentNonBlocking(plansColRef, dataToSave);
         toast({ title: 'Plano criado!', description: `O plano "${values.name}" foi criado com sucesso.` });
       }
       onClose();

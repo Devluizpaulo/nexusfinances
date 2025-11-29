@@ -1,261 +1,64 @@
-/**
- * Core Philosophy: This ruleset enforces a strict user-ownership model for a personal finance application.
- * Each user can only access and manage their own financial data (profiles, incomes, expenses, debts, goals). There
- * is no concept of shared or public data.
- *
- * Data Structure: All data is hierarchically organized under the `/users/{userId}` collection. This structural
- * segregation ensures that a user's entire data tree, including subcollections for incomes, expenses, debts, and goals,
- * is logically and securely isolated. This design simplifies security rules by allowing path-based ownership checks.
- *
- * Key Security Decisions:
- * - User Privacy: Listing users from the top-level `/users` collection is strictly forbidden to protect user privacy.
- * - Strict Ownership: All read and write operations are gated by checking if the authenticated user's UID matches
- *   the `{userId}` in the document path.
- * - Default Deny: Access is implicitly denied unless an explicit `allow` rule grants it.
- * - No Anonymous Access: All data is private, requiring users to be authenticated for any operation.
- *
- * Denormalization for Authorization: To ensure performant and secure rules, an ownership field (e.g., `userId`)
- * is denormalized onto every document in the user's subcollections (incomes, expenses, debts, goals). This allows rules
- * to validate ownership directly from the document being accessed, avoiding slow and costly `get()` calls to parent
- * documents. For `create` operations, rules ensure this `userId` field is set correctly, and for `update` operations,
- * rules ensure it cannot be changed.
- *
- * Structural Segregation: All user-specific financial data is placed in subcollections under their main user
- * document. This is a secure and performant pattern that prevents data leakage and simplifies queries, as any
- * query within a user's data tree is inherently scoped to that user.
- */
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ----------------------------------------------------------------------
     // Helper Functions
-    // ----------------------------------------------------------------------
-
-    /**
-     * Returns true if the user is authenticated.
-     */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * Returns true if the authenticated user's UID matches the provided userId.
-     * This is the primary function for enforcing data ownership.
-     */
     function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+      return request.auth.uid == userId;
     }
     
-    /**
-     * Returns true if the user is a superadmin.
-     */
     function isSuperAdmin() {
       return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superadmin';
     }
 
-    /**
-     * Returns true if the user is the owner and the document already exists.
-     * Used for safe update and delete operations.
-     */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-
-    /**
-     * Validates that a user is creating data for themselves and that the
-     * denormalized `userId` field in the document correctly matches their UID.
-     */
     function isCreatingOwnData(userId) {
-      return isOwner(userId) && request.resource.data.userId == userId;
+        return isOwner(userId) && request.resource.data.userId == userId;
     }
-
-    /**
-     * Enforces immutability of the critical `userId` ownership field during updates.
-     */
-    function isOwnerFieldImmutable() {
-      return request.resource.data.userId == resource.data.userId;
-    }
-
-    /**
-     * Checks ownership of a parent debt document by performing a `get` call.
-     * This is necessary for securing nested subcollections like `installments`
-     * that might not have a denormalized `userId` field.
-     */
+    
     function isOwnerOfParentDebt(userId, debtId) {
-      return isOwner(userId) && get(/databases/$(database)/documents/users/$(userId)/debts/$(debtId)).data.userId == userId;
-    }
-    
-    /**
-     * Validates that an installment is being created with the correct debtId.
-     */
-    function isCreatingValidInstallment(debtId) {
-      return request.resource.data.debtId == debtId;
+      return get(/databases/$(database)/documents/users/$(userId)/debts/$(debtId)).data.userId == userId;
     }
 
-    /**
-     * Enforces immutability of the critical `debtId` relational field during updates.
-     */
-    function isDebtFieldImmutable() {
-        return request.resource.data.debtId == resource.data.debtId;
-    }
-    
-    /**
-     * Checks if the fields being updated by a user are allowed.
-     * Prevents users from changing their own role or email.
-     */
-    function isAllowedUserUpdate() {
-      let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
-      // Users cannot change their ID, email, or role.
-      return !('id' in changedKeys) && !('email' in changedKeys) && !('role' in changedKeys);
-    }
-    
-    /**
-     * Checks if the user is only updating the `isRead` status of a notification.
-     */
-    function isUpdatingNotificationStatusOnly() {
-        let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
-        return changedKeys.size() == 1 && 'isRead' in changedKeys;
-    }
-
-    // ----------------------------------------------------------------------
-    // Collection Rules
-    // ----------------------------------------------------------------------
-
-    /**
-     * @description Manages access to user profile documents.
-     * @path /users/{userId}
-     * @allow (create) A new user (auth.uid: 'user123') creating their own profile document at `/users/user123`.
-     * @deny (list) Any user attempting to list all documents in the `/users` collection.
-     * @principle Enforces self-creation and ownership. Users can manage their own profile but cannot see or interact with others'.
-     */
+    // User Profile Rules
     match /users/{userId} {
-      allow get: if isOwner(userId) || isSuperAdmin();
+      allow get, update, delete: if isOwner(userId) || isSuperAdmin();
       allow list: if isSuperAdmin();
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if (isOwner(userId) && isAllowedUserUpdate()) || isSuperAdmin();
-      allow delete: if isExistingOwner(userId) || isSuperAdmin();
+      allow create: if isOwner(userId);
+    }
 
-      /**
-       * @description Secures a user's private income entries.
-       * @path /users/{userId}/incomes/{incomeId}
-       * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
-       */
-      match /incomes/{incomeId} {
-        allow get, update, delete: if isOwner(userId);
-        allow create: if isCreatingOwnData(userId);
-        allow list: if isOwner(userId);
-      }
-      
-      /**
-       * @description Secures a user's private expense entries.
-       * @path /users/{userId}/expenses/{expenseId}
-       * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
-       */
-      match /expenses/{expenseId} {
-        allow get, update, delete: if isOwner(userId);
-        allow create: if isCreatingOwnData(userId);
-        allow list: if isOwner(userId);
-      }
-      
-      /**
-       * @description Secures a user's credit cards.
-       * @path /users/{userId}/creditCards/{cardId}
-       * @principle Restricts access to a user's own credit cards and validates ownership on creation/update.
-       */
-      match /creditCards/{cardId} {
-        allow get, update, delete: if isOwner(userId);
-        allow create: if isCreatingOwnData(userId);
-        allow list: if isOwner(userId);
-      }
-
-      /**
-       * @description Secures a user's private debt information.
-       * @path /users/{userId}/debts/{debtId}
-       * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
-       */
-      match /debts/{debtId} {
-        allow get, update, delete: if isOwner(userId);
-        allow create: if isCreatingOwnData(userId);
-        allow list: if isOwner(userId);
-
-        /**
-         * @description Secures installment payments for a user's debt.
-         * @path /users/{userId}/debts/{debtId}/installments/{installmentId}
-         * @principle Enforces ownership by looking up the parent debt document. Validates relational integrity with the parent debt.
-         */
-        match /installments/{installmentId} {
-          allow get, update, delete: if isOwnerOfParentDebt(userId, debtId);
-          allow create: if isOwnerOfParentDebt(userId, debtId) && isCreatingValidInstallment(debtId);
-          allow list: if isOwnerOfParentDebt(userId, debtId);
-        }
-      }
-      
-      /**
-       * @description Secures a user's financial goals.
-       * @path /users/{userId}/goals/{goalId}
-       * @principle Restricts access to a user's own data tree and validates denormalized ownership data for integrity.
-       */
-      match /goals/{goalId} {
-        allow get, update, delete: if isOwner(userId);
-        allow create: if isCreatingOwnData(userId);
-        allow list: if isOwner(userId);
-      }
-
-      /**
-       * @description Secures a user's budgets.
-       * @path /users/{userId}/budgets/{budgetId}
-       * @principle Restricts access to a user's own budgets and validates ownership on creation/update.
-       */
-      match /budgets/{budgetId} {
-        allow get, update, delete: if isOwner(userId);
-        allow create: if isCreatingOwnData(userId);
-        allow list: if isOwner(userId);
-      }
-      
-      /**
-       * @description Secures user notifications.
-       * @path /users/{userId}/notifications/{notificationId}
-       * @principle Users can read and delete their own notifications. They can only update the `isRead` status. Creation is handled by backend logic.
-       */
-      match /notifications/{notificationId} {
-        allow get: if isOwner(userId);
-        allow create: if false; // Only backend can create
-        allow update: if isOwner(userId) && isUpdatingNotificationStatusOnly();
-        allow delete: if isOwner(userId);
-        allow list: if isOwner(userId);
-      }
+    // Subcollection Rules
+    match /users/{userId}/{collection}/{docId} {
+      allow get, update, delete: if isOwner(userId);
+      allow create: if isCreatingOwnData(userId);
+      allow list: if isOwner(userId) && collection in ['incomes', 'expenses', 'debts', 'goals', 'budgets', 'creditCards', 'notifications'];
     }
     
-    /**
-     * @description Manages system log entries.
-     * @path /logs/{logId}
-     * @principle Segregates logs and restricts access. Reading is for admins, creation is open for event capture.
-     */
-    match /logs/{logId} {
-        allow get, list: if isSuperAdmin();
-        allow create: if isSignedIn() && request.resource.data.createdBy == request.auth.uid;
-        allow update, delete: if false;
+    match /users/{userId}/debts/{debtId}/installments/{installmentId} {
+        allow get, update, delete: if isOwnerOfParentDebt(userId, debtId);
+        allow create: if isOwnerOfParentDebt(userId, debtId);
+        allow list: if isOwnerOfParentDebt(userId, debtId);
     }
-    
-    /**
-     * @description Manages educational content.
-     * @path /education/{trackId}
-     * @principle Makes content public for consumption but restricted for management.
-     */
+
+    // Public/Admin Collections
     match /education/{trackId} {
         allow get, list: if isSignedIn();
         allow write: if isSuperAdmin();
     }
-
-    /**
-     * @description Manages subscription plans.
-     * @path /subscriptionPlans/{planId}
-     * @principle Makes plans public for users to see, but management is restricted.
-     */
+    
     match /subscriptionPlans/{planId} {
         allow get, list: if isSignedIn();
         allow write: if isSuperAdmin();
+    }
+    
+    match /logs/{logId} {
+        allow get, list: if isSuperAdmin();
+        allow create: if isCreatingOwnData(request.auth.uid);
+        allow update, delete: if false;
     }
   }
 }

@@ -138,15 +138,17 @@ export function AddGoalSheet({ isOpen, onClose, goal }: AddGoalSheetProps) {
     try {
       const goalsColRef = collection(firestore, `users/${user.uid}/goals`);
       
+      const goalData = {
+          ...values,
+          targetDate: values.targetDate ? formatISO(values.targetDate) : undefined,
+          userId: user.uid,
+          monthlyContribution: values.monthlyContribution || 0,
+      };
+
       if(goal) {
         // Editing an existing goal
         const goalRef = doc(firestore, `users/${user.uid}/goals`, goal.id);
-        const updatedData = {
-          ...values,
-          targetDate: values.targetDate ? formatISO(values.targetDate) : undefined,
-          monthlyContribution: values.monthlyContribution || 0,
-        };
-        setDocumentNonBlocking(goalRef, updatedData, { merge: true });
+        setDocumentNonBlocking(goalRef, goalData, { merge: true });
         toast({
             title: 'Meta atualizada',
             description: `"${values.name}" foi atualizada.`,
@@ -163,15 +165,12 @@ export function AddGoalSheet({ isOpen, onClose, goal }: AddGoalSheetProps) {
             }]
           : [];
 
-        const goalData = {
-          ...values,
-          targetDate: values.targetDate ? formatISO(values.targetDate) : undefined,
-          userId: user.uid,
+        const newGoalData = {
+          ...goalData,
           contributions: initialContribution,
-          monthlyContribution: values.monthlyContribution || 0,
         };
 
-        addDocumentNonBlocking(goalsColRef, goalData);
+        addDocumentNonBlocking(goalsColRef, newGoalData);
 
         const progress = values.targetAmount > 0 ? (values.currentAmount / values.targetAmount) * 100 : 0;
 

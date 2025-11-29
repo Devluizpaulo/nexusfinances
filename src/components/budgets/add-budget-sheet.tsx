@@ -100,12 +100,13 @@ export function AddBudgetSheet({ isOpen, onClose, budget }: AddBudgetSheetProps)
     }
 
     try {
+      const dataToSave = { ...values, userId: user.uid };
+
       if (isEditing) {
         // When editing, preserve the original start and end dates if they exist, otherwise calculate
         const budgetRef = doc(firestore, `users/${user.uid}/budgets`, budget!.id);
         const updatedData = { 
-            ...values,
-            userId: user.uid, // ensure userId is present for security rules if needed
+            ...dataToSave,
             period: 'monthly' as const,
             startDate: budget.startDate || formatISO(startOfMonth(new Date())), 
             endDate: budget.endDate || formatISO(endOfMonth(new Date()))
@@ -119,8 +120,7 @@ export function AddBudgetSheet({ isOpen, onClose, budget }: AddBudgetSheetProps)
         const endDate = endOfMonth(now);
         
         const newBudgetData = {
-            ...values,
-            userId: user.uid,
+            ...dataToSave,
             period: 'monthly' as const,
             startDate: formatISO(startDate),
             endDate: formatISO(endDate),

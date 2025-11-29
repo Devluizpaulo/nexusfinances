@@ -169,7 +169,7 @@ export function AddTransactionSheet({
     const collectionName = transactionType === 'income' ? 'incomes' : 'expenses';
     const collectionPath = `users/${user.uid}/${collectionName}`;
     
-    const dataToSave = {
+    const dataToSave: Partial<Transaction> & { userId: string, date: string, type: 'income'|'expense' } = {
       ...values,
       date: formatISO(values.date),
       userId: user.uid,
