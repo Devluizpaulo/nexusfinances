@@ -144,8 +144,6 @@ service cloud.firestore {
       match /incomes/{incomeId} {
         allow get, update, delete: if isOwner(userId);
         allow create: if isCreatingOwnData(userId);
-      }
-      match /incomes/{document=**} {
         allow list: if isOwner(userId);
       }
       
@@ -157,8 +155,6 @@ service cloud.firestore {
       match /expenses/{expenseId} {
         allow get, update, delete: if isOwner(userId);
         allow create: if isCreatingOwnData(userId);
-      }
-      match /expenses/{document=**} {
         allow list: if isOwner(userId);
       }
       
@@ -170,8 +166,6 @@ service cloud.firestore {
       match /creditCards/{cardId} {
         allow get, update, delete: if isOwner(userId);
         allow create: if isCreatingOwnData(userId);
-      }
-       match /creditCards/{document=**} {
         allow list: if isOwner(userId);
       }
 
@@ -183,6 +177,7 @@ service cloud.firestore {
       match /debts/{debtId} {
         allow get, update, delete: if isOwner(userId);
         allow create: if isCreatingOwnData(userId);
+        allow list: if isOwner(userId);
 
         /**
          * @description Secures installment payments for a user's debt.
@@ -192,13 +187,8 @@ service cloud.firestore {
         match /installments/{installmentId} {
           allow get, update, delete: if isOwnerOfParentDebt(userId, debtId);
           allow create: if isOwnerOfParentDebt(userId, debtId) && isCreatingValidInstallment(debtId);
-        }
-         match /installments/{document=**} {
           allow list: if isOwnerOfParentDebt(userId, debtId);
         }
-      }
-       match /debts/{document=**} {
-        allow list: if isOwner(userId);
       }
       
       /**
@@ -209,8 +199,6 @@ service cloud.firestore {
       match /goals/{goalId} {
         allow get, update, delete: if isOwner(userId);
         allow create: if isCreatingOwnData(userId);
-      }
-       match /goals/{document=**} {
         allow list: if isOwner(userId);
       }
 
@@ -222,8 +210,6 @@ service cloud.firestore {
       match /budgets/{budgetId} {
         allow get, update, delete: if isOwner(userId);
         allow create: if isCreatingOwnData(userId);
-      }
-      match /budgets/{document=**} {
         allow list: if isOwner(userId);
       }
       
@@ -237,8 +223,6 @@ service cloud.firestore {
         allow create: if false; // Only backend can create
         allow update: if isOwner(userId) && isUpdatingNotificationStatusOnly();
         allow delete: if isOwner(userId);
-      }
-       match /notifications/{document=**} {
         allow list: if isOwner(userId);
       }
     }
