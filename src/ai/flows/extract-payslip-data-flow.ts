@@ -12,6 +12,7 @@ import {
   type ExtractPayslipInput,
   type ExtractPayslipOutput
 } from '@/lib/types';
+import { z } from 'zod';
 
 
 export async function extractPayslipData(input: ExtractPayslipInput): Promise<ExtractPayslipOutput | null> {
@@ -46,7 +47,7 @@ const extractPayslipDataFlow = ai.defineFlow(
   {
     name: 'extractPayslipDataFlow',
     inputSchema: ExtractPayslipInputSchema,
-    outputSchema: ExtractPayslipOutputSchema,
+    outputSchema: ExtractPayslipOutputSchema.nullable(),
   },
   async (input) => {
     const { output } = await prompt({ pdfBase64: input.pdfBase64 });
