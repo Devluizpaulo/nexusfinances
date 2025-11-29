@@ -93,8 +93,10 @@ export function ImportPayslipCard() {
         type: 'income' as const,
         grossAmount: result.grossAmount,
         totalDeductions: result.totalDeductions,
+        earnings: result.earnings || [],
         deductions: result.deductions || [],
         fgtsAmount: result.fgtsAmount,
+        companyName: result.companyName,
       };
       await addDocumentNonBlocking(incomesColRef, incomeData);
       toast({ title: 'Renda Adicionada!', description: `A renda de ${formatCurrency(result.netAmount)} foi registrada com sucesso.` });
@@ -149,50 +151,72 @@ export function ImportPayslipCard() {
           </div>
         ) : (
           <div className="space-y-4 rounded-lg border bg-muted/50 p-4">
-             <h4 className="text-sm font-semibold">Dados Extraídos</h4>
-            
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground">Valor Bruto</p>
-                    <p className="font-medium">{result.grossAmount ? formatCurrency(result.grossAmount) : 'N/A'}</p>
+             <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Pagador</p>
+                <p className="text-lg font-semibold">{result.companyName || 'Empresa não identificada'}</p>
+            </div>
+             <Separator/>
+
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 {/* Coluna de Proventos */}
+                 <div className="space-y-2">
+                    <h4 className="text-sm font-semibold text-emerald-600">Proventos (Ganhos)</h4>
+                    <div className="space-y-1 text-sm">
+                        {result.earnings && result.earnings.length > 0 ? (
+                            result.earnings.map((item, index) => (
+                                <div key={index} className="flex justify-between">
+                                    <span>{item.name}</span>
+                                    <span className="font-mono">{formatCurrency(item.amount)}</span>
+                                </div>
+                            ))
+                        ) : <p className="text-xs text-muted-foreground">Nenhum detalhe de ganho encontrado.</p>}
+                    </div>
+                     <Separator />
+                    <div className="flex justify-between font-semibold">
+                        <span>Total de Proventos</span>
+                        <span className="font-mono">{result.grossAmount ? formatCurrency(result.grossAmount) : 'N/A'}</span>
+                    </div>
                 </div>
-                 <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground">Total de Descontos</p>
-                    <p className="font-medium text-red-500">{result.totalDeductions ? formatCurrency(result.totalDeductions) : 'N/A'}</p>
+
+                {/* Coluna de Descontos */}
+                 <div className="space-y-2">
+                    <h4 className="text-sm font-semibold text-red-500">Descontos</h4>
+                    <div className="space-y-1 text-sm">
+                       {result.deductions && result.deductions.length > 0 ? (
+                            result.deductions.map((item, index) => (
+                                <div key={index} className="flex justify-between">
+                                    <span>{item.name}</span>
+                                    <span className="font-mono">{formatCurrency(item.amount)}</span>
+                                </div>
+                            ))
+                        ) : <p className="text-xs text-muted-foreground">Nenhum desconto encontrado.</p>}
+                    </div>
+                     <Separator />
+                     <div className="flex justify-between font-semibold">
+                        <span>Total de Descontos</span>
+                        <span className="font-mono">{result.totalDeductions ? formatCurrency(result.totalDeductions) : 'N/A'}</span>
+                    </div>
                 </div>
             </div>
 
-            {result.deductions && result.deductions.length > 0 && (
-                <div className="space-y-2 text-xs">
-                    <p className="font-medium text-muted-foreground">Detalhe dos descontos:</p>
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                        {result.deductions.map((d, i) => (
-                            <div key={i} className="flex justify-between">
-                                <span>{d.name}</span>
-                                <span className="font-mono">{formatCurrency(d.amount)}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-             <Separator />
-
-             <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                 <div className="space-y-1 rounded-md bg-background p-2">
-                    <p className="text-xs text-muted-foreground">Valor Líquido a Registrar</p>
-                    <p className="text-lg font-bold text-emerald-600">{formatCurrency(result.netAmount)}</p>
+            <Separator />
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1 rounded-md bg-background p-3">
+                    <p className="text-sm font-medium text-muted-foreground">Data de Competência</p>
+                    <p className="text-base font-semibold">{result.issueDate ? format(parseISO(result.issueDate), 'PPP', { locale: ptBR }) : 'Não encontrada'}</p>
                 </div>
                  {result.fgtsAmount && (
-                    <div className="space-y-1 rounded-md bg-background p-2">
-                        <p className="text-xs text-muted-foreground flex items-center gap-1.5"><Banknote className="h-3 w-3"/> FGTS do Mês</p>
-                        <p className="text-lg font-bold">{formatCurrency(result.fgtsAmount)}</p>
+                    <div className="space-y-1 rounded-md bg-background p-3">
+                        <p className="text-sm font-medium text-muted-foreground flex items-center gap-1.5"><Banknote className="h-4 w-4"/> FGTS do Mês</p>
+                        <p className="text-base font-semibold">{formatCurrency(result.fgtsAmount)}</p>
                     </div>
                 )}
             </div>
 
-             <div className="space-y-1 text-sm">
-                <p className="text-xs text-muted-foreground">Data de Competência</p>
-                <p className="font-medium">{result.issueDate ? format(parseISO(result.issueDate), 'PPP', { locale: ptBR }) : 'Não encontrada'}</p>
+            <div className="rounded-lg border-2 border-primary bg-primary/5 p-4 text-center">
+                 <p className="text-sm font-medium text-primary">Valor Líquido a Registrar</p>
+                 <p className="text-3xl font-bold text-primary">{formatCurrency(result.netAmount)}</p>
             </div>
           </div>
         )}

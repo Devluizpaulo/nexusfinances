@@ -18,8 +18,10 @@ export type Transaction = {
   creditCardId?: string | null;
   grossAmount?: number;
   totalDeductions?: number;
+  earnings?: { name: string; amount: number }[];
   deductions?: { name: string; amount: number }[];
   fgtsAmount?: number;
+  companyName?: string;
 };
 
 export type CreditCard = {
@@ -279,10 +281,11 @@ export const ExtractTransactionsOutputSchema = z.object({
 export type ExtractTransactionsOutput = z.infer<typeof ExtractTransactionsOutputSchema>;
 
 // Schemas and types for Payslip Extraction Flow
-const DeductionSchema = z.object({
-  name: z.string().describe('Nome do desconto (ex: "INSS", "Vale Transporte").'),
-  amount: z.number().describe('Valor do desconto.'),
+const NameAmountPairSchema = z.object({
+  name: z.string().describe('Nome do item (ex: "Salário Base", "INSS", "Vale Transporte").'),
+  amount: z.number().describe('Valor do item.'),
 });
+
 
 export const ExtractPayslipInputSchema = z.object({
   pdfBase64: z.string().describe("O conteúdo do arquivo PDF (holerite ou nota fiscal) codificado em Base64."),
@@ -290,10 +293,12 @@ export const ExtractPayslipInputSchema = z.object({
 export type ExtractPayslipInput = z.infer<typeof ExtractPayslipInputSchema>;
 
 export const ExtractPayslipOutputSchema = z.object({
+  companyName: z.string().optional().describe('O nome da empresa pagadora.'),
   netAmount: z.number().describe("O valor líquido final (salário líquido) encontrado no documento."),
-  grossAmount: z.number().optional().describe("O valor bruto total (salário bruto) antes dos descontos."),
-  totalDeductions: z.number().optional().describe("A soma de todos os descontos (INSS, IRRF, etc.)."),
-  deductions: z.array(DeductionSchema).optional().describe('Uma lista detalhada de cada desconto.'),
+  grossAmount: z.number().optional().describe("O valor bruto total (soma de todos os proventos)."),
+  totalDeductions: z.number().optional().describe("A soma de todos os descontos."),
+  earnings: z.array(NameAmountPairSchema).optional().describe('Uma lista detalhada de cada item de ganho/provento.'),
+  deductions: z.array(NameAmountPairSchema).optional().describe('Uma lista detalhada de cada desconto.'),
   fgtsAmount: z.number().optional().describe('O valor do depósito do FGTS do mês.'),
   issueDate: z.string().optional().describe("A data de emissão ou competência do documento no formato YYYY-MM-DD."),
   description: z.string().optional().describe("Uma breve descrição da origem do pagamento (ex: 'Salário referente a Abril/2024').")

@@ -27,13 +27,15 @@ const prompt = ai.definePrompt({
 
         IMPORTANTE: O conteúdo completo do PDF foi fornecido ao modelo via uma ferramenta interna ({{media url=pdfBase64}}). Por favor, analise o CONTEÚDO VISUAL do documento PDF fornecido para extrair as transações, não apenas o texto.
 
-        1.  **netAmount (Valor Líquido)**: O valor final que a pessoa ou empresa recebeu. Este é o campo mais importante. Procure por termos como "Líquido a Receber", "Valor Líquido", "Total Líquido".
-        2.  **grossAmount (Valor Bruto)**: O valor total antes de qualquer desconto. Procure por "Total de Proventos", "Salário Bruto", "Valor Bruto".
-        3.  **totalDeductions (Total de Descontos)**: A soma de todos os descontos. Procure por "Total de Descontos", "INSS", "IRRF", etc. Se não houver um total, some os descontos individuais.
-        4.  **deductions (Lista de Descontos)**: Uma lista com cada item de desconto individualmente. Para cada item, extraia o 'name' (nome do desconto, ex: "INSS", "Vale Transporte") e o 'amount' (valor do desconto).
-        5.  **fgtsAmount (Valor do FGTS)**: O valor do depósito do FGTS do mês. Procure por termos como "FGTS", "Base FGTS", "FGTS do Mês". Este valor geralmente não afeta o líquido, mas é uma informação importante.
-        6.  **issueDate (Data de Emissão/Competência)**: A data a que o pagamento se refere. Se houver múltiplas datas, prefira a data de competência ou a data de pagamento. Formate-a como YYYY-MM-DD. Se encontrar apenas mês/ano, use o dia 01.
-        7.  **description (Descrição)**: Crie uma descrição curta e informativa. Ex: "Salário referente a Abril/2024" ou "Pagamento de serviço para Empresa X". Tente incluir o nome da empresa pagadora se encontrar.
+        1.  **companyName (Nome da Empresa)**: O nome da empresa ou empregador que está realizando o pagamento.
+        2.  **earnings (Lista de Ganhos/Proventos)**: Uma lista com cada item de ganho individualmente. Para cada item, extraia o 'name' (nome do provento, ex: "Salário Base", "Horas Extras", "Comissão") e o 'amount' (valor do ganho).
+        3.  **deductions (Lista de Descontos)**: Uma lista com cada item de desconto individualmente. Para cada item, extraia o 'name' (nome do desconto, ex: "INSS", "Vale Transporte") e o 'amount' (valor do desconto).
+        4.  **grossAmount (Valor Bruto)**: O valor total antes de qualquer desconto (soma de todos os 'earnings'). Procure por "Total de Proventos", "Salário Bruto", "Valor Bruto". Se não houver um total, some os itens de 'earnings'.
+        5.  **totalDeductions (Total de Descontos)**: A soma de todos os descontos. Procure por "Total de Descontos". Se não houver, some os itens de 'deductions'.
+        6.  **netAmount (Valor Líquido)**: O valor final que a pessoa ou empresa recebeu. Este é o campo mais importante. Procure por termos como "Líquido a Receber", "Valor Líquido", "Total Líquido".
+        7.  **fgtsAmount (Valor do FGTS)**: O valor do depósito do FGTS do mês. Procure por termos como "FGTS", "Base FGTS", "FGTS do Mês". Este valor geralmente não afeta o líquido.
+        8.  **issueDate (Data de Emissão/Competência)**: A data a que o pagamento se refere. Se houver múltiplas datas, prefira a data de competência ou a data de pagamento. Formate-a como YYYY-MM-DD. Se encontrar apenas mês/ano, use o dia 01.
+        9.  **description (Descrição)**: Crie uma descrição curta e informativa. Ex: "Salário de Abril/2024" ou "Pagamento de serviço para [Nome da Empresa]".
 
         Analise o documento PDF fornecido para extrair esses dados com a maior precisão possível. Se algum campo opcional não for encontrado, omita-o da resposta JSON. O campo 'netAmount' é obrigatório.
     `,
