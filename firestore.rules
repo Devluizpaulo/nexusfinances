@@ -2,63 +2,34 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Helper Functions
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
+    
+    // Função helper simplificada
     function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-    
-    function isSuperAdmin() {
-      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'superadmin';
+      return request.auth != null && request.auth.uid == userId;
     }
 
-    function isCreatingOwnData(userId) {
-        return isOwner(userId) && request.resource.data.userId == userId;
-    }
-    
-    function isOwnerOfParentDebt(userId, debtId) {
-      return get(/databases/$(database)/documents/users/$(userId)/debts/$(debtId)).data.userId == userId;
-    }
-
-    // User Profile Rules
+    // Regra para documento do usuário
     match /users/{userId} {
-      allow get, update, delete: if isOwner(userId) || isSuperAdmin();
-      allow list: if isSuperAdmin();
-      allow create: if isOwner(userId);
+      allow read, write: if isOwner(userId);
     }
 
-    // Subcollection Rules
-    match /users/{userId}/{collection}/{docId} {
-      allow get, update, delete: if isOwner(userId);
-      allow create: if isCreatingOwnData(userId);
-      allow list: if isOwner(userId) && collection in ['incomes', 'expenses', 'debts', 'goals', 'budgets', 'creditCards', 'notifications'];
-    }
-    
-    match /users/{userId}/debts/{debtId}/installments/{installmentId} {
-        allow get, update, delete: if isOwnerOfParentDebt(userId, debtId);
-        allow create: if isOwnerOfParentDebt(userId, debtId);
-        allow list: if isOwnerOfParentDebt(userId, debtId);
+    // Regra para TODAS as subcoleções do usuário
+    match /users/{userId}/{document=**} {
+      allow read, write: if isOwner(userId);
     }
 
-    // Public/Admin Collections
-    match /education/{trackId} {
-        allow get, list: if isSignedIn();
-        allow write: if isSuperAdmin();
+    // Coleções públicas (somente leitura)
+    match /education/{document} {
+      allow read: if request.auth != null;
     }
-    
-    match /subscriptionPlans/{planId} {
-        allow get, list: if isSignedIn();
-        allow write: if isSuperAdmin();
+
+    match /subscriptionPlans/{document} {
+      allow read: if request.auth != null;
     }
-    
-    match /logs/{logId} {
-        allow get, list: if isSuperAdmin();
-        allow create: if isCreatingOwnData(request.auth.uid);
-        allow update, delete: if false;
+
+    // Logs (somente criação)
+    match /logs/{document} {
+      allow create: if request.auth != null;
     }
   }
 }

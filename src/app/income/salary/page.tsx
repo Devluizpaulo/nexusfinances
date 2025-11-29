@@ -44,12 +44,24 @@ export default function SalaryPage() {
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
 
+  // QUERY SIMPLIFICADA - sem orderBy para evitar problemas de índice
   const salaryIncomesQuery = useMemoFirebase(() => {
     if (!user) return null;
-    return query(collection(firestore, `users/${user.uid}/incomes`), where('category', '==', 'Salário'), orderBy('date', 'desc'));
+    return query(
+      collection(firestore, `users/${user.uid}/incomes`), 
+      where('category', '==', 'Salário')
+    );
   }, [firestore, user]);
 
   const { data: salaryData, isLoading: isIncomesLoading } = useCollection<Transaction>(salaryIncomesQuery);
+
+  // ORDENAÇÃO NO CLIENTE
+  const sortedSalaryData = useMemo(() => {
+    if (!salaryData) return [];
+    return [...salaryData].sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+  }, [salaryData]);
 
   useEffect(() => {
     if (!user) {
@@ -183,17 +195,23 @@ export default function SalaryPage() {
     );
   };
 
+  // CÁLCULOS ATUALIZADOS para usar sortedSalaryData
   const {
     avgGross,
     avgNet,
     avgDeductions,
     salaryHistory,
   } = useMemo(() => {
-    if (!salaryData) return { avgGross: 0, avgNet: 0, avgDeductions: 0, salaryHistory: [] };
+    if (!sortedSalaryData) return { avgGross: 0, avgNet: 0, avgDeductions: 0, salaryHistory: [] };
 
-    const salaries = salaryData.filter(t => t.grossAmount !== undefined && t.grossAmount > 0);
+    const salaries = sortedSalaryData.filter(t => t.grossAmount !== undefined && t.grossAmount > 0);
     
-    if (salaries.length === 0) return { avgGross: 0, avgNet: 0, avgDeductions: 0, salaryHistory: salaryData.slice(0, 6) };
+    if (salaries.length === 0) return { 
+      avgGross: 0, 
+      avgNet: 0, 
+      avgDeductions: 0, 
+      salaryHistory: sortedSalaryData.slice(0, 6) 
+    };
 
     const totalNet = salaries.reduce((sum, s) => sum + s.amount, 0);
     const totalGross = salaries.reduce((sum, s) => sum + (s.grossAmount || 0), 0);
@@ -203,9 +221,9 @@ export default function SalaryPage() {
       avgNet: totalNet / salaries.length,
       avgGross: totalGross / salaries.length,
       avgDeductions: totalDeductions / salaries.length,
-      salaryHistory: salaryData.slice(0, 6) // Last 6 salaries, regardless of having gross amount
+      salaryHistory: sortedSalaryData.slice(0, 6) // Usa os dados já ordenados
     };
-  }, [salaryData]);
+  }, [sortedSalaryData]);
 
   const isLoading = isUserLoading || isIncomesLoading || isLoadingConfig;
 
