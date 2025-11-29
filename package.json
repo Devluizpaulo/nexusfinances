@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack -p 9002 -r dotenv/config",
-    "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
-    "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
+    "dev": "next dev --turbopack -p 9002",
+    "genkit:dev": "node -r dotenv/config ./node_modules/.bin/genkit start -- tsx src/ai/dev.ts",
+    "genkit:watch": "node -r dotenv/config ./node_modules/.bin/genkit start -- tsx --watch src/ai/dev.ts",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
