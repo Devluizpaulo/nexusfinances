@@ -7,14 +7,15 @@ import { Label } from '@/components/ui/label';
 import { collection, deleteDoc, doc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Transaction } from '@/lib/types';
-import { Loader2, Briefcase, PlusCircle, TrendingUp, TrendingDown } from 'lucide-react';
+import { Loader2, Briefcase, PlusCircle, TrendingUp, TrendingDown, Edit, Star, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { incomeCategories } from '@/lib/types';
-import { ImportPayslipCard } from '@/components/income/import-payslip-card';
 import { KpiCard } from '@/components/dashboard/kpi-card';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -30,6 +31,7 @@ type SalaryContract = {
 
 export default function SalaryPage() {
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
+  const [isContractsModalOpen, setIsContractsModalOpen] = useState(false);
   const [contracts, setContracts] = useState<SalaryContract[]>([]);
   const [baseAmountInput, setBaseAmountInput] = useState('');
   const [companyNameInput, setCompanyNameInput] = useState('');
@@ -250,29 +252,107 @@ export default function SalaryPage() {
           </p>
         </div>
 
-        <Button onClick={handleOpenSheet} disabled={!user}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Adicionar Salário
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <Button variant="outline" onClick={() => setIsContractsModalOpen(true)} disabled={!user}>
+            <Briefcase className="mr-2 h-4 w-4" />
+            Gerenciar contratos
+          </Button>
+          <Button onClick={handleOpenSheet} disabled={!user}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Adicionar Salário
+          </Button>
+        </div>
       </div>
 
-      {/* Grid principal */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Contratos */}
+      {/* KPIs e Histórico */}
+      <div className="space-y-6">
+        {/* KPIs */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <KpiCard
+            title="Média Bruta"
+            value={formatCurrency(avgGross)}
+            icon={TrendingUp}
+            description="Valor médio bruto"
+          />
+          <KpiCard
+            title="Média Líquida"
+            value={formatCurrency(avgNet)}
+            icon={TrendingDown}
+            description="Valor médio líquido"
+          />
+          <KpiCard
+            title="Descontos Médios"
+            value={formatCurrency(avgDeductions)}
+            icon={TrendingDown}
+            description="Média dos descontos"
+          />
+        </div>
+
+        {/* Histórico */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Briefcase className="h-5 w-5" />
-              Contratos de Trabalho
-            </CardTitle>
+            <CardTitle>Histórico Recente</CardTitle>
             <CardDescription>
-              Gerencie seus contratos e salários base
+              Seus últimos salários registrados
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {salaryHistory.length > 0 ? (
+              <div className="space-y-3">
+                {salaryHistory.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between rounded-lg border p-3">
+                    <div>
+                      <p className="font-semibold">
+                        {formatCurrency(item.amount)} 
+                        <span className="text-xs text-muted-foreground"> (Líquido)</span>
+                      </p>
+                      <p className="text-sm text-muted-foreground">{item.description}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(item.date), 'PPP', { locale: ptBR })}
+                      </p>
+                    </div>
+                    {item.grossAmount && item.grossAmount > 0 ? (
+                      <div className="text-right text-xs">
+                        <p>Bruto: {formatCurrency(item.grossAmount || 0)}</p>
+                        <p className="text-red-500">Descontos: {formatCurrency(item.totalDeductions || 0)}</p>
+                      </div>
+                    ) : (
+                      <div className="text-right text-xs text-muted-foreground">
+                        Detalhes não disponíveis
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex h-40 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
+                <h3 className="font-semibold">Nenhum histórico de salário</h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Adicione salários para ver o histórico aqui.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Modal de contratos */}
+      <Dialog open={isContractsModalOpen} onOpenChange={setIsContractsModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Briefcase className="h-5 w-5" />
+              Contratos de Trabalho
+            </DialogTitle>
+            <DialogDescription>
+              Cadastre e gerencie seus contratos e salários base. Defina um contrato principal para usar como referência.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6">
             <form onSubmit={handleSaveSalaryConfig} className="space-y-4">
               <div className="grid gap-3">
-                <Label htmlFor="companyName">Empresa</Label>
+                <Label htmlFor="companyName">Empresa *</Label>
                 <Input
                   id="companyName"
                   value={companyNameInput}
@@ -283,7 +363,7 @@ export default function SalaryPage() {
               </div>
 
               <div className="grid gap-3">
-                <Label htmlFor="baseAmount">Salário Base (R$)</Label>
+                <Label htmlFor="baseAmount">Salário Base (R$) *</Label>
                 <Input
                   id="baseAmount"
                   type="number"
@@ -316,125 +396,105 @@ export default function SalaryPage() {
                 </div>
               </div>
 
-              <div className="flex gap-2">
-                <Button type="submit" disabled={isSavingConfig}>
-                  {isSavingConfig && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {editingContractId ? 'Atualizar' : 'Adicionar'} Contrato
-                </Button>
+              <div className="flex gap-2 justify-end">
                 {editingContractId && (
                   <Button type="button" variant="outline" onClick={resetForm}>
                     Cancelar
                   </Button>
                 )}
+                <Button type="submit" disabled={isSavingConfig}>
+                  {isSavingConfig && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {editingContractId ? 'Atualizar' : 'Adicionar'} Contrato
+                </Button>
               </div>
             </form>
 
             {/* Lista de contratos */}
-            <div className="mt-6 space-y-3">
-              {contracts.map((contract) => (
-                <div key={contract.id} className="flex items-center justify-between rounded-lg border p-3">
-                  <div>
-                    <p className="font-medium">{contract.companyName}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatCurrency(contract.baseAmount)} • {contract.contractType}
-                      {contract.isPrimary && ' • Principal'}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEditContract(contract)}
-                    >
-                      Editar
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleSetPrimaryContract(contract.id)}
-                    >
-                      Principal
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDeleteContract(contract.id)}
-                    >
-                      Excluir
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium">Meus Contratos</h4>
+                <span className="text-sm text-muted-foreground">
+                  {contracts.length} contrato(s)
+                </span>
+              </div>
 
-        {/* KPIs e Histórico */}
-        <div className="space-y-6">
-          {/* KPIs */}
-          <div className="grid gap-4 md:grid-cols-2">
-            <KpiCard
-              title="Média Bruta"
-              value={formatCurrency(avgGross)}
-              icon={TrendingUp}
-              description="Valor médio bruto"
-            />
-            <KpiCard
-              title="Média Líquida"
-              value={formatCurrency(avgNet)}
-              icon={TrendingDown}
-              description="Valor médio líquido"
-            />
-          </div>
-
-          {/* Histórico */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Histórico Recente</CardTitle>
-              <CardDescription>
-                Seus últimos salários registrados
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {salaryHistory.length > 0 ? (
-                <div className="space-y-3">
-                  {salaryHistory.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between rounded-lg border p-3">
-                      <div>
-                        <p className="font-semibold">
-                          {formatCurrency(item.amount)} 
-                          <span className="text-xs text-muted-foreground"> (Líquido)</span>
-                        </p>
-                        <p className="text-sm text-muted-foreground">{item.description}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(item.date), 'PPP', { locale: ptBR })}
-                        </p>
-                      </div>
-                      {item.grossAmount && item.grossAmount > 0 ? (
-                        <div className="text-right text-xs">
-                          <p>Bruto: {formatCurrency(item.grossAmount || 0)}</p>
-                          <p className="text-red-500">Descontos: {formatCurrency(item.totalDeductions || 0)}</p>
-                        </div>
-                      ) : (
-                        <div className="text-right text-xs text-muted-foreground">
-                          Detalhes não disponíveis
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex h-40 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
-                  <h3 className="font-semibold">Nenhum histórico de salário</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Adicone salários para ver o histórico aqui.
+              {contracts.length === 0 ? (
+                <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
+                  <Briefcase className="h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-sm text-muted-foreground">
+                    Nenhum contrato cadastrado ainda.
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Adicione seu primeiro contrato acima.
                   </p>
                 </div>
+              ) : (
+                contracts.map((contract) => (
+                  <div
+                    key={contract.id}
+                    className={`flex items-center justify-between rounded-lg border p-4 text-sm transition-colors ${
+                      contract.isPrimary ? 'border-primary bg-primary/5' : ''
+                    }`}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <p className="font-medium">{contract.companyName}</p>
+                        {contract.isPrimary && (
+                          <Badge variant="default" className="text-xs">
+                            <Star className="h-3 w-3 mr-1 fill-current" />
+                            Principal
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="space-y-1 text-muted-foreground">
+                        <p>Base: {formatCurrency(contract.baseAmount)}</p>
+                        {contract.contractType && (
+                          <p>Tipo: {contract.contractType}</p>
+                        )}
+                        {contract.startDate && (
+                          <p className="text-xs">
+                            Início:{' '}
+                            {(() => {
+                              const [year, month, day] = contract.startDate!.split('-');
+                              return `${day}/${month}/${year}`;
+                            })()}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEditContract(contract)}
+                        title="Editar contrato"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant={contract.isPrimary ? "default" : "ghost"}
+                        size="icon"
+                        onClick={() => handleSetPrimaryContract(contract.id)}
+                        title="Definir como principal"
+                      >
+                        <Star className={`h-4 w-4 ${contract.isPrimary ? 'fill-current' : ''}`} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteContract(contract.id)}
+                        title="Excluir contrato"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))
               )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
