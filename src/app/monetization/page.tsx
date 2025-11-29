@@ -3,15 +3,17 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, PlusCircle, Star } from 'lucide-react';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import type { SubscriptionPlan } from '@/lib/types';
 import { PlanForm } from '@/components/monetization/plan-form';
 import { PlanCard } from '@/components/monetization/plan-card';
+import { PageHeader } from '@/components/page-header';
 
 export default function MonetizationPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<SubscriptionPlan | null>(null);
+  const { user } = useUser();
 
   const firestore = useFirestore();
 
@@ -32,17 +34,26 @@ export default function MonetizationPage() {
     setIsFormOpen(false);
   };
 
+  if (user && user.role !== 'superadmin') {
+    return (
+        <div className="flex h-full items-center justify-center">
+            <p>Acesso negado.</p>
+        </div>
+    )
+  }
+
   return (
     <>
       <PlanForm isOpen={isFormOpen} onClose={handleCloseForm} plan={editingPlan} />
-
-      <div className="flex items-center justify-between mb-6">
-        <div/>
+      <PageHeader
+        title="Gerenciamento de Planos"
+        description="Crie e edite os planos de assinatura disponíveis para os usuários."
+      >
         <Button onClick={() => setIsFormOpen(true)}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Novo Plano
         </Button>
-      </div>
+      </PageHeader>
 
 
       {arePlansLoading ? (
