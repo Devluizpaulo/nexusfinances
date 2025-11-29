@@ -30,8 +30,8 @@ const prompt = ai.definePrompt({
         3.  **totalDeductions (Total de Descontos)**: A soma de todos os descontos. Procure por "Total de Descontos", "INSS", "IRRF", etc. Se não houver um total, some os descontos individuais.
         4.  **deductions (Lista de Descontos)**: Uma lista com cada item de desconto individualmente. Para cada item, extraia o 'name' (nome do desconto, ex: "INSS", "Vale Transporte") e o 'amount' (valor do desconto).
         5.  **fgtsAmount (Valor do FGTS)**: O valor do depósito do FGTS do mês. Procure por termos como "FGTS", "Base FGTS", "FGTS do Mês". Este valor geralmente não afeta o líquido, mas é uma informação importante.
-        6.  **issueDate (Data de Emissão/Competência)**: A data a que o pagamento se refere. Formate-a como YYYY-MM-DD.
-        7.  **description (Descrição)**: Crie uma descrição curta e informativa. Ex: "Salário referente a Abril/2024" ou "Pagamento de serviço para Empresa X".
+        6.  **issueDate (Data de Emissão/Competência)**: A data a que o pagamento se refere. Se houver múltiplas datas, prefira a data de competência ou a data de pagamento. Formate-a como YYYY-MM-DD. Se encontrar apenas mês/ano, use o dia 01.
+        7.  **description (Descrição)**: Crie uma descrição curta e informativa. Ex: "Salário referente a Abril/2024" ou "Pagamento de serviço para Empresa X". Tente incluir o nome da empresa pagadora se encontrar.
 
         Analise o documento PDF fornecido via contexto de mídia para extrair esses dados com a maior precisão possível. Se algum campo opcional não for encontrado, omita-o da resposta JSON. O campo 'netAmount' é obrigatório.
     `,
