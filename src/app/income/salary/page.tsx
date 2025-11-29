@@ -16,6 +16,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { ImportPayslipCard } from '@/components/income/import-payslip-card';
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -287,6 +288,8 @@ export default function SalaryPage() {
             description="Média dos descontos"
           />
         </div>
+
+        <ImportPayslipCard />
 
         {/* Histórico */}
         <Card>
