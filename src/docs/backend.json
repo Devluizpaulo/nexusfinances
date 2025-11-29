@@ -49,6 +49,9 @@
             "superadmin"
           ]
         },
+        "subscription": {
+          "$ref": "#/backend/entities/UserSubscription"
+        },
         "customIncomeCategories": {
           "type": "array",
           "description": "Custom income categories defined by the user.",
@@ -360,6 +363,20 @@
         "active": { "type": "boolean", "description": "Whether the plan is currently available for new subscriptions." }
       },
       "required": ["name", "price", "features", "active"]
+    },
+    "UserSubscription": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "User Subscription",
+        "type": "object",
+        "description": "Represents a user's subscription details.",
+        "properties": {
+            "planId": { "type": "string" },
+            "status": { "type": "string", "enum": ["active", "inactive", "canceled", "past_due"] },
+            "startDate": { "type": "string", "format": "date-time" },
+            "endDate": { "type": "string", "format": "date-time" },
+            "paymentGatewaySubscriptionId": { "type": "string" }
+        },
+        "required": ["planId", "status", "startDate"]
     },
     "Log": {
       "$schema": "http://json-schema.org/draft-07/schema#",

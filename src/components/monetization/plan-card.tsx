@@ -117,5 +117,3 @@ export function PlanCard({ plan, onEdit }: PlanCardProps) {
     </>
   );
 }
-
-    

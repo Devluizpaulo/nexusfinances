@@ -6,6 +6,7 @@ import { Firestore, doc, setDoc, getDoc, serverTimestamp, Timestamp, FieldValue,
 import { FirebaseStorage } from 'firebase/storage';
 import { Auth, User, onAuthStateChanged, UserMetadata } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
+import type { SubscriptionPlan, UserSubscription } from '@/lib/types';
 
 
 // Extends the default Firebase User type to include our custom fields
@@ -19,6 +20,8 @@ export interface AppUser extends Omit<User, 'metadata' | 'phoneNumber'> {
   customIncomeCategories?: string[];
   customExpenseCategories?: string[];
   completedTracks?: string[];
+  subscription?: UserSubscription;
+  subscriptionPlan?: SubscriptionPlan;
 }
 
 // Internal state for user authentication, using our extended AppUser
@@ -128,23 +131,39 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       (firebaseUser) => {
         if (firebaseUser) {
           const userDocRef = doc(firestore, 'users', firebaseUser.uid);
+          
           const userUnsubscribe = onSnapshot(userDocRef, 
-            async (snapshot) => {
-                if(snapshot.exists()) {
-                    setUserAuthState({
-                        user: { ...firebaseUser, ...snapshot.data() } as AppUser,
-                        isUserLoading: false,
-                        userError: null,
-                    });
+            async (userSnapshot) => {
+                let appUser: AppUser;
+
+                if (userSnapshot.exists()) {
+                    appUser = { ...firebaseUser, ...userSnapshot.data() } as AppUser;
                 } else {
                     try {
-                        const appUser = await createUserDocument(firestore, firebaseUser);
-                        setUserAuthState({ user: appUser, isUserLoading: false, userError: null });
+                        appUser = await createUserDocument(firestore, firebaseUser);
                     } catch (error: any) {
                         console.error("FirebaseProvider: Error creating user document:", error);
                         setUserAuthState({ user: null, isUserLoading: false, userError: error });
+                        return;
                     }
                 }
+
+                // Now fetch the subscription plan if a subscription exists
+                if (appUser.subscription && appUser.subscription.planId) {
+                    const planDocRef = doc(firestore, 'subscriptionPlans', appUser.subscription.planId);
+                    const planSnapshot = await getDoc(planDocRef);
+
+                    if (planSnapshot.exists()) {
+                        appUser.subscriptionPlan = planSnapshot.data() as SubscriptionPlan;
+                    }
+                }
+                
+                setUserAuthState({
+                    user: appUser,
+                    isUserLoading: false,
+                    userError: null,
+                });
+
             },
             (error) => {
                 console.error("FirebaseProvider: onSnapshot error:", error);

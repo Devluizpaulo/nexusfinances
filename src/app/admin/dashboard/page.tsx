@@ -225,11 +225,11 @@ export default function AdminDashboardPage() {
                     A interface para gerenciar planos de assinatura está disponível em uma página dedicada.
                 </p>
             </CardContent>
-            <CardContent>
+            <CardFooter>
                 <Button asChild>
                     <Link href="/monetization">Gerenciar Planos</Link>
                 </Button>
-            </CardContent>
+            </CardFooter>
           </Card>
         </section>
       )}
