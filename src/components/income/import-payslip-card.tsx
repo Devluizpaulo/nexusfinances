@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, FileUp, FileCheck2, Wallet, Check, ChevronsUpDown, FileText, UploadCloud } from 'lucide-react';
+import { Loader2, FileUp, FileCheck2, Wallet, Check, ChevronsUpDown, FileText, UploadCloud, Banknote } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useDropzone } from 'react-dropzone';
 import { cn } from '@/lib/utils';
@@ -13,6 +13,7 @@ import { useFirestore, useUser, addDocumentNonBlocking } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Separator } from '../ui/separator';
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
@@ -81,6 +82,8 @@ export function ImportPayslipCard() {
         type: 'income' as const,
         grossAmount: result.grossAmount,
         totalDeductions: result.totalDeductions,
+        deductions: result.deductions || [],
+        fgtsAmount: result.fgtsAmount,
       };
       await addDocumentNonBlocking(incomesColRef, incomeData);
       toast({ title: 'Renda Adicionada!', description: `A renda de ${formatCurrency(result.netAmount)} foi registrada com sucesso.` });
@@ -106,7 +109,7 @@ export function ImportPayslipCard() {
           <UploadCloud className="h-6 w-6 text-primary" />
           <div>
             <CardTitle>Importar Holerite ou Nota Fiscal</CardTitle>
-            <CardDescription>Envie seu documento PDF para extrair o salário líquido automaticamente.</CardDescription>
+            <CardDescription>Envie seu documento PDF para extrair os valores automaticamente.</CardDescription>
           </div>
         </div>
       </CardHeader>
@@ -134,9 +137,10 @@ export function ImportPayslipCard() {
             )}
           </div>
         ) : (
-          <div className="space-y-3 rounded-lg border bg-muted/50 p-4">
+          <div className="space-y-4 rounded-lg border bg-muted/50 p-4">
              <h4 className="text-sm font-semibold">Dados Extraídos</h4>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                 <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">Valor Bruto</p>
                     <p className="font-medium">{result.grossAmount ? formatCurrency(result.grossAmount) : 'N/A'}</p>
@@ -146,11 +150,36 @@ export function ImportPayslipCard() {
                     <p className="font-medium text-red-500">{result.totalDeductions ? formatCurrency(result.totalDeductions) : 'N/A'}</p>
                 </div>
             </div>
-            <div className="space-y-1 rounded-md bg-background p-3">
-                <p className="text-xs text-muted-foreground">Valor Líquido a ser Registrado</p>
-                <p className="text-lg font-bold text-emerald-600">{formatCurrency(result.netAmount)}</p>
+
+            {result.deductions && result.deductions.length > 0 && (
+                <div className="space-y-2 text-xs">
+                    <p className="font-medium text-muted-foreground">Detalhe dos descontos:</p>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                        {result.deductions.map((d, i) => (
+                            <div key={i} className="flex justify-between">
+                                <span>{d.name}</span>
+                                <span className="font-mono">{formatCurrency(d.amount)}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+             <Separator />
+
+             <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                 <div className="space-y-1 rounded-md bg-background p-2">
+                    <p className="text-xs text-muted-foreground">Valor Líquido a Registrar</p>
+                    <p className="text-lg font-bold text-emerald-600">{formatCurrency(result.netAmount)}</p>
+                </div>
+                 {result.fgtsAmount && (
+                    <div className="space-y-1 rounded-md bg-background p-2">
+                        <p className="text-xs text-muted-foreground flex items-center gap-1.5"><Banknote className="h-3 w-3"/> FGTS do Mês</p>
+                        <p className="text-lg font-bold">{formatCurrency(result.fgtsAmount)}</p>
+                    </div>
+                )}
             </div>
-             <div className="space-y-1">
+
+             <div className="space-y-1 text-sm">
                 <p className="text-xs text-muted-foreground">Data de Competência</p>
                 <p className="font-medium">{result.issueDate ? format(parseISO(result.issueDate), 'PPP', { locale: ptBR }) : 'Não encontrada'}</p>
             </div>

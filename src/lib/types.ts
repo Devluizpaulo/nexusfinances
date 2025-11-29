@@ -18,6 +18,8 @@ export type Transaction = {
   creditCardId?: string | null;
   grossAmount?: number;
   totalDeductions?: number;
+  deductions?: { name: string; amount: number }[];
+  fgtsAmount?: number;
 };
 
 export type CreditCard = {
@@ -277,6 +279,11 @@ export const ExtractTransactionsOutputSchema = z.object({
 export type ExtractTransactionsOutput = z.infer<typeof ExtractTransactionsOutputSchema>;
 
 // Schemas and types for Payslip Extraction Flow
+const DeductionSchema = z.object({
+  name: z.string().describe('Nome do desconto (ex: "INSS", "Vale Transporte").'),
+  amount: z.number().describe('Valor do desconto.'),
+});
+
 export const ExtractPayslipInputSchema = z.object({
   pdfBase64: z.string().describe("O conteúdo do arquivo PDF (holerite ou nota fiscal) codificado em Base64."),
 });
@@ -286,6 +293,8 @@ export const ExtractPayslipOutputSchema = z.object({
   netAmount: z.number().describe("O valor líquido final (salário líquido) encontrado no documento."),
   grossAmount: z.number().optional().describe("O valor bruto total (salário bruto) antes dos descontos."),
   totalDeductions: z.number().optional().describe("A soma de todos os descontos (INSS, IRRF, etc.)."),
+  deductions: z.array(DeductionSchema).optional().describe('Uma lista detalhada de cada desconto.'),
+  fgtsAmount: z.number().optional().describe('O valor do depósito do FGTS do mês.'),
   issueDate: z.string().optional().describe("A data de emissão ou competência do documento no formato YYYY-MM-DD."),
   description: z.string().optional().describe("Uma breve descrição da origem do pagamento (ex: 'Salário referente a Abril/2024').")
 });

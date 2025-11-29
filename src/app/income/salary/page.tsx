@@ -273,19 +273,19 @@ export default function SalaryPage() {
             title="Média Bruta"
             value={formatCurrency(avgGross)}
             icon={TrendingUp}
-            description="Valor médio bruto"
+            description="Valor médio bruto dos últimos salários detalhados"
           />
           <KpiCard
             title="Média Líquida"
             value={formatCurrency(avgNet)}
             icon={TrendingDown}
-            description="Valor médio líquido"
+            description="Valor médio líquido recebido"
           />
           <KpiCard
             title="Descontos Médios"
             value={formatCurrency(avgDeductions)}
             icon={TrendingDown}
-            description="Média dos descontos"
+            description="Média dos descontos (INSS, IRRF, etc.)"
           />
         </div>
 
@@ -296,7 +296,7 @@ export default function SalaryPage() {
           <CardHeader>
             <CardTitle>Histórico Recente</CardTitle>
             <CardDescription>
-              Seus últimos salários registrados
+              Seus últimos salários registrados.
             </CardDescription>
           </CardHeader>
           <CardContent>
