@@ -1,10 +1,10 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, FileUp, FileCheck2, Wallet, Check, ChevronsUpDown, FileText, UploadCloud, Banknote } from 'lucide-react';
+import { Loader2, FileUp, FileCheck2, Wallet, Check, ChevronsUpDown, FileText, UploadCloud, Banknote, CalendarIcon, Pencil } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useDropzone } from 'react-dropzone';
 import { cn } from '@/lib/utils';
@@ -12,21 +12,34 @@ import { extractPayslipData } from '@/ai/flows/extract-payslip-data-flow';
 import type { ExtractPayslipOutput } from '@/lib/types';
 import { useFirestore, useUser, addDocumentNonBlocking } from '@/firebase';
 import { collection } from 'firebase/firestore';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isValid } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Separator } from '../ui/separator';
+import { Input } from '../ui/input';
+import { CurrencyInput } from '../ui/currency-input';
+import { Textarea } from '../ui/textarea';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Calendar } from '../ui/calendar';
 
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
-};
 
 export function ImportPayslipCard() {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [result, setResult] = useState<ExtractPayslipOutput | null>(null);
+  const [originalResult, setOriginalResult] = useState<ExtractPayslipOutput | null>(null);
+  const [editableResult, setEditableResult] = useState<ExtractPayslipOutput | null>(null);
+  
   const { toast } = useToast();
   const { user } = useUser();
   const firestore = useFirestore();
+
+  useEffect(() => {
+    if (originalResult) {
+      setEditableResult(JSON.parse(JSON.stringify(originalResult)));
+    } else {
+      setEditableResult(null);
+    }
+  }, [originalResult]);
+
 
   const onDrop = (acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -36,7 +49,7 @@ export function ImportPayslipCard() {
         return;
       }
       setFile(selectedFile);
-      setResult(null);
+      setOriginalResult(null);
     }
   };
 
@@ -49,7 +62,7 @@ export function ImportPayslipCard() {
   const handleExtract = async () => {
     if (!file) return;
     setIsProcessing(true);
-    setResult(null);
+    setOriginalResult(null);
     try {
       const reader = new FileReader();
       reader.readAsDataURL(file);
@@ -63,9 +76,9 @@ export function ImportPayslipCard() {
                 title: 'Análise Falhou',
                 description: 'A IA não conseguiu extrair os dados. O documento pode ser muito complexo ou não ser um holerite/NF. Por favor, preencha manualmente.',
             });
-            setResult(null);
+            setOriginalResult(null);
         } else {
-            setResult(extractedData);
+            setOriginalResult(extractedData);
             toast({ title: 'Análise Concluída!', description: 'Confira os dados extraídos abaixo e confirme.' });
         }
       };
@@ -76,30 +89,39 @@ export function ImportPayslipCard() {
       setIsProcessing(false);
     }
   };
+  
+  const handleFieldChange = (field: keyof ExtractPayslipOutput, value: any) => {
+    if (!editableResult) return;
+    setEditableResult(prev => ({...prev!, [field]: value}));
+  };
 
   const handleConfirm = async () => {
-    if (!result || !user || !firestore) return;
+    if (!editableResult || !user || !firestore) return;
     setIsProcessing(true);
     try {
       const incomesColRef = collection(firestore, `users/${user.uid}/incomes`);
+      
+      const notes = `Dados importados do documento: ${file?.name || 'documento'}.`;
+
       const incomeData = {
-        amount: result.netAmount,
+        amount: editableResult.netAmount,
         category: 'Salário',
-        date: result.issueDate || new Date().toISOString().split('T')[0],
-        description: result.description || `Salário de ${file?.name || 'documento importado'}`,
-        isRecurring: false, // Imported transactions are one-offs
+        date: editableResult.issueDate || new Date().toISOString().split('T')[0],
+        description: editableResult.description || `Salário de ${editableResult.companyName || 'documento importado'}`,
+        isRecurring: false, 
         status: 'paid' as const,
         userId: user.uid,
         type: 'income' as const,
-        grossAmount: result.grossAmount,
-        totalDeductions: result.totalDeductions,
-        earnings: result.earnings || [],
-        deductions: result.deductions || [],
-        fgtsAmount: result.fgtsAmount,
-        companyName: result.companyName,
+        grossAmount: editableResult.grossAmount,
+        totalDeductions: editableResult.totalDeductions,
+        earnings: editableResult.earnings || [],
+        deductions: editableResult.deductions || [],
+        fgtsAmount: editableResult.fgtsAmount,
+        companyName: editableResult.companyName,
+        notes,
       };
       await addDocumentNonBlocking(incomesColRef, incomeData);
-      toast({ title: 'Renda Adicionada!', description: `A renda de ${formatCurrency(result.netAmount)} foi registrada com sucesso.` });
+      toast({ title: 'Renda Adicionada!', description: `A renda de ${formatCurrency(editableResult.netAmount)} foi registrada com sucesso.` });
       handleReset();
     } catch (error) {
       console.error("Error saving income:", error);
@@ -111,8 +133,13 @@ export function ImportPayslipCard() {
 
   const handleReset = () => {
     setFile(null);
-    setResult(null);
+    setOriginalResult(null);
     setIsProcessing(false);
+  };
+  
+  const formatCurrency = (amount: number | undefined) => {
+    if (typeof amount !== 'number') return 'N/A';
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
   };
 
   return (
@@ -127,7 +154,7 @@ export function ImportPayslipCard() {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {!result ? (
+        {!editableResult ? (
           <div
             {...getRootProps()}
             className={cn(
@@ -152,8 +179,8 @@ export function ImportPayslipCard() {
         ) : (
           <div className="space-y-4 rounded-lg border bg-muted/50 p-4">
              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">Pagador</p>
-                <p className="text-lg font-semibold">{result.companyName || 'Empresa não identificada'}</p>
+                <label className="text-sm font-medium text-muted-foreground">Pagador</label>
+                <Input value={editableResult.companyName || ''} onChange={(e) => handleFieldChange('companyName', e.target.value)} />
             </div>
              <Separator/>
 
@@ -162,11 +189,19 @@ export function ImportPayslipCard() {
                  <div className="space-y-2">
                     <h4 className="text-sm font-semibold text-emerald-600">Proventos (Ganhos)</h4>
                     <div className="space-y-1 text-sm">
-                        {result.earnings && result.earnings.length > 0 ? (
-                            result.earnings.map((item, index) => (
-                                <div key={index} className="flex justify-between">
-                                    <span>{item.name}</span>
-                                    <span className="font-mono">{formatCurrency(item.amount)}</span>
+                        {editableResult.earnings && editableResult.earnings.length > 0 ? (
+                            editableResult.earnings.map((item, index) => (
+                                <div key={index} className="flex justify-between items-center gap-2">
+                                    <Input value={item.name} className="h-8 text-xs flex-1" onChange={e => {
+                                        const newEarnings = [...editableResult.earnings!];
+                                        newEarnings[index].name = e.target.value;
+                                        handleFieldChange('earnings', newEarnings);
+                                    }}/>
+                                    <CurrencyInput value={item.amount} className="h-8 text-xs w-28" onValueChange={value => {
+                                         const newEarnings = [...editableResult.earnings!];
+                                         newEarnings[index].amount = value;
+                                         handleFieldChange('earnings', newEarnings);
+                                    }}/>
                                 </div>
                             ))
                         ) : <p className="text-xs text-muted-foreground">Nenhum detalhe de ganho encontrado.</p>}
@@ -174,7 +209,7 @@ export function ImportPayslipCard() {
                      <Separator />
                     <div className="flex justify-between font-semibold">
                         <span>Total de Proventos</span>
-                        <span className="font-mono">{result.grossAmount ? formatCurrency(result.grossAmount) : 'N/A'}</span>
+                        <CurrencyInput value={editableResult.grossAmount || 0} className="h-8 text-sm font-semibold w-32" onValueChange={value => handleFieldChange('grossAmount', value)}/>
                     </div>
                 </div>
 
@@ -182,11 +217,19 @@ export function ImportPayslipCard() {
                  <div className="space-y-2">
                     <h4 className="text-sm font-semibold text-red-500">Descontos</h4>
                     <div className="space-y-1 text-sm">
-                       {result.deductions && result.deductions.length > 0 ? (
-                            result.deductions.map((item, index) => (
-                                <div key={index} className="flex justify-between">
-                                    <span>{item.name}</span>
-                                    <span className="font-mono">{formatCurrency(item.amount)}</span>
+                       {editableResult.deductions && editableResult.deductions.length > 0 ? (
+                            editableResult.deductions.map((item, index) => (
+                                 <div key={index} className="flex justify-between items-center gap-2">
+                                     <Input value={item.name} className="h-8 text-xs flex-1" onChange={e => {
+                                        const newDeductions = [...editableResult.deductions!];
+                                        newDeductions[index].name = e.target.value;
+                                        handleFieldChange('deductions', newDeductions);
+                                    }}/>
+                                    <CurrencyInput value={item.amount} className="h-8 text-xs w-28" onValueChange={value => {
+                                         const newDeductions = [...editableResult.deductions!];
+                                         newDeductions[index].amount = value;
+                                         handleFieldChange('deductions', newDeductions);
+                                    }}/>
                                 </div>
                             ))
                         ) : <p className="text-xs text-muted-foreground">Nenhum desconto encontrado.</p>}
@@ -194,7 +237,7 @@ export function ImportPayslipCard() {
                      <Separator />
                      <div className="flex justify-between font-semibold">
                         <span>Total de Descontos</span>
-                        <span className="font-mono">{result.totalDeductions ? formatCurrency(result.totalDeductions) : 'N/A'}</span>
+                        <CurrencyInput value={editableResult.totalDeductions || 0} className="h-8 text-sm font-semibold w-32" onValueChange={value => handleFieldChange('totalDeductions', value)}/>
                     </div>
                 </div>
             </div>
@@ -203,27 +246,48 @@ export function ImportPayslipCard() {
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1 rounded-md bg-background p-3">
-                    <p className="text-sm font-medium text-muted-foreground">Data de Competência</p>
-                    <p className="text-base font-semibold">{result.issueDate ? format(parseISO(result.issueDate), 'PPP', { locale: ptBR }) : 'Não encontrada'}</p>
+                    <label className="text-sm font-medium text-muted-foreground">Data de Competência</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                          <Button variant="outline" className="w-full justify-start text-left font-normal">
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {editableResult.issueDate && isValid(parseISO(editableResult.issueDate)) ? format(parseISO(editableResult.issueDate), 'PPP', { locale: ptBR }) : 'Selecione a data'}
+                          </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                          <Calendar
+                              mode="single"
+                              selected={editableResult.issueDate ? parseISO(editableResult.issueDate) : new Date()}
+                              onSelect={(date) => handleFieldChange('issueDate', date ? format(date, 'yyyy-MM-dd') : '')}
+                              initialFocus
+                          />
+                      </PopoverContent>
+                    </Popover>
                 </div>
-                 {result.fgtsAmount && (
+                 {editableResult.fgtsAmount !== undefined && (
                     <div className="space-y-1 rounded-md bg-background p-3">
-                        <p className="text-sm font-medium text-muted-foreground flex items-center gap-1.5"><Banknote className="h-4 w-4"/> FGTS do Mês</p>
-                        <p className="text-base font-semibold">{formatCurrency(result.fgtsAmount)}</p>
+                        <label className="text-sm font-medium text-muted-foreground flex items-center gap-1.5"><Banknote className="h-4 w-4"/> FGTS do Mês</label>
+                        <CurrencyInput value={editableResult.fgtsAmount || 0} onValueChange={value => handleFieldChange('fgtsAmount', value)}/>
                     </div>
                 )}
             </div>
 
             <div className="rounded-lg border-2 border-primary bg-primary/5 p-4 text-center">
-                 <p className="text-sm font-medium text-primary">Valor Líquido a Registrar</p>
-                 <p className="text-3xl font-bold text-primary">{formatCurrency(result.netAmount)}</p>
+                 <label className="text-sm font-medium text-primary">Valor Líquido a Registrar</label>
+                 <CurrencyInput value={editableResult.netAmount || 0} onValueChange={value => handleFieldChange('netAmount', value)} className="w-full text-3xl font-bold text-primary bg-transparent border-0 text-center h-auto p-0 shadow-none focus-visible:ring-0"/>
             </div>
+
+             <div className="space-y-1">
+                <label className="text-sm font-medium text-muted-foreground">Observação</label>
+                <Textarea value={editableResult.description || ''} onChange={(e) => handleFieldChange('description', e.target.value)} placeholder="Adicione uma descrição para esta renda..."/>
+             </div>
+
           </div>
         )}
       </CardContent>
       <CardFooter className="flex justify-end gap-2">
-        {result && <Button variant="outline" onClick={handleReset}>Cancelar</Button>}
-        {result ? (
+        {editableResult && <Button variant="outline" onClick={handleReset}>Cancelar</Button>}
+        {editableResult ? (
           <Button onClick={handleConfirm} disabled={isProcessing}>
             {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Confirmar e Salvar Renda

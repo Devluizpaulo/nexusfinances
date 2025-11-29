@@ -1,5 +1,4 @@
 
-
 import { z } from 'zod';
 import type { LucideIcon } from 'lucide-react';
 
@@ -22,6 +21,7 @@ export type Transaction = {
   deductions?: { name: string; amount: number }[];
   fgtsAmount?: number;
   companyName?: string;
+  notes?: string;
 };
 
 export type CreditCard = {
@@ -288,7 +288,7 @@ const NameAmountPairSchema = z.object({
 
 
 export const ExtractPayslipInputSchema = z.object({
-  pdfBase64: z.string().describe("O conteúdo do arquivo PDF (holerite ou nota fiscal) codificado em Base64."),
+  pdfBase64: z.string().describe("O conteúdo do arquivo PDF (holerite ou nota fiscal) como um data URI."),
 });
 export type ExtractPayslipInput = z.infer<typeof ExtractPayslipInputSchema>;
 
