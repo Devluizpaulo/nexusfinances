@@ -5,16 +5,19 @@ import { Button } from '@/components/ui/button';
 import { collection, query, where } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Recurrence } from '@/lib/types';
-import { Loader2, Landmark, PlusCircle } from 'lucide-react';
+import { Loader2, Landmark, PlusCircle, Upload } from 'lucide-react';
 import { RecurrenceCard } from '@/components/recurrences/recurrence-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { expenseCategories } from '@/lib/types';
+import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
+import { PageHeader } from '@/components/page-header';
 
 const taxesKeywords = ['imposto', 'taxa', 'irpf', 'das', 'ipva', 'iptu'];
 
 export default function TaxesPage() {
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
+  const [isImportSheetOpen, setIsImportSheetOpen] = useState(false);
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
 
@@ -60,14 +63,26 @@ export default function TaxesPage() {
         transactionType="expense"
         categories={expenseCategories}
       />
-      <div className="flex items-center justify-end mb-6">
+       <ImportTransactionsSheet 
+        isOpen={isImportSheetOpen}
+        onClose={() => setIsImportSheetOpen(false)}
+      />
+
+       <PageHeader
+        title="Impostos e Taxas"
+        description="Gerencie seus pagamentos recorrentes de impostos e taxas."
+      >
+        <Button variant="outline" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>
+            <Upload className="mr-2 h-4 w-4" />
+            Importar PDF com IA
+        </Button>
         <Button onClick={handleOpenSheet} disabled={!user}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Adicionar Imposto/Taxa
         </Button>
-      </div>
+      </PageHeader>
 
-      <Card>
+      <Card className="mt-4">
         <CardHeader>
           <div className="flex items-center gap-3">
               <Landmark className="h-5 w-5 text-primary" />
