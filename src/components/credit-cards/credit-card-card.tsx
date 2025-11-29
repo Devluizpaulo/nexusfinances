@@ -9,10 +9,12 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { doc } from 'firebase/firestore';
-import { MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { MoreVertical, Pencil, Trash2, ArrowRight } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { getMonth, getDate, set, subMonths, startOfDay, endOfDay } from 'date-fns';
+import { getMonth, getDate, set, isAfter, isBefore, addMonths, subMonths, startOfDay, endOfDay, parseISO, format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Separator } from '../ui/separator';
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
@@ -30,40 +32,68 @@ export function CreditCardCard({ card, expenses, onEdit }: CreditCardCardProps) 
   const { user } = useUser();
   const { toast } = useToast();
 
-  const { currentBillAmount, nextBillAmount, closingDateStr, dueDateStr } = useMemo(() => {
+  const {
+    currentBillAmount,
+    currentBillTransactions,
+    nextBillAmount,
+    nextBillTransactions,
+    dueDate,
+    closingDate
+  } = useMemo(() => {
     const now = new Date();
-    const currentMonth = getMonth(now);
     const currentDay = getDate(now);
+    const currentMonth = getMonth(now);
+    const currentYear = now.getFullYear();
 
-    let closingDate: Date;
-    let dueDate: Date;
+    // Determina o período da fatura atual
+    let billClosingDate: Date;
     let billStartDate: Date;
 
     if (currentDay > card.closingDate) {
-      // Fatura atual já fechou, estamos no período da próxima fatura
-      closingDate = set(now, { month: currentMonth + 1, date: card.closingDate });
-      dueDate = set(now, { month: currentMonth + 1, date: card.dueDate });
+      // Já passamos da data de fechamento deste mês. A fatura "atual" é a que fecha no próximo mês.
+      billClosingDate = set(now, { month: currentMonth + 1, date: card.closingDate });
       billStartDate = set(now, { month: currentMonth, date: card.closingDate + 1 });
     } else {
-      // Fatura atual ainda está aberta
-      closingDate = set(now, { month: currentMonth, date: card.closingDate });
-      dueDate = set(now, { month: currentMonth, date: card.dueDate });
-      billStartDate = set(now, { month: currentMonth -1, date: card.closingDate + 1 });
+      // A fatura "atual" é a que fecha neste mês.
+      billClosingDate = set(now, { month: currentMonth, date: card.closingDate });
+      billStartDate = set(now, { month: currentMonth - 1, date: card.closingDate + 1 });
     }
+    
+    // Período da próxima fatura (a que abre após o fechamento da atual)
+    const nextBillStartDate = addMonths(billStartDate, 1);
+    const nextBillClosingDate = addMonths(billClosingDate, 1);
 
-    const currentBillExpenses = expenses.filter(expense => {
-      if (expense.creditCardId !== card.id) return false;
-      const expenseDate = startOfDay(new Date(expense.date));
-      return expenseDate >= startOfDay(billStartDate) && expenseDate <= endOfDay(closingDate);
+    const cardExpenses = expenses.filter(expense => expense.creditCardId === card.id);
+
+    const currentBillTransactions = cardExpenses.filter(expense => {
+      const expenseDate = parseISO(expense.date);
+      return isAfter(expenseDate, startOfDay(billStartDate)) && isBefore(expenseDate, endOfDay(billClosingDate));
+    });
+    
+    const nextBillTransactions = cardExpenses.filter(expense => {
+      const expenseDate = parseISO(expense.date);
+      return isAfter(expenseDate, startOfDay(nextBillStartDate)) && isBefore(expenseDate, endOfDay(nextBillClosingDate));
     });
 
-    const billAmount = currentBillExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+    const currentBillAmount = currentBillTransactions.reduce((sum, exp) => sum + exp.amount, 0);
+    const nextBillAmount = nextBillTransactions.reduce((sum, exp) => sum + exp.amount, 0);
     
+    // A data de vencimento é sempre após a data de fechamento
+    const aDueDate = set(now, { date: card.dueDate });
+    const aClosingDate = set(now, { date: card.closingDate });
+    let finalDueDate = aDueDate;
+    if(isAfter(aClosingDate, aDueDate)) {
+      finalDueDate = addMonths(aDueDate, 1);
+    }
+    
+
     return {
-      currentBillAmount: billAmount,
-      nextBillAmount: 0, // Simplified for now
-      closingDateStr: closingDate.toLocaleDateString('pt-BR'),
-      dueDateStr: dueDate.toLocaleDateString('pt-BR'),
+      currentBillAmount,
+      currentBillTransactions,
+      nextBillAmount,
+      nextBillTransactions,
+      dueDate: finalDueDate,
+      closingDate: aClosingDate
     };
   }, [card, expenses]);
 
@@ -126,11 +156,6 @@ export function CreditCardCard({ card, expenses, onEdit }: CreditCardCardProps) 
           <CardDescription>Final •••• {card.lastFourDigits}</CardDescription>
         </CardHeader>
         <CardContent className="flex-grow space-y-4">
-          <div>
-            <p className="text-sm font-medium">Fatura Atual</p>
-            <p className="text-2xl font-bold">{formatCurrency(currentBillAmount)}</p>
-            <p className="text-xs text-muted-foreground">Fecha em: {closingDateStr}</p>
-          </div>
           <div className="space-y-1">
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>Limite Utilizado</span>
@@ -141,10 +166,43 @@ export function CreditCardCard({ card, expenses, onEdit }: CreditCardCardProps) 
               Disponível: {formatCurrency(remainingLimit)}
             </p>
           </div>
+          <Separator />
+           <div className="space-y-3">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-primary">Fatura Atual</p>
+                <p className="text-2xl font-bold">{formatCurrency(currentBillAmount)}</p>
+                 <div className="flex justify-between text-xs text-muted-foreground">
+                   <span>Fecha em: {format(closingDate, 'dd/MM')}</span>
+                   <span>Vence em: {format(dueDate, 'dd/MM')}</span>
+                 </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Próxima Fatura (parcial)</p>
+                <p className="text-lg font-bold text-muted-foreground">{formatCurrency(nextBillAmount)}</p>
+              </div>
+          </div>
         </CardContent>
-        <CardFooter className="flex justify-between text-sm text-muted-foreground border-t pt-4">
-          <span>Próximo vencimento</span>
-          <span>{dueDateStr}</span>
+         <CardFooter>
+           <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="transactions" className="border-b-0">
+                <AccordionTrigger className="text-sm pt-0">
+                  {currentBillTransactions.length > 0 ? `Ver ${currentBillTransactions.length} lançamentos` : 'Nenhum lançamento na fatura atual'}
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="max-h-40 overflow-y-auto space-y-2 pr-2 text-xs">
+                    {currentBillTransactions.map(t => (
+                      <div key={t.id} className="flex justify-between items-center">
+                        <div>
+                          <p>{t.description}</p>
+                          <p className="text-muted-foreground">{t.category}</p>
+                        </div>
+                        <p>{formatCurrency(t.amount)}</p>
+                      </div>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
         </CardFooter>
       </Card>
     </>
