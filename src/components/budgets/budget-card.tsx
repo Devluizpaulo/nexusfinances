@@ -20,6 +20,7 @@ import {
 import { doc } from 'firebase/firestore';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('pt-BR', {
@@ -43,6 +44,8 @@ export function BudgetCard({ budget, onEdit }: BudgetCardProps) {
   const total = budget.amount;
   const remaining = total - spent;
   const progress = total > 0 ? (spent / total) * 100 : 0;
+  const isOverBudget = progress > 100;
+  const isApproachingBudget = progress >= 80 && progress <= 100;
 
   const handleDelete = () => {
     if (!user) return;
@@ -98,13 +101,24 @@ export function BudgetCard({ budget, onEdit }: BudgetCardProps) {
                     </p>
                 </div>
             </div>
-            <div className="text-right">
-                <p className="text-sm font-medium">{progress.toFixed(0)}%</p>
+            <div className={cn(
+              "text-right text-sm font-medium",
+              isOverBudget && "text-destructive",
+              isApproachingBudget && "text-amber-600"
+            )}>
+                {progress.toFixed(0)}%
             </div>
         </div>
         
         <div>
-            <Progress value={progress} className="h-2" />
+            <Progress 
+                value={Math.min(100, progress)} 
+                className="h-2"
+                indicatorClassName={cn(
+                    isOverBudget && "bg-destructive",
+                    isApproachingBudget && "bg-amber-500"
+                )}
+            />
             <div className="mt-1 flex justify-between text-xs text-muted-foreground">
                 <span>{formatCurrency(spent)}</span>
                 <span>{formatCurrency(total)}</span>
@@ -113,7 +127,9 @@ export function BudgetCard({ budget, onEdit }: BudgetCardProps) {
 
         <div className="flex items-end justify-between">
             <div>
-                 <p className="text-sm text-muted-foreground">Valor restante: <span className="font-medium text-foreground">{formatCurrency(remaining)}</span></p>
+                 <p className={cn("text-sm text-muted-foreground", isOverBudget && "text-destructive font-medium")}>
+                    {isOverBudget ? 'Estourado:' : 'Restante:'} <span className="font-medium text-foreground">{formatCurrency(remaining)}</span>
+                </p>
             </div>
             <div className="flex gap-1">
                 <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(budget)}>

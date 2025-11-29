@@ -22,6 +22,7 @@ export type Transaction = {
   fgtsAmount?: number;
   companyName?: string;
   notes?: string;
+  vendor?: string;
 };
 
 export type CreditCard = {
@@ -78,8 +79,8 @@ export type Budget = {
   amount: number;
   spentAmount?: number;
   period: 'monthly';
-  startDate: string;
-  endDate: string;
+  startDate: string; // ISO String
+  endDate: string; // ISO String
 };
 
 export type Recurrence = Transaction;

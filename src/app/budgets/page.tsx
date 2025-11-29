@@ -2,14 +2,16 @@
 
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Loader2, Target } from 'lucide-react';
+import { PlusCircle, Loader2, Target, PiggyBank } from 'lucide-react';
 import { collection, query, where } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Budget, Transaction } from '@/lib/types';
 import { AddBudgetSheet } from '@/components/budgets/add-budget-sheet';
 import { BudgetCard } from '@/components/budgets/budget-card';
-import { startOfMonth, endOfMonth, parseISO } from 'date-fns';
+import { startOfMonth, endOfMonth, parseISO, isWithinInterval } from 'date-fns';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatCurrency } from '@/lib/utils';
+import { Progress } from '@/components/ui/progress';
 
 export default function BudgetsPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -24,34 +26,37 @@ export default function BudgetsPage() {
 
   const expensesQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
-    return query(collection(firestore, `users/${user.uid}/expenses`));
+    const now = new Date();
+    const start = startOfMonth(now);
+    const end = endOfMonth(now);
+    return query(
+      collection(firestore, `users/${user.uid}/expenses`),
+      where('date', '>=', start.toISOString().split('T')[0]),
+      where('date', '<=', end.toISOString().split('T')[0])
+    );
   }, [firestore, user]);
 
   const { data: budgetsData, isLoading: isBudgetsLoading } = useCollection<Budget>(budgetsQuery);
   const { data: expensesData, isLoading: isExpensesLoading } = useCollection<Transaction>(expensesQuery);
 
-  const monthlyBudgets = useMemo(() => {
-    if (!budgetsData || !expensesData) {
-      return [];
-    }
+  const budgetsWithSpent = useMemo(() => {
+    if (!budgetsData) return [];
 
-    const processedBudgets = budgetsData.map(budget => {
-      const budgetStart = parseISO(budget.startDate);
-      const budgetEnd = parseISO(budget.endDate);
+    return budgetsData.map(budget => {
+      const budgetInterval = {
+        start: parseISO(budget.startDate),
+        end: parseISO(budget.endDate),
+      };
 
-      const spentAmount = expensesData
+      const spentAmount = (expensesData || [])
         .filter(expense => 
             expense.category === budget.category &&
-            parseISO(expense.date) >= budgetStart &&
-            parseISO(expense.date) <= budgetEnd
+            isWithinInterval(parseISO(expense.date), budgetInterval)
         )
         .reduce((sum, expense) => sum + expense.amount, 0);
       
       return { ...budget, spentAmount };
     });
-    
-    // Agora todos os orçamentos são mensais
-    return processedBudgets;
 
   }, [budgetsData, expensesData]);
 
@@ -76,8 +81,9 @@ export default function BudgetsPage() {
     );
   }
 
-  const monthlyTotalSpent = monthlyBudgets.reduce((sum, b) => sum + (b.spentAmount || 0), 0);
-  const monthlyTotalAmount = monthlyBudgets.reduce((sum, b) => sum + b.amount, 0);
+  const totalSpent = budgetsWithSpent.reduce((sum, b) => sum + (b.spentAmount || 0), 0);
+  const totalAmount = budgetsWithSpent.reduce((sum, b) => sum + b.amount, 0);
+  const totalProgress = totalAmount > 0 ? (totalSpent / totalAmount) * 100 : 0;
 
   return (
     <>
@@ -87,6 +93,7 @@ export default function BudgetsPage() {
         budget={editingBudget}
       />
       <div className="flex items-center justify-between mb-6">
+        <div/>
         <Button onClick={() => setIsSheetOpen(true)} disabled={!user}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Criar Limite
@@ -94,18 +101,33 @@ export default function BudgetsPage() {
       </div>
       
       <div className="space-y-8">
-        <div>
-          <h2 className="text-xl font-semibold mb-4">Seus Limites</h2>
-          {monthlyBudgets.length > 0 ? (
-            <div className="space-y-4 rounded-lg border p-4">
-              {monthlyBudgets.map((budget) => (
-                <BudgetCard key={budget.id} budget={budget} onEdit={handleEditBudget} />
-              ))}
-              <div className="pt-2 text-right font-medium">
-                  Total: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(monthlyTotalSpent)} / {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(monthlyTotalAmount)}
-              </div>
-            </div>
-          ) : (
+        {budgetsWithSpent.length > 0 ? (
+            <Card>
+                <CardHeader>
+                    <div className="flex items-center gap-3">
+                        <PiggyBank className="h-6 w-6 text-primary" />
+                        <div>
+                            <CardTitle>Seus Limites de Gasto</CardTitle>
+                            <CardDescription>Acompanhe o quanto você já gastou em relação ao que planejou para o mês.</CardDescription>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                     <div className="space-y-2">
+                        <div className="flex justify-between text-sm font-medium">
+                            <span>Gasto Total</span>
+                            <span>{formatCurrency(totalSpent)} / {formatCurrency(totalAmount)}</span>
+                        </div>
+                        <Progress value={totalProgress} className="h-3" />
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2">
+                        {budgetsWithSpent.map((budget) => (
+                            <BudgetCard key={budget.id} budget={budget} onEdit={handleEditBudget} />
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+        ) : (
             <Card className="bg-muted/30">
               <CardHeader className="items-center text-center">
                  <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mb-2">
@@ -132,8 +154,7 @@ export default function BudgetsPage() {
                   </Button>
               </CardContent>
             </Card>
-          )}
-        </div>
+        )}
       </div>
     </>
   );
