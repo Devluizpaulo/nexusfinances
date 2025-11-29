@@ -95,6 +95,15 @@ export type SubscriptionPlan = {
   active: boolean;
 };
 
+export type UserSubscription = {
+  planId: string;
+  status: 'active' | 'inactive' | 'canceled' | 'past_due';
+  startDate: any; // Can be Firestore Timestamp
+  endDate?: any; // Can be Firestore Timestamp
+  paymentGatewaySubscriptionId: string;
+};
+
+
 export type Log = {
     id: string;
     timestamp: any; // Can be Firestore Timestamp
