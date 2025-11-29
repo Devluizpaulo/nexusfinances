@@ -14,7 +14,8 @@ import { incomeCategories } from '@/lib/types';
 import { KpiCard } from '@/components/dashboard/kpi-card';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 import { Badge } from '@/components/ui/badge';
