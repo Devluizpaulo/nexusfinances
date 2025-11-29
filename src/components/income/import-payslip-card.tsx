@@ -156,33 +156,46 @@ export function ImportPayslipCard() {
       </CardHeader>
       <CardContent className="space-y-4">
         {!editableResult ? (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <div
-              {...getRootProps()}
-              className={cn(
-                'flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer transition-colors',
-                isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
-              )}
+          isProcessing ? (
+             <motion.div
+              key="loading"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg"
             >
-              <input {...getInputProps()} />
-              {file ? (
-                <motion.div
-                  className="text-center text-emerald-600"
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                >
-                  <FileCheck2 className="mx-auto h-10 w-10" />
-                  <p className="mt-2 font-semibold">Arquivo selecionado!</p>
-                  <p className="text-xs">{file.name}</p>
-                </motion.div>
-              ) : (
-                <div className="text-center text-muted-foreground">
-                  <FileUp className="mx-auto h-10 w-10" />
-                  <p className="mt-2">Arraste e solte o arquivo PDF aqui, ou clique para selecionar</p>
-                </div>
-              )}
-            </div>
-          </motion.div>
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+              <p className="mt-4 text-sm font-medium text-muted-foreground">Analisando documento...</p>
+            </motion.div>
+          ) : (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} key="dropzone">
+              <div
+                {...getRootProps()}
+                className={cn(
+                  'flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer transition-colors',
+                  isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
+                )}
+              >
+                <input {...getInputProps()} />
+                {file ? (
+                  <motion.div
+                    className="text-center text-emerald-600"
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                  >
+                    <FileCheck2 className="mx-auto h-10 w-10" />
+                    <p className="mt-2 font-semibold">Arquivo selecionado!</p>
+                    <p className="text-xs">{file.name}</p>
+                  </motion.div>
+                ) : (
+                  <div className="text-center text-muted-foreground">
+                    <FileUp className="mx-auto h-10 w-10" />
+                    <p className="mt-2">Arraste e solte o arquivo PDF aqui, ou clique para selecionar</p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )
         ) : (
           <motion.div 
             className="space-y-4 rounded-lg border bg-muted/50 p-4"
