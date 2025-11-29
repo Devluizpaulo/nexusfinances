@@ -13,7 +13,7 @@ import type { Transaction, Debt, Goal, Installment, Budget } from '@/lib/types';
 import { useManageRecurrences } from '@/hooks/useManageRecurrences';
 import { useNotificationGenerator } from '@/hooks/useNotificationGenerator';
 import { Calendar } from '@/components/ui/calendar';
-import { startOfMonth, endOfMonth, parseISO, format, startOfDay, isBefore, endOfWeek, addMonths, isSameMonth } from 'date-fns';
+import { startOfMonth, endOfMonth, parseISO, format, startOfDay, isBefore, endOfWeek, addMonths, isSameMonth, subYears } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { QuickActions } from '@/components/dashboard/quick-actions';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
@@ -89,6 +89,8 @@ export default function DashboardPage() {
       where('date', '<=', format(end, 'yyyy-MM-dd'))
     );
   }, [firestore, user, start, end]);
+  
+  const last12MonthsStart = useMemo(() => format(subYears(new Date(), 1), 'yyyy-MM-dd'), []);
   
   const allIncomesQuery = useMemoFirebase(() => {
     if (!user) return null;
@@ -183,9 +185,17 @@ export default function DashboardPage() {
     const totalExpenses = expenseData?.reduce((sum, t) => sum + t.amount, 0) || 0;
     const totalDebt = debtData?.reduce((sum, d) => sum + (d.totalAmount - (d.paidAmount || 0)), 0) || 0;
 
-    const allTimeIncome = allIncomeData?.reduce((sum, t) => sum + t.amount, 0) || 0;
-    const allTimeExpenses = allExpenseData?.reduce((sum, t) => sum + t.amount, 0) || 0;
-    const balance = allTimeIncome - allTimeExpenses;
+    const oneYearAgo = subYears(new Date(), 1);
+
+    const last12MonthsIncome = (allIncomeData || [])
+      .filter(t => parseISO(t.date) >= oneYearAgo)
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    const last12MonthsExpenses = (allExpenseData || [])
+      .filter(t => parseISO(t.date) >= oneYearAgo)
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    const balance = last12MonthsIncome - last12MonthsExpenses;
 
     return { totalIncome, totalExpenses, totalDebt, balance };
   }, [incomeData, expenseData, debtData, allIncomeData, allExpenseData]);
@@ -469,7 +479,7 @@ export default function DashboardPage() {
                   title="Balanço Geral"
                   value={formatCurrency(balance)}
                   icon={Scale}
-                  description="Saldo de todos os tempos"
+                  description="Saldo dos últimos 12 meses"
                 />
                 <KpiCard
                   title="Dívida Pendente"
