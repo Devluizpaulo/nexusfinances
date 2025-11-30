@@ -348,6 +348,24 @@
       },
       "required": ["userId", "name", "lastFourDigits", "limit", "dueDate", "closingDate"]
     },
+    "RentalContract": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "RentalContract",
+      "type": "object",
+      "description": "Represents a user's rental contract details.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "landlordName": { "type": "string", "description": "Name of the landlord or real estate agency." },
+        "paymentDetails": { "type": "string", "description": "Payment details, such as PIX key or bank account." },
+        "rentAmount": { "type": "number", "description": "The monthly rent amount." },
+        "dueDate": { "type": "number", "description": "The day of the month the rent is due." },
+        "lateFee": { "type": "number", "description": "The late fee amount or percentage." },
+        "startDate": { "type": "string", "format": "date-time" },
+        "endDate": { "type": "string", "format": "date-time", "description": "Optional contract end date." }
+      },
+      "required": ["userId", "landlordName", "rentAmount", "dueDate"]
+    },
     "SubscriptionPlan": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Subscription Plan",
@@ -505,6 +523,18 @@
               "name": "userId",
               "description": "The unique identifier of the user."
             }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/rentalContracts/{contractId}",
+        "definition": {
+          "entityName": "RentalContract",
+          "schema": { "$ref": "#/backend/entities/RentalContract" },
+          "description": "Stores the user's rental contract details.",
+          "params": [
+            { "name": "userId", "description": "The user's unique ID." },
+            { "name": "contractId", "description": "The rental contract's unique ID." }
           ]
         }
       },
@@ -693,4 +723,3 @@
     "reasoning": "The Firestore data structure is designed to support the xô planilhas application, focusing on secure and efficient data management for user finances.  The design follows the core principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), QAPs (Queries are not Filters), and Invariants.\\n\\n**Authorization Independence:** Achieved through denormalization of the `userId` field in the `incomes`, `expenses`, `debts`, `installments` and `goals` collections. This eliminates the need for `get()` calls to parent documents (users) in security rules, enabling atomic operations (transactions/batches) and simplifying debugging.\\n\\n**Structural Segregation:**  Employed by storing all `incomes`, `expenses`, `debts`, and `installments` for a given user under the `/users/{userId}` path. This ensures that all documents within these subcollections share the same security requirements, simplifying rules and improving maintainability. All private user data is segregated under the user's document.\\n\\n**Access Modeling:** Path-based ownership is consistently used for all user-owned data (incomes, expenses, debts, installments, goals). This makes security rules simple and efficient.\\n\\n**QAPs (Rules Are Not Filters):** The structure enables secure list operations. Because all documents within a collection share the same security requirements and authorization information (`userId`), it's possible to write rules that allow listing only the documents that the user has access to, without having to filter based on document content.\\n\\n**Invariants:** Enforced through clear ownership (`userId` in child collections) and consistent naming conventions. Timestamps can be added to each entity to track creation and modification times, if required.\\n\\n**Logging:** A top-level `/logs` collection is added to store system-wide events. Access is restricted to superadmins for reading, while creation is allowed for any authenticated user to enable client-side event logging."
   }
 }
-    

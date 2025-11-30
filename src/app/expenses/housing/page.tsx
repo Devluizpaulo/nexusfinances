@@ -5,19 +5,17 @@ import { Button } from '@/components/ui/button';
 import { collection, query, where } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Recurrence } from '@/lib/types';
-import { Loader2, Home, PlusCircle, Upload } from 'lucide-react';
+import { Loader2, Home, PlusCircle, FileText } from 'lucide-react';
 import { RecurrenceCard } from '@/components/recurrences/recurrence-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { expenseCategories } from '@/lib/types';
 import { PageHeader } from '@/components/page-header';
-import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
 
 const housingKeywords = ['aluguel', 'condomínio', 'hipoteca', 'iptu', 'moradia'];
 
 export default function HousingPage() {
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
-  const [isImportSheetOpen, setIsImportSheetOpen] = useState(false);
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
 
@@ -63,18 +61,18 @@ export default function HousingPage() {
         transactionType="expense"
         categories={expenseCategories}
       />
-      <ImportTransactionsSheet 
-        isOpen={isImportSheetOpen}
-        onClose={() => setIsImportSheetOpen(false)}
-      />
 
       <PageHeader
         title="Moradia"
         description="Gerencie seus gastos recorrentes com moradia, como aluguel e condomínio."
       >
-        <Button variant="outline" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>
-            <Upload className="mr-2 h-4 w-4" />
-            Importar PDF com IA
+        <Button variant="outline" disabled>
+          <FileText className="mr-2 h-4 w-4" />
+          Cadastrar Contrato de Aluguel
+        </Button>
+        <Button onClick={handleOpenSheet} disabled={!user}>
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Adicionar Despesa Avulsa
         </Button>
       </PageHeader>
 
@@ -104,5 +102,3 @@ export default function HousingPage() {
     </>
   );
 }
-
-    
