@@ -178,13 +178,6 @@ export function AppSidebar() {
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
-                        <SidebarMenuItem className="ml-5 border-l border-border pl-3">
-                             <SidebarMenuButton asChild isActive={pathname.startsWith('/expenses/health')} tooltip={'Saúde e Bem-estar'} onClick={handleMobileClick}>
-                                <Link href="/expenses/health">
-                                    Saúde & Bem-estar
-                                </Link>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
                          <SidebarMenuItem className="ml-5 border-l border-border pl-3">
                              <SidebarMenuButton asChild isActive={pathname.startsWith('/expenses/subscriptions')} tooltip={'Streams & Assinaturas'} onClick={handleMobileClick}>
                                 <Link href="/expenses/subscriptions">
