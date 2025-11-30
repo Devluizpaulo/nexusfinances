@@ -8,10 +8,9 @@ import type { Recurrence } from '@/lib/types';
 import { Loader2, Zap, PlusCircle, Upload } from 'lucide-react';
 import { RecurrenceCard } from '@/components/recurrences/recurrence-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
-import { expenseCategories } from '@/lib/types';
 import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
 import { PageHeader } from '@/components/page-header';
+import { AddUtilityBillSheet } from '@/components/utilities/add-utility-bill-sheet';
 
 const utilitiesKeywords = ['luz', 'energia', 'água', 'gás', 'internet', 'celular', 'plano', 'fatura'];
 
@@ -49,11 +48,9 @@ export default function UtilitiesPage() {
 
   return (
     <>
-       <AddTransactionSheet
+      <AddUtilityBillSheet
         isOpen={isAddSheetOpen}
         onClose={() => setIsAddSheetOpen(false)}
-        transactionType="expense"
-        categories={expenseCategories}
       />
        <ImportTransactionsSheet 
         isOpen={isImportSheetOpen}
@@ -70,7 +67,7 @@ export default function UtilitiesPage() {
         </Button>
          <Button onClick={() => setIsAddSheetOpen(true)} disabled={!user}>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Adicionar Conta Avulsa
+          Adicionar Conta
         </Button>
       </PageHeader>
 
