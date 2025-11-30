@@ -4,97 +4,117 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    // =================================
+    // Funções de Apoio
+    // =================================
+
     function isOwner(userId) {
       return request.auth != null && request.auth.uid == userId;
     }
 
+    // Função para verificar se um usuário tem a role de 'superadmin'.
+    // Importante: Usamos get() de forma segura, apenas em contextos onde não causará recursão.
+    // Para regras de escrita (update/create), é seguro usar request.resource.data.
+    // Para leitura, a verificação deve ser feita com cuidado.
     function isSuperAdmin() {
-      return request.auth != null &&
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "superadmin";
+      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "superadmin";
     }
 
+    // =================================
+    // Regras para Usuários
+    // =================================
+
     match /users/{userId} {
+      // O dono pode ler e escrever no seu próprio perfil.
       allow read, write: if isOwner(userId);
+      
+      // Superadmins podem listar, ler, e modificar qualquer perfil.
+      // A função isSuperAdmin() é segura aqui pois não há dependência circular
+      // na regra principal do /users/{userId} para leitura/escrita do próprio usuário.
       allow list, get, update, delete: if isSuperAdmin();
     }
     
-    // Regras explícitas para subcoleções do usuário
-    match /users/{userId}/incomes {
-      allow list, get, read: if isOwner(userId);
-    }
+    // ==============================================================
+    // Regras Explícitas para Subcoleções do Usuário
+    // Este padrão evita problemas de recursão e garante que apenas o dono
+    // possa acessar seus próprios dados aninhados.
+    // ==============================================================
+
     match /users/{userId}/incomes/{docId} {
-      allow write, create, update, delete: if isOwner(userId);
+      allow read, write, create, update, delete: if isOwner(userId);
     }
-
-    match /users/{userId}/expenses {
-      allow list, get, read: if isOwner(userId);
+    match /users/{userId}/incomes {
+      allow list, get: if isOwner(userId);
     }
+    
     match /users/{userId}/expenses/{docId} {
-      allow write, create, update, delete: if isOwner(userId);
+      allow read, write, create, update, delete: if isOwner(userId);
     }
-
-    match /users/{userId}/debts {
-      allow list, get, read: if isOwner(userId);
+    match /users/{userId}/expenses {
+       allow list, get: if isOwner(userId);
     }
+    
     match /users/{userId}/debts/{docId} {
-      allow write, create, update, delete: if isOwner(userId);
+      allow read, write, create, update, delete: if isOwner(userId);
     }
-    
-    match /users/{userId}/goals {
-      allow list, get, read: if isOwner(userId);
+     match /users/{userId}/debts {
+      allow list, get: if isOwner(userId);
     }
+
     match /users/{userId}/goals/{docId} {
-      allow write, create, update, delete: if isOwner(userId);
+      allow read, write, create, update, delete: if isOwner(userId);
+    }
+    match /users/{userId}/goals {
+       allow list, get: if isOwner(userId);
     }
     
-    match /users/{userId}/budgets {
-      allow list, get, read: if isOwner(userId);
-    }
     match /users/{userId}/budgets/{docId} {
-      allow write, create, update, delete: if isOwner(userId);
+      allow read, write, create, update, delete: if isOwner(userId);
+    }
+    match /users/{userId}/budgets {
+      allow list, get: if isOwner(userId);
     }
 
-    match /users/{userId}/notifications {
-      allow list, get, read: if isOwner(userId);
-    }
     match /users/{userId}/notifications/{docId} {
-      allow write, create, update, delete: if isOwner(userId);
+      allow read, write, create, update, delete: if isOwner(userId);
+    }
+    match /users/{userId}/notifications {
+      allow list, get: if isOwner(userId);
     }
 
-    match /users/{userId}/creditCards {
-      allow list, get, read: if isOwner(userId);
-    }
     match /users/{userId}/creditCards/{docId} {
-      allow write, create, update, delete: if isOwner(userId);
+       allow read, write, create, update, delete: if isOwner(userId);
+    }
+    match /users/{userId}/creditCards {
+      allow list, get: if isOwner(userId);
     }
 
-     match /users/{userId}/rentalContracts {
-      allow list, get, read: if isOwner(userId);
+     match /users/{userId}/rentalContracts/{docId} {
+      allow read, write, create, update, delete: if isOwner(userId);
     }
-    match /users/{userId}/rentalContracts/{docId} {
-      allow write, create, update, delete: if isOwner(userId);
-    }
-
-     match /users/{userId}/healthProviders {
-      allow list, get, read: if isOwner(userId);
-    }
-    match /users/{userId}/healthProviders/{docId} {
-      allow write, create, update, delete: if isOwner(userId);
+    match /users/{userId}/rentalContracts {
+      allow list, get: if isOwner(userId);
     }
 
+     match /users/{userId}/healthProviders/{docId} {
+      allow read, write, create, update, delete: if isOwner(userId);
+    }
+    match /users/{userId}/healthProviders {
+       allow list, get: if isOwner(userId);
+    }
+
+     match /users/{userId}/healthProfessionals/{docId} {
+      allow read, write, create, update, delete: if isOwner(userId);
+    }
      match /users/{userId}/healthProfessionals {
-      allow list, get, read: if isOwner(userId);
-    }
-    match /users/{userId}/healthProfessionals/{docId} {
-      allow write, create, update, delete: if isOwner(userId);
+      allow list, get: if isOwner(userId);
     }
     
-     match /users/{userId}/healthInsurances {
-      allow list, get, read: if isOwner(userId);
-    }
      match /users/{userId}/healthInsurances/{docId} {
-      allow write, create, update, delete: if isOwner(userId);
+       allow read, write, create, update, delete: if isOwner(userId);
+    }
+    match /users/{userId}/healthInsurances {
+       allow list, get: if isOwner(userId);
     }
     
     // Regra para consulta de grupo (Collection Group Query)
@@ -102,17 +122,20 @@ service cloud.firestore {
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
-    // Coleções públicas
+    // =================================
+    // Coleções Públicas e de Admin
+    // =================================
+
     match /education/{document=**} {
       allow read: if request.auth != null;
       allow write: if isSuperAdmin();
     }
+    
     match /subscriptionPlans/{document=**} {
       allow read: if request.auth != null;
       allow write: if isSuperAdmin();
     }
 
-    // Logs
     match /logs/{document=**} {
       allow create: if request.auth != null;
       allow read, update, delete: if isSuperAdmin();
