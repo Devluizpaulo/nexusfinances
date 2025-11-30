@@ -1,9 +1,10 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Building, User, Heart, Shield, Loader2, Hospital, Tooth } from 'lucide-react';
+import { PlusCircle, Building, User, Heart, Shield, Loader2, Hospital } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useFirestore, useCollection, useUser, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
@@ -13,6 +14,25 @@ import { AddProfessionalSheet } from '@/components/health/add-professional-sheet
 import { AddInsuranceSheet } from '@/components/health/add-insurance-sheet';
 import { HealthProviderCard } from '@/components/health/health-provider-card';
 import { Separator } from '@/components/ui/separator';
+
+const ToothIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <path d="M9.34 2.846a1.28 1.28 0 0 1 2.39.735l.053.138 1.25 5.01a1.28 1.28 0 0 0 2.388-.734 1.28 1.28 0 0 1 2.39.735l.054.138 1.05 4.197a1.28 1.28 0 0 1-2.022 1.34l-.11-.09-2.73-2.73a1.28 1.28 0 0 0-1.815 0l-2.73 2.73a1.28 1.28 0 0 1-2.021-1.34l-.11-.09 1.05-4.197a1.28 1.28 0 0 1 2.39-.735 1.28 1.28 0 0 0 2.388-.734l1.25-5.01a1.28 1.28 0 0 1-2.022-1.34L11.15 1.5a1.28 1.28 0 0 1-.7-1.235 1.28 1.28 0 0 0-2.56 0 1.28 1.28 0 0 1-.7 1.235l-1.81 1.81a1.28 1.28 0 0 1-2.022 1.34z" />
+    <path d="M21 13a8 8 0 1 1-15.059-4.941" />
+  </svg>
+);
+
 
 export default function HealthPage() {
   const [isProviderSheetOpen, setIsProviderSheetOpen] = useState(false);
@@ -60,8 +80,8 @@ export default function HealthPage() {
     setIsProfessionalSheetOpen(true);
   }
 
-  const handleEditInsurance = (insurance: HealthInsurance | null) => {
-    setEditingInsurance(insurance);
+  const handleEditInsurance = (insurance: HealthInsurance | null, type: 'Saúde' | 'Odontológico') => {
+    setEditingInsurance(insurance ?? { type } as HealthInsurance);
     setIsInsuranceSheetOpen(true);
   }
 
@@ -119,7 +139,7 @@ export default function HealthPage() {
                   <Shield className="h-5 w-5 text-primary" />
                   <CardTitle>Plano de Saúde</CardTitle>
                 </div>
-                <Button size="sm" variant="outline" onClick={() => handleEditInsurance(healthPlan)}>
+                <Button size="sm" variant="outline" onClick={() => handleEditInsurance(healthPlan, 'Saúde')}>
                   {healthPlan ? 'Editar' : 'Adicionar'}
                 </Button>
               </div>
@@ -159,10 +179,10 @@ export default function HealthPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Tooth className="h-5 w-5 text-primary" />
+                  <ToothIcon className="h-5 w-5 text-primary" />
                   <CardTitle>Plano Odontológico</CardTitle>
                 </div>
-                <Button size="sm" variant="outline" onClick={() => handleEditInsurance(dentalPlan)}>
+                <Button size="sm" variant="outline" onClick={() => handleEditInsurance(dentalPlan, 'Odontológico')}>
                   {dentalPlan ? 'Editar' : 'Adicionar'}
                 </Button>
               </div>
