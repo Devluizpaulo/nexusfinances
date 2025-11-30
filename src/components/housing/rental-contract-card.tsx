@@ -91,10 +91,27 @@ export function RentalContractCard({ contract, onEdit }: RentalContractCardProps
     }
   };
 
-  const handleCopy = (text?: string) => {
-    if(!text) return;
-    navigator.clipboard.writeText(text);
-    toast({ title: "Copiado!", description: "Informação copiada para a área de transferência." });
+  const handleCopy = async (text?: string) => {
+    if (!text) return;
+
+    try {
+      if (typeof navigator === 'undefined' || !navigator.clipboard) {
+        throw new Error('Clipboard API não disponível');
+      }
+
+      await navigator.clipboard.writeText(text);
+
+      toast({
+        title: "Copiado!",
+        description: "Informação copiada para a área de transferência.",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao copiar",
+        description: "Não foi possível copiar para a área de transferência.",
+      });
+    }
   };
 
   return (
@@ -123,7 +140,7 @@ export function RentalContractCard({ contract, onEdit }: RentalContractCardProps
               </div>
               <div>
                 <CardTitle>{contract.landlordName}</CardTitle>
-                <CardDescription>{contract.type}</CardDescription>
+                <CardDescription>{contract.type || 'Tipo de contrato não informado'}</CardDescription>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -159,15 +176,15 @@ export function RentalContractCard({ contract, onEdit }: RentalContractCardProps
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
                     <p className="text-muted-foreground text-xs">Valor Total</p>
-                    <p className="font-semibold">{formatCurrency(contract.totalAmount)}</p>
+                    <p className="font-semibold">{formatCurrency(contract.totalAmount || 0)}</p>
                 </div>
-                {contract.type.includes('Aluguel') && contract.rentAmount ? (
+                {contract.type && contract.type.includes('Aluguel') && contract.rentAmount ? (
                      <div>
                         <p className="text-muted-foreground text-xs">Aluguel</p>
                         <p className="font-semibold">{formatCurrency(contract.rentAmount)}</p>
                     </div>
                 ) : null}
-                {contract.type.includes('Condomínio') && contract.condoFee ? (
+                {contract.type && contract.type.includes('Condomínio') && contract.condoFee ? (
                      <div>
                         <p className="text-muted-foreground text-xs">Condomínio</p>
                         <p className="font-semibold">{formatCurrency(contract.condoFee)}</p>
@@ -179,7 +196,9 @@ export function RentalContractCard({ contract, onEdit }: RentalContractCardProps
                 </div>
                 <div>
                     <p className="text-muted-foreground text-xs">Início do Contrato</p>
-                    <p className="font-semibold">{format(parseISO(contract.startDate), 'dd/MM/yyyy')}</p>
+                    <p className="font-semibold">
+                      {contract.startDate ? format(parseISO(contract.startDate), 'dd/MM/yyyy') : 'Data não informada'}
+                    </p>
                 </div>
                 {contract.endDate && (
                     <div>
@@ -205,9 +224,19 @@ export function RentalContractCard({ contract, onEdit }: RentalContractCardProps
                              <div className="flex justify-between items-center rounded-md border p-2">
                                 <div>
                                     <p className="font-medium">{contract.paymentMethod.method}</p>
-                                    <p className="text-muted-foreground break-all">{contract.paymentMethod.identifier}</p>
+                                    {contract.paymentMethod.identifier && (
+                                      <p className="text-muted-foreground break-all">{contract.paymentMethod.identifier}</p>
+                                    )}
                                 </div>
-                                <Button size="sm" variant="ghost" onClick={() => handleCopy(contract.paymentMethod?.identifier || '')}><Copy className="h-4 w-4" /></Button>
+                                {contract.paymentMethod.identifier && (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleCopy(contract.paymentMethod?.identifier || '')}
+                                  >
+                                    <Copy className="h-4 w-4" />
+                                  </Button>
+                                )}
                             </div>
                            )}
                             {contract.paymentMethod.instructions && (
