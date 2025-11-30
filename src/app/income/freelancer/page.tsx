@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { collection, query, where, orderBy, doc } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
 import type { Transaction } from '@/lib/types';
-import { Loader2, PenSquare, PlusCircle, DollarSign, Users, Calendar, Upload } from 'lucide-react';
+import { Loader2, PenSquare, PlusCircle, DollarSign, List, Calendar, Upload } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils';
 import { ImportPayslipSheet } from '@/components/income/import-payslip-sheet';
@@ -14,6 +14,7 @@ import { columns } from './columns';
 import { useToast } from '@/hooks/use-toast';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { incomeCategories } from '@/lib/types';
+import { differenceInMonths, parseISO, startOfMonth } from 'date-fns';
 
 
 export default function FreelancerPage() {
@@ -37,18 +38,24 @@ export default function FreelancerPage() {
   const { data: freelancerIncomes, isLoading: isIncomesLoading } = useCollection<Transaction>(freelancerIncomesQuery);
 
   const stats = useMemo(() => {
-    if (!freelancerIncomes) return { totalMonthly: 0, activeProjects: 0, averagePerProject: 0 };
+    if (!freelancerIncomes || freelancerIncomes.length === 0) {
+      return { totalReceived: 0, averageMonthly: 0, entryCount: 0 };
+    }
+
+    const totalReceived = freelancerIncomes.reduce((sum, income) => sum + income.amount, 0);
+    const entryCount = freelancerIncomes.length;
+
+    const firstEntryDate = parseISO(freelancerIncomes[freelancerIncomes.length - 1].date);
+    const lastEntryDate = parseISO(freelancerIncomes[0].date);
+    const months = differenceInMonths(lastEntryDate, firstEntryDate);
+    const monthCount = Math.max(1, months + 1);
     
-    // Consideramos "ativos" os que são recorrentes
-    const recurringIncomes = freelancerIncomes.filter(income => income.isRecurring);
-    const totalMonthly = recurringIncomes.reduce((sum, income) => sum + income.amount, 0);
-    const activeProjects = recurringIncomes.length;
-    const averagePerProject = activeProjects > 0 ? totalMonthly / activeProjects : 0;
+    const averageMonthly = totalReceived / monthCount;
 
     return {
-      totalMonthly,
-      activeProjects,
-      averagePerProject
+      totalReceived,
+      averageMonthly,
+      entryCount
     };
   }, [freelancerIncomes]);
 
@@ -99,7 +106,7 @@ export default function FreelancerPage() {
           <div>
             <h2 className="text-2xl font-bold tracking-tight">Renda Freelancer</h2>
             <p className="text-muted-foreground">
-                Gerencie seus projetos e pagamentos em um só lugar.
+                Gerencie seus recebimentos de projetos e serviços.
             </p>
           </div>
           <div className="flex gap-2">
@@ -118,39 +125,39 @@ export default function FreelancerPage() {
         <div className="mt-2 grid gap-4 md:grid-cols-3 mb-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Renda Mensal (Recorrente)</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Recebido (Freelance)</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(stats.totalMonthly)}</div>
+              <div className="text-2xl font-bold">{formatCurrency(stats.totalReceived)}</div>
               <p className="text-xs text-muted-foreground">
-                Soma dos projetos recorrentes ativos
+                Soma de todos os recebimentos
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Projetos Recorrentes</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.activeProjects}</div>
-              <p className="text-xs text-muted-foreground">
-                Clientes/projetos com pagamento contínuo
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Média por Projeto Recorrente</CardTitle>
+              <CardTitle className="text-sm font-medium">Média Mensal</CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(stats.averagePerProject)}</div>
+              <div className="text-2xl font-bold">{formatCurrency(stats.averageMonthly)}</div>
               <p className="text-xs text-muted-foreground">
-                Valor médio mensal dos projetos recorrentes
+                Com base no histórico de lançamentos
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total de Lançamentos</CardTitle>
+              <List className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.entryCount}</div>
+               <p className="text-xs text-muted-foreground">
+                Número de recebimentos registrados
               </p>
             </CardContent>
           </Card>
@@ -168,13 +175,13 @@ export default function FreelancerPage() {
               <div className="rounded-full bg-muted p-4 mb-4">
                 <PenSquare className="h-8 w-8 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-semibold mb-2">Nenhum projeto cadastrado</h3>
+              <h3 className="text-lg font-semibold mb-2">Nenhuma renda de freelancer cadastrada</h3>
               <p className="text-sm text-muted-foreground max-w-sm mb-6">
-                Comece adicionando seus primeiros clientes ou projetos como rendas para acompanhar seu fluxo de trabalho freelancer.
+                Comece adicionando seus primeiros recebimentos para acompanhar seu fluxo de trabalho freelancer. Use uma boa descrição!
               </p>
               <Button onClick={() => handleOpenSheet()} disabled={!user}>
                 <PlusCircle className="mr-2 h-4 w-4" />
-                Adicionar Primeiro Projeto
+                Adicionar Primeiro Recebimento
               </Button>
             </CardContent>
         </Card>

@@ -37,7 +37,7 @@ export const columns = ({ onEdit, onStatusChange }: ColumnsProps): ColumnDef<Tra
   },
   {
     accessorKey: "description",
-    header: "Projeto / Cliente",
+    header: "Descrição",
   },
   {
     accessorKey: "isRecurring",
