@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { FileText, MoreVertical, Pencil, Trash2, History, Loader2, Copy, AlertTriangle, CalendarClock } from 'lucide-react';
+import { FileText, MoreVertical, Pencil, Trash2, History, Loader2, Copy, AlertTriangle, CalendarClock, CheckCircle2 } from 'lucide-react';
 import type { RentalContract, Recurrence } from '@/lib/types';
 import { useFirestore, useUser, deleteDocumentNonBlocking } from '@/firebase';
 import { doc, writeBatch, getDocs, collection, query, where } from 'firebase/firestore';
@@ -114,6 +114,41 @@ export function RentalContractCard({ contract, onEdit }: RentalContractCardProps
     }
   };
 
+  const handleRegisterPayment = async () => {
+    if (!user) return;
+
+    try {
+      const expensesColRef = collection(firestore, `users/${user.uid}/expenses`);
+      const newExpenseRef = doc(expensesColRef);
+
+      const expenseData = {
+        id: newExpenseRef.id,
+        userId: user.uid,
+        amount: contract.totalAmount || 0,
+        category: 'Moradia' as const,
+        date: new Date().toISOString(),
+        description: `${contract.type} - ${contract.landlordName} (pagamento registrado manualmente)`,
+        isRecurring: false,
+        recurringSourceId: contract.id,
+        status: 'paid' as const,
+        type: 'expense' as const,
+      };
+
+      await writeBatch(firestore).set(newExpenseRef, expenseData).commit();
+
+      toast({
+        title: 'Pagamento registrado',
+        description: 'Um lançamento de pagamento foi criado nas suas despesas.',
+      });
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Erro ao registrar pagamento',
+        description: 'Tente novamente em alguns segundos.',
+      });
+    }
+  };
+
   return (
     <>
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
@@ -214,39 +249,55 @@ export function RentalContractCard({ contract, onEdit }: RentalContractCardProps
                 </div>
             )}
         </CardContent>
-        {contract.paymentMethod && (
-             <CardFooter>
-                <Accordion type="single" collapsible className="w-full">
-                    <AccordionItem value="payment" className="border-b-0">
-                        <AccordionTrigger className="text-sm">Ver detalhes do pagamento</AccordionTrigger>
-                        <AccordionContent className="space-y-2 text-sm pt-2">
-                           {contract.paymentMethod.method && (
-                             <div className="flex justify-between items-center rounded-md border p-2">
-                                <div>
-                                    <p className="font-medium">{contract.paymentMethod.method}</p>
-                                    {contract.paymentMethod.identifier && (
-                                      <p className="text-muted-foreground break-all">{contract.paymentMethod.identifier}</p>
-                                    )}
-                                </div>
-                                {contract.paymentMethod.identifier && (
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => handleCopy(contract.paymentMethod?.identifier || '')}
-                                  >
-                                    <Copy className="h-4 w-4" />
-                                  </Button>
-                                )}
-                            </div>
-                           )}
-                            {contract.paymentMethod.instructions && (
-                                 <p className="text-xs text-muted-foreground px-1">{contract.paymentMethod.instructions}</p>
-                            )}
-                        </AccordionContent>
-                    </AccordionItem>
-                </Accordion>
-             </CardFooter>
-        )}
+        <CardFooter className="flex flex-col gap-3 items-stretch">
+          {contract.paymentMethod && (
+            <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="payment" className="border-b-0">
+                <AccordionTrigger className="text-sm">Ver detalhes do pagamento</AccordionTrigger>
+                <AccordionContent className="space-y-2 text-sm pt-2">
+                  {contract.paymentMethod.method && (
+                    <div className="flex justify-between items-center rounded-md border p-2">
+                      <div>
+                        <p className="font-medium">{contract.paymentMethod.method}</p>
+                        {contract.paymentMethod.identifier && (
+                          <p className="text-muted-foreground break-all">{contract.paymentMethod.identifier}</p>
+                        )}
+                      </div>
+                      {contract.paymentMethod.identifier && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCopy(contract.paymentMethod?.identifier || '');
+                          }}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                  {contract.paymentMethod.instructions && (
+                    <p className="text-xs text-muted-foreground px-1">{contract.paymentMethod.instructions}</p>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          )}
+
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full justify-center gap-2"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRegisterPayment();
+            }}
+          >
+            <CheckCircle2 className="h-4 w-4" />
+            Registrar pagamento deste mês
+          </Button>
+        </CardFooter>
       </Card>
     </>
   );
