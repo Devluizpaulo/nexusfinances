@@ -35,12 +35,16 @@ export default function FreelancerPage() {
   const { user, isUserLoading } = useUser();
   const { toast } = useToast();
 
-  const { data: freelancerIncomes, isLoading: isIncomesLoading } = useUserSubcollection<Transaction>('incomes', {
-      constraints: [
-        where('category', '==', 'Freelance'),
-        orderBy('date', 'desc')
-      ]
-  });
+  const freelancerIncomesQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(
+      collection(firestore, `users/${user.uid}/incomes`),
+      where('category', '==', 'Freelance'),
+      orderBy('date', 'desc')
+    );
+  }, [user, firestore]);
+  
+  const { data: freelancerIncomes, isLoading: isIncomesLoading } = useCollection<Transaction>(freelancerIncomesQuery);
 
   const stats = useMemo(() => {
     if (!freelancerIncomes || freelancerIncomes.length === 0) {

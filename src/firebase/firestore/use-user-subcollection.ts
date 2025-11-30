@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import {
   collection,
   query,
@@ -17,22 +17,23 @@ import { FirestorePermissionError } from '../errors';
 import type { WithId } from './use-collection';
 
 interface UseUserSubcollectionOptions {
-  constraints?: QueryConstraint[];
   listen?: boolean;
 }
 
 /**
- * Hook para buscar dados de uma subcoleção do usuário autenticado.
+ * Hook para buscar TODOS os dados de uma subcoleção do usuário autenticado.
+ * Este hook não aceita filtros dinâmicos para garantir a estabilidade da consulta.
+ * Para consultas filtradas, construa a query na página usando `useMemoFirebase` e use `useCollection`.
  *
  * @param subcollectionName - O nome da subcoleção (ex: 'incomes', 'expenses').
- * @param options - Opções para filtrar, ordenar e escutar em tempo real.
+ * @param options - Opções para escutar em tempo real.
  * @returns Um objeto com `data`, `isLoading` e `error`.
  */
 export function useUserSubcollection<T = DocumentData>(
   subcollectionName: string,
   options: UseUserSubcollectionOptions = {}
 ) {
-  const { constraints = [], listen = true } = options;
+  const { listen = true } = options;
   const { user } = useUser();
   const firestore = useFirestore();
   
@@ -40,16 +41,13 @@ export function useUserSubcollection<T = DocumentData>(
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   
-  // O hook useMemoFirebase agora recebe as dependências diretamente
   const memoizedQuery = useMemoFirebase(() => {
     if (!user || !firestore) {
       return null;
     }
-
     const path = `users/${user.uid}/${subcollectionName}`;
-    // A consulta é criada com as restrições (filtros/ordenação)
-    return query(collection(firestore, path), ...constraints);
-  }, [user, firestore, subcollectionName, constraints]); // Passamos o array de constraints como dependência
+    return query(collection(firestore, path));
+  }, [user, firestore, subcollectionName]);
 
 
   useEffect(() => {
