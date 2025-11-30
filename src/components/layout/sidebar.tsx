@@ -21,6 +21,10 @@ const planningMenuItems = [
   { href: '/budgets', label: 'Limites de Gasto', icon: Files, className: "text-violet-500" },
 ];
 
+const healthMenuItems = [
+    { href: '/health', label: 'Saúde e Contatos', icon: HeartPulse, className: "text-rose-500" },
+];
+
 const analysisMenuItems = [
   { href: '/reports', label: 'Relatórios', icon: BarChart3, className: "text-indigo-500" },
   { href: '/education', label: 'Jornada Financeira', icon: GraduationCap, className: "text-teal-500" },
@@ -204,6 +208,7 @@ export function AppSidebar() {
             <SidebarGroup>
                 <SidebarGroupLabel>Planejamento</SidebarGroupLabel>
                 {renderMenuItems(planningMenuItems)}
+                {renderMenuItems(healthMenuItems)}
             </SidebarGroup>
             
             <SidebarSeparator />
