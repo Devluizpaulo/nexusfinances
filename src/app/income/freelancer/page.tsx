@@ -11,7 +11,7 @@ import { RecurrenceCard } from '@/components/recurrences/recurrence-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AddFreelancerProjectSheet } from '@/components/freelancer/add-freelancer-project-sheet';
 import { formatCurrency } from '@/lib/utils';
-import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
+import { ImportPayslipSheet } from '@/components/income/import-payslip-sheet';
 
 const freelancerKeywords = ['freelance', 'projeto', 'consultoria', 'cliente', 'contrato', 'serviço'];
 
@@ -74,14 +74,14 @@ export default function FreelancerPage() {
         isOpen={isAddSheetOpen}
         onClose={handleCloseSheet}
       />
-       <ImportTransactionsSheet 
+       <ImportPayslipSheet 
         isOpen={isImportSheetOpen}
         onClose={() => setIsImportSheetOpen(false)}
       />
       <div className="mb-6 flex items-center justify-end gap-2">
          <Button variant="outline" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>
             <Upload className="mr-2 h-4 w-4" />
-            Importar Nota Fiscal (IA)
+            Importar Holerite/NF (IA)
         </Button>
       </div>
 
@@ -200,5 +200,3 @@ export default function FreelancerPage() {
     </>
   );
 }
-
-    
