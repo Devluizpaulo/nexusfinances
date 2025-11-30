@@ -280,32 +280,3 @@ export const useStorage = (): FirebaseStorage => {
   const { storage } = useFirebase();
   return storage;
 }
-
-/**
- * A hook for memoizing Firestore queries and document references. It's a wrapper around React's useMemo
- * that adds a marker to the returned object. This marker is used by useCollection and useDoc to verify
- * that the query or reference has been properly memoized, preventing unstable references from being
- * passed to Firestore listeners, which can cause infinite render loops and other issues.
- *
- * @template T - The type of the value to be memoized.
- * @param {() => T} factory - A function that computes the value to be memoized.
- * @param {DependencyList} deps - An array of dependencies for the useMemo hook.
- * @returns {T} The memoized value with a stability marker.
- */
-export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T {
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const memoized = useMemo(factory, deps);
-
-  // Attach a non-enumerable property to the memoized object to mark it as stable.
-  // This helps `useCollection` and `useDoc` to verify that the query is memoized.
-  if (memoized && typeof memoized === 'object') {
-    Object.defineProperty(memoized, '__memo', {
-      value: true,
-      writable: false,
-      enumerable: false,
-      configurable: false,
-    });
-  }
-
-  return memoized;
-}

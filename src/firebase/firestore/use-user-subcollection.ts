@@ -11,7 +11,7 @@ import {
   FirestoreError,
 } from 'firebase/firestore';
 import { useUser } from '../auth/use-user';
-import { useFirestore, useMemoFirebase } from '../provider';
+import { useFirestore, useMemoFirebase } from '@/firebase/index';
 import { errorEmitter } from '../error-emitter';
 import { FirestorePermissionError } from '../errors';
 
@@ -41,14 +41,16 @@ export function useUserSubcollection<T = DocumentData>(
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   
+  // O hook useMemoFirebase agora recebe as dependências diretamente
   const memoizedQuery = useMemoFirebase(() => {
     if (!user || !firestore) {
       return null;
     }
 
     const path = `users/${user.uid}/${subcollectionName}`;
+    // A consulta é criada com as restrições (filtros/ordenação)
     return query(collection(firestore, path), ...constraints);
-  }, [user?.uid, firestore, subcollectionName, ...constraints]);
+  }, [user, firestore, subcollectionName, constraints]); // Passamos o array de constraints como dependência
 
 
   useEffect(() => {

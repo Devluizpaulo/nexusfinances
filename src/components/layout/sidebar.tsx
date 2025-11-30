@@ -39,7 +39,7 @@ export function AppSidebar() {
   const { state, isMobile, setOpenMobile, isPinned, togglePinned } = useSidebar();
   const { user } = useUser();
   const [isExpensesOpen, setIsExpensesOpen] = useState(
-    pathname.startsWith('/expenses') || pathname.startsWith('/recurrences') || pathname.startsWith('/credit-cards')
+    pathname.startsWith('/expenses') || pathname.startsWith('/credit-cards')
   );
   const [isIncomeOpen, setIsIncomeOpen] = useState(pathname.startsWith('/income'));
 
@@ -130,7 +130,7 @@ export function AppSidebar() {
                     <SidebarMenuItem>
                         <CollapsibleTrigger asChild>
                             <SidebarMenuButton
-                                isActive={pathname.startsWith('/expenses') || pathname.startsWith('/recurrences')}
+                                isActive={pathname.startsWith('/expenses') || pathname.startsWith('/credit-cards')}
                                 tooltip={'Despesas'}
                                 className="justify-between"
                             >
@@ -182,13 +182,6 @@ export function AppSidebar() {
                              <SidebarMenuButton asChild isActive={pathname.startsWith('/expenses/subscriptions')} tooltip={'Streams & Assinaturas'} onClick={handleMobileClick}>
                                 <Link href="/expenses/subscriptions">
                                     Streams & Assinaturas
-                                </Link>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                         <SidebarMenuItem className="ml-5 border-l border-border pl-3">
-                             <SidebarMenuButton asChild isActive={pathname === '/recurrences'} tooltip={'Contas Fixas'} onClick={handleMobileClick}>
-                                <Link href="/recurrences">
-                                    Outras Contas Fixas
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
