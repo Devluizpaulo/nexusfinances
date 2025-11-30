@@ -13,11 +13,16 @@ import { expenseCategories, type Transaction } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { startOfMonth, endOfMonth, startOfYear, endOfYear, parseISO, isWithinInterval } from 'date-fns';
+
+type ViewMode = 'month' | 'year' | 'all';
 
 export default function ExpensesPage() {
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [isImportSheetOpen, setIsImportSheetOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('all');
   
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
@@ -36,11 +41,36 @@ export default function ExpensesPage() {
   const { data: expenseData, isLoading: isExpensesLoading } = useCollection<Transaction>(expensesQuery);
 
   const filteredExpenseData = useMemo(() => {
-    const dateFilter = searchParams.get('date');
-    if (!dateFilter || !expenseData) return expenseData || [];
+    if (!expenseData) return [];
 
-    return expenseData.filter((t) => t.date === dateFilter);
-  }, [expenseData, searchParams]);
+    const now = new Date();
+    
+    let filtered = expenseData;
+
+    if (viewMode === 'month') {
+      const monthStart = startOfMonth(now);
+      const monthEnd = endOfMonth(now);
+      filtered = expenseData.filter(t => {
+        const transactionDate = parseISO(t.date);
+        return isWithinInterval(transactionDate, { start: monthStart, end: monthEnd });
+      });
+    } else if (viewMode === 'year') {
+      const yearStart = startOfYear(now);
+      const yearEnd = endOfYear(now);
+      filtered = expenseData.filter(t => {
+        const transactionDate = parseISO(t.date);
+        return isWithinInterval(transactionDate, { start: yearStart, end: yearEnd });
+      });
+    }
+
+    const dateFilter = searchParams.get('date');
+    if (dateFilter) {
+      return filtered.filter((t) => t.date === dateFilter);
+    }
+    
+    return filtered;
+
+  }, [expenseData, searchParams, viewMode]);
 
   const handleOpenSheet = (transaction: Transaction | null = null) => {
     setEditingTransaction(transaction);
@@ -89,16 +119,29 @@ export default function ExpensesPage() {
         title="Todos os Gastos"
         description="Anote seus gastos em segundos e veja o impacto direto no seu mês, sem planilhas."
       >
-        <Button variant="outline" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>
-            <Upload className="mr-2 h-4 w-4" />
-            Importar Extrato PDF
-        </Button>
+        <div className="flex flex-col-reverse sm:flex-row gap-2">
+            <Button variant="outline" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>
+                <Upload className="mr-2 h-4 w-4" />
+                Importar Extrato PDF
+            </Button>
 
-        <Button onClick={() => handleOpenSheet()} disabled={!user}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Registrar gasto
-        </Button>
+            <Button onClick={() => handleOpenSheet()} disabled={!user}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Registrar gasto
+            </Button>
+        </div>
       </PageHeader>
+      
+       <div className="flex justify-between items-center mb-4">
+        <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)}>
+          <TabsList>
+            <TabsTrigger value="month">Mês Atual</TabsTrigger>
+            <TabsTrigger value="year">Ano Atual</TabsTrigger>
+            <TabsTrigger value="all">Tudo</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
       {searchParams.get('date') && (
         <div className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
           <span>
