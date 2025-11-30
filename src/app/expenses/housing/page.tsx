@@ -4,15 +4,17 @@ import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import type { Recurrence, RentalContract } from '@/lib/types';
-import { Loader2, Home, PlusCircle } from 'lucide-react';
+import type { RentalContract } from '@/lib/types';
+import { Loader2, Home, PlusCircle, Settings } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { AddRentalContractSheet } from '@/components/housing/add-rental-contract-sheet';
 import { RentalContractCard } from '@/components/housing/rental-contract-card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { ManageContractsDialog } from '@/components/housing/manage-contracts-dialog';
 
 export default function HousingPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isManageDialogOpen, setIsManageDialogOpen] = useState(false);
   const [editingContract, setEditingContract] = useState<RentalContract | null>(null);
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
@@ -66,27 +68,41 @@ export default function HousingPage() {
         onClose={handleCloseSheet}
         contract={editingContract}
       />
+      <ManageContractsDialog
+        isOpen={isManageDialogOpen}
+        onClose={() => setIsManageDialogOpen(false)}
+        contracts={contractsData || []}
+        onEditContract={handleEditContract}
+      />
 
       <PageHeader
         title="Moradia"
         description="Hub de gestão para seus contratos de aluguel, condomínio e outros custos residenciais."
       >
-        <Button onClick={() => setIsSheetOpen(true)} disabled={!user}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Cadastrar Contrato
-        </Button>
+        <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setIsManageDialogOpen(true)} disabled={!user}>
+                <Settings className="mr-2 h-4 w-4" />
+                Gerenciar Contratos
+            </Button>
+            <Button onClick={() => setIsSheetOpen(true)} disabled={!user}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Cadastrar Contrato
+            </Button>
+        </div>
       </PageHeader>
 
       {activeContracts.length > 0 ? (
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Contratos Ativos</h2>
-          {activeContracts.map(contract => (
-            <RentalContractCard 
-              key={contract.id}
-              contract={contract}
-              onEdit={handleEditContract}
-            />
-          ))}
+          <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
+            {activeContracts.map(contract => (
+              <RentalContractCard 
+                key={contract.id}
+                contract={contract}
+                onEdit={handleEditContract}
+              />
+            ))}
+          </div>
         </div>
       ) : (
         <div className="flex h-40 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
@@ -102,7 +118,7 @@ export default function HousingPage() {
                 <AccordionTrigger>
                     <h2 className="text-lg font-semibold">Contratos Encerrados ({inactiveContracts.length})</h2>
                 </AccordionTrigger>
-                <AccordionContent className="pt-4 space-y-4">
+                <AccordionContent className="pt-4 grid gap-6 md:grid-cols-1 lg:grid-cols-2">
                     {inactiveContracts.map(contract => (
                         <RentalContractCard 
                             key={contract.id}
