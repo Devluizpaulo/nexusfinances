@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
@@ -35,16 +36,23 @@ export default function FreelancerPage() {
   const { user, isUserLoading } = useUser();
   const { toast } = useToast();
 
-  const freelancerIncomesQuery = useMemoFirebase(() => {
+  // 1. Fetch all incomes, ordered by date. This query is simple and does not require a custom index.
+  const allIncomesQuery = useMemoFirebase(() => {
     if (!user) return null;
     return query(
       collection(firestore, `users/${user.uid}/incomes`),
-      where('category', '==', 'Freelance'),
       orderBy('date', 'desc')
     );
   }, [user, firestore]);
   
-  const { data: freelancerIncomes, isLoading: isIncomesLoading } = useCollection<Transaction>(freelancerIncomesQuery);
+  const { data: allIncomes, isLoading: isIncomesLoading } = useCollection<Transaction>(allIncomesQuery);
+
+  // 2. Filter for "Freelance" incomes on the client-side.
+  const freelancerIncomes = useMemo(() => {
+    if (!allIncomes) return [];
+    return allIncomes.filter(income => income.category === 'Freelance');
+  }, [allIncomes]);
+
 
   const stats = useMemo(() => {
     if (!freelancerIncomes || freelancerIncomes.length === 0) {
