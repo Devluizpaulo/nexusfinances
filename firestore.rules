@@ -12,6 +12,7 @@ service cloud.firestore {
     // Função helper para verificar se o usuário autenticado é superadmin
     function isSuperAdmin() {
       return request.auth != null &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "superadmin";
     }
 
@@ -25,16 +26,14 @@ service cloud.firestore {
     
     // REGRA GERAL PARA SUBCOLEÇÕES DO USUÁRIO
     // Permite que o proprietário dos dados tenha acesso total a qualquer subcoleção
-    // dentro do seu próprio documento de usuário (ex: incomes, expenses, debts, etc.).
-    // Isso simplifica as regras e garante que as operações de listagem funcionem.
-    match /users/{userId}/{collectionId}/{docId} {
-        allow read, write, delete, create, list: if isOwner(userId);
+    // dentro do seu próprio documento de usuário. O {docId=**} é um curinga recursivo
+    // que garante a permissão de `list` nas coleções.
+    match /users/{userId}/{collectionId}/{docId=**} {
+        allow read, write: if isOwner(userId);
     }
 
     // REGRA PARA CONSULTA DE GRUPO (Collection Group Query)
-    // Permite que um usuário leia a subcoleção 'installments' de qualquer dívida,
-    // DESDE QUE o userId no documento da parcela seja o seu próprio.
-    // Isso é necessário para o calendário encontrar parcelas vencidas em todas as dívidas.
+    // Usado pelo calendário no dashboard para encontrar parcelas vencidas em todas as dívidas.
     match /{path=**}/installments/{installmentId} {
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
     }
@@ -42,22 +41,22 @@ service cloud.firestore {
     // COLEÇÕES PÚBLICAS
     // Qualquer usuário autenticado pode ler os dados de educação e planos.
     // Somente superadmins podem criar, atualizar ou deletar estes documentos.
-    match /education/{document} {
+    match /education/{document=**} {
       allow read: if request.auth != null;
-      allow create, update, delete: if isSuperAdmin();
+      allow write: if isSuperAdmin();
     }
 
-    match /subscriptionPlans/{document} {
+    match /subscriptionPlans/{document=**} {
       allow read: if request.auth != null;
-      allow create, update, delete: if isSuperAdmin();
+      allow write: if isSuperAdmin();
     }
 
     // LOGS
     // Qualquer usuário autenticado pode criar um log.
     // Apenas superadmins podem listar, ler, atualizar ou deletar logs.
-    match /logs/{document} {
+    match /logs/{document=**} {
       allow create: if request.auth != null;
-      allow list, get, update, delete: if isSuperAdmin();
+      allow read, update, delete: if isSuperAdmin();
     }
   }
 }
