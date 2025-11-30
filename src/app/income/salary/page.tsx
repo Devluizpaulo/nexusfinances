@@ -5,7 +5,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { collection, deleteDoc, doc, getDocs, setDoc, updateDoc, query, where } from 'firebase/firestore';
+import { collection, setDoc, updateDoc, getDocs, query, where } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase, deleteDocumentNonBlocking } from '@/firebase';
 import type { Transaction } from '@/lib/types';
 import { Loader2, Briefcase, PlusCircle, TrendingUp, TrendingDown, Edit, Star, Trash2, MoreVertical, Upload } from 'lucide-react';
@@ -18,11 +18,11 @@ import { ptBR } from 'date-fns/locale';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { doc } from 'firebase/firestore';
 
 import { Badge } from '@/components/ui/badge';
-import { ImportPayslipCard } from '@/components/income/import-payslip-card';
+import { ImportPayslipSheet } from '@/components/income/import-payslip-sheet';
 import { useToast } from '@/hooks/use-toast';
-import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -281,7 +281,7 @@ export default function SalaryPage() {
         categories={incomeCategories}
         transaction={editingTransaction} 
       />
-       <ImportTransactionsSheet 
+       <ImportPayslipSheet 
         isOpen={isImportSheetOpen}
         onClose={() => setIsImportSheetOpen(false)}
       />
@@ -319,7 +319,7 @@ export default function SalaryPage() {
           </Button>
            <Button variant="outline" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>
             <Upload className="mr-2 h-4 w-4" />
-            Importar PDF
+            Importar PDF com IA
           </Button>
         </div>
       </div>
@@ -347,8 +347,6 @@ export default function SalaryPage() {
             description="Média dos descontos (INSS, IRRF, etc.)"
           />
         </div>
-
-        <ImportPayslipCard />
 
         {/* Histórico */}
         <Card>
@@ -580,5 +578,3 @@ export default function SalaryPage() {
     </>
   );
 }
-
-    
