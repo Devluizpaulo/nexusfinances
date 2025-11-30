@@ -76,10 +76,15 @@ const formSchema = z.object({
   paymentMethod: paymentMethodSchema,
   status: z.enum(['active', 'inactive']).default('active'),
 }).refine(data => {
-    if (!data.type) return true; // Skip validation if type is not set
-    // Ensures that at least one amount is provided when it's not "Outros"
-    if (data.type.includes('Aluguel') && (data.rentAmount === undefined || data.rentAmount === 0)) return false;
-    if (data.type.includes('Condomínio') && (data.condoFee === undefined || data.condoFee === 0)) return false;
+    // Only perform validation if 'type' is a valid string
+    if (typeof data.type === 'string') {
+        if (data.type.includes('Aluguel') && (data.rentAmount === undefined || data.rentAmount === 0)) {
+            return false;
+        }
+        if (data.type.includes('Condomínio') && (data.condoFee === undefined || data.condoFee === 0)) {
+            return false;
+        }
+    }
     return true;
 }, {
     message: "Informe o valor correspondente ao tipo de contrato.",
@@ -126,8 +131,8 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
   
   // Calculate total amount whenever rent or condo fee changes
   useEffect(() => {
-    const safeRent = typeof rentAmount === 'number' && !Number.isNaN(rentAmount) ? rentAmount : 0;
-    const safeCondo = typeof condoFee === 'number' && !Number.isNaN(condoFee) ? condoFee : 0;
+    const safeRent = rentAmount || 0;
+    const safeCondo = condoFee || 0;
 
     let total = 0;
     if (contractType === 'Aluguel') total = safeRent;
