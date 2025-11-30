@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 import type { LucideIcon } from 'lucide-react';
 
@@ -89,7 +90,9 @@ export type RentalContract = {
   userId: string;
   landlordName: string;
   type: 'Aluguel' | 'Condomínio' | 'Aluguel + Condomínio' | 'Outros';
-  rentAmount: number;
+  rentAmount?: number;
+  condoFee?: number;
+  totalAmount: number;
   dueDate: number;
   paymentPeriodicity: 'Mensal' | 'Bimestral' | 'Trimestral' | 'Anual';
   startDate: string; // ISO string

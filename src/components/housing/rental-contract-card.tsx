@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -17,12 +18,8 @@ import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 
-
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
-};
 
 interface RentalContractCardProps {
   contract: RentalContract;
@@ -138,9 +135,21 @@ export function RentalContractCard({ contract, onEdit }: RentalContractCardProps
         <CardContent className="space-y-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div>
-                    <p className="text-muted-foreground text-xs">Valor Mensal</p>
-                    <p className="font-semibold">{formatCurrency(contract.rentAmount)}</p>
+                    <p className="text-muted-foreground text-xs">Valor Total</p>
+                    <p className="font-semibold">{formatCurrency(contract.totalAmount)}</p>
                 </div>
+                {contract.type.includes('Aluguel') && contract.rentAmount && (
+                     <div>
+                        <p className="text-muted-foreground text-xs">Aluguel</p>
+                        <p className="font-semibold">{formatCurrency(contract.rentAmount)}</p>
+                    </div>
+                )}
+                {contract.type.includes('Condomínio') && contract.condoFee && (
+                     <div>
+                        <p className="text-muted-foreground text-xs">Condomínio</p>
+                        <p className="font-semibold">{formatCurrency(contract.condoFee)}</p>
+                    </div>
+                )}
                  <div>
                     <p className="text-muted-foreground text-xs">Vencimento</p>
                     <p className="font-semibold">Todo dia {contract.dueDate}</p>
@@ -149,10 +158,12 @@ export function RentalContractCard({ contract, onEdit }: RentalContractCardProps
                     <p className="text-muted-foreground text-xs">Início do Contrato</p>
                     <p className="font-semibold">{format(parseISO(contract.startDate), 'dd/MM/yyyy')}</p>
                 </div>
-                <div>
-                    <p className="text-muted-foreground text-xs">Fim do Contrato</p>
-                    <p className="font-semibold">{contract.endDate ? format(parseISO(contract.endDate), 'dd/MM/yyyy') : 'Indeterminado'}</p>
-                </div>
+                {contract.endDate && (
+                    <div>
+                        <p className="text-muted-foreground text-xs">Fim do Contrato</p>
+                        <p className="font-semibold">{format(parseISO(contract.endDate), 'dd/MM/yyyy')}</p>
+                    </div>
+                )}
             </div>
             {contract.propertyAddress && (
                  <div>

@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -362,7 +363,9 @@
         "userId": { "type": "string" },
         "landlordName": { "type": "string", "description": "Name of the landlord or real estate agency." },
         "type": { "type": "string", "enum": ["Aluguel", "Condomínio", "Aluguel + Condomínio", "Outros"] },
-        "rentAmount": { "type": "number", "description": "The monthly payment amount." },
+        "rentAmount": { "type": "number", "description": "The monthly rent amount, if applicable." },
+        "condoFee": { "type": "number", "description": "The monthly condo fee, if applicable." },
+        "totalAmount": { "type": "number", "description": "The total monthly payment amount (sum of rent, condo, etc.)." },
         "dueDate": { "type": "number", "description": "The day of the month the payment is due." },
         "paymentPeriodicity": { "type": "string", "enum": ["Mensal", "Bimestral", "Trimestral", "Anual"] },
         "startDate": { "type": "string", "format": "date-time" },
@@ -382,7 +385,7 @@
             }
         }
       },
-      "required": ["userId", "landlordName", "type", "rentAmount", "dueDate", "paymentPeriodicity", "startDate"]
+      "required": ["userId", "landlordName", "type", "totalAmount", "dueDate", "paymentPeriodicity", "startDate"]
     },
     "HealthProvider": {
       "$schema": "http://json-schema.org/draft-07/schema#",

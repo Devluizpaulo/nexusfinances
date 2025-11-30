@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -8,7 +9,7 @@ import { formatISO, setDate, addYears, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { collection, doc, writeBatch } from 'firebase/firestore';
 import { useFirestore, useUser, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -61,7 +62,9 @@ const paymentMethodSchema = z.object({
 const formSchema = z.object({
   landlordName: z.string().min(1, 'O nome do proprietário ou imobiliária é obrigatório.'),
   type: z.enum(['Aluguel', 'Condomínio', 'Aluguel + Condomínio', 'Outros']),
-  rentAmount: z.coerce.number().positive('O valor do aluguel deve ser positivo.'),
+  rentAmount: z.coerce.number().min(0, 'O valor não pode ser negativo.').optional(),
+  condoFee: z.coerce.number().min(0, 'O valor não pode ser negativo.').optional(),
+  totalAmount: z.coerce.number().positive('O valor total deve ser positivo.'),
   dueDate: z.coerce.number().int().min(1).max(31, 'O dia do vencimento deve ser entre 1 e 31.'),
   paymentPeriodicity: z.enum(['Mensal', 'Bimestral', 'Trimestral', 'Anual']).default('Mensal'),
   startDate: z.date({ required_error: 'A data de início do contrato é obrigatória.' }),
@@ -72,6 +75,14 @@ const formSchema = z.object({
   notes: z.string().optional(),
   paymentMethod: paymentMethodSchema,
   status: z.enum(['active', 'inactive']).default('active'),
+}).refine(data => {
+    // Ensures that at least one amount is provided when it's not "Outros"
+    if (data.type.includes('Aluguel') && (data.rentAmount === undefined || data.rentAmount === 0)) return false;
+    if (data.type.includes('Condomínio') && (data.condoFee === undefined || data.condoFee === 0)) return false;
+    return true;
+}, {
+    message: "Informe o valor correspondente ao tipo de contrato.",
+    path: ["totalAmount"],
 });
 
 type RentalFormValues = z.infer<typeof formSchema>;
@@ -89,6 +100,8 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
       landlordName: '',
       type: 'Aluguel + Condomínio',
       rentAmount: 0,
+      condoFee: 0,
+      totalAmount: 0,
       dueDate: 5,
       paymentPeriodicity: 'Mensal',
       startDate: new Date(),
@@ -105,7 +118,27 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
   const { toast } = useToast();
   
   const startDate = form.watch('startDate');
+  const contractType = form.watch('type');
+  const rentAmount = form.watch('rentAmount');
+  const condoFee = form.watch('condoFee');
   const isEditing = !!contract;
+  
+  // Calculate total amount whenever rent or condo fee changes
+  useEffect(() => {
+    const rent = rentAmount || 0;
+    const condo = condoFee || 0;
+    let total = 0;
+    if (contractType === 'Aluguel') total = rent;
+    else if (contractType === 'Condomínio') total = condo;
+    else if (contractType === 'Aluguel + Condomínio') total = rent + condo;
+    else total = form.getValues('totalAmount') // For 'Outros', let user define total
+
+    if(total !== form.getValues('totalAmount')) {
+       form.setValue('totalAmount', total, { shouldValidate: true });
+    }
+
+  }, [rentAmount, condoFee, contractType, form]);
+
 
   // Populate form for editing
   useEffect(() => {
@@ -123,6 +156,8 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
         landlordName: '',
         type: 'Aluguel + Condomínio',
         rentAmount: 0,
+        condoFee: 0,
+        totalAmount: 0,
         dueDate: 5,
         paymentPeriodicity: 'Mensal',
         startDate: new Date(),
@@ -186,7 +221,7 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
         const expenseData = {
           id: newExpenseRef.id,
           userId: user.uid,
-          amount: values.rentAmount,
+          amount: values.totalAmount,
           category: 'Moradia',
           date: formatISO(setDate(new Date(), values.dueDate)),
           description: `${values.type} - ${values.landlordName}`,
@@ -260,24 +295,66 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
                 </FormItem>
               )}
             />
-             <div className="grid grid-cols-2 gap-4">
-              <FormField
+
+            <div className="grid grid-cols-2 gap-4">
+                {(contractType === 'Aluguel' || contractType === 'Aluguel + Condomínio') && (
+                    <FormField
+                        control={form.control}
+                        name="rentAmount"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Valor do Aluguel (R$)</FormLabel>
+                            <FormControl>
+                            <CurrencyInput
+                                value={field.value || 0}
+                                onValueChange={(value) => field.onChange(value)}
+                            />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                )}
+                 {(contractType === 'Condomínio' || contractType === 'Aluguel + Condomínio') && (
+                    <FormField
+                        control={form.control}
+                        name="condoFee"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Valor do Condomínio (R$)</FormLabel>
+                            <FormControl>
+                            <CurrencyInput
+                                value={field.value || 0}
+                                onValueChange={(value) => field.onChange(value)}
+                            />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                )}
+            </div>
+
+            <FormField
                 control={form.control}
-                name="rentAmount"
+                name="totalAmount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Valor Mensal (R$)</FormLabel>
+                    <FormLabel>Valor Total da Cobrança (R$)</FormLabel>
                     <FormControl>
                       <CurrencyInput
                         value={field.value}
                         onValueChange={field.onChange}
+                        disabled={contractType !== 'Outros'}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-               <FormField
+
+             <div className="grid grid-cols-2 gap-4">
+                <FormField
                 control={form.control}
                 name="dueDate"
                 render={({ field }) => (
@@ -290,6 +367,24 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="paymentPeriodicity"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Periodicidade</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                            <SelectContent>
+                                <SelectItem value="Mensal">Mensal</SelectItem>
+                                <SelectItem value="Bimestral">Bimestral</SelectItem>
+                                <SelectItem value="Trimestral">Trimestral</SelectItem>
+                                <SelectItem value="Anual">Anual</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </FormItem>
+                )}
+                />
             </div>
             
             <Separator />
@@ -403,3 +498,4 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
     </Dialog>
   );
 }
+
