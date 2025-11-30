@@ -87,7 +87,7 @@ export default function FreelancerPage() {
         return (
           income.description?.toLowerCase().includes(term) ||
           income.category?.toLowerCase().includes(term) ||
-          income.companyName?.toLowerCase().includes(term)
+          (income as any).companyName?.toLowerCase().includes(term)
         );
       }
       

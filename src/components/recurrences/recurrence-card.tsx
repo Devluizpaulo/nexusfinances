@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useFirestore, useUser, deleteDocumentNonBlocking, updateDocumentNonBlocking, useCollection, useMemoFirebase } from '@/firebase';
 import type { Recurrence, Transaction } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { Pencil, Trash2, Check, X, History, Loader2 } from 'lucide-react';
+import { Pencil, Trash2, Check, X, History, Loader2, Tag } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -87,9 +87,9 @@ export function RecurrenceCard({ recurrence }: RecurrenceCardProps) {
       <Dialog open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
         <DialogContent>
             <DialogHeader>
-              <DialogTitle>Histórico de Pagamentos</DialogTitle>
+              <DialogTitle>Histórico de Lançamentos</DialogTitle>
               <DialogDescription>
-                Histórico de pagamentos para a recorrência "{recurrence.description}".
+                Histórico de lançamentos para a recorrência "{recurrence.description}".
               </DialogDescription>
             </DialogHeader>
             <div className="max-h-[60vh] overflow-y-auto">
@@ -166,35 +166,46 @@ export function RecurrenceCard({ recurrence }: RecurrenceCardProps) {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Card className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => setIsHistoryOpen(true)}>
-        <CardContent className="p-4 flex items-center justify-between">
+      <Card className="cursor-pointer hover:border-primary/50 transition-colors flex flex-col h-full" onClick={() => setIsHistoryOpen(true)}>
+        <CardContent className="p-4 flex-grow">
           <div>
-            <p className="font-semibold">{recurrence.description}</p>
-            <p className="text-sm text-muted-foreground">{recurrence.category}</p>
-            <p className="text-xs text-muted-foreground">
-              Próximo ciclo em: {format(nextDate, 'PPP', { locale: ptBR })}
-            </p>
+            <p className="font-semibold text-base">{recurrence.description}</p>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge variant="outline" className="text-xs">
+                <Tag className="h-3 w-3 mr-1" />
+                {recurrence.category}
+              </Badge>
+              {recurrence.isRecurring && (
+                <Badge variant="secondary" className="text-xs">
+                  Recorrente
+                </Badge>
+              )}
+            </div>
           </div>
-          <div className="flex flex-col items-end gap-2">
-            <Badge variant={recurrence.type === 'income' ? 'default' : 'secondary'} className={recurrence.type === 'income' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}>
+          <div className="mt-3">
+             <Badge variant={recurrence.type === 'income' ? 'default' : 'secondary'} className={recurrence.type === 'income' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}>
               {formatCurrency(recurrence.amount)}
             </Badge>
-            <div className="flex gap-1">
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); setIsHistoryOpen(true);}}>
-                <History className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); setIsEditing(true);}}>
-                <Pencil className="h-4 w-4" />
-              </Button>
+          </div>
+        </CardContent>
+        <div className="p-4 border-t flex items-center justify-between">
+           <p className="text-xs text-muted-foreground">
+              {recurrence.isRecurring ? `Próximo: ${format(nextDate, 'dd/MM/yy', { locale: ptBR })}` : 'Não recorrente'}
+            </p>
+          <div className="flex gap-1">
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); setIsEditing(true);}}>
+              <Pencil className="h-4 w-4" />
+            </Button>
+            {recurrence.isRecurring && (
               <Button variant="ghost" size="icon" className="h-7 w-7 text-amber-600 hover:bg-amber-100 hover:text-amber-700" onClick={(e) => { e.stopPropagation(); setIsConfirmingStop(true);}}>
                 <X className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={(e) => { e.stopPropagation(); setIsDeleteDialogOpen(true);}}>
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
+            )}
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={(e) => { e.stopPropagation(); setIsDeleteDialogOpen(true);}}>
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
-        </CardContent>
+        </div>
       </Card>
     </>
   );
