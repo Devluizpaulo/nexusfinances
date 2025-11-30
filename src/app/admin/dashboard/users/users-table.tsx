@@ -5,13 +5,14 @@ import { type AppUser } from '@/firebase';
 import { DataTable } from '@/components/data-table/data-table';
 import { columns } from './columns';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
+import { useMemoFirebase } from '@/firebase';
 
 interface UsersTableProps {
   usersData: AppUser[];
 }
 
 export function UsersTable({ usersData }: UsersTableProps) {
-  const memoizedColumns = useMemo(() => columns, []);
+  const memoizedColumns = useMemoFirebase(() => columns, []);
   
   return (
     <Card>

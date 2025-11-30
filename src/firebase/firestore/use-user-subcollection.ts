@@ -11,7 +11,7 @@ import {
   FirestoreError,
 } from 'firebase/firestore';
 import { useUser } from '../auth/use-user';
-import { useFirestore } from '../provider';
+import { useFirestore, useMemoFirebase } from '../provider';
 import { errorEmitter } from '../error-emitter';
 import { FirestorePermissionError } from '../errors';
 
@@ -41,14 +41,14 @@ export function useUserSubcollection<T = DocumentData>(
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   
-  const memoizedQuery = useMemo(() => {
+  const memoizedQuery = useMemoFirebase(() => {
     if (!user || !firestore) {
       return null;
     }
 
     const path = `users/${user.uid}/${subcollectionName}`;
     return query(collection(firestore, path), ...constraints);
-  }, [user, firestore, subcollectionName, constraints]);
+  }, [user?.uid, firestore, subcollectionName, ...constraints]);
 
 
   useEffect(() => {

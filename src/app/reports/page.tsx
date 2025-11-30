@@ -779,42 +779,6 @@ export default function ReportsPage() {
             </div>
           )}
 
-          {filteredTransactions.length > 0 && (
-            <Card className="mt-2">
-              <CardHeader>
-                <CardTitle className="text-sm font-semibold">Resumo automático do período</CardTitle>
-                <CardDescription>
-                  Uma leitura rápida do que mais marcou suas finanças nesse recorte.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  Neste período, você teve um saldo{' '}
-                  {summary.balance >= 0 ? 'positivo' : 'negativo'} de{' '}
-                  <span className="font-medium text-foreground">{summary.balanceFormatted}</span>.{' '}
-                  Sua renda total foi de{' '}
-                  <span className="font-medium text-emerald-600">{summary.incomeTotalFormatted}</span>{' '}
-                  e suas despesas somaram{' '}
-                  <span className="font-medium text-red-600">{summary.expenseTotalFormatted}</span>.
-                  {summary.hasComparison && (
-                    <>
-                      {' '}Comparando com o período anterior, sua renda variou{' '}
-                      <span className="font-medium">
-                        {summary.incomeChange >= 0 ? 'para cima' : 'para baixo'} em{' '}
-                        {Math.abs(summary.incomeChange).toFixed(1)}%
-                      </span>{' '}
-                      e suas despesas{' '}
-                      <span className="font-medium">
-                        {summary.expenseChange >= 0 ? 'aumentaram' : 'diminuíram'}{' '}
-                        {Math.abs(summary.expenseChange).toFixed(1)}%
-                      </span>.
-                    </>
-                  )}
-                </p>
-              </CardContent>
-            </Card>
-          )}
-
           <Separator className="my-6" />
 
           <DataTable
