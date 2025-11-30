@@ -197,7 +197,7 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
                         </div>
                         ) : (
                         <div className="text-center text-muted-foreground">
-                            <FileUp className="mx-auto h-10 w-10" />
+                            <UploadCloud className="mx-auto h-10 w-10" />
                             <p className="mt-2">Arraste e solte o arquivo PDF aqui, ou clique para selecionar</p>
                         </div>
                         )}
@@ -206,79 +206,30 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
                 ) : (
                     <motion.div 
                     key="results"
-                    className="space-y-4 rounded-lg border bg-muted/50 p-4 max-h-[60vh] overflow-y-auto"
+                    className="grid grid-cols-1 md:grid-cols-2 gap-6 rounded-lg border bg-muted/50 p-4 max-h-[60vh] overflow-y-auto"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                     >
-                    <div className="space-y-1">
-                        <label className="text-sm font-medium text-muted-foreground">Pagador</label>
-                        <Input value={editableResult.companyName || ''} onChange={(e) => handleFieldChange('companyName', e.target.value)} />
-                    </div>
-                    <Separator/>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Coluna de Proventos */}
-                        <div className="space-y-2">
-                            <h4 className="text-sm font-semibold text-emerald-600">Proventos (Ganhos)</h4>
-                            <div className="space-y-1 text-sm">
-                                {editableResult.earnings && editableResult.earnings.length > 0 ? (
-                                    editableResult.earnings.map((item, index) => (
-                                        <div key={index} className="flex justify-between items-center gap-2">
-                                            <Input value={item.name} className="h-8 text-xs flex-1" onChange={e => {
-                                                const newEarnings = [...editableResult.earnings!];
-                                                newEarnings[index].name = e.target.value;
-                                                handleFieldChange('earnings', newEarnings);
-                                            }}/>
-                                            <CurrencyInput value={item.amount} className="h-8 text-xs w-28" onValueChange={value => {
-                                                const newEarnings = [...editableResult.earnings!];
-                                                newEarnings[index].amount = value;
-                                                handleFieldChange('earnings', newEarnings);
-                                            }}/>
-                                        </div>
-                                    ))
-                                ) : <p className="text-xs text-muted-foreground">Nenhum detalhe de ganho encontrado.</p>}
+                     {/* Coluna Esquerda: Detalhes e totais */}
+                    <div className="space-y-4">
+                        <div className="space-y-1">
+                            <label className="text-sm font-medium text-muted-foreground">Pagador</label>
+                            <Input value={editableResult.companyName || ''} onChange={(e) => handleFieldChange('companyName', e.target.value)} />
+                        </div>
+                        <Separator/>
+                         <div className="space-y-2 rounded-md bg-background p-3">
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium text-muted-foreground">Total de Proventos</span>
+                                <CurrencyInput value={editableResult.grossAmount || 0} className="h-8 text-sm font-semibold w-32 text-right" onValueChange={value => handleFieldChange('grossAmount', value)}/>
                             </div>
-                            <Separator />
-                            <div className="flex justify-between font-semibold">
-                                <span>Total de Proventos</span>
-                                <CurrencyInput value={editableResult.grossAmount || 0} className="h-8 text-sm font-semibold w-32" onValueChange={value => handleFieldChange('grossAmount', value)}/>
+                             <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium text-muted-foreground">Total de Descontos</span>
+                                <CurrencyInput value={editableResult.totalDeductions || 0} className="h-8 text-sm font-semibold w-32 text-right" onValueChange={value => handleFieldChange('totalDeductions', value)}/>
                             </div>
                         </div>
 
-                        {/* Coluna de Descontos */}
-                        <div className="space-y-2">
-                            <h4 className="text-sm font-semibold text-red-500">Descontos</h4>
-                            <div className="space-y-1 text-sm">
-                            {editableResult.deductions && editableResult.deductions.length > 0 ? (
-                                    editableResult.deductions.map((item, index) => (
-                                        <div key={index} className="flex justify-between items-center gap-2">
-                                            <Input value={item.name} className="h-8 text-xs flex-1" onChange={e => {
-                                                const newDeductions = [...editableResult.deductions!];
-                                                newDeductions[index].name = e.target.value;
-                                                handleFieldChange('deductions', newDeductions);
-                                            }}/>
-                                            <CurrencyInput value={item.amount} className="h-8 text-xs w-28" onValueChange={value => {
-                                                const newDeductions = [...editableResult.deductions!];
-                                                newDeductions[index].amount = value;
-                                                handleFieldChange('deductions', newDeductions);
-                                            }}/>
-                                        </div>
-                                    ))
-                                ) : <p className="text-xs text-muted-foreground">Nenhum desconto encontrado.</p>}
-                            </div>
-                            <Separator />
-                            <div className="flex justify-between font-semibold">
-                                <span>Total de Descontos</span>
-                                <CurrencyInput value={editableResult.totalDeductions || 0} className="h-8 text-sm font-semibold w-32" onValueChange={value => handleFieldChange('totalDeductions', value)}/>
-                            </div>
-                        </div>
-                    </div>
-
-                    <Separator />
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-1 rounded-md bg-background p-3">
+                         <div className="space-y-1 rounded-md bg-background p-3">
                             <label className="text-sm font-medium text-muted-foreground">Data de Competência</label>
                             <Popover>
                             <PopoverTrigger asChild>
@@ -303,16 +254,60 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
                                 <CurrencyInput value={editableResult.fgtsAmount || 0} onValueChange={value => handleFieldChange('fgtsAmount', value)}/>
                             </div>
                         )}
+                         <div className="rounded-lg border-2 border-primary bg-primary/5 p-4 text-center">
+                            <label className="text-sm font-medium text-primary">Valor Líquido a Registrar</label>
+                            <CurrencyInput value={editableResult.netAmount || 0} onValueChange={value => handleFieldChange('netAmount', value)} className="w-full text-3xl font-bold text-primary bg-transparent border-0 text-center h-auto p-0 shadow-none focus-visible:ring-0"/>
+                        </div>
                     </div>
+                     {/* Coluna Direita: Detalhamento */}
+                     <div className="space-y-4">
+                         <div className="space-y-2">
+                            <h4 className="text-sm font-semibold text-emerald-600">Proventos (Ganhos)</h4>
+                            <div className="space-y-1 text-sm">
+                                {editableResult.earnings && editableResult.earnings.length > 0 ? (
+                                    editableResult.earnings.map((item, index) => (
+                                        <div key={index} className="flex justify-between items-center gap-2">
+                                            <Input value={item.name} className="h-8 text-xs flex-1" onChange={e => {
+                                                const newEarnings = [...editableResult.earnings!];
+                                                newEarnings[index].name = e.target.value;
+                                                handleFieldChange('earnings', newEarnings);
+                                            }}/>
+                                            <CurrencyInput value={item.amount} className="h-8 text-xs w-28 text-right" onValueChange={value => {
+                                                const newEarnings = [...editableResult.earnings!];
+                                                newEarnings[index].amount = value;
+                                                handleFieldChange('earnings', newEarnings);
+                                            }}/>
+                                        </div>
+                                    ))
+                                ) : <p className="text-xs text-muted-foreground">Nenhum detalhe de ganho encontrado.</p>}
+                            </div>
+                        </div>
 
-                    <div className="rounded-lg border-2 border-primary bg-primary/5 p-4 text-center">
-                        <label className="text-sm font-medium text-primary">Valor Líquido a Registrar</label>
-                        <CurrencyInput value={editableResult.netAmount || 0} onValueChange={value => handleFieldChange('netAmount', value)} className="w-full text-3xl font-bold text-primary bg-transparent border-0 text-center h-auto p-0 shadow-none focus-visible:ring-0"/>
-                    </div>
-
-                    <div className="space-y-1">
-                        <label className="text-sm font-medium text-muted-foreground">Observação</label>
-                        <Textarea value={editableResult.description || ''} onChange={(e) => handleFieldChange('description', e.target.value)} placeholder="Adicione uma descrição para esta renda..."/>
+                         <div className="space-y-2">
+                            <h4 className="text-sm font-semibold text-red-500">Descontos</h4>
+                            <div className="space-y-1 text-sm">
+                            {editableResult.deductions && editableResult.deductions.length > 0 ? (
+                                    editableResult.deductions.map((item, index) => (
+                                        <div key={index} className="flex justify-between items-center gap-2">
+                                            <Input value={item.name} className="h-8 text-xs flex-1" onChange={e => {
+                                                const newDeductions = [...editableResult.deductions!];
+                                                newDeductions[index].name = e.target.value;
+                                                handleFieldChange('deductions', newDeductions);
+                                            }}/>
+                                            <CurrencyInput value={item.amount} className="h-8 text-xs w-28 text-right" onValueChange={value => {
+                                                const newDeductions = [...editableResult.deductions!];
+                                                newDeductions[index].amount = value;
+                                                handleFieldChange('deductions', newDeductions);
+                                            }}/>
+                                        </div>
+                                    ))
+                                ) : <p className="text-xs text-muted-foreground">Nenhum desconto encontrado.</p>}
+                            </div>
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-sm font-medium text-muted-foreground">Observação</label>
+                            <Textarea value={editableResult.description || ''} onChange={(e) => handleFieldChange('description', e.target.value)} placeholder="Adicione uma descrição para esta renda..."/>
+                        </div>
                     </div>
 
                     </motion.div>

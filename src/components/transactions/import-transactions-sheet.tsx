@@ -11,7 +11,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2, FileUp, FileCheck2, AlertTriangle, Wallet, Check, ChevronsUpDown, FileText, CreditCard } from 'lucide-react';
+import { Loader2, FileUp, FileCheck2, AlertTriangle, Wallet, Check, ChevronsUpDown, FileText, CreditCard, UploadCloud } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useDropzone } from 'react-dropzone';
 import { cn } from '@/lib/utils';
@@ -288,7 +288,7 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
                     <p>Solte o arquivo aqui...</p>
                   ) : (
                     <div className="text-center text-muted-foreground">
-                      <FileUp className="mx-auto h-12 w-12" />
+                      <UploadCloud className="mx-auto h-12 w-12" />
                       <p className="mt-2">Arraste e solte o arquivo PDF aqui,</p>
                       <p className="text-xs">ou clique para selecionar</p>
                     </div>
