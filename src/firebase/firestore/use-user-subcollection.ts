@@ -14,8 +14,7 @@ import { useUser } from '../auth/use-user';
 import { useFirestore, useMemoFirebase } from '@/firebase/index';
 import { errorEmitter } from '../error-emitter';
 import { FirestorePermissionError } from '../errors';
-
-export type WithId<T> = T & { id: string };
+import type { WithId } from './use-collection';
 
 interface UseUserSubcollectionOptions {
   constraints?: QueryConstraint[];
