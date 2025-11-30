@@ -237,7 +237,7 @@ export default function ProfilePage() {
                       )}
                     />
                      <FormField
-                      control={form.control}
+                      control={profileForm.control}
                       name="lastName"
                       render={({ field }) => (
                         <FormItem>
