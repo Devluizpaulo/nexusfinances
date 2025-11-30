@@ -22,7 +22,7 @@ const planningMenuItems = [
 ];
 
 const healthMenuItems = [
-    { href: '/health', label: 'Saúde e Contatos', icon: HeartPulse, className: "text-rose-500" },
+    { href: '/health', label: 'Saúde & Bem-Estar', icon: HeartPulse, className: "text-rose-500" },
 ];
 
 const analysisMenuItems = [

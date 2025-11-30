@@ -12,8 +12,8 @@ export default function HealthPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Saúde e Contatos"
-        description="Gerencie sua agenda de contatos de saúde, incluindo empresas e profissionais."
+        title="Saúde & Bem-Estar"
+        description="Gerencie suas despesas e contatos de saúde e bem-estar."
       >
         <div className="flex gap-2">
           <Button variant="outline">
