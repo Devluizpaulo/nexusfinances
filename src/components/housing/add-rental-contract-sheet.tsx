@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -24,6 +24,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form';
 import {
   Select,
@@ -46,26 +47,31 @@ import { format } from 'date-fns';
 import { CurrencyInput } from '../ui/currency-input';
 import { Separator } from '../ui/separator';
 import type { RentalContract } from '@/lib/types';
+import { Textarea } from '../ui/textarea';
+import { Switch } from '../ui/switch';
 
 
 const paymentMethodSchema = z.object({
-    method: z.enum(['pix', 'bankTransfer', 'boleto']),
-    pixKeyType: z.string().optional(),
-    pixKey: z.string().optional(),
-    bankName: z.string().optional(),
-    agency: z.string().optional(),
-    account: z.string().optional(),
+    method: z.enum(['pix', 'bankTransfer', 'boleto', 'creditCard', 'cash', 'debit']),
+    instructions: z.string().optional(),
+    identifier: z.string().optional(),
   }).optional();
 
 
 const formSchema = z.object({
   landlordName: z.string().min(1, 'O nome do proprietário ou imobiliária é obrigatório.'),
+  type: z.enum(['Aluguel', 'Condomínio', 'Aluguel + Condomínio', 'Outros']),
   rentAmount: z.coerce.number().positive('O valor do aluguel deve ser positivo.'),
   dueDate: z.coerce.number().int().min(1).max(31, 'O dia do vencimento deve ser entre 1 e 31.'),
-  lateFee: z.coerce.number().min(0, 'A multa deve ser um valor positivo ou zero.').optional(),
+  paymentPeriodicity: z.enum(['Mensal', 'Bimestral', 'Trimestral', 'Anual']).default('Mensal'),
   startDate: z.date({ required_error: 'A data de início do contrato é obrigatória.' }),
   endDate: z.date().optional(),
+  isAutoRenew: z.boolean().default(false),
+  propertyAddress: z.string().optional(),
+  securityDeposit: z.coerce.number().min(0, 'O valor deve ser positivo ou zero.').optional(),
+  notes: z.string().optional(),
   paymentMethod: paymentMethodSchema,
+  status: z.enum(['active', 'inactive']).default('active'),
 });
 
 type RentalFormValues = z.infer<typeof formSchema>;
@@ -81,13 +87,16 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
     resolver: zodResolver(formSchema),
     defaultValues: {
       landlordName: '',
+      type: 'Aluguel + Condomínio',
       rentAmount: 0,
       dueDate: 5,
-      lateFee: 0,
+      paymentPeriodicity: 'Mensal',
       startDate: new Date(),
+      isAutoRenew: false,
       paymentMethod: {
         method: 'boleto'
-      }
+      },
+      status: 'active'
     },
   });
 
@@ -95,7 +104,6 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
   const { user } = useUser();
   const { toast } = useToast();
   
-  const paymentMethod = form.watch('paymentMethod.method');
   const startDate = form.watch('startDate');
   const isEditing = !!contract;
 
@@ -106,17 +114,22 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
         ...contract,
         startDate: contract.startDate ? parseISO(contract.startDate) : new Date(),
         endDate: contract.endDate ? parseISO(contract.endDate) : undefined,
+        paymentPeriodicity: contract.paymentPeriodicity || 'Mensal',
+        status: contract.status || 'active',
       });
     } else {
       // Reset for new contract
        form.reset({
         landlordName: '',
+        type: 'Aluguel + Condomínio',
         rentAmount: 0,
         dueDate: 5,
-        lateFee: 0,
+        paymentPeriodicity: 'Mensal',
         startDate: new Date(),
-        endDate: addYears(new Date(), 1), // Default end date
-        paymentMethod: { method: 'boleto' }
+        endDate: addYears(new Date(), 1),
+        isAutoRenew: false,
+        paymentMethod: { method: 'boleto' },
+        status: 'active',
       });
     }
   }, [contract, isOpen, form]);
@@ -155,18 +168,14 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
       }
 
       if (isEditing) {
-        // Update existing contract
         const contractRef = doc(firestore, `users/${user.uid}/rentalContracts`, contract.id);
         batch.set(contractRef, contractData, { merge: true });
-        // Note: Logic to update associated recurring expense might be needed here if amount/date changes.
-        // For simplicity, we assume the user will manage the recurring expense manually if needed.
         toast({
           title: 'Contrato de Aluguel Atualizado!',
           description: `As informações do contrato foram salvas.`,
         });
 
       } else {
-        // Create new contract and recurring expense
         const contractsColRef = collection(firestore, `users/${user.uid}/rentalContracts`);
         const newContractRef = doc(contractsColRef);
         contractData.id = newContractRef.id;
@@ -180,7 +189,7 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
           amount: values.rentAmount,
           category: 'Moradia',
           date: formatISO(setDate(new Date(), values.dueDate)),
-          description: `Aluguel - ${values.landlordName}`,
+          description: `${values.type} - ${values.landlordName}`,
           isRecurring: true,
           recurringSourceId: newContractRef.id,
           status: 'pending' as const,
@@ -189,7 +198,7 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
         batch.set(newExpenseRef, expenseData);
         toast({
           title: 'Contrato de Aluguel Adicionado!',
-          description: `Uma despesa recorrente de aluguel foi criada automaticamente para você.`,
+          description: `Uma despesa recorrente de ${values.type.toLowerCase()} foi criada automaticamente para você.`,
         });
       }
 
@@ -211,13 +220,14 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Editar Contrato de Aluguel' : 'Cadastrar Contrato de Aluguel'}</DialogTitle>
+          <DialogTitle>{isEditing ? 'Editar Contrato de Moradia' : 'Cadastrar Contrato de Moradia'}</DialogTitle>
           <DialogDescription>
-            {isEditing ? 'Atualize os detalhes do seu contrato.' : 'Insira os detalhes do seu contrato. Uma despesa recorrente de aluguel será criada automaticamente.'}
+            {isEditing ? 'Atualize os detalhes do seu contrato.' : 'Insira os detalhes do seu contrato. Uma despesa recorrente será criada automaticamente.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <h3 className="text-sm font-semibold text-muted-foreground pt-2">Informações do Contrato</h3>
             <FormField
               control={form.control}
               name="landlordName"
@@ -231,13 +241,32 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
                 </FormItem>
               )}
             />
-            <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tipo de Contrato</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
+                    <SelectContent>
+                      <SelectItem value="Aluguel">Aluguel</SelectItem>
+                      <SelectItem value="Condomínio">Condomínio</SelectItem>
+                      <SelectItem value="Aluguel + Condomínio">Aluguel + Condomínio</SelectItem>
+                      <SelectItem value="Outros">Outros</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="rentAmount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Valor do Aluguel (R$)</FormLabel>
+                    <FormLabel>Valor Mensal (R$)</FormLabel>
                     <FormControl>
                       <CurrencyInput
                         value={field.value}
@@ -264,112 +293,7 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
             </div>
             
             <Separator />
-            
-            <div className="space-y-2">
-                <h3 className="text-sm font-medium">Detalhes do Pagamento (Opcional)</h3>
-                 <FormField
-                    control={form.control}
-                    name="paymentMethod.method"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Forma de Pagamento</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                                <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Selecione um método"/>
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    <SelectItem value="boleto">Boleto</SelectItem>
-                                    <SelectItem value="pix">PIX</SelectItem>
-                                    <SelectItem value="bankTransfer">Transferência Bancária</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                 />
-
-                {paymentMethod === 'pix' && (
-                    <div className="grid grid-cols-2 gap-4 pt-2">
-                         <FormField
-                            control={form.control}
-                            name="paymentMethod.pixKeyType"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Tipo de Chave PIX</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Tipo"/>
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="email">Email</SelectItem>
-                                            <SelectItem value="phone">Celular</SelectItem>
-                                            <SelectItem value="cpf_cnpj">CPF/CNPJ</SelectItem>
-                                            <SelectItem value="random">Aleatória</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                         />
-                         <FormField
-                            control={form.control}
-                            name="paymentMethod.pixKey"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Chave PIX</FormLabel>
-                                    <FormControl><Input placeholder="Sua chave PIX" {...field} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                         />
-                    </div>
-                )}
-                
-                {paymentMethod === 'bankTransfer' && (
-                    <div className="grid grid-cols-3 gap-4 pt-2">
-                        <FormField
-                            control={form.control}
-                            name="paymentMethod.bankName"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Banco</FormLabel>
-                                    <FormControl><Input placeholder="Nome do banco" {...field} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                         />
-                        <FormField
-                            control={form.control}
-                            name="paymentMethod.agency"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Agência</FormLabel>
-                                    <FormControl><Input placeholder="0001" {...field} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                         />
-                         <FormField
-                            control={form.control}
-                            name="paymentMethod.account"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Conta</FormLabel>
-                                    <FormControl><Input placeholder="12345-6" {...field} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                         />
-                    </div>
-                )}
-
-            </div>
-            
-            <Separator />
+            <h3 className="text-sm font-semibold text-muted-foreground">Vigência do Contrato</h3>
              <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -424,6 +348,43 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
                 )}
               />
             </div>
+            <FormField
+              control={form.control}
+              name="isAutoRenew"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                  <div className="space-y-0.5">
+                    <FormLabel>Renovação Automática</FormLabel>
+                  </div>
+                  <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                </FormItem>
+              )}
+            />
+            
+            <Separator />
+            <h3 className="text-sm font-semibold text-muted-foreground">Informações Adicionais (Opcional)</h3>
+            <FormField
+              control={form.control}
+              name="propertyAddress"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Endereço do Imóvel</FormLabel>
+                  <FormControl><Input placeholder="Rua, número, bairro..." {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Observações Gerais</FormLabel>
+                    <FormControl><Textarea placeholder="Detalhes importantes, contatos, etc." {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
              <DialogFooter>
                 <Button
                 type="submit"

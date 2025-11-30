@@ -88,18 +88,21 @@ export type RentalContract = {
   id: string;
   userId: string;
   landlordName: string;
+  type: 'Aluguel' | 'Condomínio' | 'Aluguel + Condomínio' | 'Outros';
   rentAmount: number;
   dueDate: number;
-  lateFee?: number;
+  paymentPeriodicity: 'Mensal' | 'Bimestral' | 'Trimestral' | 'Anual';
   startDate: string; // ISO string
   endDate?: string | null; // ISO string
+  isAutoRenew?: boolean;
+  propertyAddress?: string;
+  securityDeposit?: number;
+  notes?: string;
+  status?: 'active' | 'inactive';
   paymentMethod?: {
-    method: 'pix' | 'bankTransfer' | 'boleto';
-    pixKeyType?: string;
-    pixKey?: string;
-    bankName?: string;
-    agency?: string;
-    account?: string;
+    method: 'pix' | 'bankTransfer' | 'boleto' | 'creditCard' | 'cash' | 'debit';
+    instructions?: string;
+    identifier?: string;
   };
 };
 

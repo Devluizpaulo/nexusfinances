@@ -356,30 +356,33 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "RentalContract",
       "type": "object",
-      "description": "Represents a user's rental contract details.",
+      "description": "Represents a user's rental or housing contract details.",
       "properties": {
         "id": { "type": "string" },
         "userId": { "type": "string" },
         "landlordName": { "type": "string", "description": "Name of the landlord or real estate agency." },
-        "rentAmount": { "type": "number", "description": "The monthly rent amount." },
-        "dueDate": { "type": "number", "description": "The day of the month the rent is due." },
-        "lateFee": { "type": "number", "description": "The late fee amount or percentage." },
+        "type": { "type": "string", "enum": ["Aluguel", "Condomínio", "Aluguel + Condomínio", "Outros"] },
+        "rentAmount": { "type": "number", "description": "The monthly payment amount." },
+        "dueDate": { "type": "number", "description": "The day of the month the payment is due." },
+        "paymentPeriodicity": { "type": "string", "enum": ["Mensal", "Bimestral", "Trimestral", "Anual"] },
         "startDate": { "type": "string", "format": "date-time" },
         "endDate": { "type": "string", "format": "date-time", "description": "Optional contract end date." },
+        "isAutoRenew": { "type": "boolean" },
+        "propertyAddress": { "type": "string" },
+        "securityDeposit": { "type": "number" },
+        "notes": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "inactive"] },
         "paymentMethod": {
             "type": "object",
             "description": "Structured payment details.",
             "properties": {
-                "method": { "type": "string", "enum": ["pix", "bankTransfer", "boleto"] },
-                "pixKeyType": { "type": "string", "enum": ["email", "phone", "cpf_cnpj", "random"] },
-                "pixKey": { "type": "string" },
-                "bankName": { "type": "string" },
-                "agency": { "type": "string" },
-                "account": { "type": "string" }
+                "method": { "type": "string", "enum": ["pix", "bankTransfer", "boleto", "creditCard", "cash", "debit"] },
+                "instructions": { "type": "string" },
+                "identifier": { "type": "string" }
             }
         }
       },
-      "required": ["userId", "landlordName", "rentAmount", "dueDate"]
+      "required": ["userId", "landlordName", "type", "rentAmount", "dueDate", "paymentPeriodicity", "startDate"]
     },
     "HealthProvider": {
       "$schema": "http://json-schema.org/draft-07/schema#",
