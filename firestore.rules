@@ -17,8 +17,9 @@ service cloud.firestore {
       // REGRA PARA SUBCOLEÇÕES DO USUÁRIO
       // Permite acesso total a todas as subcoleções (incomes, expenses, etc.)
       // APENAS se o usuário for o dono do documento pai (user).
+      // A permissão 'list' é crucial para queries em coleções.
       match /{subcollection}/{documentId} {
-         allow read, write: if isOwner(userId);
+         allow get, list, create, update, delete: if isOwner(userId);
       }
     }
     
