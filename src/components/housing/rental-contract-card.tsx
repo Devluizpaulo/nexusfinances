@@ -1,26 +1,21 @@
-
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { FileText, MoreVertical, Pencil, Trash2, History, Loader2, Copy, AlertTriangle, CalendarClock, CheckCircle2 } from 'lucide-react';
-import type { RentalContract, Recurrence } from '@/lib/types';
-import { useFirestore, useUser, deleteDocumentNonBlocking } from '@/firebase';
-import { doc, writeBatch, getDocs, collection, query, where } from 'firebase/firestore';
+import { FileText, MoreVertical, Pencil, Trash2, History, AlertTriangle, CalendarClock } from 'lucide-react';
+import type { RentalContract, Transaction } from '@/lib/types';
+import { useFirestore, useUser, deleteDocumentNonBlocking, useCollection, useMemoFirebase } from '@/firebase';
+import { doc, writeBatch, getDocs, collection, query, where, orderBy } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { format, parseISO, differenceInDays, isPast } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn, formatCurrency } from '@/lib/utils';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { RegisterHousingPaymentDialog } from '@/components/housing/register-housing-payment-dialog';
 
 interface RentalContractCardProps {
   contract: RentalContract;
@@ -29,19 +24,31 @@ interface RentalContractCardProps {
 
 export function RentalContractCard({ contract, onEdit }: RentalContractCardProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
-  
+
   const isInactive = contract.status === 'inactive';
-  
-  const contractStatus = (() => {
+
+  const paymentHistoryQuery = useMemoFirebase(() => {
+    if (!user || !contract.id) return null;
+    return query(
+      collection(firestore, `users/${user.uid}/expenses`),
+      where('recurringSourceId', '==', contract.id),
+      orderBy('date', 'desc')
+    );
+  }, [user, firestore, contract.id]);
+
+  const { data: paymentHistory } = useCollection<Transaction>(paymentHistoryQuery);
+
+  const contractStatus = useMemo(() => {
     if (isInactive) return { variant: 'outline' as const, text: 'Encerrado' };
 
     if (contract.endDate) {
       const endDate = parseISO(contract.endDate);
       const daysUntilEnd = differenceInDays(endDate, new Date());
-      
+
       if (isPast(endDate)) {
         return { variant: 'destructive' as const, text: 'Expirado', icon: AlertTriangle };
       }
@@ -50,10 +57,10 @@ export function RentalContractCard({ contract, onEdit }: RentalContractCardProps
       }
     }
     return null;
-  })();
+  }, [contract.endDate, isInactive]);
 
-  const cardBorderClass = 
-      contractStatus?.variant === 'destructive' ? 'border-destructive/80'
+  const cardBorderClass =
+    contractStatus?.variant === 'destructive' ? 'border-destructive/80'
     : contractStatus?.variant === 'secondary' ? 'border-amber-500/80'
     : isInactive ? 'border-dashed'
     : 'border-border';
@@ -73,12 +80,12 @@ export function RentalContractCard({ contract, onEdit }: RentalContractCardProps
       expensesSnapshot.forEach(doc => {
         batch.delete(doc.ref);
       });
-      
+
       await batch.commit();
 
       toast({
         title: 'Contrato Excluído',
-        description: `O contrato com ${contract.landlordName} e sua despesa recorrente foram removidos.`,
+        description: `O contrato com ${contract.landlordName} e suas despesas recorrentes foram removidos.`,
       });
     } catch (error) {
        toast({
@@ -114,43 +121,14 @@ export function RentalContractCard({ contract, onEdit }: RentalContractCardProps
     }
   };
 
-  const handleRegisterPayment = async () => {
-    if (!user) return;
-
-    try {
-      const expensesColRef = collection(firestore, `users/${user.uid}/expenses`);
-      const newExpenseRef = doc(expensesColRef);
-
-      const expenseData = {
-        id: newExpenseRef.id,
-        userId: user.uid,
-        amount: contract.totalAmount || 0,
-        category: 'Moradia' as const,
-        date: new Date().toISOString(),
-        description: `${contract.type} - ${contract.landlordName} (pagamento registrado manualmente)`,
-        isRecurring: false,
-        recurringSourceId: contract.id,
-        status: 'paid' as const,
-        type: 'expense' as const,
-      };
-
-      await writeBatch(firestore).set(newExpenseRef, expenseData).commit();
-
-      toast({
-        title: 'Pagamento registrado',
-        description: 'Um lançamento de pagamento foi criado nas suas despesas.',
-      });
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Erro ao registrar pagamento',
-        description: 'Tente novamente em alguns segundos.',
-      });
-    }
-  };
 
   return (
     <>
+      <RegisterHousingPaymentDialog
+        isOpen={isPaymentDialogOpen}
+        onClose={() => setIsPaymentDialogOpen(false)}
+        contract={contract}
+      />
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -250,12 +228,11 @@ export function RentalContractCard({ contract, onEdit }: RentalContractCardProps
             )}
         </CardContent>
         <CardFooter className="flex flex-col gap-3 items-stretch">
-          {contract.paymentMethod && (
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="payment" className="border-b-0">
+          <Accordion type="single" collapsible className="w-full">
+            {contract.paymentMethod?.method && (
+              <AccordionItem value="payment" className={!paymentHistory || paymentHistory.length === 0 ? "border-b-0" : ""}>
                 <AccordionTrigger className="text-sm">Ver detalhes do pagamento</AccordionTrigger>
                 <AccordionContent className="space-y-2 text-sm pt-2">
-                  {contract.paymentMethod.method && (
                     <div className="flex justify-between items-center rounded-md border p-2">
                       <div>
                         <p className="font-medium">{contract.paymentMethod.method}</p>
@@ -263,40 +240,41 @@ export function RentalContractCard({ contract, onEdit }: RentalContractCardProps
                           <p className="text-muted-foreground break-all">{contract.paymentMethod.identifier}</p>
                         )}
                       </div>
-                      {contract.paymentMethod.identifier && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCopy(contract.paymentMethod?.identifier || '');
-                          }}
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      )}
                     </div>
-                  )}
                   {contract.paymentMethod.instructions && (
                     <p className="text-xs text-muted-foreground px-1">{contract.paymentMethod.instructions}</p>
                   )}
                 </AccordionContent>
               </AccordionItem>
-            </Accordion>
-          )}
+            )}
+            {paymentHistory && paymentHistory.length > 0 && (
+                <AccordionItem value="history" className="border-b-0">
+                    <AccordionTrigger className="text-sm">Histórico de pagamentos ({paymentHistory.length})</AccordionTrigger>
+                    <AccordionContent className="space-y-2 text-sm pt-2 max-h-40 overflow-y-auto">
+                        {paymentHistory.map(payment => (
+                           <div key={payment.id} className="flex justify-between items-center text-xs">
+                               <span className="text-muted-foreground">{format(parseISO(payment.date), 'dd/MM/yyyy')}</span>
+                               <Badge variant="secondary" className="font-mono">{formatCurrency(payment.amount)}</Badge>
+                           </div>
+                        ))}
+                    </AccordionContent>
+                </AccordionItem>
+            )}
+          </Accordion>
 
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full justify-center gap-2"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleRegisterPayment();
-            }}
-          >
-            <CheckCircle2 className="h-4 w-4" />
-            Registrar pagamento deste mês
-          </Button>
+          {!isInactive && (
+            <Button
+              type="button"
+              variant="default"
+              className="w-full justify-center gap-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsPaymentDialogOpen(true);
+              }}
+            >
+              Registrar Pagamento
+            </Button>
+          )}
         </CardFooter>
       </Card>
     </>
