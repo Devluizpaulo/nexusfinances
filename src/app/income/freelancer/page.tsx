@@ -2,12 +2,11 @@
 
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { collection, query, where, orderBy } from 'firebase/firestore';
-import { useUser, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, doc } from '@/firebase';
+import { collection, query, where, orderBy, doc } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
 import type { Transaction } from '@/lib/types';
 import { Loader2, PenSquare, PlusCircle, DollarSign, Users, Calendar, Upload } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AddFreelancerProjectSheet } from '@/components/freelancer/add-freelancer-project-sheet';
 import { formatCurrency } from '@/lib/utils';
 import { ImportPayslipSheet } from '@/components/income/import-payslip-sheet';
 import { DataTable } from '@/components/data-table/data-table';
