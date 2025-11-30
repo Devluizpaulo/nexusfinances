@@ -3,8 +3,8 @@
 
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { collection, query, orderBy } from 'firebase/firestore';
-import { useUser, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, doc } from '@/firebase';
+import { collection, query, orderBy, doc } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
 import type { Transaction } from '@/lib/types';
 import { Loader2, WalletCards, PlusCircle, Upload } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
