@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -25,6 +24,13 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { CalendarIcon, Loader2 } from 'lucide-react';
@@ -37,16 +43,26 @@ import { Calendar } from '@/components/ui/calendar';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { CurrencyInput } from '../ui/currency-input';
-import { Textarea } from '../ui/textarea';
+import { Separator } from '../ui/separator';
+
+const paymentMethodSchema = z.object({
+    method: z.enum(['pix', 'bankTransfer', 'boleto']),
+    pixKeyType: z.string().optional(),
+    pixKey: z.string().optional(),
+    bankName: z.string().optional(),
+    agency: z.string().optional(),
+    account: z.string().optional(),
+  }).optional();
+
 
 const formSchema = z.object({
   landlordName: z.string().min(1, 'O nome do proprietário ou imobiliária é obrigatório.'),
   rentAmount: z.coerce.number().positive('O valor do aluguel deve ser positivo.'),
   dueDate: z.coerce.number().int().min(1).max(31, 'O dia do vencimento deve ser entre 1 e 31.'),
   lateFee: z.coerce.number().min(0, 'A multa deve ser um valor positivo ou zero.').optional(),
-  paymentDetails: z.string().optional(),
   startDate: z.date({ required_error: 'A data de início do contrato é obrigatória.' }),
   endDate: z.date().optional(),
+  paymentMethod: paymentMethodSchema,
 });
 
 type RentalFormValues = z.infer<typeof formSchema>;
@@ -64,14 +80,18 @@ export function AddRentalContractSheet({ isOpen, onClose }: AddRentalContractShe
       rentAmount: 0,
       dueDate: 5,
       lateFee: 0,
-      paymentDetails: '',
       startDate: new Date(),
+      paymentMethod: {
+        method: 'boleto'
+      }
     },
   });
 
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
+  
+  const paymentMethod = form.watch('paymentMethod.method');
 
   const onSubmit = async (values: RentalFormValues) => {
     if (!user || !firestore) {
@@ -97,8 +117,6 @@ export function AddRentalContractSheet({ isOpen, onClose }: AddRentalContractShe
 
       if (values.endDate) {
         contractData.endDate = formatISO(values.endDate);
-      } else {
-        delete contractData.endDate;
       }
 
       batch.set(newContractRef, contractData);
@@ -147,7 +165,7 @@ export function AddRentalContractSheet({ isOpen, onClose }: AddRentalContractShe
         <DialogHeader>
           <DialogTitle>Cadastrar Contrato de Aluguel</DialogTitle>
           <DialogDescription>
-            Insira os detalhes do seu contrato de aluguel. Uma despesa recorrente será criada automaticamente.
+            Insira os detalhes do seu contrato. Uma despesa recorrente de aluguel será criada automaticamente.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -196,19 +214,114 @@ export function AddRentalContractSheet({ isOpen, onClose }: AddRentalContractShe
                 )}
               />
             </div>
-            <FormField
-              control={form.control}
-              name="paymentDetails"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Detalhes do Pagamento (Opcional)</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Ex: Chave PIX: email@exemplo.com, Conta: 1234-5 Ag: 0001" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            
+            <Separator />
+            
+            <div className="space-y-2">
+                <h3 className="text-sm font-medium">Detalhes do Pagamento (Opcional)</h3>
+                 <FormField
+                    control={form.control}
+                    name="paymentMethod.method"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Forma de Pagamento</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Selecione um método"/>
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="boleto">Boleto</SelectItem>
+                                    <SelectItem value="pix">PIX</SelectItem>
+                                    <SelectItem value="bankTransfer">Transferência Bancária</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                 />
+
+                {paymentMethod === 'pix' && (
+                    <div className="grid grid-cols-2 gap-4 pt-2">
+                         <FormField
+                            control={form.control}
+                            name="paymentMethod.pixKeyType"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Tipo de Chave PIX</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Tipo"/>
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="email">Email</SelectItem>
+                                            <SelectItem value="phone">Celular</SelectItem>
+                                            <SelectItem value="cpf_cnpj">CPF/CNPJ</SelectItem>
+                                            <SelectItem value="random">Aleatória</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                         />
+                         <FormField
+                            control={form.control}
+                            name="paymentMethod.pixKey"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Chave PIX</FormLabel>
+                                    <FormControl><Input placeholder="Sua chave PIX" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                         />
+                    </div>
+                )}
+                
+                {paymentMethod === 'bankTransfer' && (
+                    <div className="grid grid-cols-3 gap-4 pt-2">
+                        <FormField
+                            control={form.control}
+                            name="paymentMethod.bankName"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Banco</FormLabel>
+                                    <FormControl><Input placeholder="Nome do banco" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                         />
+                        <FormField
+                            control={form.control}
+                            name="paymentMethod.agency"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Agência</FormLabel>
+                                    <FormControl><Input placeholder="0001" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                         />
+                         <FormField
+                            control={form.control}
+                            name="paymentMethod.account"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Conta</FormLabel>
+                                    <FormControl><Input placeholder="12345-6" {...field} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                         />
+                    </div>
+                )}
+
+            </div>
+            
+            <Separator />
              <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}

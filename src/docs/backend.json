@@ -361,12 +361,23 @@
         "id": { "type": "string" },
         "userId": { "type": "string" },
         "landlordName": { "type": "string", "description": "Name of the landlord or real estate agency." },
-        "paymentDetails": { "type": "string", "description": "Payment details, such as PIX key or bank account." },
         "rentAmount": { "type": "number", "description": "The monthly rent amount." },
         "dueDate": { "type": "number", "description": "The day of the month the rent is due." },
         "lateFee": { "type": "number", "description": "The late fee amount or percentage." },
         "startDate": { "type": "string", "format": "date-time" },
-        "endDate": { "type": "string", "format": "date-time", "description": "Optional contract end date." }
+        "endDate": { "type": "string", "format": "date-time", "description": "Optional contract end date." },
+        "paymentMethod": {
+            "type": "object",
+            "description": "Structured payment details.",
+            "properties": {
+                "method": { "type": "string", "enum": ["pix", "bankTransfer", "boleto"] },
+                "pixKeyType": { "type": "string", "enum": ["email", "phone", "cpf_cnpj", "random"] },
+                "pixKey": { "type": "string" },
+                "bankName": { "type": "string" },
+                "agency": { "type": "string" },
+                "account": { "type": "string" }
+            }
+        }
       },
       "required": ["userId", "landlordName", "rentAmount", "dueDate"]
     },
