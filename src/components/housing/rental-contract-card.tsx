@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -7,8 +8,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { FileText, MoreVertical, Pencil, Trash2, Calendar, History, Loader2, Banknote, CreditCard, Copy } from 'lucide-react';
 import type { RentalContract, Recurrence } from '@/lib/types';
-import { useFirestore, useUser, deleteDocumentNonBlocking, getDocs, collection, query, where } from '@/firebase';
-import { doc, writeBatch } from 'firebase/firestore';
+import { useFirestore, useUser, deleteDocumentNonBlocking } from '@/firebase';
+import { doc, writeBatch, getDocs, collection, query, where } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { format, parseISO } from 'date-fns';
