@@ -9,8 +9,7 @@ import type { Recurrence } from '@/lib/types';
 import { Loader2, PenSquare, PlusCircle, Calendar, DollarSign, Users, Upload } from 'lucide-react';
 import { RecurrenceCard } from '@/components/recurrences/recurrence-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
-import { incomeCategories } from '@/lib/types';
+import { AddFreelancerProjectSheet } from '@/components/freelancer/add-freelancer-project-sheet';
 import { formatCurrency } from '@/lib/utils';
 import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
 
@@ -71,11 +70,9 @@ export default function FreelancerPage() {
 
   return (
     <>
-      <AddTransactionSheet
+      <AddFreelancerProjectSheet
         isOpen={isAddSheetOpen}
         onClose={handleCloseSheet}
-        transactionType="income"
-        categories={incomeCategories}
       />
        <ImportTransactionsSheet 
         isOpen={isImportSheetOpen}

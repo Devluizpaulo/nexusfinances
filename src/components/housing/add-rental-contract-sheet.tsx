@@ -1,9 +1,10 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { formatISO, setDate } from 'date-fns';
+import { formatISO, setDate, addYears } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { collection, doc, writeBatch } from 'firebase/firestore';
 import { useFirestore, useUser } from '@/firebase';
@@ -92,6 +93,15 @@ export function AddRentalContractSheet({ isOpen, onClose }: AddRentalContractShe
   const { toast } = useToast();
   
   const paymentMethod = form.watch('paymentMethod.method');
+  const startDate = form.watch('startDate');
+
+  // Auto-suggest end date as 1 year from start date
+  useEffect(() => {
+    if (startDate) {
+      const suggestedEndDate = addYears(startDate, 1);
+      form.setValue('endDate', suggestedEndDate);
+    }
+  }, [startDate, form]);
 
   const onSubmit = async (values: RentalFormValues) => {
     if (!user || !firestore) {

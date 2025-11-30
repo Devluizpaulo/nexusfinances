@@ -9,8 +9,7 @@ import { Loader2, Film, HeartPulse, Cpu, Newspaper, Repeat, PlusCircle, Upload }
 import { RecurrenceCard } from '@/components/recurrences/recurrence-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
-import { expenseCategories } from '@/lib/types';
+import { AddSubscriptionSheet } from '@/components/subscriptions/add-subscription-sheet';
 import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
 import { PageHeader } from '@/components/page-header';
 
@@ -66,7 +65,7 @@ export default function SubscriptionsPage() {
       if (foundCategory) {
         grouped[foundCategory.title].push(expense);
       } else {
-        const nonSubscriptionKeywords = ['Aluguel', 'Condomínio', 'Hipoteca', 'Luz', 'Água', 'Gás', 'Internet', 'Celular', 'Plano'];
+        const nonSubscriptionKeywords = ['Moradia', 'Aluguel', 'Condomínio', 'Hipoteca', 'Luz', 'Água', 'Gás', 'Internet', 'Celular', 'Plano', 'IPTU', 'Seguro Residencial'];
         const isUtilityOrRent = nonSubscriptionKeywords.some(keyword =>
           expense.category.toLowerCase().includes(keyword.toLowerCase()) ||
           expense.description.toLowerCase().includes(keyword.toLowerCase())
@@ -106,11 +105,9 @@ export default function SubscriptionsPage() {
 
   return (
     <>
-       <AddTransactionSheet
+       <AddSubscriptionSheet
         isOpen={isAddSheetOpen}
         onClose={handleCloseSheet}
-        transactionType="expense"
-        categories={expenseCategories}
       />
        <ImportTransactionsSheet 
         isOpen={isImportSheetOpen}
@@ -120,10 +117,16 @@ export default function SubscriptionsPage() {
         title="Streams & Assinaturas"
         description="Gerencie seus serviços recorrentes de streaming, software e outros."
       >
-        <Button variant="outline" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>
+        <div className="flex gap-2">
+          <Button onClick={() => setIsAddSheetOpen(true)} disabled={!user}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Nova Assinatura
+          </Button>
+          <Button variant="outline" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>
             <Upload className="mr-2 h-4 w-4" />
             Importar PDF com IA
-        </Button>
+          </Button>
+        </div>
       </PageHeader>
 
 
