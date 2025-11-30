@@ -5,17 +5,17 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useUser, useAuth, useFirestore, useStorage } from '@/firebase';
+import { useUser, useAuth, useFirestore } from '@/firebase';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Plus, Trash2, Link as LinkIcon, Lock, Banknote, Star } from 'lucide-react';
+import { Loader2, User as UserIcon, Lock, Star, Edit, Save } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { updateProfile, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
-import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { doc, updateDoc } from 'firebase/firestore';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,12 +26,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { incomeCategories, expenseCategories } from '@/lib/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 
 
 const profileFormSchema = z.object({
@@ -52,19 +51,25 @@ const passwordFormSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 type PasswordFormValues = z.infer<typeof passwordFormSchema>;
 
+const avatarIcons = [
+    'User', 'CircleUser', 'UserSquare', 'Wallet', 'PiggyBank', 'Landmark', 'Scale', 'CreditCard', 'TrendingUp', 'TrendingDown', 'BadgePercent', 'Rocket', 'Star', 'Heart', 'Sun', 'Moon', 'Sprout', 'Car', 'Home', 'Plane', 'Briefcase', 'GraduationCap', 'Code', 'Coffee', 'Gamepad2'
+] as const;
+
+const avatarColors = [
+    'bg-slate-500', 'bg-red-500', 'bg-orange-500', 'bg-amber-500', 'bg-yellow-500', 'bg-lime-500', 'bg-green-500', 'bg-emerald-500', 'bg-teal-500', 'bg-cyan-500', 'bg-sky-500', 'bg-blue-500', 'bg-indigo-500', 'bg-violet-500', 'bg-purple-500', 'bg-fuchsia-500', 'bg-pink-500', 'bg-rose-500'
+] as const;
 
 export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
   const firestore = useFirestore();
-  const storage = useStorage();
   const { toast } = useToast();
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [passwordFormData, setPasswordFormData] = useState<PasswordFormValues | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [newIncomeCategory, setNewIncomeCategory] = useState('');
-  const [newExpenseCategory, setNewExpenseCategory] = useState('');
+
+  const [selectedAvatarIcon, setSelectedAvatarIcon] = useState(user?.avatar?.icon || 'User');
+  const [selectedAvatarBg, setSelectedAvatarBg] = useState(user?.avatar?.bgColor || 'bg-slate-500');
+  const [isAvatarSaving, setIsAvatarSaving] = useState(false);
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -109,41 +114,6 @@ export default function ProfilePage() {
     }
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file || !user || !storage) return;
-
-    if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
-      toast({ variant: 'destructive', title: 'Formato de arquivo inválido', description: 'Por favor, selecione um arquivo JPG, PNG ou GIF.' });
-      return;
-    }
-     if (file.size > 1 * 1024 * 1024) { // 1MB limit
-      toast({ variant: 'destructive', title: 'Arquivo muito grande', description: 'A imagem deve ter no máximo 1MB.' });
-      return;
-    }
-
-    setIsUploading(true);
-    const storageRef = ref(storage, `profile-pictures/${user.uid}`);
-
-    try {
-      await uploadBytes(storageRef, file);
-      const photoURL = await getDownloadURL(storageRef);
-
-      if (auth.currentUser) {
-        await updateProfile(auth.currentUser, { photoURL });
-      }
-      const userDocRef = doc(firestore, 'users', user.uid);
-      await updateDoc(userDocRef, { photoURL });
-      
-      toast({ title: 'Foto de perfil atualizada!', description: 'Sua nova foto já está visível.' });
-    } catch (error) {
-      console.error('Error uploading profile picture:', error);
-      toast({ variant: 'destructive', title: 'Erro no upload', description: 'Não foi possível salvar sua foto de perfil. Tente novamente.' });
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
   const onPasswordSubmit = async (values: PasswordFormValues) => {
      if (!user || !user.email) return;
 
@@ -181,43 +151,31 @@ export default function ProfilePage() {
     setPasswordFormData(null);
   }
 
-  const handleAddCategory = async (type: 'income' | 'expense') => {
-    const category = type === 'income' ? newIncomeCategory : newExpenseCategory;
-    if (!user || !firestore || !category.trim()) return;
-
-    const fieldToUpdate = type === 'income' ? 'customIncomeCategories' : 'customExpenseCategories';
-    const userDocRef = doc(firestore, 'users', user.uid);
-
-    try {
-      await updateDoc(userDocRef, {
-        [fieldToUpdate]: arrayUnion(category.trim())
-      });
-      toast({ title: 'Categoria Adicionada!', description: `"${category.trim()}" foi adicionada.` });
-      if (type === 'income') setNewIncomeCategory('');
-      else setNewExpenseCategory('');
-    } catch (error) {
-      console.error(error);
-      toast({ variant: "destructive", title: "Erro", description: "Não foi possível adicionar a categoria." });
-    }
-  };
-
-  const handleRemoveCategory = async (type: 'income' | 'expense', category: string) => {
+  const handleSaveAvatar = async () => {
     if (!user || !firestore) return;
-
-    const fieldToUpdate = type === 'income' ? 'customIncomeCategories' : 'customExpenseCategories';
-    const userDocRef = doc(firestore, 'users', user.uid);
-
+    setIsAvatarSaving(true);
     try {
-      await updateDoc(userDocRef, {
-        [fieldToUpdate]: arrayRemove(category)
-      });
-      toast({ title: 'Categoria Removida!', description: `"${category}" foi removida.` });
+        const userDocRef = doc(firestore, 'users', user.uid);
+        await updateDoc(userDocRef, {
+            avatar: {
+                icon: selectedAvatarIcon,
+                bgColor: selectedAvatarBg,
+            }
+        });
+        toast({
+            title: 'Avatar Salvo!',
+            description: 'Seu novo avatar foi salvo com sucesso.',
+        });
     } catch (error) {
-      console.error(error);
-      toast({ variant: "destructive", title: "Erro", description: "Não foi possível remover a categoria." });
+        console.error('Error saving avatar:', error);
+        toast({ variant: 'destructive', title: 'Erro ao salvar avatar', description: 'Não foi possível salvar seu avatar. Tente novamente.' });
+    } finally {
+        setIsAvatarSaving(false);
     }
   };
-
+  
+  const hasAvatarChanged = selectedAvatarIcon !== (user?.avatar?.icon || 'User') || selectedAvatarBg !== (user?.avatar?.bgColor || 'bg-slate-500');
+  const SelectedIcon = (LucideIcons as any)[selectedAvatarIcon] || UserIcon;
 
   if (isUserLoading) {
     return (
@@ -264,16 +222,6 @@ export default function ProfilePage() {
             <Form {...profileForm}>
               <form onSubmit={profileForm.handleSubmit(onProfileSubmit)}>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <Avatar className="h-16 w-16 rounded-full overflow-hidden bg-primary/10 text-primary">
-                      <AvatarFallback className="flex h-full w-full items-center justify-center">
-                        {user?.firstName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="text-xs text-muted-foreground mt-2">Esta imagem é gerada automaticamente pela inicial do seu nome.</p>
-                    </div>
-                  </div>
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                      <FormField
                       control={profileForm.control}
@@ -289,7 +237,7 @@ export default function ProfilePage() {
                       )}
                     />
                      <FormField
-                      control={profileForm.control}
+                      control={form.control}
                       name="lastName"
                       render={({ field }) => (
                         <FormItem>
@@ -326,6 +274,61 @@ export default function ProfilePage() {
                 </CardContent>
               </form>
             </Form>
+          </Card>
+
+          <Card className="mt-6">
+            <CardHeader>
+                <CardTitle>Personalizar Avatar</CardTitle>
+                <CardDescription>Escolha um ícone e uma cor para seu avatar.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <div className="flex items-center gap-6">
+                    <div className={cn("flex h-24 w-24 items-center justify-center rounded-full text-white", selectedAvatarBg)}>
+                        <SelectedIcon className="h-12 w-12" />
+                    </div>
+                    <div className="flex-1">
+                        <div>
+                            <Label>Ícone</Label>
+                            <div className="mt-2 grid grid-cols-5 md:grid-cols-8 gap-2">
+                                {avatarIcons.map(iconName => {
+                                    const Icon = (LucideIcons as any)[iconName] || UserIcon;
+                                    return (
+                                        <Button
+                                            key={iconName}
+                                            variant="outline"
+                                            size="icon"
+                                            onClick={() => setSelectedAvatarIcon(iconName)}
+                                            className={cn("h-10 w-10", selectedAvatarIcon === iconName && "ring-2 ring-primary")}
+                                        >
+                                            <Icon className="h-5 w-5" />
+                                        </Button>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                         <div className="mt-4">
+                            <Label>Cor de Fundo</Label>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                                {avatarColors.map(color => (
+                                     <button
+                                        key={color}
+                                        type="button"
+                                        onClick={() => setSelectedAvatarBg(color)}
+                                        className={cn("h-8 w-8 rounded-full border-2", color, selectedAvatarBg === color ? "border-primary ring-2 ring-primary ring-offset-2" : "border-transparent")}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </CardContent>
+             <CardFooter>
+                  <Button onClick={handleSaveAvatar} disabled={isAvatarSaving || !hasAvatarChanged}>
+                    {isAvatarSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    <Save className="mr-2 h-4 w-4" />
+                    Salvar Avatar
+                </Button>
+            </CardFooter>
           </Card>
         </TabsContent>
 

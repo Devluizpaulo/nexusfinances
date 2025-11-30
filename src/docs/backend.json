@@ -33,6 +33,14 @@
           "description": "URL of the user's profile picture.",
           "format": "uri"
         },
+        "avatar": {
+            "type": "object",
+            "description": "User-selected custom avatar preferences.",
+            "properties": {
+                "icon": { "type": "string", "description": "The name of the Lucide icon." },
+                "bgColor": { "type": "string", "description": "The Tailwind CSS background color class." }
+            }
+        },
         "phoneNumber": {
           "type": "string",
           "description": "User's phone number."

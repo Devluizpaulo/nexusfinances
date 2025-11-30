@@ -1,7 +1,9 @@
+
 'use client';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Bell, PanelLeft, ChevronLeft, ChevronRight, UserCircle, LogOut, Mail, Menu } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useSidebar } from '../ui/sidebar';
 import { ThemeToggle } from '../theme-toggle';
@@ -72,14 +74,23 @@ function UserMenu() {
 
 
     if (!user) return null;
+    
+    const Icon = user.avatar?.icon ? (LucideIcons as any)[user.avatar.icon] || LucideIcons.User : LucideIcons.User;
 
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                     <Avatar className="h-9 w-9">
-                        <AvatarImage src={user?.photoURL || undefined} alt="Avatar do usuário"/>
-                        <AvatarFallback>{user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
+                        {user.photoURL ? (
+                           <AvatarImage src={user.photoURL} alt="Avatar do usuário"/>
+                        ) : user.avatar ? (
+                            <div className={cn("flex h-full w-full items-center justify-center rounded-full text-white", user.avatar.bgColor)}>
+                                <Icon className="h-5 w-5" />
+                            </div>
+                        ) : (
+                           <AvatarFallback>{user.displayName?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
+                        )}
                     </Avatar>
                 </Button>
             </DropdownMenuTrigger>

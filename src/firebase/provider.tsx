@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
@@ -22,6 +23,10 @@ export interface AppUser extends Omit<User, 'metadata' | 'phoneNumber'> {
   completedTracks?: string[];
   subscription?: UserSubscription;
   subscriptionPlan?: SubscriptionPlan;
+  avatar?: {
+    icon: string;
+    bgColor: string;
+  };
 }
 
 // Internal state for user authentication, using our extended AppUser
