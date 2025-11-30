@@ -322,7 +322,7 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
         toast({
           variant: 'destructive',
           title: 'Análise incompleta',
-          description: 'Alguns dados não foram identificados. Preencha manualmente.'
+          description: 'Alguns dados não foram identificados. Preencha manually.'
         });
 
         const fallbackData: ExtractPayslipOutput = {
@@ -385,6 +385,21 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
 
     const updatedResult = { ...editableResult, [field]: value };
     dispatch({ type: 'SET_EDITABLE_RESULT', payload: updatedResult });
+  };
+  
+  const handleItemChange = (
+    type: 'earnings' | 'deductions',
+    index: number,
+    field: 'name' | 'amount',
+    value: string | number
+  ) => {
+    if (!editableResult) return;
+
+    const items = [...(editableResult[type] || [])];
+    if (items[index]) {
+      (items[index] as any)[field] = value;
+      handleFieldChange(type, items);
+    }
   };
 
   const handleAddEarning = () => {
@@ -711,8 +726,15 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
                               <CardContent className="space-y-2">
                                 {(editableResult.earnings || []).map((item, index) => (
                                   <div key={index} className="flex items-center gap-2">
-                                    <Input value={item.name} onChange={e => {/*...*/ }} />
-                                    <CurrencyInput value={item.amount} onValueChange={v => {/*...*/ }} />
+                                    <Input
+                                      value={item.name}
+                                      onChange={(e) => handleItemChange('earnings', index, 'name', e.target.value)}
+                                      placeholder="Descrição do ganho"
+                                    />
+                                    <CurrencyInput
+                                      value={item.amount}
+                                      onValueChange={(v) => handleItemChange('earnings', index, 'amount', v)}
+                                    />
                                     <Button variant="ghost" size="icon" onClick={() => handleRemoveEarning(index)}><Trash2 className="h-4 w-4" /></Button>
                                   </div>
                                 ))}
@@ -729,8 +751,15 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
                               <CardContent className="space-y-2">
                                 {(editableResult.deductions || []).map((item, index) => (
                                   <div key={index} className="flex items-center gap-2">
-                                    <Input value={item.name} onChange={e => {/*...*/ }} />
-                                    <CurrencyInput value={item.amount} onValueChange={v => {/*...*/ }} />
+                                    <Input
+                                      value={item.name}
+                                      onChange={(e) => handleItemChange('deductions', index, 'name', e.target.value)}
+                                      placeholder="Descrição do desconto"
+                                    />
+                                    <CurrencyInput
+                                      value={item.amount}
+                                      onValueChange={(v) => handleItemChange('deductions', index, 'amount', v)}
+                                    />
                                     <Button variant="ghost" size="icon" onClick={() => handleRemoveDeduction(index)}><Trash2 className="h-4 w-4" /></Button>
                                   </div>
                                 ))}
