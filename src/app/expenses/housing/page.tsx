@@ -5,12 +5,14 @@ import { Button } from '@/components/ui/button';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { RentalContract } from '@/lib/types';
-import { Loader2, Home, PlusCircle, Settings } from 'lucide-react';
+import { Loader2, Home, PlusCircle, Settings, History } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { AddRentalContractSheet } from '@/components/housing/add-rental-contract-sheet';
 import { RentalContractCard } from '@/components/housing/rental-contract-card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ManageContractsDialog } from '@/components/housing/manage-contracts-dialog';
+import { addYears, parseISO } from 'date-fns';
+
 
 export default function HousingPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -41,8 +43,21 @@ export default function HousingPage() {
     return { activeContracts: active, inactiveContracts: inactive };
   }, [contractsData]);
 
-  const handleEditContract = (contract: RentalContract) => {
-    setEditingContract(contract);
+  const handleEditContract = (contract: RentalContract, isRenewal = false) => {
+    if (isRenewal && contract.endDate) {
+      // Prepare o contrato para renovação
+      const newStartDate = addYears(parseISO(contract.endDate), 0); // Começa onde o último terminou
+      const newEndDate = addYears(newStartDate, 1);
+      
+      setEditingContract({
+        ...contract,
+        startDate: newStartDate.toISOString(),
+        endDate: newEndDate.toISOString(),
+        // Opcional: resetar valores ou manter? Manter é mais fácil para o usuário ajustar.
+      });
+    } else {
+      setEditingContract(contract);
+    }
     setIsSheetOpen(true);
   };
   
@@ -84,7 +99,7 @@ export default function HousingPage() {
                 <Settings className="mr-2 h-4 w-4" />
                 Gerenciar Contratos
             </Button>
-            <Button onClick={() => setIsSheetOpen(true)} disabled={!user}>
+            <Button onClick={() => { setEditingContract(null); setIsSheetOpen(true); }} disabled={!user}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Cadastrar Contrato
             </Button>

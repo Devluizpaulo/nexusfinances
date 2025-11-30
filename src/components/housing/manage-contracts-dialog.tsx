@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
-import { MoreVertical, Pencil, FileTerminal, Power, PowerOff, TrendingUp } from 'lucide-react';
+import { MoreVertical, Pencil, FileTerminal, Power, PowerOff, History } from 'lucide-react';
 import type { RentalContract } from '@/lib/types';
 import { format, parseISO } from 'date-fns';
 import { cn, formatCurrency } from '@/lib/utils';
@@ -19,7 +19,7 @@ interface ManageContractsDialogProps {
   isOpen: boolean;
   onClose: () => void;
   contracts: RentalContract[];
-  onEditContract: (contract: RentalContract) => void;
+  onEditContract: (contract: RentalContract, isRenewal?: boolean) => void;
 }
 
 export function ManageContractsDialog({ isOpen, onClose, contracts, onEditContract }: ManageContractsDialogProps) {
@@ -41,11 +41,10 @@ export function ManageContractsDialog({ isOpen, onClose, contracts, onEditContra
 
   const handleApplyAdjustment = () => {
     if (!contractToAdjust) return;
-    // Lógica de reajuste a ser implementada aqui.
-    toast({
-        title: "Funcionalidade em desenvolvimento",
-        description: `A lógica para aplicar reajuste ao contrato "${contractToAdjust.landlordName}" será implementada em breve.`
-    });
+    
+    // Abre o formulário de edição em modo de "renovação"
+    onEditContract(contractToAdjust, true);
+
     setContractToAdjust(null);
   }
 
@@ -54,14 +53,14 @@ export function ManageContractsDialog({ isOpen, onClose, contracts, onEditContra
     <AlertDialog open={!!contractToAdjust} onOpenChange={() => setContractToAdjust(null)}>
         <AlertDialogContent>
             <AlertDialogHeader>
-                <AlertDialogTitle>Aplicar Reajuste de Aluguel</AlertDialogTitle>
+                <AlertDialogTitle>Renovar ou Reajustar Contrato</AlertDialogTitle>
                 <AlertDialogDescription>
-                    Esta funcionalidade permitirá calcular e aplicar reajustes (ex: IGP-M) ao contrato. No momento, está em desenvolvimento. Deseja continuar?
+                    Você será direcionado para o formulário de edição para atualizar os valores e as datas do contrato. Deseja continuar?
                 </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={handleApplyAdjustment}>Continuar (Demo)</AlertDialogAction>
+                <AlertDialogAction onClick={handleApplyAdjustment}>Continuar</AlertDialogAction>
             </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -112,8 +111,8 @@ export function ManageContractsDialog({ isOpen, onClose, contracts, onEditContra
                                                 Editar
                                             </DropdownMenuItem>
                                             <DropdownMenuItem onClick={() => setContractToAdjust(contract)}>
-                                                <TrendingUp className="mr-2 h-4 w-4" />
-                                                Aplicar Reajuste
+                                                <History className="mr-2 h-4 w-4" />
+                                                Renovar/Reajustar
                                             </DropdownMenuItem>
                                             <DropdownMenuSeparator />
                                             <DropdownMenuItem onClick={() => handleToggleStatus(contract)}>
