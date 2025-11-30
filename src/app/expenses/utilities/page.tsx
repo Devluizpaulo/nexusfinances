@@ -46,20 +46,12 @@ export default function UtilitiesPage() {
       </div>
     );
   }
-  
-  const handleOpenSheet = () => {
-    setIsAddSheetOpen(true);
-  };
-
-  const handleCloseSheet = () => {
-    setIsAddSheetOpen(false);
-  };
 
   return (
     <>
        <AddTransactionSheet
         isOpen={isAddSheetOpen}
-        onClose={handleCloseSheet}
+        onClose={() => setIsAddSheetOpen(false)}
         transactionType="expense"
         categories={expenseCategories}
       />
@@ -74,11 +66,11 @@ export default function UtilitiesPage() {
       >
         <Button variant="outline" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>
             <Upload className="mr-2 h-4 w-4" />
-            Importar PDF com IA
+            Importar Fatura com IA
         </Button>
-         <Button onClick={handleOpenSheet} disabled={!user}>
+         <Button onClick={() => setIsAddSheetOpen(true)} disabled={!user}>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Adicionar Conta
+          Adicionar Conta Avulsa
         </Button>
       </PageHeader>
 

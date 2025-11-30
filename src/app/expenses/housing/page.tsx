@@ -11,11 +11,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { expenseCategories } from '@/lib/types';
 import { PageHeader } from '@/components/page-header';
+import { AddRentalContractSheet } from '@/components/housing/add-rental-contract-sheet';
 
 const housingKeywords = ['aluguel', 'condomínio', 'hipoteca', 'iptu', 'moradia'];
 
 export default function HousingPage() {
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
+  const [isContractSheetOpen, setIsContractSheetOpen] = useState(false);
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
 
@@ -44,33 +46,29 @@ export default function HousingPage() {
       </div>
     );
   }
-  
-  const handleOpenSheet = () => {
-    setIsAddSheetOpen(true);
-  };
-
-  const handleCloseSheet = () => {
-    setIsAddSheetOpen(false);
-  };
 
   return (
     <>
       <AddTransactionSheet
         isOpen={isAddSheetOpen}
-        onClose={handleCloseSheet}
+        onClose={() => setIsAddSheetOpen(false)}
         transactionType="expense"
         categories={expenseCategories}
+      />
+      <AddRentalContractSheet 
+        isOpen={isContractSheetOpen}
+        onClose={() => setIsContractSheetOpen(false)}
       />
 
       <PageHeader
         title="Moradia"
         description="Gerencie seus gastos recorrentes com moradia, como aluguel e condomínio."
       >
-        <Button variant="outline" disabled>
+        <Button variant="outline" onClick={() => setIsContractSheetOpen(true)}>
           <FileText className="mr-2 h-4 w-4" />
           Cadastrar Contrato de Aluguel
         </Button>
-        <Button onClick={handleOpenSheet} disabled={!user}>
+        <Button onClick={() => setIsAddSheetOpen(true)} disabled={!user}>
           <PlusCircle className="mr-2 h-4 w-4" />
           Adicionar Despesa Avulsa
         </Button>
