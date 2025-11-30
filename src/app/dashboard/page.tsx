@@ -13,7 +13,7 @@ import type { Transaction, Debt, Goal, Installment, Budget } from '@/lib/types';
 import { useManageRecurrences } from '@/hooks/useManageRecurrences';
 import { useNotificationGenerator } from '@/hooks/useNotificationGenerator';
 import { Calendar } from '@/components/ui/calendar';
-import { startOfMonth, endOfMonth, parseISO, format, startOfDay, isBefore, endOfWeek, addMonths, isSameMonth, subYears, subMonths } from 'date-fns';
+import { startOfMonth, endOfMonth, parseISO, format, startOfDay, isBefore, endOfWeek, addMonths, isSameMonth, subYears, subMonths, startOfYear, endOfYear, addYears, subYears as subYearsFn } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { QuickActions } from '@/components/dashboard/quick-actions';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
@@ -40,13 +40,15 @@ type InstallmentInfo = {
   amount: number;
 };
 
+type ViewMode = 'monthly' | 'yearly';
+
 export default function DashboardPage() {
   const { selectedDate, setSelectedDate } = useDashboardDate();
+  const [viewMode, setViewMode] = useState<ViewMode>('monthly');
   const router = useRouter();
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
   
-  // Hooks movidos para cá para garantir que o usuário esteja carregado
   useManageRecurrences();
   useNotificationGenerator();
 
@@ -66,13 +68,18 @@ export default function DashboardPage() {
   const [insights, setInsights] = useState<{ summary: string; actionPoints: string[] } | null>(null);
 
   const { start, end } = useMemo(() => {
+    if (viewMode === 'yearly') {
+      const start = startOfYear(selectedDate);
+      const end = endOfYear(selectedDate);
+      return { start, end };
+    }
     const start = startOfMonth(selectedDate);
     const end = endOfMonth(selectedDate);
     return { start, end };
-  }, [selectedDate]);
+  }, [selectedDate, viewMode]);
 
   // Queries
-  const incomesForMonthQuery = useMemoFirebase(() => {
+  const incomesForPeriodQuery = useMemoFirebase(() => {
     if (!user) return null;
     return query(
       collection(firestore, `users/${user.uid}/incomes`),
@@ -81,7 +88,7 @@ export default function DashboardPage() {
     );
   }, [firestore, user, start, end]);
 
-  const expensesForMonthQuery = useMemoFirebase(() => {
+  const expensesForPeriodQuery = useMemoFirebase(() => {
     if (!user) return null;
     return query(
       collection(firestore, `users/${user.uid}/expenses`),
@@ -118,8 +125,8 @@ export default function DashboardPage() {
   }, [firestore, user]);
 
   // Data fetching
-  const { data: incomeData, isLoading: isIncomeLoading } = useCollection<Transaction>(incomesForMonthQuery);
-  const { data: expenseData, isLoading: isExpensesLoading } = useCollection<Transaction>(expensesForMonthQuery);
+  const { data: incomeData, isLoading: isIncomeLoading } = useCollection<Transaction>(incomesForPeriodQuery);
+  const { data: expenseData, isLoading: isExpensesLoading } = useCollection<Transaction>(expensesForPeriodQuery);
   const { data: allIncomeData, isLoading: isAllIncomeLoading } = useCollection<Transaction>(allIncomesQuery);
   const { data: allExpenseData, isLoading: isAllExpensesLoading } = useCollection<Transaction>(allExpensesQuery);
   const { data: debtData, isLoading: isDebtsLoading } = useCollection<Debt>(debtsQuery);
@@ -188,24 +195,24 @@ export default function DashboardPage() {
     incomeChange,
     expenseChange,
   } = useMemo(() => {
-    const currentMonthIncome = incomeData?.reduce((sum, t) => sum + t.amount, 0) || 0;
-    const currentMonthExpenses = expenseData?.reduce((sum, t) => sum + t.amount, 0) || 0;
-    const currentMonthBalance = currentMonthIncome - currentMonthExpenses;
+    const currentPeriodIncome = incomeData?.reduce((sum, t) => sum + t.amount, 0) || 0;
+    const currentPeriodExpenses = expenseData?.reduce((sum, t) => sum + t.amount, 0) || 0;
+    const currentPeriodBalance = currentPeriodIncome - currentPeriodExpenses;
 
-    const prevMonthStart = startOfMonth(subMonths(selectedDate, 1));
-    const prevMonthEnd = endOfMonth(subMonths(selectedDate, 1));
-
-    const prevMonthIncomes = (allIncomeData || [])
+    const prevPeriodStart = viewMode === 'monthly' ? startOfMonth(subMonths(selectedDate, 1)) : startOfYear(subYearsFn(selectedDate, 1));
+    const prevPeriodEnd = viewMode === 'monthly' ? endOfMonth(subMonths(selectedDate, 1)) : endOfYear(subYearsFn(selectedDate, 1));
+    
+    const prevPeriodIncomes = (allIncomeData || [])
       .filter(t => {
         const date = parseISO(t.date);
-        return date >= prevMonthStart && date <= prevMonthEnd;
+        return date >= prevPeriodStart && date <= prevPeriodEnd;
       })
       .reduce((sum, t) => sum + t.amount, 0);
 
-    const prevMonthExpenses = (allExpenseData || [])
+    const prevPeriodExpenses = (allExpenseData || [])
       .filter(t => {
         const date = parseISO(t.date);
-        return date >= prevMonthStart && date <= prevMonthEnd;
+        return date >= prevPeriodStart && date <= prevPeriodEnd;
       })
       .reduce((sum, t) => sum + t.amount, 0);
 
@@ -214,20 +221,20 @@ export default function DashboardPage() {
       return ((current - previous) / previous) * 100;
     };
 
-    const incomeChange = calculateChange(currentMonthIncome, prevMonthIncomes);
-    const expenseChange = calculateChange(currentMonthExpenses, prevMonthExpenses);
+    const incomeChange = calculateChange(currentPeriodIncome, prevPeriodIncomes);
+    const expenseChange = calculateChange(currentPeriodExpenses, prevPeriodExpenses);
     
     const debt = debtData?.reduce((sum, d) => sum + (d.totalAmount - (d.paidAmount || 0)), 0) || 0;
 
     return {
-      totalIncome: currentMonthIncome,
-      totalExpenses: currentMonthExpenses,
-      balance: currentMonthBalance,
+      totalIncome: currentPeriodIncome,
+      totalExpenses: currentPeriodExpenses,
+      balance: currentPeriodBalance,
       totalDebt: debt,
       incomeChange,
       expenseChange,
     };
-  }, [incomeData, expenseData, debtData, allIncomeData, allExpenseData, selectedDate]);
+  }, [incomeData, expenseData, debtData, allIncomeData, allExpenseData, selectedDate, viewMode]);
 
 
   const incomeDates = useMemo(
@@ -292,7 +299,7 @@ export default function DashboardPage() {
   
   useEffect(() => {
     setInsights(null);
-  }, [selectedDate]);
+  }, [selectedDate, viewMode]);
 
   useEffect(() => {
     const fetchInstallmentDueDates = async () => {
@@ -303,8 +310,6 @@ export default function DashboardPage() {
         return;
       }
   
-      // This is a collection group query. It requires an index on `status` in firestore.rules
-      // or in the Firebase console.
       const installmentsQuery = query(
         collectionGroup(firestore, `installments`),
         where('userId', '==', user.uid),
@@ -317,13 +322,11 @@ export default function DashboardPage() {
       const debtNames: Record<string, string> = {};
   
       try {
-        // Fetch all debts once to map debtId to debtName
         const debtsSnapshot = await getDocs(query(collection(firestore, `users/${user.uid}/debts`)));
         debtsSnapshot.forEach(doc => {
           debtNames[doc.id] = (doc.data() as Debt).name;
         });
   
-        // Fetch all unpaid installments in a single query
         const querySnapshot = await getDocs(installmentsQuery);
   
         querySnapshot.forEach((doc) => {
@@ -339,10 +342,10 @@ export default function DashboardPage() {
           }
   
           const key = dueDate.toISOString();
-          if (!byDate[key]) {
-            byDate[key] = [];
+          if (!byDay[key]) {
+            byDay[key] = [];
           }
-          byDate[key].push({ debtName, amount: installment.amount });
+          byDay[key].push({ debtName, amount: installment.amount });
         });
   
         setInstallmentOverdueDates(overdue);
@@ -373,7 +376,6 @@ export default function DashboardPage() {
         setInsights(result);
     } catch(e) {
         console.error("Error generating insights:", e);
-        // Handle error in UI
     } finally {
         setIsInsightsLoading(false);
     }
@@ -428,6 +430,19 @@ export default function DashboardPage() {
     if (!displayName) return '';
     return displayName.split(' ')[0];
   }
+  
+  const handlePeriodChange = (direction: 'prev' | 'next') => {
+    if (viewMode === 'monthly') {
+      setSelectedDate(direction === 'prev' ? subMonths(selectedDate, 1) : addMonths(selectedDate, 1));
+    } else {
+      setSelectedDate(direction === 'prev' ? subYearsFn(selectedDate, 1) : addYears(selectedDate, 1));
+    }
+  };
+
+  const periodLabel = viewMode === 'monthly' 
+    ? format(selectedDate, "MMMM 'de' yyyy", { locale: ptBR })
+    : format(selectedDate, "yyyy");
+
 
   return (
     <>
@@ -471,7 +486,7 @@ export default function DashboardPage() {
             <div className="space-y-1">
             <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Olá, {getFirstName(user?.displayName)}! 👋</h1>
             <p className="text-sm text-muted-foreground max-w-xl">
-                Este é o seu painel de {format(selectedDate, 'MMMM/yyyy', { locale: ptBR })}. Tudo em um só lugar, sem planilhas.
+                Este é o seu painel de {periodLabel}. Tudo em um só lugar, sem planilhas.
             </p>
             </div>
             <div className="flex flex-col items-center gap-2 md:flex-row">
@@ -485,6 +500,24 @@ export default function DashboardPage() {
             </div>
         </div>
 
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)} className="w-auto">
+              <TabsList>
+                <TabsTrigger value="monthly">Mensal</TabsTrigger>
+                <TabsTrigger value="yearly">Anual</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <div className="flex items-center justify-center gap-2 rounded-full bg-muted p-1">
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handlePeriodChange('prev')}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="w-32 text-center text-sm font-medium capitalize">{periodLabel}</span>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handlePeriodChange('next')}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+        </div>
+
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(360px,1fr)] items-start">
           <div className="space-y-8">
             <div className="space-y-4">
@@ -492,7 +525,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="space-y-5">
-              <h2 className="text-lg font-semibold tracking-tight">Resumo do mês</h2>
+              <h2 className="text-lg font-semibold tracking-tight">Resumo do período</h2>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <KpiCard
                   title="Renda Total"
@@ -508,10 +541,10 @@ export default function DashboardPage() {
                   invertTrendColor
                 />
                 <KpiCard
-                  title="Balanço do Mês"
+                  title="Balanço do Período"
                   value={formatCurrency(balance)}
                   icon={Scale}
-                  description="Saldo do mês selecionado"
+                  description={`Saldo de ${periodLabel}`}
                 />
                 <KpiCard
                   title="Dívida Pendente"
@@ -544,7 +577,7 @@ export default function DashboardPage() {
                         <div>
                             <CardTitle className="flex items-center gap-2">
                             <Sparkles className="h-5 w-5 text-amber-500" />
-                            Análise do seu mês
+                            Análise do seu período
                             </CardTitle>
                             <CardDescription>
                             Receba um resumo e dicas personalizadas com inteligência artificial.
@@ -575,7 +608,7 @@ export default function DashboardPage() {
                         </div>
                     ) : (
                         <div className="flex flex-col items-center justify-center text-center text-sm text-muted-foreground p-8">
-                            <p>Clique em "Gerar Análise" para obter um resumo inteligente da sua vida financeira neste mês.</p>
+                            <p>Clique em "Gerar Análise" para obter um resumo inteligente da sua vida financeira neste período.</p>
                         </div>
                     )}
                   </CardContent>
@@ -752,7 +785,7 @@ export default function DashboardPage() {
               </Card>
             )}
 
-            {monthlyPreview.length > 0 && (
+            {monthlyPreview.length > 0 && viewMode === 'monthly' && (
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium">Preview do mês</CardTitle>
