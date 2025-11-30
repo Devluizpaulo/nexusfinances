@@ -21,26 +21,22 @@ export default function FreelancerPage() {
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
 
-  const recurringIncomesQuery = useMemoFirebase(() => {
+  const freelancerIncomesQuery = useMemoFirebase(() => {
     if (!user) return null;
-    return query(collection(firestore, `users/${user.uid}/incomes`), where('isRecurring', '==', true));
+    // Corrigido: buscar pela categoria 'Freelance' diretamente.
+    return query(collection(firestore, `users/${user.uid}/incomes`), where('category', '==', 'Freelance'));
   }, [firestore, user]);
 
-  const { data: incomeData, isLoading: isIncomesLoading } = useCollection<Recurrence>(recurringIncomesQuery);
-
-  const freelancerIncomes = useMemo(() => {
-    return (incomeData || []).filter(income => 
-        freelancerKeywords.some(keyword => 
-          income.category.toLowerCase().includes(keyword) || 
-          income.description.toLowerCase().includes(keyword)
-        )
-    );
-  }, [incomeData]);
+  const { data: freelancerIncomes, isLoading: isIncomesLoading } = useCollection<Recurrence>(freelancerIncomesQuery);
 
   // Estatísticas calculadas
   const stats = useMemo(() => {
-    const totalMonthly = freelancerIncomes.reduce((sum, income) => sum + income.amount, 0);
-    const activeProjects = freelancerIncomes.length;
+    if (!freelancerIncomes) return { totalMonthly: 0, activeProjects: 0, averagePerProject: 0 };
+    
+    // Consideramos "ativos" os que são recorrentes
+    const activeProjectsData = freelancerIncomes.filter(income => income.isRecurring);
+    const totalMonthly = activeProjectsData.reduce((sum, income) => sum + income.amount, 0);
+    const activeProjects = activeProjectsData.length;
     const averagePerProject = activeProjects > 0 ? totalMonthly / activeProjects : 0;
 
     return {
@@ -86,43 +82,43 @@ export default function FreelancerPage() {
       </div>
 
       {/* Cards de Estatísticas */}
-      {freelancerIncomes.length > 0 && (
+      {freelancerIncomes && freelancerIncomes.length > 0 && (
         <div className="mt-2 grid gap-4 md:grid-cols-3 mb-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Renda Mensal Total</CardTitle>
+              <CardTitle className="text-sm font-medium">Renda Mensal (Recorrente)</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{formatCurrency(stats.totalMonthly)}</div>
               <p className="text-xs text-muted-foreground">
-                Soma de todos os projetos ativos
+                Soma dos projetos recorrentes ativos
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Projetos Ativos</CardTitle>
+              <CardTitle className="text-sm font-medium">Projetos Recorrentes</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.activeProjects}</div>
               <p className="text-xs text-muted-foreground">
-                Clientes/projetos recorrentes
+                Clientes/projetos com pagamento contínuo
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Média por Projeto</CardTitle>
+              <CardTitle className="text-sm font-medium">Média por Projeto Recorrente</CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{formatCurrency(stats.averagePerProject)}</div>
               <p className="text-xs text-muted-foreground">
-                Valor médio mensal
+                Valor médio mensal dos projetos recorrentes
               </p>
             </CardContent>
           </Card>
@@ -139,17 +135,16 @@ export default function FreelancerPage() {
             <div>
               <CardTitle className="text-xl">Projetos e Clientes</CardTitle>
               <CardDescription>
-                Suas rendas recorrentes de trabalhos freelancer organizadas por cliente ou projeto
+                Suas rendas de trabalhos freelancer organizadas por cliente ou projeto.
               </CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          {freelancerIncomes.length > 0 ? (
+          {freelancerIncomes && freelancerIncomes.length > 0 ? (
             <div className="space-y-4">
               <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
                 <span>{freelancerIncomes.length} item(s) encontrado(s)</span>
-                <span>Próximo vencimento →</span>
               </div>
               
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -177,7 +172,7 @@ export default function FreelancerPage() {
       </Card>
 
       {/* Dicas e Informações */}
-      {freelancerIncomes.length === 0 && (
+      {(!freelancerIncomes || freelancerIncomes.length === 0) && (
         <Card className="mt-6 border-blue-200 bg-blue-50 dark:bg-blue-950/20 dark:border-blue-800">
           <CardContent className="pt-6">
             <div className="flex items-start gap-3">
@@ -189,8 +184,7 @@ export default function FreelancerPage() {
                   Dica para Freelancers
                 </h4>
                 <p className="text-sm text-blue-700 dark:text-blue-300">
-                  Marque suas rendas de clientes como "recorrentes" e inclua palavras como "freelance", 
-                  "projeto" ou "cliente" na descrição para que apareçam automaticamente aqui.
+                  Cadastre seus projetos usando o botão "Adicionar Primeiro Projeto". Todos os itens com a categoria "Freelance" aparecerão automaticamente aqui.
                 </p>
               </div>
             </div>
