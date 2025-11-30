@@ -666,7 +666,7 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
                     showPdfPreview ? "lg:divide-x" : ""
                   )}>
                     {showPdfPreview && (
-                      <div className="lg:w-[45%] flex flex-col border-b lg:border-b-0 lg:border-r bg-muted/5 shrink-0">
+                      <div className="flex-1 lg:w-[45%] flex flex-col border-b lg:border-b-0 lg:border-r bg-muted/5 shrink-0 min-w-0">
                         <PDFViewer pdfDataUri={pdfDataUri} fileName={file?.name}/>
                       </div>
                     )}
