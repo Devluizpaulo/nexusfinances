@@ -171,13 +171,23 @@ export function AddTransactionSheet({
     const collectionName = transactionType === 'income' ? 'incomes' : 'expenses';
     const collectionPath = `users/${user.uid}/${collectionName}`;
     
-    const dataToSave: Partial<Transaction> & { userId: string, date: string, type: 'income'|'expense' } = {
+    // Explicitly build the object to be saved, ensuring no undefined fields are sent.
+    const dataToSave: any = {
       ...values,
       date: formatISO(values.date),
       userId: user.uid,
       type: transactionType,
-      creditCardId: values.paymentMethod === 'creditCard' ? values.creditCardId : undefined,
     };
+    
+    // Only include creditCardId if the payment method is 'creditCard' and an ID is selected
+    if (transactionType === 'expense' && values.paymentMethod === 'creditCard' && values.creditCardId) {
+      dataToSave.creditCardId = values.creditCardId;
+    } else {
+      // Ensure creditCardId is not present or is null if not applicable
+      delete dataToSave.creditCardId;
+    }
+    // Remove the temporary paymentMethod field
+    delete dataToSave.paymentMethod;
 
     if (transaction) {
       const docRef = doc(firestore, collectionPath, transaction.id);
