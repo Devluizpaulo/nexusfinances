@@ -131,6 +131,7 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
               title: 'Extração concluída!',
               description: `${transactionsToReview.length} transações encontradas. Por favor, revise-as abaixo.`
             });
+            setIsProcessing(false);
         };
 
     } catch (error) {
@@ -140,7 +141,6 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
             title: 'Erro ao processar PDF',
             description: 'Não foi possível extrair as transações. Tente um arquivo diferente ou com um layout mais simples.',
         });
-    } finally {
         setIsProcessing(false);
     }
   };

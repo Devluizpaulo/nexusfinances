@@ -95,11 +95,11 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
             setOriginalResult(extractedData);
             toast({ title: 'Análise Concluída!', description: 'Confira os dados extraídos abaixo e confirme.' });
         }
+        setIsProcessing(false);
       };
     } catch (error) {
       console.error("Error processing payslip:", error);
       toast({ variant: 'destructive', title: 'Erro na Análise', description: 'Não foi possível extrair os dados. Tente um arquivo mais simples.' });
-    } finally {
       setIsProcessing(false);
     }
   };
