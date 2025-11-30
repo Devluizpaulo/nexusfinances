@@ -4,56 +4,115 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Função helper para verificar se o usuário é o dono do documento
     function isOwner(userId) {
       return request.auth != null && request.auth.uid == userId;
     }
 
-    // Função helper para verificar se o usuário autenticado é superadmin
     function isSuperAdmin() {
       return request.auth != null &&
         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "superadmin";
     }
 
-    // REGRA DE USUÁRIOS
-    // Cada usuário pode ler e escrever em seu próprio documento.
-    // Usuários com role == "superadmin" podem listar, ler e gerenciar todos os usuários.
     match /users/{userId} {
       allow read, write: if isOwner(userId);
       allow list, get, update, delete: if isSuperAdmin();
     }
     
-    // REGRA GERAL PARA SUBCOLEÇÕES DO USUÁRIO
-    // Permite que o proprietário dos dados tenha acesso total a qualquer subcoleção
-    // dentro do seu próprio documento de usuário. O {docId=**} é um curinga recursivo
-    // que garante a permissão de `list` nas coleções.
-    match /users/{userId}/{collectionId}/{docId=**} {
-        allow read, write: if isOwner(userId);
+    // Regras explícitas para subcoleções do usuário
+    match /users/{userId}/incomes {
+      allow list, get, read: if isOwner(userId);
+    }
+    match /users/{userId}/incomes/{docId} {
+      allow write, create, update, delete: if isOwner(userId);
     }
 
-    // REGRA PARA CONSULTA DE GRUPO (Collection Group Query)
-    // Usado pelo calendário no dashboard para encontrar parcelas vencidas em todas as dívidas.
+    match /users/{userId}/expenses {
+      allow list, get, read: if isOwner(userId);
+    }
+    match /users/{userId}/expenses/{docId} {
+      allow write, create, update, delete: if isOwner(userId);
+    }
+
+    match /users/{userId}/debts {
+      allow list, get, read: if isOwner(userId);
+    }
+    match /users/{userId}/debts/{docId} {
+      allow write, create, update, delete: if isOwner(userId);
+    }
+    
+    match /users/{userId}/goals {
+      allow list, get, read: if isOwner(userId);
+    }
+    match /users/{userId}/goals/{docId} {
+      allow write, create, update, delete: if isOwner(userId);
+    }
+    
+    match /users/{userId}/budgets {
+      allow list, get, read: if isOwner(userId);
+    }
+    match /users/{userId}/budgets/{docId} {
+      allow write, create, update, delete: if isOwner(userId);
+    }
+
+    match /users/{userId}/notifications {
+      allow list, get, read: if isOwner(userId);
+    }
+    match /users/{userId}/notifications/{docId} {
+      allow write, create, update, delete: if isOwner(userId);
+    }
+
+    match /users/{userId}/creditCards {
+      allow list, get, read: if isOwner(userId);
+    }
+    match /users/{userId}/creditCards/{docId} {
+      allow write, create, update, delete: if isOwner(userId);
+    }
+
+     match /users/{userId}/rentalContracts {
+      allow list, get, read: if isOwner(userId);
+    }
+    match /users/{userId}/rentalContracts/{docId} {
+      allow write, create, update, delete: if isOwner(userId);
+    }
+
+     match /users/{userId}/healthProviders {
+      allow list, get, read: if isOwner(userId);
+    }
+    match /users/{userId}/healthProviders/{docId} {
+      allow write, create, update, delete: if isOwner(userId);
+    }
+
+     match /users/{userId}/healthProfessionals {
+      allow list, get, read: if isOwner(userId);
+    }
+    match /users/{userId}/healthProfessionals/{docId} {
+      allow write, create, update, delete: if isOwner(userId);
+    }
+    
+     match /users/{userId}/healthInsurances {
+      allow list, get, read: if isOwner(userId);
+    }
+     match /users/{userId}/healthInsurances/{docId} {
+      allow write, create, update, delete: if isOwner(userId);
+    }
+    
+    // Regra para consulta de grupo (Collection Group Query)
     match /{path=**}/installments/{installmentId} {
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
-    // COLEÇÕES PÚBLICAS
-    // Qualquer usuário autenticado pode ler os dados de educação e planos.
-    // Somente superadmins podem criar, atualizar ou deletar estes documentos.
+    // Coleções públicas
     match /education/{document=**} {
       allow read: if request.auth != null;
       allow write: if isSuperAdmin();
     }
-
     match /subscriptionPlans/{document=**} {
       allow read: if request.auth != null;
       allow write: if isSuperAdmin();
     }
 
-    // LOGS
-    // Qualquer usuário autenticado pode criar um log.
-    // Apenas superadmins podem listar, ler, atualizar ou deletar logs.
+    // Logs
     match /logs/{document=**} {
       allow create: if request.auth != null;
       allow read, update, delete: if isSuperAdmin();
