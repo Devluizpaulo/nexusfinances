@@ -84,6 +84,25 @@ export type Budget = {
   endDate: string; // ISO String
 };
 
+export type RentalContract = {
+  id: string;
+  userId: string;
+  landlordName: string;
+  rentAmount: number;
+  dueDate: number;
+  lateFee?: number;
+  startDate: string; // ISO string
+  endDate?: string | null; // ISO string
+  paymentMethod?: {
+    method: 'pix' | 'bankTransfer' | 'boleto';
+    pixKeyType?: string;
+    pixKey?: string;
+    bankName?: string;
+    agency?: string;
+    account?: string;
+  };
+};
+
 export type Recurrence = Transaction;
 
 export type SubscriptionPlan = {

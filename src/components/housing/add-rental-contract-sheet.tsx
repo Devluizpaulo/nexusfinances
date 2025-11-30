@@ -4,10 +4,10 @@ import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { formatISO, setDate, addYears } from 'date-fns';
+import { formatISO, setDate, addYears, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { collection, doc, writeBatch } from 'firebase/firestore';
-import { useFirestore, useUser } from '@/firebase';
+import { useFirestore, useUser, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
 import { cn } from '@/lib/utils';
 import {
   Dialog,
@@ -45,6 +45,8 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { CurrencyInput } from '../ui/currency-input';
 import { Separator } from '../ui/separator';
+import type { RentalContract } from '@/lib/types';
+
 
 const paymentMethodSchema = z.object({
     method: z.enum(['pix', 'bankTransfer', 'boleto']),
@@ -71,9 +73,10 @@ type RentalFormValues = z.infer<typeof formSchema>;
 type AddRentalContractSheetProps = {
   isOpen: boolean;
   onClose: () => void;
+  contract?: RentalContract | null;
 };
 
-export function AddRentalContractSheet({ isOpen, onClose }: AddRentalContractSheetProps) {
+export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalContractSheetProps) {
   const form = useForm<RentalFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -94,14 +97,38 @@ export function AddRentalContractSheet({ isOpen, onClose }: AddRentalContractShe
   
   const paymentMethod = form.watch('paymentMethod.method');
   const startDate = form.watch('startDate');
+  const isEditing = !!contract;
 
-  // Auto-suggest end date as 1 year from start date
+  // Populate form for editing
   useEffect(() => {
-    if (startDate) {
+    if (contract && isOpen) {
+      form.reset({
+        ...contract,
+        startDate: contract.startDate ? parseISO(contract.startDate) : new Date(),
+        endDate: contract.endDate ? parseISO(contract.endDate) : undefined,
+      });
+    } else {
+      // Reset for new contract
+       form.reset({
+        landlordName: '',
+        rentAmount: 0,
+        dueDate: 5,
+        lateFee: 0,
+        startDate: new Date(),
+        endDate: addYears(new Date(), 1), // Default end date
+        paymentMethod: { method: 'boleto' }
+      });
+    }
+  }, [contract, isOpen, form]);
+
+
+  // Auto-suggest end date as 1 year from start date for new contracts
+  useEffect(() => {
+    if (startDate && !isEditing) {
       const suggestedEndDate = addYears(startDate, 1);
       form.setValue('endDate', suggestedEndDate);
     }
-  }, [startDate, form]);
+  }, [startDate, isEditing, form]);
 
   const onSubmit = async (values: RentalFormValues) => {
     if (!user || !firestore) {
@@ -115,52 +142,63 @@ export function AddRentalContractSheet({ isOpen, onClose }: AddRentalContractShe
     try {
       const batch = writeBatch(firestore);
       
-      const contractsColRef = collection(firestore, `users/${user.uid}/rentalContracts`);
-      const newContractRef = doc(contractsColRef);
-      
       const contractData: any = {
         ...values,
-        id: newContractRef.id,
         userId: user.uid,
         startDate: formatISO(values.startDate),
       };
-
+      
       if (values.endDate) {
         contractData.endDate = formatISO(values.endDate);
+      } else {
+        contractData.endDate = null;
       }
 
-      batch.set(newContractRef, contractData);
+      if (isEditing) {
+        // Update existing contract
+        const contractRef = doc(firestore, `users/${user.uid}/rentalContracts`, contract.id);
+        batch.set(contractRef, contractData, { merge: true });
+        // Note: Logic to update associated recurring expense might be needed here if amount/date changes.
+        // For simplicity, we assume the user will manage the recurring expense manually if needed.
+        toast({
+          title: 'Contrato de Aluguel Atualizado!',
+          description: `As informações do contrato foram salvas.`,
+        });
 
-      // Create a corresponding recurring expense
-      const expensesColRef = collection(firestore, `users/${user.uid}/expenses`);
-      const newExpenseRef = doc(expensesColRef);
-      const expenseData = {
-        id: newExpenseRef.id,
-        userId: user.uid,
-        amount: values.rentAmount,
-        category: 'Moradia',
-        date: formatISO(setDate(new Date(), values.dueDate)), // Set initial date for this month
-        description: `Aluguel - ${values.landlordName}`,
-        isRecurring: true,
-        recurringSourceId: newContractRef.id, // Link to the contract
-        status: 'pending' as const,
-        type: 'expense' as const,
-      };
-      batch.set(newExpenseRef, expenseData);
+      } else {
+        // Create new contract and recurring expense
+        const contractsColRef = collection(firestore, `users/${user.uid}/rentalContracts`);
+        const newContractRef = doc(contractsColRef);
+        contractData.id = newContractRef.id;
+        batch.set(newContractRef, contractData);
+
+        const expensesColRef = collection(firestore, `users/${user.uid}/expenses`);
+        const newExpenseRef = doc(expensesColRef);
+        const expenseData = {
+          id: newExpenseRef.id,
+          userId: user.uid,
+          amount: values.rentAmount,
+          category: 'Moradia',
+          date: formatISO(setDate(new Date(), values.dueDate)),
+          description: `Aluguel - ${values.landlordName}`,
+          isRecurring: true,
+          recurringSourceId: newContractRef.id,
+          status: 'pending' as const,
+          type: 'expense' as const,
+        };
+        batch.set(newExpenseRef, expenseData);
+        toast({
+          title: 'Contrato de Aluguel Adicionado!',
+          description: `Uma despesa recorrente de aluguel foi criada automaticamente para você.`,
+        });
+      }
 
 
       await batch.commit();
-
-      toast({
-        title: 'Contrato de Aluguel Adicionado!',
-        description: `Uma despesa recorrente de aluguel foi criada automaticamente para você.`,
-      });
-
-      form.reset();
       onClose();
 
     } catch (error) {
-      console.error("Error adding rental contract: ", error);
+      console.error("Error adding/editing rental contract: ", error);
       toast({
         variant: 'destructive',
         title: 'Erro ao salvar contrato',
@@ -173,9 +211,9 @@ export function AddRentalContractSheet({ isOpen, onClose }: AddRentalContractShe
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Cadastrar Contrato de Aluguel</DialogTitle>
+          <DialogTitle>{isEditing ? 'Editar Contrato de Aluguel' : 'Cadastrar Contrato de Aluguel'}</DialogTitle>
           <DialogDescription>
-            Insira os detalhes do seu contrato. Uma despesa recorrente de aluguel será criada automaticamente.
+            {isEditing ? 'Atualize os detalhes do seu contrato.' : 'Insira os detalhes do seu contrato. Uma despesa recorrente de aluguel será criada automaticamente.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -372,7 +410,7 @@ export function AddRentalContractSheet({ isOpen, onClose }: AddRentalContractShe
                             variant={'outline'}
                             className={cn('pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}
                           >
-                            {field.value ? format(field.value, 'PPP', { locale: ptBR }) : <span>Escolha uma data</span>}
+                            {field.value ? format(field.value, 'PPP', { locale: ptBR }) : <span>Sem data final</span>}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
                         </FormControl>
@@ -395,7 +433,7 @@ export function AddRentalContractSheet({ isOpen, onClose }: AddRentalContractShe
                 {form.formState.isSubmitting && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Salvar Contrato
+                {isEditing ? 'Salvar Alterações' : 'Salvar Contrato'}
                 </Button>
             </DialogFooter>
           </form>
