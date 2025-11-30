@@ -126,16 +126,18 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
   
   // Calculate total amount whenever rent or condo fee changes
   useEffect(() => {
-    const rent = rentAmount || 0;
-    const condo = condoFee || 0;
-    let total = 0;
-    if (contractType === 'Aluguel') total = rent;
-    else if (contractType === 'Condomínio') total = condo;
-    else if (contractType === 'Aluguel + Condomínio') total = rent + condo;
-    else total = form.getValues('totalAmount') // For 'Outros', let user define total
+    const safeRent = typeof rentAmount === 'number' && !Number.isNaN(rentAmount) ? rentAmount : 0;
+    const safeCondo = typeof condoFee === 'number' && !Number.isNaN(condoFee) ? condoFee : 0;
 
-    if(total !== form.getValues('totalAmount')) {
-       form.setValue('totalAmount', total, { shouldValidate: true });
+    let total = 0;
+    if (contractType === 'Aluguel') total = safeRent;
+    else if (contractType === 'Condomínio') total = safeCondo;
+    else if (contractType === 'Aluguel + Condomínio') total = safeRent + safeCondo;
+    else total = form.getValues('totalAmount'); // For 'Outros', let user define total
+
+    const currentTotal = form.getValues('totalAmount');
+    if (!Number.isNaN(total) && total !== currentTotal) {
+      form.setValue('totalAmount', total, { shouldValidate: true });
     }
 
   }, [rentAmount, condoFee, contractType, form]);
