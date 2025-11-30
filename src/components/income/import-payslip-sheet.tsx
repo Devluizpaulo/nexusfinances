@@ -13,10 +13,8 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-  Loader2, FileCheck2, FileText, UploadCloud, Banknote, CalendarIcon,
-  CheckCircle2, XCircle, AlertCircle, ZoomIn, ZoomOut, RotateCw,
-  Maximize2, Minimize2, RefreshCw, Save, Plus, Trash2, ChevronRight, Sparkles,
-  Eye, EyeOff
+  Loader2, FileCheck2, UploadCloud, Banknote, CalendarIcon,
+  CheckCircle2, XCircle, AlertCircle, Eye, EyeOff, Plus, Trash2, Save, Sparkles, RefreshCw
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useDropzone } from 'react-dropzone';
@@ -35,7 +33,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { PDFViewer } from '@/components/income/pdf-viewer';
 
 type ImportPayslipSheetProps = { isOpen: boolean; onClose: () => void };
 type WorkflowStep = 'upload' | 'analyzing' | 'review' | 'confirm';
@@ -52,8 +50,6 @@ type AppState = {
   originalResult: ExtractPayslipOutput | null;
   editableResult: ExtractPayslipOutput | null;
   analysisQuality: AnalysisQuality;
-  pdfZoom: number;
-  pdfRotation: number;
   showPdfPreview: boolean;
   isProcessing: boolean;
   isSaving: boolean;
@@ -67,8 +63,6 @@ type AppAction =
   | { type: 'SET_ORIGINAL_RESULT'; payload: ExtractPayslipOutput | null }
   | { type: 'SET_EDITABLE_RESULT'; payload: ExtractPayslipOutput | null }
   | { type: 'SET_ANALYSIS_QUALITY'; payload: AnalysisQuality }
-  | { type: 'SET_PDF_ZOOM'; payload: number }
-  | { type: 'SET_PDF_ROTATION'; payload: number }
   | { type: 'SET_SHOW_PDF_PREVIEW'; payload: boolean }
   | { type: 'SET_IS_PROCESSING'; payload: boolean }
   | { type: 'SET_IS_SAVING'; payload: boolean }
@@ -82,8 +76,6 @@ const initialState: AppState = {
   originalResult: null,
   editableResult: null,
   analysisQuality: 'medium',
-  pdfZoom: 100,
-  pdfRotation: 0,
   showPdfPreview: true,
   isProcessing: false,
   isSaving: false,
@@ -105,10 +97,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, editableResult: action.payload };
     case 'SET_ANALYSIS_QUALITY':
       return { ...state, analysisQuality: action.payload };
-    case 'SET_PDF_ZOOM':
-      return { ...state, pdfZoom: action.payload };
-    case 'SET_PDF_ROTATION':
-      return { ...state, pdfRotation: action.payload };
     case 'SET_SHOW_PDF_PREVIEW':
       return { ...state, showPdfPreview: action.payload };
     case 'SET_IS_PROCESSING':
@@ -222,8 +210,7 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
   const [state, dispatch] = useReducer(appReducer, initialState);
   const {
     file, pdfDataUri, currentStep, analysisProgress, originalResult,
-    editableResult, analysisQuality, pdfZoom, pdfRotation, showPdfPreview,
-    isProcessing, isSaving
+    editableResult, analysisQuality, showPdfPreview, isProcessing, isSaving
   } = state;
 
   const progressRef = useRef(0);
@@ -546,24 +533,15 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
       <div className="flex items-center justify-center gap-2 mb-6">
         {steps.map((step, index) => (
           <div key={step.key} className="flex items-center">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className={cn(
-                    "flex items-center justify-center w-9 h-9 rounded-full text-sm font-medium transition-all duration-300 border-2",
-                    index < currentIndex && "bg-primary text-primary-foreground border-primary",
-                    index === currentIndex && "bg-primary text-primary-foreground border-primary ring-2 ring-primary ring-offset-2",
-                    index > currentIndex && "bg-muted text-muted-foreground border-muted-foreground/30"
-                  )}>
-                    {index < currentIndex ? <CheckCircle2 className="h-4 w-4" /> : index + 1}
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{step.label}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
+            <div className={cn(
+              "flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-all duration-300 border-2",
+              index <= currentIndex
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-muted text-muted-foreground border-muted-foreground/30"
+            )}>
+              {index < currentIndex ? <CheckCircle2 className="h-4 w-4" /> : index + 1}
+            </div>
+            <p className={cn("ml-2 text-sm", index <= currentIndex ? 'font-semibold text-primary' : 'text-muted-foreground')}>{step.label}</p>
             {index < steps.length - 1 && (
               <div className={cn(
                 "w-8 h-0.5 mx-2 transition-colors duration-300",
@@ -578,14 +556,13 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleReset()}>
-      <DialogContent size="full" className="!max-w-[1500px] h-[94vh] max-h-[900px] p-0 gap-0 overflow-hidden">
+      <DialogContent size="full" className="!max-w-[95vw] lg:!max-w-[80vw] h-[90vh] p-0 gap-0 overflow-hidden">
         <div className="flex flex-col h-full bg-background">
-        {/* Header */}
-        <div className="px-6 py-4 border-b bg-gradient-to-r from-muted/30 to-muted/10 shrink-0">
-          <DialogHeader className="text-left">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
+          {/* Header */}
+          <div className="px-6 py-4 border-b shrink-0">
+            <DialogHeader className="text-left">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="flex items-center gap-3">
                   <div className="p-2 rounded-full bg-primary/10">
                     <Sparkles className="h-5 w-5 text-primary" />
                   </div>
@@ -598,20 +575,18 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
                     </DialogDescription>
                   </div>
                 </div>
+                {editableResult && (
+                  <div className="flex items-center gap-2">
+                    {QualityBadge}
+                  </div>
+                )}
               </div>
-              {editableResult && (
-                <div className="flex items-center gap-2">
-                  {QualityBadge}
-                </div>
-              )}
-            </div>
-          </DialogHeader>
-          {StepIndicator}
-        </div>
+            </DialogHeader>
+            {currentStep !== 'upload' && <div className="mt-4">{StepIndicator}</div>}
+          </div>
 
-        {/* Main Content - Scrollable */}
-        <ScrollArea className="flex-1">
-          <div className="min-h-0">
+          {/* Main Content */}
+          <div className="flex-1 overflow-hidden">
             <AnimatePresence mode="wait">
               {currentStep === 'upload' && (
                 <motion.div
@@ -621,60 +596,41 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
                   exit={{ opacity: 0, y: -20 }}
                   className="h-full flex items-center justify-center p-6"
                 >
-                  <div className="w-full max-w-2xl">
+                  <div className="w-full max-w-lg">
                     <div
                       {...getRootProps()}
                       className={cn(
-                        'flex flex-col items-center justify-center w-full h-72 border-3 border-dashed rounded-2xl cursor-pointer transition-all duration-300 p-8',
+                        'flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer transition-colors p-6',
                         isDragActive
-                          ? 'border-primary bg-primary/10 scale-[1.02] shadow-lg'
-                          : 'border-border hover:border-primary/60 hover:bg-muted/40 hover:shadow-md'
+                          ? 'border-primary bg-primary/10'
+                          : 'border-border hover:border-primary/50'
                       )}
                     >
                       <input {...getInputProps()} />
                       {file ? (
-                        <div className="text-center space-y-4">
-                          <div className="w-20 h-20 mx-auto rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                            <FileCheck2 className="h-10 w-10 text-emerald-600" />
-                          </div>
-                          <div>
-                            <p className="font-semibold text-lg text-foreground">Arquivo selecionado!</p>
-                            <p className="text-sm text-muted-foreground mt-1 truncate max-w-xs">{file.name}</p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {(file.size / 1024 / 1024).toFixed(2)} MB
-                            </p>
-                          </div>
+                        <div className="text-center">
+                          <FileCheck2 className="mx-auto h-12 w-12 text-emerald-600" />
+                          <p className="mt-2 font-semibold">Arquivo selecionado!</p>
+                          <p className="text-sm text-muted-foreground truncate max-w-xs">{file.name}</p>
                         </div>
                       ) : (
-                        <div className="text-center space-y-4">
-                          <div className="w-20 h-20 mx-auto rounded-2xl bg-muted flex items-center justify-center">
-                            <UploadCloud className="h-10 w-10 text-muted-foreground" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-lg text-foreground">
-                              Arraste e solte seu PDF aqui
-                            </p>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              ou clique para selecionar
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-2">
-                              Suporte para arquivos de até 10MB
-                            </p>
-                          </div>
+                        <div className="text-center text-muted-foreground">
+                          <UploadCloud className="mx-auto h-12 w-12" />
+                          <p className="mt-2">Arraste e solte seu PDF aqui</p>
+                          <p className="text-xs">ou clique para selecionar</p>
                         </div>
                       )}
                     </div>
 
                     {file && (
-                      <div className="mt-8 flex justify-center">
+                      <div className="mt-6 flex justify-center">
                         <Button
                           size="lg"
                           onClick={handleExtract}
                           disabled={isProcessing}
-                          className="gap-3 px-8 py-3 text-base h-auto"
                         >
-                          <Sparkles className="h-5 w-5" />
-                          {isProcessing ? 'Processando...' : 'Analisar com IA'}
+                          <Sparkles className="mr-2 h-5 w-5" />
+                          {isProcessing ? 'Analisando...' : 'Analisar com IA'}
                         </Button>
                       </div>
                     )}
@@ -688,25 +644,12 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="h-full flex flex-col items-center justify-center p-8"
+                  className="h-full flex flex-col items-center justify-center"
                 >
-                  <div className="w-full max-w-md text-center space-y-6">
-                    <div className="w-24 h-24 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-                      <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                    </div>
-                    <div className="space-y-3">
-                      <h3 className="text-2xl font-semibold">Analisando documento...</h3>
-                      <p className="text-muted-foreground text-lg">
-                        Nossa IA está extraindo os dados do seu holerite
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <Progress value={analysisProgress} className="h-3" />
-                      <p className="text-sm text-muted-foreground font-medium">
-                        {analysisProgress.toFixed(0)}% concluído
-                      </p>
-                    </div>
-                  </div>
+                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                    <h3 className="mt-4 text-xl font-semibold">Analisando documento...</h3>
+                    <p className="text-muted-foreground">Aguarde, nossa IA está trabalhando.</p>
+                    <Progress value={analysisProgress} className="mt-4 w-64" />
                 </motion.div>
               )}
 
@@ -722,413 +665,100 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
                     "flex flex-col lg:flex-row h-full transition-all duration-300",
                     showPdfPreview ? "lg:divide-x" : ""
                   )}>
-                    {/* PDF Preview Panel */}
                     {showPdfPreview && (
-                      <div className="lg:w-[42%] xl:w-[38%] flex flex-col border-b lg:border-b-0 lg:border-r bg-muted/5 shrink-0 min-w-[300px]">
-                        <div className="flex items-center justify-between p-3 border-b bg-background/80 backdrop-blur-sm shrink-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => dispatch({ type: 'SET_PDF_ZOOM', payload: Math.max(pdfZoom - 25, 50) })}
-                                    disabled={pdfZoom <= 50}
-                                    className="h-8 w-8 p-0"
-                                  >
-                                    <ZoomOut className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Diminuir zoom</TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-
-                            <span className="text-sm font-medium px-3 py-1 bg-muted rounded-md min-w-[60px] text-center">
-                              {pdfZoom}%
-                            </span>
-
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => dispatch({ type: 'SET_PDF_ZOOM', payload: Math.min(pdfZoom + 25, 200) })}
-                                    disabled={pdfZoom >= 200}
-                                    className="h-9 w-9 p-0"
-                                  >
-                                    <ZoomIn className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Aumentar zoom</TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-
-                            <Separator orientation="vertical" className="h-6 mx-1" />
-
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => dispatch({ type: 'SET_PDF_ROTATION', payload: (pdfRotation + 90) % 360 })}
-                                    className="h-9 w-9 p-0"
-                                  >
-                                    <RotateCw className="h-4 w-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Rotacionar 90°</TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={handleReprocess}
-                                  disabled={isProcessing}
-                                  className="h-9 gap-2"
-                                >
-                                  <RefreshCw className={cn("h-4 w-4", isProcessing && "animate-spin")} />
-                                  Reanalisar
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Processar documento novamente</TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-
-                        <div className="flex-1 overflow-auto p-6 bg-gradient-to-br from-muted/10 to-muted/5">
-                          {pdfDataUri && (
-                            <div className="flex justify-center items-start min-h-full">
-                              <div
-                                className="bg-white rounded-xl shadow-2xl border transition-transform duration-200"
-                                style={{
-                                  transform: `scale(${pdfZoom / 100}) rotate(${pdfRotation}deg)`,
-                                  transformOrigin: 'top center'
-                                }}
-                              >
-                                <iframe
-                                  src={pdfDataUri}
-                                  className="w-full h-[600px] rounded-lg"
-                                  title="Visualização do documento PDF"
-                                  loading="lazy"
-                                />
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="p-3 border-t bg-background/80 backdrop-blur-sm shrink-0">
-                          <p className="text-sm text-muted-foreground truncate flex items-center gap-2">
-                            <FileText className="h-4 w-4 flex-shrink-0" />
-                            <span className="truncate">{file?.name}</span>
-                          </p>
-                        </div>
+                      <div className="lg:w-[45%] flex flex-col border-b lg:border-b-0 lg:border-r bg-muted/5 shrink-0">
+                        <PDFViewer pdfDataUri={pdfDataUri} fileName={file?.name}/>
                       </div>
                     )}
 
-                    {/* Data Panel */}
-                    <div className={cn(
-                      "flex-1 flex flex-col min-w-0 overflow-hidden",
-                      !showPdfPreview && "w-full"
-                    )}>
-                      <div className="flex items-center justify-between p-4 border-b bg-background/80 backdrop-blur-sm shrink-0">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => dispatch({ type: 'SET_SHOW_PDF_PREVIEW', payload: !showPdfPreview })}
-                          className="gap-2"
-                        >
-                          {showPdfPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                          {showPdfPreview ? 'Ocultar PDF' : 'Mostrar PDF'}
-                        </Button>
+                    <ScrollArea className="flex-1">
+                      <div className="p-4 lg:p-6 space-y-4">
+                        <Card>
+                          <CardHeader className="pb-4">
+                            <CardTitle className="text-base">Informações Básicas</CardTitle>
+                          </CardHeader>
+                          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-sm font-medium text-muted-foreground">Pagador / Empresa</label>
+                              <Input
+                                value={editableResult.companyName || ''}
+                                onChange={(e) => handleFieldChange('companyName', e.target.value)}
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-muted-foreground">Data de Competência</label>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button variant="outline" className="w-full justify-start text-left font-normal">
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {editableResult.issueDate ? format(parseISO(editableResult.issueDate), 'PPP', { locale: ptBR }) : 'Selecione'}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={editableResult.issueDate ? parseISO(editableResult.issueDate) : undefined} onSelect={(d) => handleFieldChange('issueDate', d ? format(d, 'yyyy-MM-dd') : '')} /></PopoverContent>
+                              </Popover>
+                            </div>
+                          </CardContent>
+                        </Card>
 
-                        <span className="text-sm text-muted-foreground hidden sm:block">
-                          Edite os valores se necessário
-                        </span>
-                      </div>
-
-                      <div className="flex-1 overflow-y-auto">
-                        <div className="p-4 lg:p-6 space-y-4 w-full">
-                          {/* Basic Information */}
-                          <Card className="shadow-sm border-l-4 border-l-blue-500">
-                            <CardHeader className="pb-4">
-                              <CardTitle className="text-base font-semibold flex items-center gap-2">
-                                Informações Básicas
-                              </CardTitle>
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                          <Card>
+                            <CardHeader className="pb-4 flex-row items-center justify-between">
+                              <CardTitle className="text-base text-emerald-600">Proventos (Ganhos)</CardTitle>
+                              <Button variant="ghost" size="sm" onClick={handleAddEarning}><Plus className="mr-1 h-4 w-4"/>Adicionar</Button>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                                <div className="space-y-2">
-                                  <label className="text-sm font-medium text-muted-foreground">
-                                    Pagador / Empresa
-                                  </label>
-                                  <Input
-                                    value={editableResult.companyName || ''}
-                                    onChange={(e) => handleFieldChange('companyName', e.target.value)}
-                                    placeholder="Nome da empresa ou pagador"
-                                    className="h-10"
-                                  />
+                            <CardContent className="space-y-2">
+                              {(editableResult.earnings || []).map((item, index) => (
+                                <div key={index} className="flex items-center gap-2">
+                                  <Input value={item.name} onChange={e => {/*...*/}}/>
+                                  <CurrencyInput value={item.amount} onValueChange={v => {/*...*/}} />
+                                  <Button variant="ghost" size="icon" onClick={() => handleRemoveEarning(index)}><Trash2 className="h-4 w-4"/></Button>
                                 </div>
-                                <div className="space-y-2">
-                                  <label className="text-sm font-medium text-muted-foreground">
-                                    Data de Competência
-                                  </label>
-                                  <Popover>
-                                    <PopoverTrigger asChild>
-                                      <Button
-                                        variant="outline"
-                                        className="w-full h-10 justify-start text-left font-normal"
-                                      >
-                                        <CalendarIcon className="mr-3 h-4 w-4 text-muted-foreground" />
-                                        {editableResult.issueDate && isValid(parseISO(editableResult.issueDate))
-                                          ? format(parseISO(editableResult.issueDate), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
-                                          : 'Selecione a data'}
-                                      </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                      <Calendar
-                                        mode="single"
-                                        selected={editableResult.issueDate ? parseISO(editableResult.issueDate) : new Date()}
-                                        onSelect={(date) => handleFieldChange('issueDate', date ? format(date, 'yyyy-MM-dd') : '')}
-                                        initialFocus
-                                        locale={ptBR}
-                                      />
-                                    </PopoverContent>
-                                  </Popover>
-                                </div>
-                              </div>
+                              ))}
+                              <Separator/>
+                              <div className="flex justify-between items-center font-semibold"><span>Total</span><span>{formatCurrency(calculatedTotals.earnings)}</span></div>
                             </CardContent>
                           </Card>
 
-                          {/* Earnings */}
-                          <Card className="shadow-sm border-l-4 border-l-emerald-500">
-                            <CardHeader className="pb-4">
-                              <div className="flex items-center justify-between">
-                                <CardTitle className="text-base font-semibold text-emerald-600 flex items-center gap-2">
-                                  Proventos (Ganhos)
-                                </CardTitle>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={handleAddEarning}
-                                  className="h-9 gap-2 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
-                                >
-                                  <Plus className="h-4 w-4" />
-                                  Adicionar
-                                </Button>
-                              </div>
+                          <Card>
+                             <CardHeader className="pb-4 flex-row items-center justify-between">
+                              <CardTitle className="text-base text-red-600">Descontos</CardTitle>
+                              <Button variant="ghost" size="sm" onClick={handleAddDeduction}><Plus className="mr-1 h-4 w-4"/>Adicionar</Button>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                              {editableResult.earnings && editableResult.earnings.length > 0 ? (
-                                <div className="space-y-3">
-                                  {editableResult.earnings.map((item, index) => (
-                                    <div key={index} className="flex items-center gap-3 group">
-                                      <Input
-                                        value={item.name}
-                                        className="flex-1 h-10"
-                                        placeholder="Descrição do provento"
-                                        onChange={e => {
-                                          const newEarnings = [...editableResult.earnings!];
-                                          newEarnings[index].name = e.target.value;
-                                          handleFieldChange('earnings', newEarnings);
-                                        }}
-                                      />
-                                      <CurrencyInput
-                                        value={item.amount}
-                                        className="w-36 h-10 text-right font-medium"
-                                        onValueChange={value => {
-                                          const newEarnings = [...editableResult.earnings!];
-                                          newEarnings[index].amount = value;
-                                          handleFieldChange('earnings', newEarnings);
-                                        }}
-                                      />
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-10 w-10 opacity-50 hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive flex-shrink-0"
-                                        onClick={() => handleRemoveEarning(index)}
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  ))}
+                            <CardContent className="space-y-2">
+                              {(editableResult.deductions || []).map((item, index) => (
+                                <div key={index} className="flex items-center gap-2">
+                                  <Input value={item.name} onChange={e => {/*...*/}}/>
+                                  <CurrencyInput value={item.amount} onValueChange={v => {/*...*/}} />
+                                  <Button variant="ghost" size="icon" onClick={() => handleRemoveDeduction(index)}><Trash2 className="h-4 w-4"/></Button>
                                 </div>
-                              ) : (
-                                <div className="text-center py-6 border-2 border-dashed border-muted-foreground/20 rounded-lg">
-                                  <p className="text-muted-foreground">Nenhum provento encontrado</p>
-                                  <p className="text-sm text-muted-foreground mt-1">
-                                    Adicione manualmente os ganhos
-                                  </p>
-                                </div>
-                              )}
-
-                              <Separator />
-
-                              <div className="flex justify-between items-center py-2">
-                                <span className="font-semibold text-base">Total de Proventos</span>
-                                <span className="text-xl font-bold text-emerald-600">
-                                  {formatCurrency(calculatedTotals.earnings)}
-                                </span>
-                              </div>
-                            </CardContent>
-                          </Card>
-
-                          {/* Deductions */}
-                          <Card className="shadow-sm border-l-4 border-l-red-500">
-                            <CardHeader className="pb-4">
-                              <div className="flex items-center justify-between">
-                                <CardTitle className="text-base font-semibold text-red-500 flex items-center gap-2">
-                                  Descontos
-                                </CardTitle>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={handleAddDeduction}
-                                  className="h-9 gap-2 text-red-500 hover:text-red-600 hover:bg-red-50"
-                                >
-                                  <Plus className="h-4 w-4" />
-                                  Adicionar
-                                </Button>
-                              </div>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                              {editableResult.deductions && editableResult.deductions.length > 0 ? (
-                                <div className="space-y-3">
-                                  {editableResult.deductions.map((item, index) => (
-                                    <div key={index} className="flex items-center gap-3 group">
-                                      <Input
-                                        value={item.name}
-                                        className="flex-1 h-10"
-                                        placeholder="Descrição do desconto"
-                                        onChange={e => {
-                                          const newDeductions = [...editableResult.deductions!];
-                                          newDeductions[index].name = e.target.value;
-                                          handleFieldChange('deductions', newDeductions);
-                                        }}
-                                      />
-                                      <CurrencyInput
-                                        value={item.amount}
-                                        className="w-36 h-10 text-right font-medium"
-                                        onValueChange={value => {
-                                          const newDeductions = [...editableResult.deductions!];
-                                          newDeductions[index].amount = value;
-                                          handleFieldChange('deductions', newDeductions);
-                                        }}
-                                      />
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-10 w-10 opacity-50 hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive flex-shrink-0"
-                                        onClick={() => handleRemoveDeduction(index)}
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <div className="text-center py-6 border-2 border-dashed border-muted-foreground/20 rounded-lg">
-                                  <p className="text-muted-foreground">Nenhum desconto encontrado</p>
-                                  <p className="text-sm text-muted-foreground mt-1">
-                                    Adicione manualmente os descontos
-                                  </p>
-                                </div>
-                              )}
-
-                              <Separator />
-
-                              <div className="flex justify-between items-center py-2">
-                                <span className="font-semibold text-base">Total de Descontos</span>
-                                <span className="text-xl font-bold text-red-500">
-                                  {formatCurrency(calculatedTotals.deductions)}
-                                </span>
-                              </div>
-                            </CardContent>
-                          </Card>
-
-                          {/* FGTS */}
-                          {(editableResult.fgtsAmount !== undefined && editableResult.fgtsAmount !== null) && (
-                            <Card className="shadow-sm border-l-4 border-l-amber-500">
-                              <CardContent className="py-6">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-3">
-                                    <Banknote className="h-5 w-5 text-amber-600" />
-                                    <div>
-                                      <span className="text-sm font-medium">FGTS do Mês</span>
-                                      <p className="text-xs text-muted-foreground">
-                                        Valor depositado no FGTS
-                                      </p>
-                                    </div>
-                                  </div>
-                                  <CurrencyInput
-                                    value={editableResult.fgtsAmount || 0}
-                                    className="w-40 h-10 text-right font-medium text-amber-600"
-                                    onValueChange={value => handleFieldChange('fgtsAmount', value)}
-                                  />
-                                </div>
-                              </CardContent>
-                            </Card>
-                          )}
-
-                          {/* Notes */}
-                          <Card className="shadow-sm">
-                            <CardContent className="py-6">
-                              <div className="space-y-3">
-                                <label className="text-sm font-medium text-muted-foreground">
-                                  Observações
-                                </label>
-                                <Textarea
-                                  value={editableResult.description || ''}
-                                  onChange={(e) => handleFieldChange('description', e.target.value)}
-                                  placeholder="Adicione observações sobre este holerite..."
-                                  rows={3}
-                                  className="resize-none min-h-[100px]"
-                                />
-                              </div>
-                            </CardContent>
-                          </Card>
-
-                          {/* Net Amount */}
-                          <Card className="shadow-lg border-2 border-primary bg-gradient-to-br from-primary/5 to-primary/10">
-                            <CardContent className="py-8">
-                              <div className="text-center space-y-4">
-                                <label className="text-sm font-medium text-primary/80 uppercase tracking-wide">
-                                  Valor Líquido a Registrar
-                                </label>
-                                <div className="mt-2">
-                                  <CurrencyInput
-                                    value={editableResult.netAmount || 0}
-                                    onValueChange={value => handleFieldChange('netAmount', value)}
-                                    className="text-4xl font-bold text-primary bg-transparent border-0 text-center h-auto p-0 shadow-none focus-visible:ring-0 w-full"
-                                  />
-                                </div>
-
-                                {calculatedTotals.net !== editableResult.netAmount && (
-                                  <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                                    <span>Calculado: {formatCurrency(calculatedTotals.net)}</span>
-                                    <Button
-                                      variant="link"
-                                      size="sm"
-                                      className="h-auto p-0 text-primary font-medium"
-                                      onClick={() => handleFieldChange('netAmount', calculatedTotals.net)}
-                                    >
-                                      Usar este valor
-                                    </Button>
-                                  </div>
-                                )}
-                              </div>
+                              ))}
+                              <Separator/>
+                              <div className="flex justify-between items-center font-semibold"><span>Total</span><span>{formatCurrency(calculatedTotals.deductions)}</span></div>
                             </CardContent>
                           </Card>
                         </div>
+                        
+                        <Card>
+                          <CardContent className="pt-6">
+                            <label className="text-sm font-medium">Observações</label>
+                            <Textarea value={editableResult.description || ''} onChange={e => handleFieldChange('description', e.target.value)} />
+                          </CardContent>
+                        </Card>
+                        
+                        <Card className="border-primary bg-primary/5">
+                          <CardHeader className="text-center pb-2">
+                            <CardTitle>Valor Líquido a Receber</CardTitle>
+                          </CardHeader>
+                           <CardContent className="text-center">
+                            <CurrencyInput value={editableResult.netAmount} onValueChange={v => handleFieldChange('netAmount', v)} className="text-3xl font-bold border-0 text-center h-auto p-0"/>
+                            {calculatedTotals.net !== editableResult.netAmount && (
+                                <Button variant="link" size="sm" onClick={() => handleFieldChange('netAmount', calculatedTotals.net)}>Usar valor calculado: {formatCurrency(calculatedTotals.net)}</Button>
+                            )}
+                          </CardContent>
+                        </Card>
+
                       </div>
-                    </div>
+                    </ScrollArea>
                   </div>
                 </motion.div>
               )}
@@ -1139,62 +769,48 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="h-full flex flex-col items-center justify-center p-8"
+                  className="h-full flex flex-col items-center justify-center"
                 >
-                  <div className="text-center space-y-6">
-                    <div className="w-24 h-24 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-                      <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                    </div>
-                    <div className="space-y-3">
-                      <h3 className="text-2xl font-semibold">Salvando dados...</h3>
-                      <p className="text-muted-foreground text-lg">
-                        Registrando sua renda no sistema
-                      </p>
-                    </div>
-                  </div>
+                   <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                   <h3 className="mt-4 text-xl font-semibold">Salvando dados...</h3>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
-        </ScrollArea>
 
-        {/* Footer */}
-        <div className="px-6 py-4 border-t bg-muted/30 flex items-center justify-between shrink-0">
-          <Button
-            variant="ghost"
-            onClick={handleReset}
-            disabled={isSaving}
-          >
-            Cancelar
-          </Button>
+          {/* Footer */}
+          <div className="px-6 py-4 border-t flex items-center justify-between shrink-0">
+            <Button
+              variant="ghost"
+              onClick={handleReset}
+              disabled={isSaving}
+            >
+              Cancelar
+            </Button>
 
-          <div className="flex items-center gap-3">
-            {currentStep === 'review' && (
-              <>
-                <Button
-                  variant="outline"
-                  onClick={() => dispatch({ type: 'SET_CURRENT_STEP', payload: 'upload' })}
-                  disabled={isSaving}
-                >
-                  Voltar
-                </Button>
-                <Button
-                  onClick={handleConfirm}
-                  disabled={isSaving || !editableResult?.netAmount}
-                  className="gap-2 px-6"
-                >
-                  {isSaving ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Save className="h-4 w-4" />
-                  )}
-                  Confirmar e Salvar
-                </Button>
-              </>
-            )}
+            <div className="flex items-center gap-3">
+              {currentStep === 'review' && (
+                <>
+                  <Button variant="outline" onClick={() => dispatch({ type: 'SET_SHOW_PDF_PREVIEW', payload: !showPdfPreview })}>
+                    {showPdfPreview ? <EyeOff className="mr-2 h-4 w-4"/> : <Eye className="mr-2 h-4 w-4"/>}
+                    {showPdfPreview ? 'Ocultar PDF' : 'Mostrar PDF'}
+                  </Button>
+                   <Button variant="outline" onClick={handleReprocess} disabled={isProcessing}>
+                    <RefreshCw className={cn("mr-2 h-4 w-4", isProcessing && "animate-spin")} />
+                    Reanalisar
+                  </Button>
+                  <Button
+                    onClick={handleConfirm}
+                    disabled={isSaving || !editableResult?.netAmount}
+                  >
+                    {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Save className="mr-2 h-4 w-4" />}
+                    Confirmar e Salvar
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </div>
-      </div>
       </DialogContent>
     </Dialog>
   );
