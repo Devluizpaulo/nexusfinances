@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -35,17 +36,17 @@ export function RentalContractCard({ contract, onEdit }: RentalContractCardProps
   const isInactive = contract.status === 'inactive';
   
   const contractStatus = (() => {
-    if (isInactive) return { variant: 'outline', text: 'Encerrado' };
+    if (isInactive) return { variant: 'outline' as const, text: 'Encerrado' };
 
     if (contract.endDate) {
       const endDate = parseISO(contract.endDate);
       const daysUntilEnd = differenceInDays(endDate, new Date());
       
       if (isPast(endDate)) {
-        return { variant: 'destructive', text: 'Expirado', icon: AlertTriangle };
+        return { variant: 'destructive' as const, text: 'Expirado', icon: AlertTriangle };
       }
       if (daysUntilEnd <= 30) {
-        return { variant: 'secondary', text: 'Vence em breve', icon: CalendarClock };
+        return { variant: 'secondary' as const, text: 'Vence em breve', icon: CalendarClock };
       }
     }
     return null;
