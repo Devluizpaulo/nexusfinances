@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
@@ -97,12 +98,18 @@ async function createUserDocument(firestore: Firestore, firebaseUser: User): Pro
 
   await setDoc(userDocRef, newUserDoc, { merge: true });
 
-  return {
-    ...firebaseUser,
-    ...newUserDoc,
-    phoneNumber: firebaseUser.phoneNumber,
-    registrationDate: new Date().toISOString(), // Use client date as placeholder until server timestamp is resolved
+  // Construct a valid AppUser object for immediate use, using client-side date as a placeholder.
+  // The server timestamp will be available on the next snapshot read.
+  const appUser: AppUser = {
+      ...firebaseUser,
+      ...newUserDoc,
+      metadata: firebaseUser.metadata,
+      registrationDate: new Date().toISOString(), // Use ISO string for consistency
+      // Ensure phoneNumber is correctly typed
+      phoneNumber: firebaseUser.phoneNumber || null,
   };
+
+  return appUser;
 }
 
 
@@ -129,54 +136,72 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       return;
     }
   
-    setUserAuthState(prevState => ({ ...prevState, isUserLoading: true }));
+    // This will hold the unsubscribe function for the Firestore snapshot listener
+    let userDocUnsubscribe: (() => void) | undefined;
   
     const authUnsubscribe = onAuthStateChanged(
       auth,
-      (firebaseUser) => {
+      async (firebaseUser) => {
+        // If a previous user listener exists, unsubscribe from it before setting up a new one
+        if (userDocUnsubscribe) {
+          userDocUnsubscribe();
+        }
+  
         if (firebaseUser) {
           const userDocRef = doc(firestore, 'users', firebaseUser.uid);
           
-          const userUnsubscribe = onSnapshot(userDocRef, 
+          userDocUnsubscribe = onSnapshot(userDocRef, 
             async (userSnapshot) => {
-                let appUser: AppUser;
-
-                if (userSnapshot.exists()) {
-                    appUser = { ...firebaseUser, ...userSnapshot.data() } as AppUser;
-                } else {
-                    try {
-                        appUser = await createUserDocument(firestore, firebaseUser);
-                    } catch (error: any) {
-                        console.error("FirebaseProvider: Error creating user document:", error);
-                        setUserAuthState({ user: null, isUserLoading: false, userError: error });
-                        return;
-                    }
+              let userProfileData: Omit<AppUser, keyof User>;
+  
+              if (!userSnapshot.exists()) {
+                // If user doc doesn't exist, create it. This is a one-time operation.
+                try {
+                  const createdUser = await createUserDocument(firestore, firebaseUser);
+                  // We can use the returned data directly for the first state update
+                  userProfileData = createdUser;
+                } catch (error: any) {
+                  console.error("FirebaseProvider: Error creating user document:", error);
+                  setUserAuthState({ user: null, isUserLoading: false, userError: error });
+                  return;
                 }
+              } else {
+                userProfileData = userSnapshot.data() as Omit<AppUser, keyof User>;
+              }
+              
+              // Combine auth data with Firestore data
+              const combinedUser: AppUser = {
+                  ...firebaseUser,
+                  ...userProfileData,
+                  metadata: firebaseUser.metadata,
+              };
 
-                // Now fetch the subscription plan if a subscription exists
-                if (appUser.subscription && appUser.subscription.planId) {
-                    const planDocRef = doc(firestore, 'subscriptionPlans', appUser.subscription.planId);
-                    const planSnapshot = await getDoc(planDocRef);
-
-                    if (planSnapshot.exists()) {
-                        appUser.subscriptionPlan = planSnapshot.data() as SubscriptionPlan;
-                    }
+              // Fetch subscription plan ONLY if the planId has changed or doesn't exist
+              if (
+                combinedUser.subscription?.planId &&
+                combinedUser.subscription.planId !== userAuthState.user?.subscriptionPlan?.id
+              ) {
+                const planDocRef = doc(firestore, 'subscriptionPlans', combinedUser.subscription.planId);
+                const planSnapshot = await getDoc(planDocRef);
+                if (planSnapshot.exists()) {
+                  combinedUser.subscriptionPlan = planSnapshot.data() as SubscriptionPlan;
                 }
-                
-                setUserAuthState({
-                    user: appUser,
-                    isUserLoading: false,
-                    userError: null,
-                });
-
+              } else if (userAuthState.user?.subscriptionPlan) {
+                  // Carry over the existing plan if it hasn't changed
+                  combinedUser.subscriptionPlan = userAuthState.user.subscriptionPlan;
+              }
+  
+              setUserAuthState({
+                user: combinedUser,
+                isUserLoading: false,
+                userError: null,
+              });
             },
             (error) => {
-                console.error("FirebaseProvider: onSnapshot error:", error);
-                setUserAuthState({ user: null, isUserLoading: false, userError: error });
+              console.error("FirebaseProvider: onSnapshot error:", error);
+              setUserAuthState({ user: null, isUserLoading: false, userError: error });
             }
           );
-          // Return a cleanup function for the user document listener
-          return () => userUnsubscribe();
         } else {
           // No Firebase user, so set auth state to signed out
           setUserAuthState({ user: null, isUserLoading: false, userError: null });
@@ -191,7 +216,13 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     // Cleanup function for the auth state listener
     return () => {
       authUnsubscribe();
+      if (userDocUnsubscribe) {
+        userDocUnsubscribe();
+      }
     };
+    // userAuthState.user is removed to prevent re-running this complex effect
+    // when the user object is updated. The logic inside correctly handles user state transitions.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth, firestore]);
 
   // Memoize the context value
