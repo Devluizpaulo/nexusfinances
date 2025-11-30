@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -342,10 +343,10 @@ export default function DashboardPage() {
           }
   
           const key = dueDate.toISOString();
-          if (!byDay[key]) {
-            byDay[key] = [];
+          if (!byDate[key]) {
+            byDate[key] = [];
           }
-          byDay[key].push({ debtName, amount: installment.amount });
+          byDate[key].push({ debtName, amount: installment.amount });
         });
   
         setInstallmentOverdueDates(overdue);
@@ -839,3 +840,4 @@ export default function DashboardPage() {
     </>
   );
 }
+
