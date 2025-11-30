@@ -3,7 +3,6 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from "@/firebase/client-provider";
 import { ThemeProvider } from "@/components/theme-provider";
-import Script from "next/script";
 import { LgpdBanner } from "@/components/lgpd-banner";
 
 export const metadata: Metadata = {
@@ -20,6 +19,11 @@ export default function RootLayout({
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <meta name="google-adsense-account" content="ca-pub-5750464088623363" />
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5750464088623363"
+          crossOrigin="anonymous"
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
@@ -43,13 +47,6 @@ export default function RootLayout({
           </FirebaseClientProvider>
         </ThemeProvider>
         <Toaster />
-        <Script
-          id="adsbygoogle-init"
-          strategy="afterInteractive"
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5750464088623363"
-          crossOrigin="anonymous"
-        />
         <LgpdBanner />
       </body>
     </html>

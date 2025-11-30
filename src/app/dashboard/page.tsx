@@ -267,7 +267,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchInstallmentDueDates = async () => {
-      if (!user || !firestore) {
+      if (!user || !firestore || user.isAnonymous) {
         setInstallmentOverdueDates([]);
         setInstallmentUpcomingDates([]);
         setInstallmentsByDate({});
