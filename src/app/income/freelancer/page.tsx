@@ -12,9 +12,8 @@ import { ImportPayslipSheet } from '@/components/income/import-payslip-sheet';
 import { DataTable } from '@/components/data-table/data-table';
 import { columns } from './columns';
 import { useToast } from '@/hooks/use-toast';
-import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
-import { incomeCategories } from '@/lib/types';
-import { differenceInMonths, parseISO, startOfMonth } from 'date-fns';
+import { AddFreelancerSheet } from './add-freelancer-sheet';
+import { differenceInMonths, parseISO } from 'date-fns';
 
 
 export default function FreelancerPage() {
@@ -91,11 +90,9 @@ export default function FreelancerPage() {
 
   return (
     <>
-      <AddTransactionSheet
+      <AddFreelancerSheet
         isOpen={isAddSheetOpen}
         onClose={handleCloseSheet}
-        transactionType="income"
-        categories={incomeCategories}
         transaction={editingTransaction}
       />
        <ImportPayslipSheet 
