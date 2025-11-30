@@ -1,40 +1,71 @@
+
 'use client';
 
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { collection, query, where } from 'firebase/firestore';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import type { Recurrence } from '@/lib/types';
+import { collection, query, orderBy } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking, doc } from '@/firebase';
+import type { Transaction } from '@/lib/types';
 import { Loader2, WalletCards, PlusCircle, Upload } from 'lucide-react';
-import { RecurrenceCard } from '@/components/recurrences/recurrence-card';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AddOtherIncomeSheet } from '@/components/income/add-other-income-sheet';
 import { PageHeader } from '@/components/page-header';
+import { AddOtherIncomeSheet } from '@/components/income/add-other-income-sheet';
 import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
+import { DataTable } from '@/components/data-table/data-table';
+import { columns } from '../columns';
+import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent } from '@/components/ui/card';
+import { PenSquare } from 'lucide-react';
 
-const nonFreelancerSalaryKeywords = ['salário', 'freelance', 'projeto', 'consultoria', 'cliente'];
+
+const nonFreelancerSalaryKeywords = ['salário', 'freelance'];
 
 export default function OthersIncomePage() {
-  const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isImportSheetOpen, setIsImportSheetOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
+  const { toast } = useToast();
 
-  const recurringIncomesQuery = useMemoFirebase(() => {
+  const allIncomesQuery = useMemoFirebase(() => {
     if (!user) return null;
-    return query(collection(firestore, `users/${user.uid}/incomes`), where('isRecurring', '==', true));
-  }, [firestore, user]);
-
-  const { data: incomeData, isLoading: isIncomesLoading } = useCollection<Recurrence>(recurringIncomesQuery);
+    return query(
+      collection(firestore, `users/${user.uid}/incomes`),
+      orderBy('date', 'desc')
+    );
+  }, [user, firestore]);
+  
+  const { data: allIncomes, isLoading: isIncomesLoading } = useCollection<Transaction>(allIncomesQuery);
 
   const otherIncomes = useMemo(() => {
-    return (incomeData || []).filter(income => 
-        !nonFreelancerSalaryKeywords.some(keyword => 
-          income.category.toLowerCase().includes(keyword) || 
-          income.description.toLowerCase().includes(keyword)
-        )
-    );
-  }, [incomeData]);
+    if (!allIncomes) return [];
+    return allIncomes.filter(income => {
+        const categoryLower = income.category.toLowerCase();
+        return !nonFreelancerSalaryKeywords.some(keyword => categoryLower.includes(keyword));
+    });
+  }, [allIncomes]);
+  
+
+  const handleOpenSheet = (transaction: Transaction | null = null) => {
+    setEditingTransaction(transaction);
+    setIsSheetOpen(true);
+  };
+
+  const handleCloseSheet = () => {
+    setEditingTransaction(null);
+    setIsSheetOpen(false);
+  };
+
+  const handleStatusChange = (transaction: Transaction) => {
+    if (!user || transaction.status === 'paid') return;
+    const docRef = doc(firestore, `users/${user.uid}/incomes`, transaction.id);
+    updateDocumentNonBlocking(docRef, { status: "paid" });
+    toast({
+      title: "Transação atualizada!",
+      description: `A transação foi marcada como recebida.`,
+    });
+  }
 
   const isLoading = isUserLoading || isIncomesLoading;
 
@@ -45,20 +76,13 @@ export default function OthersIncomePage() {
       </div>
     );
   }
-  
-  const handleOpenSheet = () => {
-    setIsAddSheetOpen(true);
-  };
-
-  const handleCloseSheet = () => {
-    setIsAddSheetOpen(false);
-  };
 
   return (
     <>
       <AddOtherIncomeSheet
-        isOpen={isAddSheetOpen}
+        isOpen={isSheetOpen}
         onClose={handleCloseSheet}
+        transaction={editingTransaction}
       />
        <ImportTransactionsSheet 
         isOpen={isImportSheetOpen}
@@ -66,46 +90,43 @@ export default function OthersIncomePage() {
       />
 
       <PageHeader
-        title="Outras Rendas Recorrentes"
-        description="Gerencie rendas passivas, aluguéis ou outras fontes de renda recorrentes."
+        title="Outras Rendas"
+        description="Gerencie rendas passivas, aluguéis ou outras fontes de renda avulsas ou recorrentes."
       >
         <div className="flex gap-2">
             <Button variant="outline" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>
               <Upload className="mr-2 h-4 w-4" />
               Importar PDF com IA
             </Button>
-             <Button onClick={handleOpenSheet} disabled={!user}>
+             <Button onClick={() => handleOpenSheet()} disabled={!user}>
               <PlusCircle className="mr-2 h-4 w-4" />
-              Adicionar Renda Recorrente
+              Adicionar Renda
             </Button>
         </div>
       </PageHeader>
-
-      <Card className="mt-4">
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <WalletCards className="h-5 w-5 text-primary" />
-            <CardTitle className="text-lg">Rendas Recorrentes</CardTitle>
-          </div>
-          <CardDescription>Lista de rendas recorrentes que não são Salário ou Freelance.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {otherIncomes.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {otherIncomes.map((item) => (
-                <RecurrenceCard key={item.id} recurrence={item} />
-              ))}
-            </div>
-          ) : (
-            <div className="flex h-40 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
-              <h3 className="font-semibold">Nenhuma outra renda recorrente encontrada</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Adicione rendimentos de investimentos ou aluguéis como uma renda recorrente.
+      
+      {otherIncomes.length > 0 ? (
+          <DataTable
+            columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
+            data={otherIncomes}
+        />
+      ) : (
+        <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12 px-4 text-center">
+              <div className="rounded-full bg-muted p-4 mb-4">
+                <PenSquare className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Nenhuma outra renda cadastrada</h3>
+              <p className="text-sm text-muted-foreground max-w-sm mb-6">
+                Registre aqui seus rendimentos de investimentos, aluguéis ou qualquer outra entrada que não seja salário ou freelance.
               </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              <Button onClick={() => handleOpenSheet()} disabled={!user}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Adicionar Primeira Renda
+              </Button>
+            </CardContent>
+        </Card>
+      )}
     </>
   );
 }
