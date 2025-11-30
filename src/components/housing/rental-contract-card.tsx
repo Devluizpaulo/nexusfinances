@@ -161,18 +161,18 @@ export function RentalContractCard({ contract, onEdit }: RentalContractCardProps
                     <p className="text-muted-foreground text-xs">Valor Total</p>
                     <p className="font-semibold">{formatCurrency(contract.totalAmount)}</p>
                 </div>
-                {contract.type.includes('Aluguel') && contract.rentAmount && (
+                {contract.type.includes('Aluguel') && contract.rentAmount ? (
                      <div>
                         <p className="text-muted-foreground text-xs">Aluguel</p>
                         <p className="font-semibold">{formatCurrency(contract.rentAmount)}</p>
                     </div>
-                )}
-                {contract.type.includes('Condomínio') && contract.condoFee && (
+                ) : null}
+                {contract.type.includes('Condomínio') && contract.condoFee ? (
                      <div>
                         <p className="text-muted-foreground text-xs">Condomínio</p>
                         <p className="font-semibold">{formatCurrency(contract.condoFee)}</p>
                     </div>
-                )}
+                ) : null}
                  <div>
                     <p className="text-muted-foreground text-xs">Vencimento</p>
                     <p className="font-semibold">Todo dia {contract.dueDate}</p>
@@ -201,13 +201,15 @@ export function RentalContractCard({ contract, onEdit }: RentalContractCardProps
                     <AccordionItem value="payment" className="border-b-0">
                         <AccordionTrigger className="text-sm">Ver detalhes do pagamento</AccordionTrigger>
                         <AccordionContent className="space-y-2 text-sm pt-2">
-                            <div className="flex justify-between items-center rounded-md border p-2">
+                           {contract.paymentMethod.method && (
+                             <div className="flex justify-between items-center rounded-md border p-2">
                                 <div>
                                     <p className="font-medium">{contract.paymentMethod.method}</p>
                                     <p className="text-muted-foreground break-all">{contract.paymentMethod.identifier}</p>
                                 </div>
                                 <Button size="sm" variant="ghost" onClick={() => handleCopy(contract.paymentMethod?.identifier || '')}><Copy className="h-4 w-4" /></Button>
                             </div>
+                           )}
                             {contract.paymentMethod.instructions && (
                                  <p className="text-xs text-muted-foreground px-1">{contract.paymentMethod.instructions}</p>
                             )}
