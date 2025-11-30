@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { CalendarIcon, Loader2, PlusCircle, Trash2 } from 'lucide-react';
@@ -19,6 +19,8 @@ import { cn, formatCurrency } from '@/lib/utils';
 import { CurrencyInput } from '../ui/currency-input';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
+import { Checkbox } from '../ui/checkbox';
+import { Separator } from '../ui/separator';
 
 const additionalItemSchema = z.object({
   description: z.string().min(1, 'A descrição é obrigatória.'),
@@ -27,7 +29,7 @@ const additionalItemSchema = z.object({
 
 const paymentFormSchema = z.object({
   paymentDate: z.date({ required_error: 'A data do pagamento é obrigatória.' }),
-  baseAmount: z.coerce.number(),
+  contractItems: z.array(z.string()),
   additionalItems: z.array(additionalItemSchema).optional(),
 });
 
@@ -48,7 +50,7 @@ export function RegisterHousingPaymentDialog({ isOpen, onClose, contract }: Regi
     resolver: zodResolver(paymentFormSchema),
     defaultValues: {
       paymentDate: new Date(),
-      baseAmount: contract.totalAmount,
+      contractItems: [],
       additionalItems: [],
     },
   });
@@ -58,23 +60,44 @@ export function RegisterHousingPaymentDialog({ isOpen, onClose, contract }: Regi
     name: 'additionalItems',
   });
 
+  const selectedContractItems = form.watch('contractItems');
   const additionalItems = form.watch('additionalItems');
 
-  const totalAmount = useMemo(() => {
-    const base = form.getValues('baseAmount') || 0;
-    const additional = (additionalItems || []).reduce((sum, item) => sum + (item.amount || 0), 0);
-    return base + additional;
-  }, [form, additionalItems]);
+  const availableContractItems = useMemo(() => {
+    const items = [];
+    if (contract.rentAmount && contract.rentAmount > 0) {
+      items.push({ id: 'rent', label: 'Aluguel', amount: contract.rentAmount });
+    }
+    if (contract.condoFee && contract.condoFee > 0) {
+      items.push({ id: 'condo', label: 'Condomínio', amount: contract.condoFee });
+    }
+    // Se não for aluguel nem condomínio, use o valor total como um item único
+    if (items.length === 0 && contract.totalAmount > 0) {
+        items.push({ id: 'total', label: contract.type, amount: contract.totalAmount });
+    }
+    return items;
+  }, [contract]);
 
   useEffect(() => {
     if (isOpen) {
+      // Pré-seleciona todos os itens disponíveis por padrão ao abrir
+      const allItemIds = availableContractItems.map(item => item.id);
       form.reset({
         paymentDate: new Date(),
-        baseAmount: contract.totalAmount,
+        contractItems: allItemIds,
         additionalItems: [],
       });
     }
-  }, [isOpen, contract, form]);
+  }, [isOpen, contract, form, availableContractItems]);
+
+  const totalAmount = useMemo(() => {
+    const contractItemsTotal = (selectedContractItems || []).reduce((sum, itemId) => {
+        const item = availableContractItems.find(i => i.id === itemId);
+        return sum + (item?.amount || 0);
+    }, 0);
+    const additionalItemsTotal = (additionalItems || []).reduce((sum, item) => sum + (item.amount || 0), 0);
+    return contractItemsTotal + additionalItemsTotal;
+  }, [selectedContractItems, additionalItems, availableContractItems]);
   
   const onSubmit = async (values: PaymentFormValues) => {
     if (!user || !firestore) {
@@ -85,22 +108,25 @@ export function RegisterHousingPaymentDialog({ isOpen, onClose, contract }: Regi
     try {
         const expensesColRef = collection(firestore, `users/${user.uid}/expenses`);
         
-        let description = `${contract.type} - ${contract.landlordName}`;
-        if (values.additionalItems && values.additionalItems.length > 0) {
-            description += ` (+ ${values.additionalItems.map(i => i.description).join(', ')} )`
-        }
+        const mainItemsDescriptions = values.contractItems
+          .map(itemId => availableContractItems.find(i => i.id === itemId)?.label)
+          .filter(Boolean);
+        const additionalItemsDescriptions = (values.additionalItems || []).map(i => i.description);
 
+        const allDescriptions = [...mainItemsDescriptions, ...additionalItemsDescriptions];
+        const description = allDescriptions.length > 0 ? allDescriptions.join(' + ') : `${contract.type} - ${contract.landlordName}`;
+        
         const expenseData = {
             userId: user.uid,
             amount: totalAmount,
             category: 'Moradia' as const,
             date: formatISO(values.paymentDate),
-            description: description,
+            description,
             isRecurring: false,
             recurringSourceId: contract.id,
             status: 'paid' as const,
             type: 'expense' as const,
-            notes: `Pagamento referente ao contrato com ${contract.landlordName}. Itens adicionais: ${JSON.stringify(values.additionalItems)}`,
+            notes: `Pagamento referente ao contrato com ${contract.landlordName}. Itens: ${JSON.stringify({contract: mainItemsDescriptions, additional: values.additionalItems})}`,
         };
 
         await addDocumentNonBlocking(expensesColRef, expenseData);
@@ -159,12 +185,54 @@ export function RegisterHousingPaymentDialog({ isOpen, onClose, contract }: Regi
               )}
             />
             
-            <div className="rounded-md border bg-muted/50 p-4 space-y-2">
-                <div className="flex justify-between items-center">
-                    <p className="text-sm font-medium">Valor Base do Contrato</p>
-                    <p className="text-sm font-semibold">{formatCurrency(contract.totalAmount)}</p>
-                </div>
-            </div>
+            <FormField
+              control={form.control}
+              name="contractItems"
+              render={() => (
+                <FormItem>
+                    <FormLabel>Itens do Contrato</FormLabel>
+                    <div className="rounded-md border bg-muted/30 p-4 space-y-2">
+                        {availableContractItems.map((item) => (
+                        <FormField
+                            key={item.id}
+                            control={form.control}
+                            name="contractItems"
+                            render={({ field }) => {
+                            return (
+                                <FormItem
+                                key={item.id}
+                                className="flex flex-row items-center justify-between"
+                                >
+                                <div className="flex items-center space-x-3">
+                                    <FormControl>
+                                    <Checkbox
+                                        checked={field.value?.includes(item.id)}
+                                        onCheckedChange={(checked) => {
+                                        return checked
+                                            ? field.onChange([...field.value, item.id])
+                                            : field.onChange(
+                                                field.value?.filter(
+                                                (value) => value !== item.id
+                                                )
+                                            )
+                                        }}
+                                    />
+                                    </FormControl>
+                                    <FormLabel className="font-normal cursor-pointer">
+                                    {item.label}
+                                    </FormLabel>
+                                </div>
+                                <span className="text-sm font-medium">{formatCurrency(item.amount)}</span>
+                                </FormItem>
+                            )
+                            }}
+                        />
+                        ))}
+                         {availableContractItems.length === 0 && <p className="text-xs text-muted-foreground text-center">Nenhum item principal no contrato.</p>}
+                    </div>
+                </FormItem>
+              )}
+            />
 
             <div className="space-y-2">
                 <div className="flex justify-between items-center">
@@ -204,6 +272,8 @@ export function RegisterHousingPaymentDialog({ isOpen, onClose, contract }: Regi
                     </div>
                 ))}
             </div>
+            
+            <Separator />
 
             <div className="rounded-md border-2 border-primary bg-primary/5 p-4 flex justify-between items-center">
                 <p className="text-base font-bold text-primary">Valor Total a Pagar</p>
