@@ -381,6 +381,40 @@
       },
       "required": ["userId", "landlordName", "rentAmount", "dueDate"]
     },
+    "HealthProvider": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Health Provider",
+      "type": "object",
+      "description": "Represents a health-related company or service provider.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string", "enum": ["Academia", "Clínica", "Consultório", "Estúdio", "Centro Terapêutico", "Outro"] },
+        "address": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "website": { "type": "string", "format": "uri" }
+      },
+      "required": ["userId", "name", "type"]
+    },
+    "HealthProfessional": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Health Professional",
+      "type": "object",
+      "description": "Represents an individual health professional.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "specialty": { "type": "string", "description": "e.g., 'Cardiologista', 'Psicólogo', 'Personal Trainer'" },
+        "providerId": { "type": "string", "description": "Optional reference to a HealthProvider." },
+        "phone": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "notes": { "type": "string", "description": "For schedules, observations, etc." }
+      },
+      "required": ["userId", "name", "specialty"]
+    },
     "SubscriptionPlan": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Subscription Plan",
@@ -538,6 +572,30 @@
               "name": "userId",
               "description": "The unique identifier of the user."
             }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/healthProviders/{providerId}",
+        "definition": {
+          "entityName": "HealthProvider",
+          "schema": { "$ref": "#/backend/entities/HealthProvider" },
+          "description": "Stores user's health service providers like clinics and gyms.",
+          "params": [
+            { "name": "userId", "description": "The user's unique ID." },
+            { "name": "providerId", "description": "The health provider's unique ID." }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/healthProfessionals/{professionalId}",
+        "definition": {
+          "entityName": "HealthProfessional",
+          "schema": { "$ref": "#/backend/entities/HealthProfessional" },
+          "description": "Stores user's health professionals like doctors and therapists.",
+          "params": [
+            { "name": "userId", "description": "The user's unique ID." },
+            { "name": "professionalId", "description": "The health professional's unique ID." }
           ]
         }
       },
