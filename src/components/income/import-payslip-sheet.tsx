@@ -555,263 +555,267 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
   }, [currentStep]);
 
   return (
+
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleReset()}>
       <DialogContent size="full" className="!max-w-[95vw] lg:!max-w-[80vw] h-[90vh] p-0 gap-0 overflow-hidden">
-        <div className="flex flex-col h-full bg-background">
-          {/* Header */}
-          <div className="px-6 py-4 border-b shrink-0">
-            <DialogHeader className="text-left">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-full bg-primary/10">
-                    <Sparkles className="h-5 w-5 text-primary" />
+        <ScrollArea>
+          <div className="flex flex-col h-full bg-background">
+            {/* Header */}
+            <div className="px-10 py-6 border-b shrink-0">
+              <DialogHeader className="text-left">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-full bg-primary/10">
+                      <Sparkles className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <DialogTitle className="text-xl font-bold">
+                        Importar Holerite com IA
+                      </DialogTitle>
+                      <DialogDescription className="text-sm">
+                        Envie seu holerite para extrair automaticamente os valores
+                      </DialogDescription>
+                    </div>
                   </div>
-                  <div>
-                    <DialogTitle className="text-xl font-bold">
-                      Importar Holerite com IA
-                    </DialogTitle>
-                    <DialogDescription className="text-sm">
-                      Envie seu holerite para extrair automaticamente os valores
-                    </DialogDescription>
-                  </div>
+                  {editableResult && (
+                    <div className="flex items-center gap-2">
+                      {QualityBadge}
+                    </div>
+                  )}
                 </div>
-                {editableResult && (
-                  <div className="flex items-center gap-2">
-                    {QualityBadge}
-                  </div>
-                )}
-              </div>
-            </DialogHeader>
-            {currentStep !== 'upload' && <div className="mt-4">{StepIndicator}</div>}
-          </div>
+              </DialogHeader>
+              {currentStep !== 'upload' && <div className="mt-4">{StepIndicator}</div>}
+            </div>
 
-          {/* Main Content */}
-          <div className="flex-1 overflow-hidden">
-            <AnimatePresence mode="wait">
-              {currentStep === 'upload' && (
-                <motion.div
-                  key="upload"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  className="h-full flex items-center justify-center p-6"
-                >
-                  <div className="w-full max-w-lg">
-                    <div
-                      {...getRootProps()}
-                      className={cn(
-                        'flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer transition-colors p-6',
-                        isDragActive
-                          ? 'border-primary bg-primary/10'
-                          : 'border-border hover:border-primary/50'
-                      )}
-                    >
-                      <input {...getInputProps()} />
-                      {file ? (
-                        <div className="text-center">
-                          <FileCheck2 className="mx-auto h-12 w-12 text-emerald-600" />
-                          <p className="mt-2 font-semibold">Arquivo selecionado!</p>
-                          <p className="text-sm text-muted-foreground truncate max-w-xs">{file.name}</p>
-                        </div>
-                      ) : (
-                        <div className="text-center text-muted-foreground">
-                          <UploadCloud className="mx-auto h-12 w-12" />
-                          <p className="mt-2">Arraste e solte seu PDF aqui</p>
-                          <p className="text-xs">ou clique para selecionar</p>
+            {/* Main Content */}
+            <div className="flex-1 overflow-hidden">
+              <AnimatePresence mode="wait">
+                {currentStep === 'upload' && (
+                  <motion.div
+                    key="upload"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="h-full flex items-center justify-center p-6"
+                  >
+                    <div className="w-full max-w-lg">
+                      <div
+                        {...getRootProps()}
+                        className={cn(
+                          'flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer transition-colors p-6',
+                          isDragActive
+                            ? 'border-primary bg-primary/10'
+                            : 'border-border hover:border-primary/50'
+                        )}
+                      >
+                        <input {...getInputProps()} />
+                        {file ? (
+                          <div className="text-center">
+                            <FileCheck2 className="mx-auto h-12 w-12 text-emerald-600" />
+                            <p className="mt-2 font-semibold">Arquivo selecionado!</p>
+                            <p className="text-sm text-muted-foreground truncate max-w-xs">{file.name}</p>
+                          </div>
+                        ) : (
+                          <div className="text-center text-muted-foreground">
+                            <UploadCloud className="mx-auto h-12 w-12" />
+                            <p className="mt-2">Arraste e solte seu PDF aqui</p>
+                            <p className="text-xs">ou clique para selecionar</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {file && (
+                        <div className="mt-6 flex justify-center">
+                          <Button
+                            size="lg"
+                            onClick={handleExtract}
+                            disabled={isProcessing}
+                          >
+                            <Sparkles className="mr-2 h-5 w-5" />
+                            {isProcessing ? 'Analisando...' : 'Analisar com IA'}
+                          </Button>
                         </div>
                       )}
                     </div>
+                  </motion.div>
+                )}
 
-                    {file && (
-                      <div className="mt-6 flex justify-center">
-                        <Button
-                          size="lg"
-                          onClick={handleExtract}
-                          disabled={isProcessing}
-                        >
-                          <Sparkles className="mr-2 h-5 w-5" />
-                          {isProcessing ? 'Analisando...' : 'Analisar com IA'}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-
-              {currentStep === 'analyzing' && (
-                <motion.div
-                  key="analyzing"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="h-full flex flex-col items-center justify-center"
-                >
+                {currentStep === 'analyzing' && (
+                  <motion.div
+                    key="analyzing"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="h-full flex flex-col items-center justify-center"
+                  >
                     <Loader2 className="h-12 w-12 animate-spin text-primary" />
                     <h3 className="mt-4 text-xl font-semibold">Analisando documento...</h3>
                     <p className="text-muted-foreground">Aguarde, nossa IA está trabalhando.</p>
                     <Progress value={analysisProgress} className="mt-4 w-64" />
-                </motion.div>
-              )}
+                  </motion.div>
+                )}
 
-              {currentStep === 'review' && editableResult && (
-                <motion.div
-                  key="review"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="h-full"
-                >
-                  <div className={cn(
-                    "flex flex-col lg:flex-row h-full transition-all duration-300",
-                    showPdfPreview ? "lg:divide-x" : ""
-                  )}>
-                    {showPdfPreview && (
-                      <div className="flex-1 lg:w-[45%] flex flex-col border-b lg:border-b-0 lg:border-r bg-muted/5 shrink-0 min-w-0">
-                        <PDFViewer pdfDataUri={pdfDataUri} fileName={file?.name}/>
-                      </div>
-                    )}
-
-                    <ScrollArea className="flex-1">
-                      <div className="p-4 lg:p-6 space-y-4">
-                        <Card>
-                          <CardHeader className="pb-4">
-                            <CardTitle className="text-base">Informações Básicas</CardTitle>
-                          </CardHeader>
-                          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <label className="text-sm font-medium text-muted-foreground">Pagador / Empresa</label>
-                              <Input
-                                value={editableResult.companyName || ''}
-                                onChange={(e) => handleFieldChange('companyName', e.target.value)}
-                              />
-                            </div>
-                            <div>
-                              <label className="text-sm font-medium text-muted-foreground">Data de Competência</label>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <Button variant="outline" className="w-full justify-start text-left font-normal">
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {editableResult.issueDate ? format(parseISO(editableResult.issueDate), 'PPP', { locale: ptBR }) : 'Selecione'}
-                                  </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={editableResult.issueDate ? parseISO(editableResult.issueDate) : undefined} onSelect={(d) => handleFieldChange('issueDate', d ? format(d, 'yyyy-MM-dd') : '')} /></PopoverContent>
-                              </Popover>
-                            </div>
-                          </CardContent>
-                        </Card>
-
-                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-                          <Card>
-                            <CardHeader className="pb-4 flex-row items-center justify-between">
-                              <CardTitle className="text-base text-emerald-600">Proventos (Ganhos)</CardTitle>
-                              <Button variant="ghost" size="sm" onClick={handleAddEarning}><Plus className="mr-1 h-4 w-4"/>Adicionar</Button>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                              {(editableResult.earnings || []).map((item, index) => (
-                                <div key={index} className="flex items-center gap-2">
-                                  <Input value={item.name} onChange={e => {/*...*/}}/>
-                                  <CurrencyInput value={item.amount} onValueChange={v => {/*...*/}} />
-                                  <Button variant="ghost" size="icon" onClick={() => handleRemoveEarning(index)}><Trash2 className="h-4 w-4"/></Button>
-                                </div>
-                              ))}
-                              <Separator/>
-                              <div className="flex justify-between items-center font-semibold"><span>Total</span><span>{formatCurrency(calculatedTotals.earnings)}</span></div>
-                            </CardContent>
-                          </Card>
-
-                          <Card>
-                             <CardHeader className="pb-4 flex-row items-center justify-between">
-                              <CardTitle className="text-base text-red-600">Descontos</CardTitle>
-                              <Button variant="ghost" size="sm" onClick={handleAddDeduction}><Plus className="mr-1 h-4 w-4"/>Adicionar</Button>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                              {(editableResult.deductions || []).map((item, index) => (
-                                <div key={index} className="flex items-center gap-2">
-                                  <Input value={item.name} onChange={e => {/*...*/}}/>
-                                  <CurrencyInput value={item.amount} onValueChange={v => {/*...*/}} />
-                                  <Button variant="ghost" size="icon" onClick={() => handleRemoveDeduction(index)}><Trash2 className="h-4 w-4"/></Button>
-                                </div>
-                              ))}
-                              <Separator/>
-                              <div className="flex justify-between items-center font-semibold"><span>Total</span><span>{formatCurrency(calculatedTotals.deductions)}</span></div>
-                            </CardContent>
-                          </Card>
-                        </div>
-                        
-                        <Card>
-                          <CardContent className="pt-6">
-                            <label className="text-sm font-medium">Observações</label>
-                            <Textarea value={editableResult.description || ''} onChange={e => handleFieldChange('description', e.target.value)} />
-                          </CardContent>
-                        </Card>
-                        
-                        <Card className="border-primary bg-primary/5">
-                          <CardHeader className="text-center pb-2">
-                            <CardTitle>Valor Líquido a Receber</CardTitle>
-                          </CardHeader>
-                           <CardContent className="text-center">
-                            <CurrencyInput value={editableResult.netAmount} onValueChange={v => handleFieldChange('netAmount', v)} className="text-3xl font-bold border-0 text-center h-auto p-0"/>
-                            {calculatedTotals.net !== editableResult.netAmount && (
-                                <Button variant="link" size="sm" onClick={() => handleFieldChange('netAmount', calculatedTotals.net)}>Usar valor calculado: {formatCurrency(calculatedTotals.net)}</Button>
-                            )}
-                          </CardContent>
-                        </Card>
-
-                      </div>
-                    </ScrollArea>
-                  </div>
-                </motion.div>
-              )}
-
-              {currentStep === 'confirm' && (
-                <motion.div
-                  key="confirm"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="h-full flex flex-col items-center justify-center"
-                >
-                   <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                   <h3 className="mt-4 text-xl font-semibold">Salvando dados...</h3>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Footer */}
-          <div className="px-6 py-4 border-t flex items-center justify-between shrink-0">
-            <Button
-              variant="ghost"
-              onClick={handleReset}
-              disabled={isSaving}
-            >
-              Cancelar
-            </Button>
-
-            <div className="flex items-center gap-3">
-              {currentStep === 'review' && (
-                <>
-                  <Button variant="outline" onClick={() => dispatch({ type: 'SET_SHOW_PDF_PREVIEW', payload: !showPdfPreview })}>
-                    {showPdfPreview ? <EyeOff className="mr-2 h-4 w-4"/> : <Eye className="mr-2 h-4 w-4"/>}
-                    {showPdfPreview ? 'Ocultar PDF' : 'Mostrar PDF'}
-                  </Button>
-                   <Button variant="outline" onClick={handleReprocess} disabled={isProcessing}>
-                    <RefreshCw className={cn("mr-2 h-4 w-4", isProcessing && "animate-spin")} />
-                    Reanalisar
-                  </Button>
-                  <Button
-                    onClick={handleConfirm}
-                    disabled={isSaving || !editableResult?.netAmount}
+                {currentStep === 'review' && editableResult && (
+                  <motion.div
+                    key="review"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="h-full"
                   >
-                    {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Save className="mr-2 h-4 w-4" />}
-                    Confirmar e Salvar
-                  </Button>
-                </>
-              )}
+                    <div className={cn(
+                      "flex flex-col lg:flex-row h-full transition-all duration-300",
+                      showPdfPreview ? "lg:divide-x" : ""
+                    )}>
+                      {showPdfPreview && (
+                        <div className="flex-1 lg:w-[45%] flex flex-col border-b lg:border-b-0 lg:border-r bg-muted/5 shrink-0 min-w-0">
+                          <PDFViewer pdfDataUri={pdfDataUri} fileName={file?.name} />
+                        </div>
+                      )}
+
+                      <ScrollArea className="flex-1">
+                        <div className="p-4 lg:p-6 space-y-4">
+                          <Card>
+                            <CardHeader className="pb-4">
+                              <CardTitle className="text-base">Informações Básicas</CardTitle>
+                            </CardHeader>
+                            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="text-sm font-medium text-muted-foreground">Pagador / Empresa</label>
+                                <Input
+                                  value={editableResult.companyName || ''}
+                                  onChange={(e) => handleFieldChange('companyName', e.target.value)}
+                                />
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium text-muted-foreground">Data de Competência</label>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button variant="outline" className="w-full justify-start text-left font-normal">
+                                      <CalendarIcon className="mr-2 h-4 w-4" />
+                                      {editableResult.issueDate ? format(parseISO(editableResult.issueDate), 'PPP', { locale: ptBR }) : 'Selecione'}
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={editableResult.issueDate ? parseISO(editableResult.issueDate) : undefined} onSelect={(d) => handleFieldChange('issueDate', d ? format(d, 'yyyy-MM-dd') : '')} /></PopoverContent>
+                                </Popover>
+                              </div>
+                            </CardContent>
+                          </Card>
+
+                          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                            <Card>
+                              <CardHeader className="pb-4 flex-row items-center justify-between">
+                                <CardTitle className="text-base text-emerald-600">Proventos (Ganhos)</CardTitle>
+                                <Button variant="ghost" size="sm" onClick={handleAddEarning}><Plus className="mr-1 h-4 w-4" />Adicionar</Button>
+                              </CardHeader>
+                              <CardContent className="space-y-2">
+                                {(editableResult.earnings || []).map((item, index) => (
+                                  <div key={index} className="flex items-center gap-2">
+                                    <Input value={item.name} onChange={e => {/*...*/ }} />
+                                    <CurrencyInput value={item.amount} onValueChange={v => {/*...*/ }} />
+                                    <Button variant="ghost" size="icon" onClick={() => handleRemoveEarning(index)}><Trash2 className="h-4 w-4" /></Button>
+                                  </div>
+                                ))}
+                                <Separator />
+                                <div className="flex justify-between items-center font-semibold"><span>Total</span><span>{formatCurrency(calculatedTotals.earnings)}</span></div>
+                              </CardContent>
+                            </Card>
+
+                            <Card>
+                              <CardHeader className="pb-4 flex-row items-center justify-between">
+                                <CardTitle className="text-base text-red-600">Descontos</CardTitle>
+                                <Button variant="ghost" size="sm" onClick={handleAddDeduction}><Plus className="mr-1 h-4 w-4" />Adicionar</Button>
+                              </CardHeader>
+                              <CardContent className="space-y-2">
+                                {(editableResult.deductions || []).map((item, index) => (
+                                  <div key={index} className="flex items-center gap-2">
+                                    <Input value={item.name} onChange={e => {/*...*/ }} />
+                                    <CurrencyInput value={item.amount} onValueChange={v => {/*...*/ }} />
+                                    <Button variant="ghost" size="icon" onClick={() => handleRemoveDeduction(index)}><Trash2 className="h-4 w-4" /></Button>
+                                  </div>
+                                ))}
+                                <Separator />
+                                <div className="flex justify-between items-center font-semibold"><span>Total</span><span>{formatCurrency(calculatedTotals.deductions)}</span></div>
+                              </CardContent>
+                            </Card>
+                          </div>
+
+                          <Card>
+                            <CardContent className="pt-6">
+                              <label className="text-sm font-medium">Observações</label>
+                              <Textarea value={editableResult.description || ''} onChange={e => handleFieldChange('description', e.target.value)} />
+                            </CardContent>
+                          </Card>
+
+                          <Card className="border-primary bg-primary/5">
+                            <CardHeader className="text-center pb-2">
+                              <CardTitle>Valor Líquido a Receber</CardTitle>
+                            </CardHeader>
+                            <CardContent className="text-center">
+                              <CurrencyInput value={editableResult.netAmount} onValueChange={v => handleFieldChange('netAmount', v)} className="text-3xl font-bold border-0 text-center h-auto p-0" />
+                              {calculatedTotals.net !== editableResult.netAmount && (
+                                <Button variant="link" size="sm" onClick={() => handleFieldChange('netAmount', calculatedTotals.net)}>Usar valor calculado: {formatCurrency(calculatedTotals.net)}</Button>
+                              )}
+                            </CardContent>
+                          </Card>
+
+                        </div>
+                      </ScrollArea>
+                    </div>
+                  </motion.div>
+                )}
+
+                {currentStep === 'confirm' && (
+                  <motion.div
+                    key="confirm"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="h-full flex flex-col items-center justify-center"
+                  >
+                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                    <h3 className="mt-4 text-xl font-semibold">Salvando dados...</h3>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t flex items-center justify-between shrink-0">
+              <Button
+                variant="ghost"
+                onClick={handleReset}
+                disabled={isSaving}
+              >
+                Cancelar
+              </Button>
+
+              <div className="flex items-center gap-3">
+                {currentStep === 'review' && (
+                  <>
+                    <Button variant="outline" onClick={() => dispatch({ type: 'SET_SHOW_PDF_PREVIEW', payload: !showPdfPreview })}>
+                      {showPdfPreview ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
+                      {showPdfPreview ? 'Ocultar PDF' : 'Mostrar PDF'}
+                    </Button>
+                    <Button variant="outline" onClick={handleReprocess} disabled={isProcessing}>
+                      <RefreshCw className={cn("mr-2 h-4 w-4", isProcessing && "animate-spin")} />
+                      Reanalisar
+                    </Button>
+                    <Button
+                      onClick={handleConfirm}
+                      disabled={isSaving || !editableResult?.netAmount}
+                    >
+                      {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                      Confirmar e Salvar
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
+
   );
 }
