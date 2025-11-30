@@ -157,10 +157,11 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
         endDate: contract.endDate ? parseISO(contract.endDate) : undefined,
         paymentPeriodicity: contract.paymentPeriodicity || 'Mensal',
         status: contract.status || 'active',
+        paymentMethod: contract.paymentMethod ?? { method: 'boleto' },
       });
     } else {
       // Reset for new contract
-       form.reset({
+      form.reset({
         landlordName: '',
         type: 'Aluguel + Condomínio',
         rentAmount: 0,
@@ -197,18 +198,25 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
 
     try {
       const batch = writeBatch(firestore);
-      
+
       const contractData: any = {
         ...values,
         userId: user.uid,
         startDate: formatISO(values.startDate),
       };
-      
+
       if (values.endDate) {
         contractData.endDate = formatISO(values.endDate);
       } else {
         contractData.endDate = null;
       }
+
+      // Remove campos undefined para evitar erros do Firestore (ex.: notes: undefined)
+      Object.keys(contractData).forEach((key) => {
+        if (contractData[key] === undefined) {
+          delete contractData[key];
+        }
+      });
 
       if (isEditing) {
         const contractRef = doc(firestore, `users/${user.uid}/rentalContracts`, contract.id);
