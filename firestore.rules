@@ -26,40 +26,40 @@ service cloud.firestore {
     // REGRAS PARA SUBCOLEÇÕES DO USUÁRIO
     // Permissões explícitas para cada subcoleção garantem que as queries de listagem funcionem.
     match /users/{userId}/incomes/{incomeId} {
-      allow read, write, delete: if isOwner(userId);
+      allow read, write, delete, create, list: if isOwner(userId);
     }
      match /users/{userId}/expenses/{expenseId} {
-      allow read, write, delete: if isOwner(userId);
+      allow read, write, delete, create, list: if isOwner(userId);
     }
      match /users/{userId}/debts/{debtId} {
-      allow read, write, delete: if isOwner(userId);
+      allow read, write, delete, create, list: if isOwner(userId);
     }
     match /users/{userId}/debts/{debtId}/installments/{installmentId} {
-        allow read, write, delete: if isOwner(userId);
+        allow read, write, delete, create, list: if isOwner(userId);
     }
      match /users/{userId}/goals/{goalId} {
-      allow read, write, delete: if isOwner(userId);
+      allow read, write, delete, create, list: if isOwner(userId);
     }
      match /users/{userId}/budgets/{budgetId} {
-      allow read, write, delete: if isOwner(userId);
+      allow read, write, delete, create, list: if isOwner(userId);
     }
      match /users/{userId}/creditCards/{cardId} {
-        allow read, write, delete: if isOwner(userId);
+        allow read, write, delete, create, list: if isOwner(userId);
     }
      match /users/{userId}/rentalContracts/{contractId} {
-        allow read, write, delete: if isOwner(userId);
+        allow read, write, delete, create, list: if isOwner(userId);
     }
      match /users/{userId}/healthProviders/{providerId} {
-        allow read, write, delete: if isOwner(userId);
+        allow read, write, delete, create, list: if isOwner(userId);
     }
     match /users/{userId}/healthProfessionals/{professionalId} {
-        allow read, write, delete: if isOwner(userId);
+        allow read, write, delete, create, list: if isOwner(userId);
     }
     match /users/{userId}/healthInsurances/{insuranceId} {
-        allow read, write, delete: if isOwner(userId);
+        allow read, write, delete, create, list: if isOwner(userId);
     }
     match /users/{userId}/notifications/{notificationId} {
-      allow read, write, delete: if isOwner(userId);
+      allow read, write, delete, create, list: if isOwner(userId);
     }
 
     // REGRA PARA CONSULTA DE GRUPO (Collection Group Query)

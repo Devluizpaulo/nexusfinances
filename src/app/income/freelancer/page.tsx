@@ -8,12 +8,12 @@ import type { Transaction } from '@/lib/types';
 import { Loader2, PenSquare, PlusCircle, DollarSign, List, Calendar, Upload } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils';
-import { ImportPayslipSheet } from '@/components/income/import-payslip-sheet';
 import { DataTable } from '@/components/data-table/data-table';
 import { columns } from './columns';
 import { useToast } from '@/hooks/use-toast';
 import { AddFreelancerSheet } from './add-freelancer-sheet';
 import { differenceInMonths, parseISO } from 'date-fns';
+import { ImportPayslipSheet } from '@/components/income/import-payslip-sheet';
 
 
 export default function FreelancerPage() {
