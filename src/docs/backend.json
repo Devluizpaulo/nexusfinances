@@ -182,6 +182,10 @@
         "creditCardId": {
             "type": "string",
             "description": "Optional reference to a CreditCard. If present, this expense is part of a credit card bill."
+        },
+        "consumption": {
+          "type": "string",
+          "description": "Optional consumption data for utility bills (e.g., '150 kWh', '25 m³')."
         }
       },
       "required": [

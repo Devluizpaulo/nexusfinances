@@ -76,6 +76,10 @@ export default function UtilitiesPage() {
             <Upload className="mr-2 h-4 w-4" />
             Importar PDF com IA
         </Button>
+         <Button onClick={handleOpenSheet} disabled={!user}>
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Adicionar Conta
+        </Button>
       </PageHeader>
 
       <Card className="mt-4">
@@ -104,5 +108,3 @@ export default function UtilitiesPage() {
     </>
   );
 }
-
-    
