@@ -20,7 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useDropzone } from 'react-dropzone';
 import { cn } from '@/lib/utils';
 import { extractPayslipData } from '@/ai/flows/extract-payslip-data-flow';
-import type { ExtractPayslipOutput } from '@/lib/types';
+import type { ExtractPayslipOutput, IncomeCategory } from '@/lib/types';
 import { useFirestore, useUser, addDocumentNonBlocking } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { format, parseISO, isValid } from 'date-fns';
@@ -34,12 +34,17 @@ import { Calendar } from '../ui/calendar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { PDFViewer } from '@/components/income/pdf-viewer';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { incomeCategories } from '@/lib/types';
+
 
 type ImportPayslipSheetProps = { isOpen: boolean; onClose: () => void };
 type WorkflowStep = 'upload' | 'analyzing' | 'review' | 'confirm';
 type AnalysisQuality = 'high' | 'medium' | 'low';
 
 const CACHE_KEY = 'payslip_analysis_cache_v2';
+
+type EditableResult = ExtractPayslipOutput & { category: string };
 
 // State management with reducer
 type AppState = {
@@ -48,7 +53,7 @@ type AppState = {
   currentStep: WorkflowStep;
   analysisProgress: number;
   originalResult: ExtractPayslipOutput | null;
-  editableResult: ExtractPayslipOutput | null;
+  editableResult: EditableResult | null;
   analysisQuality: AnalysisQuality;
   showPdfPreview: boolean;
   isProcessing: boolean;
@@ -61,7 +66,7 @@ type AppAction =
   | { type: 'SET_CURRENT_STEP'; payload: WorkflowStep }
   | { type: 'SET_ANALYSIS_PROGRESS'; payload: number }
   | { type: 'SET_ORIGINAL_RESULT'; payload: ExtractPayslipOutput | null }
-  | { type: 'SET_EDITABLE_RESULT'; payload: ExtractPayslipOutput | null }
+  | { type: 'SET_EDITABLE_RESULT'; payload: EditableResult | null }
   | { type: 'SET_ANALYSIS_QUALITY'; payload: AnalysisQuality }
   | { type: 'SET_SHOW_PDF_PREVIEW'; payload: boolean }
   | { type: 'SET_IS_PROCESSING'; payload: boolean }
@@ -226,12 +231,17 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
   // Update editable result when original result changes
   useEffect(() => {
     if (originalResult) {
-      dispatch({ type: 'SET_EDITABLE_RESULT', payload: JSON.parse(JSON.stringify(originalResult)) });
+      const newEditableResult: EditableResult = {
+        ...JSON.parse(JSON.stringify(originalResult)),
+        category: 'Freelance', // Default category
+      };
+      dispatch({ type: 'SET_EDITABLE_RESULT', payload: newEditableResult });
       dispatch({ type: 'SET_ANALYSIS_QUALITY', payload: evaluateAnalysisQuality(originalResult) });
     } else {
       dispatch({ type: 'SET_EDITABLE_RESULT', payload: null });
     }
   }, [originalResult, evaluateAnalysisQuality]);
+  
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -380,7 +390,7 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
     }
   };
 
-  const handleFieldChange = (field: keyof ExtractPayslipOutput, value: any) => {
+  const handleFieldChange = (field: keyof EditableResult, value: any) => {
     if (!editableResult) return;
 
     const updatedResult = { ...editableResult, [field]: value };
@@ -440,7 +450,7 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
       const incomesColRef = collection(firestore, `users/${user.uid}/incomes`);
       const incomeData = {
         amount: editableResult.netAmount,
-        category: 'Freelance',
+        category: editableResult.category,
         date: editableResult.issueDate || new Date().toISOString().split('T')[0],
         description: editableResult.description || `Pagamento de ${editableResult.companyName || 'serviço prestado'}`,
         isRecurring: false,
@@ -497,6 +507,11 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
       net: totalEarnings - totalDeductions
     };
   }, [editableResult]);
+
+  const allIncomeCategories = useMemo(() => {
+    const custom = user?.customIncomeCategories || [];
+    return Array.from(new Set([...incomeCategories, ...custom]));
+  }, [user]);
 
   // Components
   const QualityBadge = useMemo(() => {
@@ -694,13 +709,24 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
                             <CardHeader className="pb-4">
                               <CardTitle className="text-base">Informações Básicas</CardTitle>
                             </CardHeader>
-                            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                               <div>
                                 <label className="text-sm font-medium text-muted-foreground">Pagador / Empresa</label>
                                 <Input
                                   value={editableResult.companyName || ''}
                                   onChange={(e) => handleFieldChange('companyName', e.target.value)}
                                 />
+                              </div>
+                               <div>
+                                <label className="text-sm font-medium text-muted-foreground">Categoria</label>
+                                 <Select value={editableResult.category} onValueChange={(v) => handleFieldChange('category', v)}>
+                                  <SelectTrigger><SelectValue /></SelectTrigger>
+                                  <SelectContent>
+                                    {allIncomeCategories.map(cat => (
+                                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
                               </div>
                               <div>
                                 <label className="text-sm font-medium text-muted-foreground">Data de Competência</label>
@@ -733,7 +759,7 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
                                     />
                                     <CurrencyInput
                                       value={item.amount}
-                                      onValueChange={(v) => handleItemChange('earnings', index, 'amount', v)}
+                                      onValueChange={(v) => handleItemChange('earnings', index, 'amount', v || 0)}
                                     />
                                     <Button variant="ghost" size="icon" onClick={() => handleRemoveEarning(index)}><Trash2 className="h-4 w-4" /></Button>
                                   </div>
@@ -758,7 +784,7 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
                                     />
                                     <CurrencyInput
                                       value={item.amount}
-                                      onValueChange={(v) => handleItemChange('deductions', index, 'amount', v)}
+                                      onValueChange={(v) => handleItemChange('deductions', index, 'amount', v || 0)}
                                     />
                                     <Button variant="ghost" size="icon" onClick={() => handleRemoveDeduction(index)}><Trash2 className="h-4 w-4" /></Button>
                                   </div>
@@ -781,7 +807,7 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
                               <CardTitle>Valor Líquido a Receber</CardTitle>
                             </CardHeader>
                             <CardContent className="text-center">
-                              <CurrencyInput value={editableResult.netAmount} onValueChange={v => handleFieldChange('netAmount', v)} className="text-3xl font-bold border-0 text-center h-auto p-0" />
+                              <CurrencyInput value={editableResult.netAmount} onValueChange={v => handleFieldChange('netAmount', v || 0)} className="text-3xl font-bold border-0 text-center h-auto p-0" />
                               {calculatedTotals.net !== editableResult.netAmount && (
                                 <Button variant="link" size="sm" onClick={() => handleFieldChange('netAmount', calculatedTotals.net)}>Usar valor calculado: {formatCurrency(calculatedTotals.net)}</Button>
                               )}
