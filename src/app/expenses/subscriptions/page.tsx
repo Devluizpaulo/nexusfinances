@@ -53,27 +53,41 @@ export default function SubscriptionsPage() {
   const { groupedExpenses } = useMemo(() => {
     const grouped: Record<string, Recurrence[]> = { 'Outras Assinaturas': [] };
     subscriptionCategories.forEach(cat => { grouped[cat.title] = [] });
+    
+    // Explicit keywords for items that are NOT subscriptions
+    const nonSubscriptionKeywords = [
+        'Moradia', 'Aluguel', 'Condomínio', 'Hipoteca', 
+        'Luz', 'Água', 'Gás', 'Internet', 'Celular', 'Plano',
+        'IPTU', 'IPVA', 'Seguro Residencial', 'Seguro de Carro'
+    ].map(k => k.toLowerCase());
 
     (expenseData || []).forEach(expense => {
+      const expenseDescription = expense.description.toLowerCase();
+      const expenseCategory = expense.category.toLowerCase();
+
+      // First, check if this is explicitly NOT a subscription
+      const isNonSubscription = nonSubscriptionKeywords.some(keyword => 
+        expenseCategory.includes(keyword) || 
+        expenseDescription.includes(keyword)
+      );
+      
+      if (isNonSubscription) {
+          return; // Skip this expense entirely
+      }
+
+      // If not excluded, try to find a matching subscription category
       const foundCategory = subscriptionCategories.find(cat => 
         cat.keywords.some(keyword => 
-          expense.category.toLowerCase().includes(keyword.toLowerCase()) || 
-          expense.description.toLowerCase().includes(keyword.toLowerCase())
+          expenseCategory.includes(keyword.toLowerCase()) || 
+          expenseDescription.includes(keyword.toLowerCase())
         )
       );
       
       if (foundCategory) {
         grouped[foundCategory.title].push(expense);
       } else {
-        const nonSubscriptionKeywords = ['Moradia', 'Aluguel', 'Condomínio', 'Hipoteca', 'Luz', 'Água', 'Gás', 'Internet', 'Celular', 'Plano', 'IPTU', 'Seguro Residencial'];
-        const isUtilityOrRent = nonSubscriptionKeywords.some(keyword =>
-          expense.category.toLowerCase().includes(keyword.toLowerCase()) ||
-          expense.description.toLowerCase().includes(keyword.toLowerCase())
-        );
-
-        if (!isUtilityOrRent) {
-          grouped['Outras Assinaturas'].push(expense);
-        }
+        // If it's not a non-subscription and doesn't fit any main category, it's an "Other" subscription.
+        grouped['Outras Assinaturas'].push(expense);
       }
     });
 
@@ -169,5 +183,3 @@ export default function SubscriptionsPage() {
     </>
   );
 }
-
-    
