@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Transaction } from "@/lib/types"
 import { ArrowUpDown, CheckCircle, XCircle, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { format } from "date-fns"
+import { format, parseISO } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { Badge } from "@/components/ui/badge"
 import { DataTableRowActions } from "./actions"
@@ -30,7 +30,7 @@ export const columns = ({ onEdit, onStatusChange }: ColumnsProps): ColumnDef<Tra
       )
     },
     cell: ({ row }) => {
-        const date = new Date(row.getValue("date"))
+        const date = parseISO(row.getValue("date"))
         return <div className="pl-4">{format(date, "PPP", { locale: ptBR })}</div>
     }
   },
