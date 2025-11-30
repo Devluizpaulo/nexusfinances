@@ -8,8 +8,7 @@ import type { Recurrence } from '@/lib/types';
 import { Loader2, WalletCards, PlusCircle, Upload } from 'lucide-react';
 import { RecurrenceCard } from '@/components/recurrences/recurrence-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
-import { incomeCategories } from '@/lib/types';
+import { AddOtherIncomeSheet } from '@/components/income/add-other-income-sheet';
 import { PageHeader } from '@/components/page-header';
 import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
 
@@ -57,11 +56,9 @@ export default function OthersIncomePage() {
 
   return (
     <>
-      <AddTransactionSheet
+      <AddOtherIncomeSheet
         isOpen={isAddSheetOpen}
         onClose={handleCloseSheet}
-        transactionType="income"
-        categories={incomeCategories}
       />
        <ImportTransactionsSheet 
         isOpen={isImportSheetOpen}
@@ -72,10 +69,16 @@ export default function OthersIncomePage() {
         title="Outras Rendas Recorrentes"
         description="Gerencie rendas passivas, aluguéis ou outras fontes de renda recorrentes."
       >
-        <Button variant="outline" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>
-          <Upload className="mr-2 h-4 w-4" />
-          Importar PDF com IA
-        </Button>
+        <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>
+              <Upload className="mr-2 h-4 w-4" />
+              Importar PDF com IA
+            </Button>
+             <Button onClick={handleOpenSheet} disabled={!user}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Adicionar Renda Recorrente
+            </Button>
+        </div>
       </PageHeader>
 
       <Card className="mt-4">
@@ -106,5 +109,3 @@ export default function OthersIncomePage() {
     </>
   );
 }
-
-    
