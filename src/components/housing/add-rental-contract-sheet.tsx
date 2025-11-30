@@ -3,7 +3,7 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { formatISO } from 'date-fns';
+import { formatISO, setDate } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { collection, doc, writeBatch } from 'firebase/firestore';
 import { useFirestore, useUser } from '@/firebase';
