@@ -6,7 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { MoreVertical, Pencil, FileTerminal, Power, PowerOff } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
+import { MoreVertical, Pencil, FileTerminal, Power, PowerOff, TrendingUp } from 'lucide-react';
 import type { RentalContract } from '@/lib/types';
 import { format, parseISO } from 'date-fns';
 import { cn, formatCurrency } from '@/lib/utils';
@@ -25,6 +26,7 @@ export function ManageContractsDialog({ isOpen, onClose, contracts, onEditContra
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
+  const [contractToAdjust, setContractToAdjust] = useState<RentalContract | null>(null);
 
   const handleToggleStatus = (contract: RentalContract) => {
     if (!user) return;
@@ -37,7 +39,33 @@ export function ManageContractsDialog({ isOpen, onClose, contracts, onEditContra
     });
   }
 
+  const handleApplyAdjustment = () => {
+    if (!contractToAdjust) return;
+    // Lógica de reajuste a ser implementada aqui.
+    toast({
+        title: "Funcionalidade em desenvolvimento",
+        description: `A lógica para aplicar reajuste ao contrato "${contractToAdjust.landlordName}" será implementada em breve.`
+    });
+    setContractToAdjust(null);
+  }
+
   return (
+    <>
+    <AlertDialog open={!!contractToAdjust} onOpenChange={() => setContractToAdjust(null)}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Aplicar Reajuste de Aluguel</AlertDialogTitle>
+                <AlertDialogDescription>
+                    Esta funcionalidade permitirá calcular e aplicar reajustes (ex: IGP-M) ao contrato. No momento, está em desenvolvimento. Deseja continuar?
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleApplyAdjustment}>Continuar (Demo)</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent size="lg">
         <DialogHeader>
@@ -52,9 +80,10 @@ export function ManageContractsDialog({ isOpen, onClose, contracts, onEditContra
                     <TableHeader>
                         <TableRow>
                             <TableHead>Proprietário</TableHead>
-                            <TableHead>Tipo</TableHead>
                             <TableHead>Valor</TableHead>
                             <TableHead>Vencimento</TableHead>
+                            <TableHead>Início</TableHead>
+                            <TableHead>Fim</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead className="text-right">Ações</TableHead>
                         </TableRow>
@@ -63,9 +92,10 @@ export function ManageContractsDialog({ isOpen, onClose, contracts, onEditContra
                         {contracts.map(contract => (
                             <TableRow key={contract.id}>
                                 <TableCell className="font-medium">{contract.landlordName}</TableCell>
-                                <TableCell>{contract.type}</TableCell>
                                 <TableCell>{formatCurrency(contract.totalAmount)}</TableCell>
                                 <TableCell>Dia {contract.dueDate}</TableCell>
+                                <TableCell>{format(parseISO(contract.startDate), 'dd/MM/yy')}</TableCell>
+                                <TableCell>{contract.endDate ? format(parseISO(contract.endDate), 'dd/MM/yy') : 'N/A'}</TableCell>
                                 <TableCell>
                                     <Badge variant={contract.status === 'active' ? 'default' : 'outline'}>
                                         {contract.status === 'active' ? 'Ativo' : 'Inativo'}
@@ -81,6 +111,11 @@ export function ManageContractsDialog({ isOpen, onClose, contracts, onEditContra
                                                 <Pencil className="mr-2 h-4 w-4" />
                                                 Editar
                                             </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => setContractToAdjust(contract)}>
+                                                <TrendingUp className="mr-2 h-4 w-4" />
+                                                Aplicar Reajuste
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator />
                                             <DropdownMenuItem onClick={() => handleToggleStatus(contract)}>
                                                 {contract.status === 'active' ? (
                                                     <><PowerOff className="mr-2 h-4 w-4" />Encerrar</>
@@ -104,5 +139,6 @@ export function ManageContractsDialog({ isOpen, onClose, contracts, onEditContra
         </div>
       </DialogContent>
     </Dialog>
+    </>
   );
 }
