@@ -15,6 +15,12 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { getMonth, getDate, set, isAfter, isBefore, addMonths, subMonths, startOfDay, endOfDay, parseISO, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Separator } from '../ui/separator';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
