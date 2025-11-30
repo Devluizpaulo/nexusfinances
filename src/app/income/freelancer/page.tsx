@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { collection, query, where, orderBy, doc } from 'firebase/firestore';
-import { useUser, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, useMemoFirebase, updateDocumentNonBlocking, useUserSubcollection } from '@/firebase';
 import type { Transaction } from '@/lib/types';
 import { Loader2, PenSquare, PlusCircle, DollarSign, List, Calendar, Upload } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,16 +25,10 @@ export default function FreelancerPage() {
   const { user, isUserLoading } = useUser();
   const { toast } = useToast();
 
-  const freelancerIncomesQuery = useMemoFirebase(() => {
-    if (!user) return null;
-    return query(
-      collection(firestore, `users/${user.uid}/incomes`), 
-      where('category', '==', 'Freelance'),
-      orderBy('date', 'desc')
-    );
-  }, [firestore, user]);
-
-  const { data: freelancerIncomes, isLoading: isIncomesLoading } = useCollection<Transaction>(freelancerIncomesQuery);
+  const { data: freelancerIncomes, isLoading: isIncomesLoading } = useUserSubcollection<Transaction>('incomes', {
+      filters: [where('category', '==', 'Freelance')],
+      orderBy: ['date', 'desc'],
+  });
 
   const stats = useMemo(() => {
     if (!freelancerIncomes || freelancerIncomes.length === 0) {
