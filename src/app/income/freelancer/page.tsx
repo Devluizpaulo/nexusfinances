@@ -1,19 +1,29 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { collection, query, where, orderBy, doc } from 'firebase/firestore';
-import { useUser, useFirestore, useMemoFirebase, updateDocumentNonBlocking, useUserSubcollection } from '@/firebase';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { collection, setDoc, updateDoc, getDocs, query, where, doc, deleteDoc, orderBy } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, useMemoFirebase, deleteDocumentNonBlocking, useUserSubcollection } from '@/firebase';
 import type { Transaction } from '@/lib/types';
-import { Loader2, PenSquare, PlusCircle, DollarSign, List, Calendar, Upload } from 'lucide-react';
+import { Loader2, Briefcase, PlusCircle, TrendingUp, TrendingDown, Edit, Star, Trash2, MoreVertical, Upload, PenSquare, List, Calendar, DollarSign } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AddFreelancerSheet } from './add-freelancer-sheet';
+import { incomeCategories } from '@/lib/types';
+import { KpiCard } from '@/components/dashboard/kpi-card';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Badge } from '@/components/ui/badge';
+import { ImportPayslipSheet } from '@/components/income/import-payslip-sheet';
+import { useToast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/lib/utils';
 import { DataTable } from '@/components/data-table/data-table';
 import { columns } from './columns';
-import { useToast } from '@/hooks/use-toast';
-import { AddFreelancerSheet } from './add-freelancer-sheet';
 import { differenceInMonths, parseISO } from 'date-fns';
-import { ImportPayslipSheet } from '@/components/income/import-payslip-sheet';
 
 
 export default function FreelancerPage() {
@@ -26,8 +36,10 @@ export default function FreelancerPage() {
   const { toast } = useToast();
 
   const { data: freelancerIncomes, isLoading: isIncomesLoading } = useUserSubcollection<Transaction>('incomes', {
-      filters: [where('category', '==', 'Freelance')],
-      orderBy: ['date', 'desc'],
+      constraints: [
+        where('category', '==', 'Freelance'),
+        orderBy('date', 'desc')
+      ]
   });
 
   const stats = useMemo(() => {

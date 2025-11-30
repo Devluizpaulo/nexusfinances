@@ -4,10 +4,8 @@ import { useState, useEffect, useMemo } from 'react';
 import {
   collection,
   query,
-  where,
-  orderBy,
   onSnapshot,
-  Query,
+  getDocs,
   DocumentData,
   QueryConstraint,
   FirestoreError,
@@ -20,8 +18,7 @@ import { FirestorePermissionError } from '../errors';
 export type WithId<T> = T & { id: string };
 
 interface UseUserSubcollectionOptions {
-  filters?: QueryConstraint[];
-  orderBy?: [string, 'asc' | 'desc'];
+  constraints?: QueryConstraint[];
   listen?: boolean;
 }
 
@@ -36,7 +33,7 @@ export function useUserSubcollection<T = DocumentData>(
   subcollectionName: string,
   options: UseUserSubcollectionOptions = {}
 ) {
-  const { filters = [], orderBy: orderByConfig, listen = true } = options;
+  const { constraints = [], listen = true } = options;
   const { user } = useUser();
   const firestore = useFirestore();
   
@@ -50,19 +47,14 @@ export function useUserSubcollection<T = DocumentData>(
     }
 
     const path = `users/${user.uid}/${subcollectionName}`;
-    const constraints: QueryConstraint[] = [...filters];
-    
-    if (orderByConfig) {
-      constraints.push(orderBy(orderByConfig[0], orderByConfig[1]));
-    }
-    
     return query(collection(firestore, path), ...constraints);
-  }, [user, firestore, subcollectionName, JSON.stringify(filters), JSON.stringify(orderByConfig)]);
+  }, [user, firestore, subcollectionName, constraints]);
 
 
   useEffect(() => {
     if (!memoizedQuery) {
       setIsLoading(false);
+      setData(null);
       return;
     }
 
@@ -99,6 +91,3 @@ export function useUserSubcollection<T = DocumentData>(
 
   return { data, isLoading, error };
 }
-
-// Helper para getDocs, caso seja necessário futuramente
-import { getDocs } from 'firebase/firestore';
