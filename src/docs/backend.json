@@ -423,12 +423,25 @@
       "properties": {
         "id": { "type": "string" },
         "userId": { "type": "string" },
-        "operator": { "type": "string", "description": "Name of the insurance company (e.g., 'Amil', 'Bradesco Saúde')." },
-        "planName": { "type": "string", "description": "Name of the plan (e.g., 'Plano Executivo')." },
-        "cardNumber": { "type": "string", "description": "The insurance card number." },
-        "emergencyContact": { "type": "string", "description": "The emergency contact phone number for the plan." }
+        "type": { "type": "string", "enum": ["Saúde", "Odontológico"], "description": "Type of insurance plan." },
+        "operator": { "type": "string", "description": "Name of the insurance company." },
+        "planName": { "type": "string", "description": "Name of the plan." },
+        "cardNumber": { "type": "string", "description": "The insurance card number for the main holder." },
+        "emergencyContact": { "type": "string", "description": "Emergency contact number for the plan." },
+        "dependents": {
+          "type": "array",
+          "description": "A list of dependents on the plan.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "cardNumber": { "type": "string" }
+            },
+            "required": ["name"]
+          }
+        }
       },
-      "required": ["userId", "operator", "planName", "cardNumber"]
+      "required": ["userId", "type", "operator", "planName", "cardNumber"]
     },
     "SubscriptionPlan": {
       "$schema": "http://json-schema.org/draft-07/schema#",

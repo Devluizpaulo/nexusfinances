@@ -171,6 +171,44 @@ export const goalCategories = [
 
 export type GoalCategory = typeof goalCategories[number];
 
+export type HealthProvider = {
+  id: string;
+  name: string;
+  type: 'Academia' | 'Clínica' | 'Consultório' | 'Estúdio' | 'Centro Terapêutico' | 'Outro';
+  address?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  userId?: string;
+};
+
+export type HealthProfessional = {
+  id: string;
+  name: string;
+  specialty: string;
+  providerId?: string;
+  phone?: string;
+  email?: string;
+  notes?: string;
+  userId?: string;
+};
+
+export type HealthInsuranceDependent = {
+  name: string;
+  cardNumber: string;
+};
+
+export type HealthInsurance = {
+  id: string;
+  type: 'Saúde' | 'Odontológico';
+  operator: string;
+  planName: string;
+  cardNumber: string;
+  emergencyContact?: string;
+  dependents: HealthInsuranceDependent[];
+  userId?: string;
+};
+
 
 // Schemas and types for AI Financial Insights Flow
 export const AITransactionSchema = z.object({

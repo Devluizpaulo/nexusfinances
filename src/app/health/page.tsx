@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Building, User, Heart, Shield, Loader2, Hospital } from 'lucide-react';
+import { PlusCircle, Building, User, Heart, Shield, Loader2, Hospital, Tooth } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useFirestore, useCollection, useUser, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
@@ -12,6 +12,7 @@ import { AddProviderSheet } from '@/components/health/add-provider-sheet';
 import { AddProfessionalSheet } from '@/components/health/add-professional-sheet';
 import { AddInsuranceSheet } from '@/components/health/add-insurance-sheet';
 import { HealthProviderCard } from '@/components/health/health-provider-card';
+import { Separator } from '@/components/ui/separator';
 
 export default function HealthPage() {
   const [isProviderSheetOpen, setIsProviderSheetOpen] = useState(false);
@@ -40,6 +41,14 @@ export default function HealthPage() {
   const { data: providersData, isLoading: isProvidersLoading } = useCollection<HealthProvider>(providersQuery);
   const { data: professionalsData, isLoading: isProfessionalsLoading } = useCollection<HealthProfessional>(professionalsQuery);
   const { data: insurancesData, isLoading: isInsuranceLoading } = useCollection<HealthInsurance>(insurancesQuery);
+
+  const { healthPlan, dentalPlan } = useMemo(() => {
+    if (!insurancesData) return { healthPlan: null, dentalPlan: null };
+    return {
+      healthPlan: insurancesData.find(i => i.type === 'Saúde') || null,
+      dentalPlan: insurancesData.find(i => i.type === 'Odontológico') || null,
+    };
+  }, [insurancesData]);
   
   const handleEditProvider = (provider: HealthProvider) => {
     setEditingProvider(provider);
@@ -51,7 +60,7 @@ export default function HealthPage() {
     setIsProfessionalSheetOpen(true);
   }
 
-  const handleEditInsurance = (insurance: HealthInsurance) => {
+  const handleEditInsurance = (insurance: HealthInsurance | null) => {
     setEditingInsurance(insurance);
     setIsInsuranceSheetOpen(true);
   }
@@ -102,41 +111,96 @@ export default function HealthPage() {
           </div>
         </PageHeader>
         
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Shield className="h-5 w-5 text-primary" />
-                <CardTitle>Meu Convênio</CardTitle>
-              </div>
-              <Button size="sm" variant="outline" onClick={() => handleEditInsurance(insurancesData?.[0] || null)}>
-                {insurancesData && insurancesData.length > 0 ? 'Editar' : 'Adicionar'}
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {insurancesData && insurancesData.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                <div>
-                  <p className="text-muted-foreground">Operadora</p>
-                  <p className="font-semibold">{insurancesData[0].operator}</p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Shield className="h-5 w-5 text-primary" />
+                  <CardTitle>Plano de Saúde</CardTitle>
                 </div>
-                 <div>
-                  <p className="text-muted-foreground">Plano</p>
-                  <p className="font-semibold">{insurancesData[0].planName}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Nº da Carteirinha</p>
-                  <p className="font-semibold">{insurancesData[0].cardNumber}</p>
-                </div>
+                <Button size="sm" variant="outline" onClick={() => handleEditInsurance(healthPlan)}>
+                  {healthPlan ? 'Editar' : 'Adicionar'}
+                </Button>
               </div>
-            ) : (
-              <div className="text-center text-sm text-muted-foreground py-4">
-                Nenhum convênio cadastrado.
+            </CardHeader>
+            <CardContent>
+              {healthPlan ? (
+                <div className="space-y-3 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">Operadora / Plano</p>
+                    <p className="font-semibold">{healthPlan.operator} / {healthPlan.planName}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Nº da Carteirinha (Titular)</p>
+                    <p className="font-semibold">{healthPlan.cardNumber}</p>
+                  </div>
+                   {healthPlan.dependents && healthPlan.dependents.length > 0 && (
+                      <div>
+                        <p className="text-muted-foreground">Dependentes</p>
+                        <div className="space-y-1 mt-1">
+                          {healthPlan.dependents.map(dep => (
+                            <p key={dep.name} className="text-xs">
+                              <span className="font-medium">{dep.name}:</span> {dep.cardNumber || 'N/D'}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center text-sm text-muted-foreground py-4">
+                  Nenhum plano de saúde cadastrado.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Tooth className="h-5 w-5 text-primary" />
+                  <CardTitle>Plano Odontológico</CardTitle>
+                </div>
+                <Button size="sm" variant="outline" onClick={() => handleEditInsurance(dentalPlan)}>
+                  {dentalPlan ? 'Editar' : 'Adicionar'}
+                </Button>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent>
+              {dentalPlan ? (
+                <div className="space-y-3 text-sm">
+                   <div>
+                    <p className="text-muted-foreground">Operadora / Plano</p>
+                    <p className="font-semibold">{dentalPlan.operator} / {dentalPlan.planName}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Nº da Carteirinha (Titular)</p>
+                    <p className="font-semibold">{dentalPlan.cardNumber}</p>
+                  </div>
+                   {dentalPlan.dependents && dentalPlan.dependents.length > 0 && (
+                      <div>
+                        <p className="text-muted-foreground">Dependentes</p>
+                         <div className="space-y-1 mt-1">
+                          {dentalPlan.dependents.map(dep => (
+                            <p key={dep.name} className="text-xs">
+                              <span className="font-medium">{dep.name}:</span> {dep.cardNumber || 'N/D'}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center text-sm text-muted-foreground py-4">
+                  Nenhum plano odontológico cadastrado.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <Separator />
 
         <div className="space-y-4">
           {providersData && providersData.length > 0 ? (
