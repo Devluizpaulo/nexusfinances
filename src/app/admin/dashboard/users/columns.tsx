@@ -41,6 +41,27 @@ export const columns: ColumnDef<AppUser>[] = [
     }
   },
   {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => {
+      const status = (row.original as any).status || 'active';
+      let variant: "default" | "secondary" | "outline" = 'secondary';
+
+      if (status === 'active') variant = 'default';
+      if (status === 'blocked') variant = 'outline';
+
+      const label = status === 'active'
+        ? 'Ativo'
+        : status === 'inactive'
+          ? 'Inativo'
+          : status === 'blocked'
+            ? 'Bloqueado'
+            : String(status);
+
+      return <Badge variant={variant}>{label}</Badge>;
+    }
+  },
+  {
     accessorKey: "registrationDate",
     header: ({ column }) => {
       return (

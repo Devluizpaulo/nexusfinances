@@ -265,17 +265,13 @@ export default function ProfilePage() {
               <form onSubmit={profileForm.handleSubmit(onProfileSubmit)}>
                 <CardContent className="space-y-4">
                   <div className="flex items-center gap-4">
-                    <Avatar className="h-16 w-16">
-                      <AvatarImage src={user?.photoURL || undefined} />
-                      <AvatarFallback>{user?.firstName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
+                    <Avatar className="h-16 w-16 rounded-full overflow-hidden bg-primary/10 text-primary">
+                      <AvatarFallback className="flex h-full w-full items-center justify-center">
+                        {user?.firstName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
+                      </AvatarFallback>
                     </Avatar>
                     <div>
-                      <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/png, image/jpeg, image/gif" hidden/>
-                      <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
-                          {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                          Mudar foto
-                      </Button>
-                      <p className="text-xs text-muted-foreground mt-2">JPG, GIF ou PNG. 1MB max.</p>
+                      <p className="text-xs text-muted-foreground mt-2">Esta imagem é gerada automaticamente pela inicial do seu nome.</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

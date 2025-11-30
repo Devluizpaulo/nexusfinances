@@ -85,6 +85,7 @@ async function createUserDocument(firestore: Firestore, firebaseUser: User): Pro
     lastName: lastName,
     phoneNumber: firebaseUser.phoneNumber || '',
     role: 'user' as const,
+    status: 'active' as const,
     completedTracks: [],
     customIncomeCategories: [],
     customExpenseCategories: [],

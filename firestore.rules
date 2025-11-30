@@ -9,10 +9,21 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == userId;
     }
 
+    // Função helper para verificar se o usuário autenticado é superadmin
+    function isSuperAdmin() {
+      return request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "superadmin";
+    }
+
     // REGRA DE USUÁRIOS
-    // Cada usuário só pode ler e escrever em seu próprio documento.
+    // Cada usuário pode ler e escrever em seu próprio documento.
+    // Usuários com role == "superadmin" podem listar, ler e gerenciar todos os usuários.
     match /users/{userId} {
+      // Acesso ao próprio documento
       allow read, write: if isOwner(userId);
+
+      // Acesso administrativo: listar, ler, atualizar e deletar qualquer usuário
+      allow list, get, update, delete: if isSuperAdmin();
 
       // REGRA PARA SUBCOLEÇÕES DO USUÁRIO
       // Permite acesso total a todas as subcoleções (incomes, expenses, etc.)
@@ -33,19 +44,23 @@ service cloud.firestore {
 
     // COLEÇÕES PÚBLICAS
     // Qualquer usuário autenticado pode ler os dados de educação e planos.
+    // Somente superadmins podem criar, atualizar ou deletar estes documentos.
     match /education/{document} {
       allow read: if request.auth != null;
+      allow create, update, delete: if isSuperAdmin();
     }
 
     match /subscriptionPlans/{document} {
       allow read: if request.auth != null;
+      allow create, update, delete: if isSuperAdmin();
     }
 
     // LOGS
-    // Qualquer usuário autenticado pode criar um log, mas ninguém (exceto via console) pode ler ou alterar.
+    // Qualquer usuário autenticado pode criar um log.
+    // Apenas superadmins podem listar, ler, atualizar ou deletar logs.
     match /logs/{document} {
       allow create: if request.auth != null;
-      allow read, update, delete: if false;
+      allow list, get, update, delete: if isSuperAdmin();
     }
   }
 }

@@ -43,24 +43,36 @@ export function DataTableRowActions({
   const userToModify = row.original;
   const newRole = userToModify.role === 'superadmin' ? 'user' : 'superadmin';
 
+  const resolveUserId = () => {
+    return (userToModify as any).uid || (userToModify as any).id;
+  };
+
   const handleDelete = () => {
     if (!user || !firestore) {
       toast({ variant: "destructive", title: "Erro", description: "Você não está autenticado." });
       return;
     }
     
-    if (user.uid === userToModify.uid) {
+    const userId = resolveUserId();
+
+    if (!userId) {
+      toast({ variant: "destructive", title: "Erro ao excluir", description: "ID do usuário não encontrado." });
+      setIsDeleteDialogOpen(false);
+      return;
+    }
+
+    if (user.uid === userId) {
       toast({ variant: "destructive", title: "Ação não permitida", description: "Você não pode excluir sua própria conta." });
       setIsDeleteDialogOpen(false);
       return;
     }
 
-    const docRef = doc(firestore, `users`, userToModify.uid);
+    const docRef = doc(firestore, `users`, userId);
     deleteDocumentNonBlocking(docRef);
     
     logEvent(firestore, {
         level: 'warn',
-        message: `O usuário "${userToModify.displayName}" (ID: ${userToModify.uid}) foi excluído.`,
+        message: `O usuário "${userToModify.displayName}" (ID: ${userId}) foi excluído.`,
         createdBy: user.uid,
         createdByName: user.displayName || 'Admin',
     });
@@ -78,13 +90,21 @@ export function DataTableRowActions({
       return;
     }
     
-    if (user.uid === userToModify.uid) {
+    const userId = (userToModify as any).uid || (userToModify as any).id;
+
+    if (!userId) {
+      toast({ variant: "destructive", title: "Erro ao alterar função", description: "ID do usuário não encontrado." });
+      setIsRoleDialogOpen(false);
+      return;
+    }
+
+    if (user.uid === userId) {
       toast({ variant: "destructive", title: "Ação não permitida", description: "Você não pode alterar sua própria função." });
       setIsRoleDialogOpen(false);
       return;
     }
 
-    const docRef = doc(firestore, `users`, userToModify.uid);
+    const docRef = doc(firestore, `users`, userId);
     updateDocumentNonBlocking(docRef, { role: newRole });
 
     logEvent(firestore, {
@@ -100,6 +120,40 @@ export function DataTableRowActions({
     });
     setIsRoleDialogOpen(false)
   }
+
+  const handleSetStatus = (newStatus: 'active' | 'inactive' | 'blocked') => {
+    if (!user || !firestore) {
+      toast({ variant: "destructive", title: "Erro", description: "Você não está autenticado." });
+      return;
+    }
+
+    const userId = resolveUserId();
+
+    if (!userId) {
+      toast({ variant: "destructive", title: "Erro ao atualizar status", description: "ID do usuário não encontrado." });
+      return;
+    }
+
+    if (user.uid === userId) {
+      toast({ variant: "destructive", title: "Ação não permitida", description: "Você não pode alterar o seu próprio status." });
+      return;
+    }
+
+    const docRef = doc(firestore, `users`, userId);
+    updateDocumentNonBlocking(docRef, { status: newStatus });
+
+    logEvent(firestore, {
+      level: 'info',
+      message: `O status do usuário "${userToModify.displayName}" foi atualizado para ${newStatus}.`,
+      createdBy: user.uid,
+      createdByName: user.displayName || 'Admin',
+    });
+
+    toast({
+      title: "Status atualizado",
+      description: `O usuário "${userToModify.displayName}" agora está ${newStatus}.`,
+    });
+  };
 
   return (
     <>
@@ -148,7 +202,7 @@ export function DataTableRowActions({
             <span className="sr-only">Abrir menu</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-[200px]">
+        <DropdownMenuContent align="end" className="w-[220px]">
           <DropdownMenuItem disabled>
             <Pen className="mr-2 h-3.5 w-3.5" />
             Editar Perfil
@@ -160,6 +214,16 @@ export function DataTableRowActions({
                 <User className="mr-2 h-3.5 w-3.5" />
             )}
             Alterar para {newRole}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => handleSetStatus('active')}>
+            Ativar usuário
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleSetStatus('inactive')}>
+            Desativar usuário
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleSetStatus('blocked')}>
+            Bloquear usuário
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-red-600">
