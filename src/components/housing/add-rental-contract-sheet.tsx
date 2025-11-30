@@ -76,6 +76,7 @@ const formSchema = z.object({
   paymentMethod: paymentMethodSchema,
   status: z.enum(['active', 'inactive']).default('active'),
 }).refine(data => {
+    if (!data.type) return true; // Skip validation if type is not set
     // Ensures that at least one amount is provided when it's not "Outros"
     if (data.type.includes('Aluguel') && (data.rentAmount === undefined || data.rentAmount === 0)) return false;
     if (data.type.includes('Condomínio') && (data.condoFee === undefined || data.condoFee === 0)) return false;
@@ -498,4 +499,3 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
     </Dialog>
   );
 }
-
