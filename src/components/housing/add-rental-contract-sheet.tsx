@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -87,13 +88,18 @@ export function AddRentalContractSheet({ isOpen, onClose }: AddRentalContractShe
       const contractsColRef = collection(firestore, `users/${user.uid}/rentalContracts`);
       const newContractRef = doc(contractsColRef);
       
-      const contractData = {
+      const contractData: any = {
         ...values,
         id: newContractRef.id,
         userId: user.uid,
         startDate: formatISO(values.startDate),
-        endDate: values.endDate ? formatISO(values.endDate) : undefined,
       };
+
+      if (values.endDate) {
+        contractData.endDate = formatISO(values.endDate);
+      } else {
+        delete contractData.endDate;
+      }
 
       batch.set(newContractRef, contractData);
 
