@@ -440,9 +440,9 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
       const incomesColRef = collection(firestore, `users/${user.uid}/incomes`);
       const incomeData = {
         amount: editableResult.netAmount,
-        category: 'Salário',
+        category: 'Freelance',
         date: editableResult.issueDate || new Date().toISOString().split('T')[0],
-        description: editableResult.description || `Salário de ${editableResult.companyName || 'documento importado'}`,
+        description: editableResult.description || `Pagamento de ${editableResult.companyName || 'serviço prestado'}`,
         isRecurring: false,
         status: 'paid' as const,
         userId: user.uid,
@@ -708,7 +708,7 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
                                   <PopoverTrigger asChild>
                                     <Button variant="outline" className="w-full justify-start text-left font-normal">
                                       <CalendarIcon className="mr-2 h-4 w-4" />
-                                      {editableResult.issueDate ? format(parseISO(editableResult.issueDate), 'PPP', { locale: ptBR }) : 'Selecione'}
+                                      {editableResult.issueDate && isValid(parseISO(editableResult.issueDate)) ? format(parseISO(editableResult.issueDate), 'PPP', { locale: ptBR }) : 'Selecione'}
                                     </Button>
                                   </PopoverTrigger>
                                   <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={editableResult.issueDate ? parseISO(editableResult.issueDate) : undefined} onSelect={(d) => handleFieldChange('issueDate', d ? format(d, 'yyyy-MM-dd') : '')} /></PopoverContent>
