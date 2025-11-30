@@ -13,7 +13,7 @@ import type { Transaction, Debt, Goal, Installment, Budget } from '@/lib/types';
 import { useManageRecurrences } from '@/hooks/useManageRecurrences';
 import { useNotificationGenerator } from '@/hooks/useNotificationGenerator';
 import { Calendar } from '@/components/ui/calendar';
-import { startOfMonth, endOfMonth, parseISO, format, startOfDay, isBefore, endOfWeek, addMonths, isSameMonth, subYears } from 'date-fns';
+import { startOfMonth, endOfMonth, parseISO, format, startOfDay, isBefore, endOfWeek, addMonths, isSameMonth, subYears, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { QuickActions } from '@/components/dashboard/quick-actions';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
@@ -180,25 +180,54 @@ export default function DashboardPage() {
     });
   }, [budgetsData, expenseData, selectedDate]);
 
-  const { totalIncome, totalExpenses, totalDebt, balance } = useMemo(() => {
-    const totalIncome = incomeData?.reduce((sum, t) => sum + t.amount, 0) || 0;
-    const totalExpenses = expenseData?.reduce((sum, t) => sum + t.amount, 0) || 0;
-    const totalDebt = debtData?.reduce((sum, d) => sum + (d.totalAmount - (d.paidAmount || 0)), 0) || 0;
+  const {
+    totalIncome,
+    totalExpenses,
+    balance,
+    totalDebt,
+    incomeChange,
+    expenseChange,
+  } = useMemo(() => {
+    const currentMonthIncome = incomeData?.reduce((sum, t) => sum + t.amount, 0) || 0;
+    const currentMonthExpenses = expenseData?.reduce((sum, t) => sum + t.amount, 0) || 0;
+    const currentMonthBalance = currentMonthIncome - currentMonthExpenses;
 
-    const oneYearAgo = subYears(new Date(), 1);
+    const prevMonthStart = startOfMonth(subMonths(selectedDate, 1));
+    const prevMonthEnd = endOfMonth(subMonths(selectedDate, 1));
 
-    const last12MonthsIncome = (allIncomeData || [])
-      .filter(t => parseISO(t.date) >= oneYearAgo)
+    const prevMonthIncomes = (allIncomeData || [])
+      .filter(t => {
+        const date = parseISO(t.date);
+        return date >= prevMonthStart && date <= prevMonthEnd;
+      })
       .reduce((sum, t) => sum + t.amount, 0);
 
-    const last12MonthsExpenses = (allExpenseData || [])
-      .filter(t => parseISO(t.date) >= oneYearAgo)
+    const prevMonthExpenses = (allExpenseData || [])
+      .filter(t => {
+        const date = parseISO(t.date);
+        return date >= prevMonthStart && date <= prevMonthEnd;
+      })
       .reduce((sum, t) => sum + t.amount, 0);
 
-    const balance = last12MonthsIncome - last12MonthsExpenses;
+    const calculateChange = (current: number, previous: number) => {
+      if (previous === 0) return current > 0 ? 100 : 0;
+      return ((current - previous) / previous) * 100;
+    };
 
-    return { totalIncome, totalExpenses, totalDebt, balance };
-  }, [incomeData, expenseData, debtData, allIncomeData, allExpenseData]);
+    const incomeChange = calculateChange(currentMonthIncome, prevMonthIncomes);
+    const expenseChange = calculateChange(currentMonthExpenses, prevMonthExpenses);
+    
+    const debt = debtData?.reduce((sum, d) => sum + (d.totalAmount - (d.paidAmount || 0)), 0) || 0;
+
+    return {
+      totalIncome: currentMonthIncome,
+      totalExpenses: currentMonthExpenses,
+      balance: currentMonthBalance,
+      totalDebt: debt,
+      incomeChange,
+      expenseChange,
+    };
+  }, [incomeData, expenseData, debtData, allIncomeData, allExpenseData, selectedDate]);
 
 
   const incomeDates = useMemo(
@@ -456,7 +485,7 @@ export default function DashboardPage() {
             </div>
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(360px,1fr)] items-start">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(360px,1fr)] items-start">
           <div className="space-y-8">
             <div className="space-y-4">
               <OverdueDebtsCard debts={debtData || []} />
@@ -469,17 +498,20 @@ export default function DashboardPage() {
                   title="Renda Total"
                   value={formatCurrency(totalIncome)}
                   icon={Landmark}
+                  trend={incomeChange}
                 />
                 <KpiCard
                   title="Despesas Totais"
                   value={formatCurrency(totalExpenses)}
                   icon={CreditCard}
+                  trend={expenseChange}
+                  invertTrendColor
                 />
                 <KpiCard
-                  title="Balanço Geral"
+                  title="Balanço do Mês"
                   value={formatCurrency(balance)}
                   icon={Scale}
-                  description="Saldo dos últimos 12 meses"
+                  description="Saldo do mês selecionado"
                 />
                 <KpiCard
                   title="Dívida Pendente"
