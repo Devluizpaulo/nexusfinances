@@ -127,6 +127,7 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
   const contractType = form.watch('type');
   const rentAmount = form.watch('rentAmount');
   const condoFee = form.watch('condoFee');
+  const paymentMethod = form.watch('paymentMethod');
   const isEditing = !!contract;
   
   // Calculate total amount whenever rent or condo fee changes
@@ -472,6 +473,172 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
               )}
             />
             
+            <Separator />
+            <h3 className="text-sm font-semibold text-muted-foreground">Meio de Pagamento</h3>
+            <FormField
+              control={form.control}
+              name="paymentMethod"
+              render={() => (
+                <div className="space-y-3">
+                  <FormItem>
+                    <FormLabel>Forma principal de pagamento</FormLabel>
+                    <FormControl>
+                      <Select
+                        onValueChange={(value) =>
+                          form.setValue('paymentMethod', {
+                            ...(paymentMethod || {}),
+                            method: value as any,
+                          })
+                        }
+                        value={paymentMethod?.method || 'boleto'}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o meio de pagamento" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pix">PIX</SelectItem>
+                          <SelectItem value="bankTransfer">Transferência Bancária</SelectItem>
+                          <SelectItem value="boleto">Boleto</SelectItem>
+                          <SelectItem value="creditCard">Cartão de Crédito</SelectItem>
+                          <SelectItem value="debit">Cartão de Débito</SelectItem>
+                          <SelectItem value="cash">Dinheiro</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormDescription>
+                      Essas informações ajudam você a lembrar como realizar o pagamento todo mês.
+                    </FormDescription>
+                  </FormItem>
+
+                  {paymentMethod?.method === 'pix' && (
+                    <div className="grid gap-3">
+                      <FormItem>
+                        <FormLabel>Chave PIX</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="E-mail, CPF, CNPJ, telefone ou chave aleatória"
+                            value={paymentMethod.identifier || ''}
+                            onChange={(e) =>
+                              form.setValue('paymentMethod', {
+                                ...paymentMethod,
+                                method: 'pix',
+                                identifier: e.target.value,
+                              })
+                            }
+                          />
+                        </FormControl>
+                      </FormItem>
+                      <FormItem>
+                        <FormLabel>Detalhes adicionais (opcional)</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Ex.: Chave em nome de João Silva, CPF 000.000.000-00"
+                            value={paymentMethod.instructions || ''}
+                            onChange={(e) =>
+                              form.setValue('paymentMethod', {
+                                ...paymentMethod,
+                                method: 'pix',
+                                instructions: e.target.value,
+                              })
+                            }
+                          />
+                        </FormControl>
+                      </FormItem>
+                    </div>
+                  )}
+
+                  {paymentMethod?.method === 'bankTransfer' && (
+                    <div className="grid gap-3">
+                      <FormItem>
+                        <FormLabel>Dados bancários</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder={
+                              'Banco, agência, conta, tipo de conta, titular, CPF/CNPJ...\nEx.: Banco XPTO, ag. 0000, conta 000000-0, cc, João Silva, CPF 000.000.000-00'
+                            }
+                            value={paymentMethod.instructions || ''}
+                            onChange={(e) => {
+                              const full = e.target.value;
+                              form.setValue('paymentMethod', {
+                                ...paymentMethod,
+                                method: 'bankTransfer',
+                                instructions: full,
+                                // Pequeno resumo para exibição/cópia rápida
+                                identifier:
+                                  paymentMethod?.identifier ||
+                                  (full ? full.split('\n')[0]?.slice(0, 80) : ''),
+                              });
+                            }}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Detalhe aqui tudo o que você precisa para fazer a transferência.
+                        </FormDescription>
+                      </FormItem>
+                    </div>
+                  )}
+
+                  {paymentMethod?.method === 'boleto' && (
+                    <div className="grid gap-3">
+                      <FormItem>
+                        <FormLabel>Como você recebe o boleto?</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder={
+                              'Ex.: Recebo o boleto por e-mail da imobiliária, acesso o app do banco tal, ou faço download no portal X.'
+                            }
+                            value={paymentMethod.instructions || ''}
+                            onChange={(e) =>
+                              form.setValue('paymentMethod', {
+                                ...paymentMethod,
+                                method: 'boleto',
+                                instructions: e.target.value,
+                              })
+                            }
+                          />
+                        </FormControl>
+                      </FormItem>
+                      <FormItem>
+                        <FormLabel>Identificador (opcional)</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Ex.: E-mail da imobiliária, portal, código de cliente..."
+                            value={paymentMethod.identifier || ''}
+                            onChange={(e) =>
+                              form.setValue('paymentMethod', {
+                                ...paymentMethod,
+                                method: 'boleto',
+                                identifier: e.target.value,
+                              })
+                            }
+                          />
+                        </FormControl>
+                      </FormItem>
+                    </div>
+                  )}
+
+                  {paymentMethod?.method &&
+                    !['pix', 'bankTransfer', 'boleto'].includes(paymentMethod.method) && (
+                      <FormItem>
+                        <FormLabel>Detalhes do pagamento (opcional)</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Anote aqui qualquer informação útil para lembrar como você paga este contrato."
+                            value={paymentMethod.instructions || ''}
+                            onChange={(e) =>
+                              form.setValue('paymentMethod', {
+                                ...paymentMethod,
+                                instructions: e.target.value,
+                              })
+                            }
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                </div>
+              )}
+            />
+
             <Separator />
             <h3 className="text-sm font-semibold text-muted-foreground">Informações Adicionais (Opcional)</h3>
             <FormField
