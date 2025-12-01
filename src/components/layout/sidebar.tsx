@@ -88,7 +88,6 @@ export function AppSidebar() {
                     onClick={togglePinned} 
                     tooltip={isPinned ? 'Desafixar menu' : 'Fixar menu'}
                     className={cn("hidden md:flex", state === "collapsed" && "hidden")}
-                    size="icon"
                 >
                     {isPinned ? <PinOff/> : <Pin />}
                 </SidebarMenuButton>
