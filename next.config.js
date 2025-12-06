@@ -33,10 +33,6 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
-      {
-        protocol: "https",
-        hostname: "pagead2.googlesyndication.com",
-      },
     ],
   },
 };

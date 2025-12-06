@@ -19,7 +19,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import AdBanner from '@/components/ads/AdBanner';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -243,12 +242,6 @@ function ClientRoot() {
               </motion.div>
             )}
           </div>
-        </section>
-
-        <section className="py-8">
-            <div className="container mx-auto">
-                <AdBanner />
-            </div>
         </section>
 
         {/* Features Section */}
