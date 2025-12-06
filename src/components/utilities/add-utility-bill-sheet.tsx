@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -219,7 +220,7 @@ export function AddUtilityBillSheet({ isOpen, onClose }: AddUtilityBillSheetProp
                             onSelect={field.onChange} 
                             initialFocus 
                             locale={ptBR} 
-                            captionLayout="dropdown-nav"
+                            captionLayout="dropdown"
                             fromYear={new Date().getFullYear() - 10}
                             toYear={new Date().getFullYear() + 10}
                         />

@@ -709,7 +709,7 @@ export default function DashboardPage() {
                     }}
                     fromYear={new Date().getFullYear() - 10}
                     toYear={new Date().getFullYear() + 10}
-                    captionLayout="dropdown-nav"
+                    captionLayout="dropdown"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
@@ -808,4 +808,5 @@ export default function DashboardPage() {
     </>
   );
 }
+
 

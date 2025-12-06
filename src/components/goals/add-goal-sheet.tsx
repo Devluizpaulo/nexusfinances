@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -381,7 +382,7 @@ export function AddGoalSheet({ isOpen, onClose, goal }: AddGoalSheetProps) {
                         }}
                         initialFocus
                         locale={ptBR}
-                        captionLayout="dropdown-nav"
+                        captionLayout="dropdown"
                         fromYear={new Date().getFullYear() - 10}
                         toYear={new Date().getFullYear() + 10}
                       />
