@@ -50,6 +50,7 @@ import { Textarea } from '../ui/textarea';
 import { CurrencyInput } from '../ui/currency-input';
 import { Separator } from '../ui/separator';
 import { Label } from '@/components/ui/label';
+import { AddCreditCardSheet } from '../credit-cards/add-credit-card-sheet';
 
 const formSchema = z.object({
   category: z.string().min(1, 'Escolha uma categoria.'),
@@ -111,6 +112,7 @@ export function AddTransactionSheet({
   
   const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [isAddCardSheetOpen, setIsAddCardSheetOpen] = useState(false);
 
   const paymentMethod = form.watch('paymentMethod');
   
@@ -234,276 +236,290 @@ export function AddTransactionSheet({
 
   return (
     <>
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
-         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
-        </DialogHeader>
+      <AddCreditCardSheet 
+        isOpen={isAddCardSheetOpen}
+        onClose={() => setIsAddCardSheetOpen(false)}
+      />
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-             <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Categoria</FormLabel>
-                   <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma categoria" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {allCategories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                      <Separator className="my-1" />
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start font-normal h-8 px-2"
-                        onClick={(e) => {
-                           e.preventDefault();
-                           setIsAddCategoryDialogOpen(true);
-                        }}
-                      >
-                         <PlusCircle className="mr-2 h-4 w-4" />
-                         Criar nova categoria...
-                      </Button>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Valor (R$)</FormLabel>
-                  <FormControl>
-                    <CurrencyInput
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="date"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Data</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{title}</DialogTitle>
+            <DialogDescription>{description}</DialogDescription>
+          </DialogHeader>
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Categoria</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <Button
-                          variant={'outline'}
-                          className={cn(
-                            'w-full pl-3 text-left font-normal',
-                            !field.value && 'text-muted-foreground'
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, 'PPP', { locale: ptBR })
-                          ) : (
-                            <span>Escolha uma data</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione uma categoria" />
+                        </SelectTrigger>
                       </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        initialFocus
-                        locale={ptBR}
+                      <SelectContent>
+                        {allCategories.map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                        <Separator className="my-1" />
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start font-normal h-8 px-2"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setIsAddCategoryDialogOpen(true);
+                          }}
+                        >
+                          <PlusCircle className="mr-2 h-4 w-4" />
+                          Criar nova categoria...
+                        </Button>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Valor (R$)</FormLabel>
+                    <FormControl>
+                      <CurrencyInput
+                        value={field.value}
+                        onValueChange={field.onChange}
                       />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descrição (Opcional)</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Ex: Salário da empresa, compra do mês no mercado X..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="vendor"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Estabelecimento (Opcional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: Netflix, Padaria do Zé, Mercado X..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {transactionType === 'expense' && (
-              <>
-                <Separator />
-                <FormField
-                  control={form.control}
-                  name="paymentMethod"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Forma de Pagamento</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Data</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
+                          <Button
+                            variant={'outline'}
+                            className={cn(
+                              'w-full pl-3 text-left font-normal',
+                              !field.value && 'text-muted-foreground'
+                            )}
+                          >
+                            {field.value ? (
+                              format(field.value, 'PPP', { locale: ptBR })
+                            ) : (
+                              <span>Escolha uma data</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="cash">À vista (dinheiro/débito)</SelectItem>
-                          <SelectItem value="creditCard">Cartão de Crédito</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                {paymentMethod === 'creditCard' && (
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          initialFocus
+                          locale={ptBR}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descrição (Opcional)</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Ex: Salário da empresa, compra do mês no mercado X..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="vendor"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Estabelecimento (Opcional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Netflix, Padaria do Zé, Mercado X..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {transactionType === 'expense' && (
+                <>
+                  <Separator />
                   <FormField
                     control={form.control}
-                    name="creditCardId"
+                    name="paymentMethod"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Cartão de Crédito</FormLabel>
+                        <FormLabel>Forma de Pagamento</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Selecione um cartão" />
+                              <SelectValue />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {creditCardsData?.map((card) => (
-                              <SelectItem key={card.id} value={card.id}>
-                                {card.name} (final {card.lastFourDigits})
-                              </SelectItem>
-                            ))}
-                            {(!creditCardsData || creditCardsData.length === 0) && (
-                                <p className="p-4 text-sm text-muted-foreground">Nenhum cartão cadastrado.</p>
-                            )}
+                            <SelectItem value="cash">À vista (dinheiro/débito)</SelectItem>
+                            <SelectItem value="creditCard">Cartão de Crédito</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                )}
-                <Separator />
-              </>
-            )}
+                  {paymentMethod === 'creditCard' && (
+                    <FormField
+                      control={form.control}
+                      name="creditCardId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Cartão de Crédito</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione um cartão" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {creditCardsData?.map((card) => (
+                                <SelectItem key={card.id} value={card.id}>
+                                  {card.name} (final {card.lastFourDigits})
+                                </SelectItem>
+                              ))}
+                              <Separator className="my-1" />
+                              <Button
+                                variant="ghost"
+                                className="w-full justify-start font-normal h-8 px-2"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setIsAddCardSheetOpen(true);
+                                }}
+                              >
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Adicionar novo cartão...
+                              </Button>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                  <Separator />
+                </>
+              )}
 
-            <FormField
-              control={form.control}
-              name="isRecurring"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border border-border bg-muted p-3">
-                  <div className="space-y-0.5">
-                    <FormLabel>Recorrente</FormLabel>
-                    <FormDescription>
-                      Esta transação se repetirá todo mês.
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-slate-300"
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border border-border bg-muted p-3">
-                  <div className="space-y-0.5">
-                    <FormLabel>{transactionType === 'income' ? 'Recebido' : 'Pago'}</FormLabel>
-                    <FormDescription>
-                      Marque se esta transação já foi efetivada.
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value === 'paid'}
-                      onCheckedChange={(checked) => field.onChange(checked ? 'paid' : 'pending')}
-                      className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-slate-300"
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <DialogFooter>
-                <Button
-                type="submit"
-                disabled={form.formState.isSubmitting || !user}
-                className="w-full"
-                >
-                {form.formState.isSubmitting && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <FormField
+                control={form.control}
+                name="isRecurring"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border border-border bg-muted p-3">
+                    <div className="space-y-0.5">
+                      <FormLabel>Recorrente</FormLabel>
+                      <FormDescription>
+                        Esta transação se repetirá todo mês.
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-slate-300"
+                      />
+                    </FormControl>
+                  </FormItem>
                 )}
-                {transaction ? 'Salvar Alterações' : 'Salvar Transação'}
+              />
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border border-border bg-muted p-3">
+                    <div className="space-y-0.5">
+                      <FormLabel>{transactionType === 'income' ? 'Recebido' : 'Pago'}</FormLabel>
+                      <FormDescription>
+                        Marque se esta transação já foi efetivada.
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value === 'paid'}
+                        onCheckedChange={(checked) => field.onChange(checked ? 'paid' : 'pending')}
+                        className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-slate-300"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <Button
+                  type="submit"
+                  disabled={form.formState.isSubmitting || !user}
+                  className="w-full"
+                >
+                  {form.formState.isSubmitting && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  {transaction ? 'Salvar Alterações' : 'Salvar Transação'}
                 </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
-    
-     <Dialog open={isAddCategoryDialogOpen} onOpenChange={setIsAddCategoryDialogOpen}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Criar Nova Categoria</DialogTitle>
-          <DialogDescription>
-            Adicione uma nova categoria de {transactionType === 'income' ? 'renda' : 'despesa'}.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="new-category-name">Nome da Categoria</Label>
-            <Input
-              id="new-category-name"
-              value={newCategoryName}
-              onChange={(e) => setNewCategoryName(e.target.value)}
-              placeholder="Ex: Educação"
-            />
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isAddCategoryDialogOpen} onOpenChange={setIsAddCategoryDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Criar Nova Categoria</DialogTitle>
+            <DialogDescription>
+              Adicione uma nova categoria de {transactionType === 'income' ? 'renda' : 'despesa'}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-category-name">Nome da Categoria</Label>
+              <Input
+                id="new-category-name"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                placeholder="Ex: Educação"
+              />
+            </div>
           </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setIsAddCategoryDialogOpen(false)}>Cancelar</Button>
-          <Button onClick={handleAddCategory} disabled={!newCategoryName.trim()}>
-            Salvar Categoria
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddCategoryDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleAddCategory} disabled={!newCategoryName.trim()}>
+              Salvar Categoria
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
