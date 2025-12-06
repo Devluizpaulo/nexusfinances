@@ -25,17 +25,17 @@ export function KpiCard({ title, value, icon: Icon, description, trend, invertTr
       : 'text-destructive';
 
   return (
-    <Card className="transition-all hover:shadow-md">
+    <Card className="transition-all hover:shadow-md h-full">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
         <Icon className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
-        <div className="flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">{description}</p>
+         <div className="flex items-center justify-between text-xs text-muted-foreground">
+            {description && <p>{description}</p>}
             {hasTrend && (
-                <div className={cn("flex items-center gap-1 text-xs", trendColor)}>
+                <div className={cn("flex items-center gap-1", trendColor)}>
                 <TrendIcon className="h-3.5 w-3.5" />
                 <span>{Math.abs(trend).toFixed(1)}%</span>
                 </div>

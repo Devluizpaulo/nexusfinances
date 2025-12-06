@@ -4,7 +4,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { KpiCard } from '@/components/dashboard/kpi-card';
-import { Banknote, Landmark, CreditCard, Scale, Calendar as CalendarIcon, ArrowUpCircle, ArrowDownCircle, ChevronLeft, ChevronRight, Sparkles, Loader2 as LoaderSpinner, Files } from 'lucide-react';
+import { Banknote, Landmark, CreditCard, Scale, Calendar as CalendarIcon, ArrowUpCircle, ArrowDownCircle, ChevronLeft, ChevronRight, Sparkles, Loader2 as LoaderSpinner, Files, PiggyBank } from 'lucide-react';
 import { IncomeExpenseChart } from '@/components/dashboard/income-expense-chart';
 import { ExpenseCategoryChart } from '@/components/dashboard/expense-category-chart';
 import { FinancialHealthScore } from '@/components/dashboard/financial-health-score';
@@ -195,6 +195,7 @@ export default function DashboardPage() {
     totalDebt,
     incomeChange,
     expenseChange,
+    totalGoals,
   } = useMemo(() => {
     const currentPeriodIncome = incomeData?.reduce((sum, t) => sum + t.amount, 0) || 0;
     const currentPeriodExpenses = expenseData?.reduce((sum, t) => sum + t.amount, 0) || 0;
@@ -227,6 +228,8 @@ export default function DashboardPage() {
     
     const debt = debtData?.reduce((sum, d) => sum + (d.totalAmount - (d.paidAmount || 0)), 0) || 0;
 
+    const totalGoals = goalData?.reduce((sum, g) => sum + g.currentAmount, 0) || 0;
+
     return {
       totalIncome: currentPeriodIncome,
       totalExpenses: currentPeriodExpenses,
@@ -234,8 +237,9 @@ export default function DashboardPage() {
       totalDebt: debt,
       incomeChange,
       expenseChange,
+      totalGoals,
     };
-  }, [incomeData, expenseData, debtData, allIncomeData, allExpenseData, selectedDate, viewMode]);
+  }, [incomeData, expenseData, debtData, allIncomeData, allExpenseData, selectedDate, viewMode, goalData]);
 
 
   const incomeDates = useMemo(
@@ -527,7 +531,7 @@ export default function DashboardPage() {
 
             <div className="space-y-5">
               <h2 className="text-lg font-semibold tracking-tight">Resumo do período</h2>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 <KpiCard
                   title="Renda Total"
                   value={formatCurrency(totalIncome)}
@@ -541,17 +545,27 @@ export default function DashboardPage() {
                   trend={expenseChange}
                   invertTrendColor
                 />
-                <KpiCard
-                  title="Balanço do Período"
-                  value={formatCurrency(balance)}
-                  icon={Scale}
-                  description={`Saldo de ${periodLabel}`}
-                />
+                <Card className="col-span-2 md:col-span-1 lg:col-span-1 bg-primary/5 border-primary/20">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium text-primary">Balanço do Período</CardTitle>
+                        <Scale className="h-4 w-4 text-primary" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold text-primary">{formatCurrency(balance)}</div>
+                        <p className="text-xs text-muted-foreground">Saldo de {periodLabel}</p>
+                    </CardContent>
+                </Card>
                 <KpiCard
                   title="Dívida Pendente"
                   value={formatCurrency(totalDebt)}
                   icon={Banknote}
                   description="Total de dívidas em aberto"
+                />
+                 <KpiCard
+                  title="Metas"
+                  value={formatCurrency(totalGoals)}
+                  icon={PiggyBank}
+                  description="Total em reservas e investimentos"
                 />
               </div>
             </div>
