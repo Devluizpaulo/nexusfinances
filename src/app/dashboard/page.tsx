@@ -4,13 +4,13 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { KpiCard } from '@/components/dashboard/kpi-card';
-import { Banknote, Landmark, CreditCard, Scale, Calendar as CalendarIcon, ArrowUpCircle, ArrowDownCircle, ChevronLeft, ChevronRight, Sparkles, Loader2 as LoaderSpinner, Files, PiggyBank } from 'lucide-react';
+import { Banknote, Landmark, CreditCard, Scale, Calendar as CalendarIcon, ArrowUpCircle, ArrowDownCircle, ChevronLeft, ChevronRight, Sparkles, Loader2 as LoaderSpinner, Files, PiggyBank, PieChart } from 'lucide-react';
 import { IncomeExpenseChart } from '@/components/dashboard/income-expense-chart';
 import { ExpenseCategoryChart } from '@/components/dashboard/expense-category-chart';
 import { FinancialHealthScore } from '@/components/dashboard/financial-health-score';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, getDocs, orderBy, limit, collectionGroup } from 'firebase/firestore';
-import type { Transaction, Debt, Goal, Installment, Budget } from '@/lib/types';
+import type { Transaction, Debt, Goal, Installment, Budget, UserSubscription, SubscriptionPlan } from '@/lib/types';
 import { useManageRecurrences } from '@/hooks/useManageRecurrences';
 import { useNotificationGenerator } from '@/hooks/useNotificationGenerator';
 import { Calendar } from '@/components/ui/calendar';
@@ -193,38 +193,11 @@ export default function DashboardPage() {
     totalExpenses,
     balance,
     totalDebt,
-    incomeChange,
-    expenseChange,
     totalGoals,
   } = useMemo(() => {
     const currentPeriodIncome = incomeData?.reduce((sum, t) => sum + t.amount, 0) || 0;
     const currentPeriodExpenses = expenseData?.reduce((sum, t) => sum + t.amount, 0) || 0;
     const currentPeriodBalance = currentPeriodIncome - currentPeriodExpenses;
-
-    const prevPeriodStart = viewMode === 'monthly' ? startOfMonth(subMonths(selectedDate, 1)) : startOfYear(subYearsFn(selectedDate, 1));
-    const prevPeriodEnd = viewMode === 'monthly' ? endOfMonth(subMonths(selectedDate, 1)) : endOfYear(subYearsFn(selectedDate, 1));
-    
-    const prevPeriodIncomes = (allIncomeData || [])
-      .filter(t => {
-        const date = parseISO(t.date);
-        return date >= prevPeriodStart && date <= prevPeriodEnd;
-      })
-      .reduce((sum, t) => sum + t.amount, 0);
-
-    const prevPeriodExpenses = (allExpenseData || [])
-      .filter(t => {
-        const date = parseISO(t.date);
-        return date >= prevPeriodStart && date <= prevPeriodEnd;
-      })
-      .reduce((sum, t) => sum + t.amount, 0);
-
-    const calculateChange = (current: number, previous: number) => {
-      if (previous === 0) return current > 0 ? 100 : 0;
-      return ((current - previous) / previous) * 100;
-    };
-
-    const incomeChange = calculateChange(currentPeriodIncome, prevPeriodIncomes);
-    const expenseChange = calculateChange(currentPeriodExpenses, prevPeriodExpenses);
     
     const debt = debtData?.reduce((sum, d) => sum + (d.totalAmount - (d.paidAmount || 0)), 0) || 0;
 
@@ -235,11 +208,9 @@ export default function DashboardPage() {
       totalExpenses: currentPeriodExpenses,
       balance: currentPeriodBalance,
       totalDebt: debt,
-      incomeChange,
-      expenseChange,
       totalGoals,
     };
-  }, [incomeData, expenseData, debtData, allIncomeData, allExpenseData, selectedDate, viewMode, goalData]);
+  }, [incomeData, expenseData, debtData, goalData]);
 
 
   const incomeDates = useMemo(
@@ -505,23 +476,12 @@ export default function DashboardPage() {
             </div>
         </div>
 
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)} className="w-auto">
-              <TabsList>
-                <TabsTrigger value="monthly">Mensal</TabsTrigger>
-                <TabsTrigger value="yearly">Anual</TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <div className="flex items-center justify-center gap-2 rounded-full bg-muted p-1">
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handlePeriodChange('prev')}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <span className="w-32 text-center text-sm font-medium capitalize">{periodLabel}</span>
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handlePeriodChange('next')}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-        </div>
+        <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)} className="w-auto">
+          <TabsList>
+            <TabsTrigger value="monthly">Mensal</TabsTrigger>
+            <TabsTrigger value="yearly">Anual</TabsTrigger>
+          </TabsList>
+        </Tabs>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(360px,1fr)] items-start">
           <div className="space-y-8">
@@ -531,21 +491,24 @@ export default function DashboardPage() {
 
             <div className="space-y-5">
               <h2 className="text-lg font-semibold tracking-tight">Resumo do período</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <KpiCard
                   title="Renda Total"
                   value={formatCurrency(totalIncome)}
                   icon={Landmark}
-                  trend={incomeChange}
                 />
                 <KpiCard
                   title="Despesas Totais"
                   value={formatCurrency(totalExpenses)}
                   icon={CreditCard}
-                  trend={expenseChange}
                   invertTrendColor
                 />
-                <Card className="col-span-2 md:col-span-3 lg:col-span-1 bg-primary/5 border-primary/20">
+                 <KpiCard
+                  title="Progresso das Metas"
+                  value={formatCurrency(totalGoals)}
+                  icon={PiggyBank}
+                />
+                <Card className="col-span-1 sm:col-span-2 lg:col-span-1 bg-primary/5 border-primary/20">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-primary">Balanço do Período</CardTitle>
                         <Scale className="h-4 w-4 text-primary" />
