@@ -1,4 +1,3 @@
-
 'use client';
 import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator, SidebarGroup, SidebarGroupLabel } from '@/components/ui/sidebar';
 import { LayoutDashboard, Landmark, CreditCard, Banknote, DollarSign, Loader2, Target, LogOut, UserCircle, LifeBuoy, ShieldCheck, PiggyBank, BarChart3, GraduationCap, Pin, PinOff, Files, Repeat, Clapperboard, ChevronDown, Home, Zap, FileText, HeartPulse, Briefcase, PenSquare, WalletCards } from 'lucide-react';
@@ -198,6 +197,13 @@ export function AppSidebar() {
                                     <SidebarMenuButton asChild isActive={pathname.startsWith('/expenses/taxes')} tooltip={'Impostos e Taxas'} onClick={handleMobileClick}>
                                         <Link href="/expenses/taxes">
                                             Impostos e Taxas
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                                 <SidebarMenuItem className="ml-5 border-l border-border pl-3">
+                                    <SidebarMenuButton asChild isActive={pathname.startsWith('/expenses/health')} tooltip={'Saúde & Bem-estar'} onClick={handleMobileClick}>
+                                        <Link href="/expenses/health">
+                                            Saúde & Bem-estar
                                         </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
