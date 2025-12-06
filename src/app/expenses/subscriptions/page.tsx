@@ -12,28 +12,28 @@ import { Badge } from '@/components/ui/badge';
 import { AddSubscriptionSheet } from '@/components/subscriptions/add-subscription-sheet';
 import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
 import { PageHeader } from '@/components/page-header';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Define as categorias e seus ícones
 const subscriptionCategories = [
   { 
-    title: 'Streaming & Mídia',
-    keywords: ['Netflix', 'YouTube', 'Spotify', 'Amazon Prime', 'Disney+', 'HBO Max', 'Música', 'Filmes'],
+    id: 'media',
+    title: 'Mídia & Streaming',
+    keywords: ['Netflix', 'YouTube', 'Spotify', 'Amazon Prime', 'Disney+', 'HBO Max', 'Música', 'Filmes', 'Jornal', 'Revista', 'Notícias', 'Kindle', 'Livros'],
     icon: Film,
   },
   { 
-    title: 'Bem-estar & Academia',
-    keywords: ['Academia', 'Gympass', 'Yoga', 'Meditação', 'Saúde'],
-    icon: HeartPulse
-  },
-  { 
+    id: 'software',
     title: 'Software & IAs',
-    keywords: ['Software', 'Assinatura', 'IA', 'Adobe', 'Office', 'Nuvem', 'Produtividade'],
+    keywords: ['Software', 'Assinatura', 'IA', 'Adobe', 'Office', 'Nuvem', 'Produtividade', 'Notion', 'ChatGPT'],
     icon: Cpu
   },
-  {
-    title: 'Notícias & Leitura',
-    keywords: ['Jornal', 'Revista', 'Notícias', 'Kindle', 'Livros'],
-    icon: Newspaper
+  { 
+    id: 'services',
+    title: 'Outros Serviços',
+    keywords: ['Academia', 'Gympass', 'Yoga', 'Meditação', 'Saúde'],
+    icon: Repeat,
   }
 ];
 
@@ -50,11 +50,13 @@ export default function SubscriptionsPage() {
 
   const { data: expenseData, isLoading: isExpensesLoading } = useCollection<Recurrence>(recurringExpensesQuery);
 
-  const { groupedExpenses } = useMemo(() => {
-    const grouped: Record<string, Recurrence[]> = { 'Outras Assinaturas': [] };
-    subscriptionCategories.forEach(cat => { grouped[cat.title] = [] });
+  const groupedExpenses = useMemo(() => {
+    const grouped: Record<string, Recurrence[]> = {
+      media: [],
+      software: [],
+      services: []
+    };
     
-    // Explicit keywords for items that are NOT subscriptions
     const nonSubscriptionKeywords = [
         'Moradia', 'Aluguel', 'Condomínio', 'Hipoteca', 
         'Luz', 'Água', 'Gás', 'Internet', 'Celular', 'Plano',
@@ -63,37 +65,30 @@ export default function SubscriptionsPage() {
 
     (expenseData || []).forEach(expense => {
       const expenseDescription = expense.description.toLowerCase();
-      const expenseCategory = expense.category.toLowerCase();
+      const expenseCategoryLower = expense.category.toLowerCase();
 
-      // First, check if this is explicitly NOT a subscription
-      const isNonSubscription = nonSubscriptionKeywords.some(keyword => 
-        expenseCategory.includes(keyword) || 
-        expenseDescription.includes(keyword)
-      );
-      
-      if (isNonSubscription) {
-          return; // Skip this expense entirely
+      if (nonSubscriptionKeywords.some(keyword => expenseCategoryLower.includes(keyword) || expenseDescription.includes(keyword))) {
+          return; // Skip non-subscription recurring expenses
       }
-
-      // If not excluded, try to find a matching subscription category
-      const foundCategory = subscriptionCategories.find(cat => 
-        cat.keywords.some(keyword => 
-          expenseCategory.includes(keyword.toLowerCase()) || 
-          expenseDescription.includes(keyword.toLowerCase())
-        )
-      );
       
-      if (foundCategory) {
-        grouped[foundCategory.title].push(expense);
-      } else {
-        // If it's not a non-subscription and doesn't fit any main category, it's an "Other" subscription.
-        grouped['Outras Assinaturas'].push(expense);
+      if (expenseCategoryLower === 'assinaturas & serviços' || expense.isRecurring) {
+        let assigned = false;
+        for (const cat of subscriptionCategories) {
+          if (cat.id !== 'services' && cat.keywords.some(keyword => expenseDescription.includes(keyword.toLowerCase()) || expenseCategoryLower.includes(keyword.toLowerCase()))) {
+            grouped[cat.id].push(expense);
+            assigned = true;
+            break;
+          }
+        }
+        if (!assigned) {
+          grouped['services'].push(expense);
+        }
       }
     });
 
-    return { groupedExpenses: grouped };
+    return grouped;
   }, [expenseData]);
-
+  
   const isLoading = isUserLoading || isExpensesLoading;
 
   if (isLoading) {
@@ -111,11 +106,8 @@ export default function SubscriptionsPage() {
   const handleCloseSheet = () => {
     setIsAddSheetOpen(false);
   };
-
-  const formatCurrency = (value: number) =>
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-
-  const allCategories = [...subscriptionCategories, { title: 'Outras Assinaturas', icon: Repeat, keywords: [] }];
+  
+  const hasAnySubscription = Object.values(groupedExpenses).some(arr => arr.length > 0);
 
   return (
     <>
@@ -143,43 +135,50 @@ export default function SubscriptionsPage() {
         </div>
       </PageHeader>
 
-
-      <div className="space-y-6 mt-4">
-        {allCategories.map(({ title, icon: Icon }) => {
-          const items = groupedExpenses[title];
-          if (!items || items.length === 0) return null;
+      {hasAnySubscription ? (
+        <Tabs defaultValue="media" className="mt-4">
+          <TabsList className="grid w-full grid-cols-3">
+            {subscriptionCategories.map(cat => (
+              <TabsTrigger key={cat.id} value={cat.id}>
+                <cat.icon className="mr-2 h-4 w-4" />
+                {cat.title}
+              </TabsTrigger>
+            ))}
+          </TabsList>
           
-          const categoryTotal = items.reduce((sum, item) => sum + item.amount, 0);
-
-          return (
-             <Card key={title}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                   <div className="flex items-center gap-3">
-                      <Icon className="h-5 w-5 text-primary" />
-                      <CardTitle className="text-lg">{title}</CardTitle>
-                   </div>
-                   <Badge variant="secondary">{formatCurrency(categoryTotal)}/mês</Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {items.map((item) => (
-                      <RecurrenceCard key={item.id} recurrence={item} />
-                    ))}
-                </div>
-              </CardContent>
-            </Card>
-          )
-        })}
-
-        {Object.values(groupedExpenses).every(arr => arr.length === 0) && (
-             <div className="flex h-40 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
-              <h3 className="font-semibold">Nenhuma assinatura encontrada</h3>
-              <p className="mt-1 text-sm text-muted-foreground">Clique em "Adicionar Assinatura" para começar a organizar seus serviços.</p>
-            </div>
-        )}
-      </div>
+          {subscriptionCategories.map(cat => (
+            <TabsContent key={cat.id} value={cat.id} className="mt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>{cat.title}</CardTitle>
+                  <CardDescription>
+                    Total de {groupedExpenses[cat.id]?.length || 0} assinatura(s) nesta categoria.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {groupedExpenses[cat.id] && groupedExpenses[cat.id].length > 0 ? (
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {groupedExpenses[cat.id].map(item => (
+                        <RecurrenceCard key={item.id} recurrence={item} />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex h-40 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
+                      <h3 className="font-semibold">Nenhuma assinatura encontrada</h3>
+                      <p className="mt-1 text-sm text-muted-foreground">Assinaturas desta categoria aparecerão aqui.</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          ))}
+        </Tabs>
+      ) : (
+        <div className="mt-6 flex h-64 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
+          <h3 className="text-xl font-semibold">Nenhuma assinatura encontrada</h3>
+          <p className="mt-2 text-sm text-muted-foreground">Clique em "Adicionar Assinatura" para começar a organizar seus serviços.</p>
+        </div>
+      )}
     </>
   );
 }
