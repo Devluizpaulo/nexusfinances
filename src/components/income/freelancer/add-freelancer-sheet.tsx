@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -40,12 +40,6 @@ import { useToast } from '@/hooks/use-toast';
 import type { Transaction } from '@/lib/types';
 import { Textarea } from '@/components/ui/textarea';
 import { CurrencyInput } from '@/components/ui/currency-input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { incomeCategories } from '@/lib/types';
-
-const otherIncomeCategories = incomeCategories.filter(
-  c => c !== 'Salário' && c !== 'Freelance'
-);
 
 const formSchema = z.object({
   amount: z.coerce.number().positive('Use um valor maior que zero.'),
@@ -53,30 +47,28 @@ const formSchema = z.object({
     required_error: 'Escolha uma data.',
   }),
   description: z.string().min(1, 'A descrição é obrigatória.'),
-  category: z.string().min(1, 'A categoria é obrigatória.'),
   isRecurring: z.boolean().default(false),
   status: z.enum(['paid', 'pending']).default('paid'),
 });
 
-type OtherIncomeFormValues = z.infer<typeof formSchema>;
+type FreelancerFormValues = z.infer<typeof formSchema>;
 
-type AddOtherIncomeSheetProps = {
+type AddFreelancerSheetProps = {
   isOpen: boolean;
   onClose: () => void;
   transaction?: Transaction | null;
 };
 
-export function AddOtherIncomeSheet({
+export function AddFreelancerSheet({
   isOpen,
   onClose,
   transaction,
-}: AddOtherIncomeSheetProps) {
-  const form = useForm<OtherIncomeFormValues>({
+}: AddFreelancerSheetProps) {
+  const form = useForm<FreelancerFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       description: '',
       amount: 0,
-      category: '',
       date: new Date(),
       isRecurring: false,
       status: 'paid',
@@ -86,12 +78,6 @@ export function AddOtherIncomeSheet({
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
-
-  const allCategories = useMemo(() => {
-    const customCategories = user?.customIncomeCategories || [];
-    const combined = new Set([...otherIncomeCategories, ...customCategories]);
-    return Array.from(combined);
-  }, [user]);
 
   useEffect(() => {
     if (isOpen && transaction) {
@@ -105,7 +91,6 @@ export function AddOtherIncomeSheet({
       form.reset({
         description: '',
         amount: 0,
-        category: '',
         date: new Date(),
         isRecurring: false,
         status: 'paid',
@@ -113,7 +98,7 @@ export function AddOtherIncomeSheet({
     }
   }, [isOpen, transaction, form]);
   
-  const onSubmit = (values: OtherIncomeFormValues) => {
+  const onSubmit = (values: FreelancerFormValues) => {
     if (!user) {
       toast({
         variant: 'destructive',
@@ -126,6 +111,7 @@ export function AddOtherIncomeSheet({
     
     const dataToSave: any = {
       ...values,
+      category: 'Freelance', // Hardcoded category
       date: formatISO(values.date),
       userId: user.uid,
       type: 'income',
@@ -142,63 +128,26 @@ export function AddOtherIncomeSheet({
       addDocumentNonBlocking(collection(firestore, collectionPath), dataToSave);
       toast({
         title: 'Renda salva',
-        description: `Sua renda de "${values.description}" já entrou no painel.`,
+        description: `Sua renda de freelancer já entrou no painel.`,
       });
     }
     
     onClose();
   };
 
-  const title = transaction ? `Editar Renda` : `Adicionar Outra Renda`;
-  const descriptionText = transaction ? 'Modifique os detalhes da sua renda.' : 'Adicione uma nova fonte de renda, como aluguéis ou rendimentos.';
+  const title = transaction ? `Editar Renda Freelancer` : `Adicionar Renda Freelancer`;
+  const description = transaction ? 'Modifique os detalhes da sua renda.' : 'Adicione um novo recebimento de um projeto ou serviço.';
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
          <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{descriptionText}</DialogDescription>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descrição</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Ex: Rendimento Poupança, Aluguel Apto 123..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Categoria</FormLabel>
-                   <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma categoria" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {allCategories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
              <FormField
               control={form.control}
               name="amount"
@@ -259,11 +208,28 @@ export function AddOtherIncomeSheet({
             />
             <FormField
               control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Descrição</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Ex: Projeto de design para Empresa X, Consultoria de SEO..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="isRecurring"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border border-border bg-muted p-3">
                   <div className="space-y-0.5">
-                    <FormLabel>É uma renda recorrente?</FormLabel>
+                    <FormLabel>Contrato Recorrente</FormLabel>
+                    <DialogDescription className="text-xs">
+                      É um contrato mensal fixo?
+                    </DialogDescription>
                   </div>
                   <FormControl>
                     <Switch
@@ -281,6 +247,9 @@ export function AddOtherIncomeSheet({
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border border-border bg-muted p-3">
                   <div className="space-y-0.5">
                     <FormLabel>Recebido</FormLabel>
+                    <DialogDescription className="text-xs">
+                      Marque se o valor já foi pago.
+                    </DialogDescription>
                   </div>
                   <FormControl>
                     <Switch

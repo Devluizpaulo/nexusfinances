@@ -334,6 +334,9 @@ export function AddTransactionSheet({
                           onSelect={field.onChange}
                           initialFocus
                           locale={ptBR}
+                          captionLayout="dropdown-nav"
+                          fromYear={new Date().getFullYear() - 10}
+                          toYear={new Date().getFullYear() + 10}
                         />
                       </PopoverContent>
                     </Popover>

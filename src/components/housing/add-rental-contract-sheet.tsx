@@ -426,7 +426,16 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
                         </FormControl>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus locale={ptBR} />
+                        <Calendar 
+                            mode="single" 
+                            selected={field.value} 
+                            onSelect={field.onChange} 
+                            initialFocus 
+                            locale={ptBR} 
+                            captionLayout="dropdown-nav"
+                            fromYear={new Date().getFullYear() - 10}
+                            toYear={new Date().getFullYear() + 10}
+                        />
                       </PopoverContent>
                     </Popover>
                     <FormMessage />
@@ -452,7 +461,15 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
                         </FormControl>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar mode="single" selected={field.value} onSelect={field.onChange} locale={ptBR} />
+                        <Calendar 
+                            mode="single" 
+                            selected={field.value} 
+                            onSelect={field.onChange} 
+                            locale={ptBR}
+                            captionLayout="dropdown-nav"
+                            fromYear={new Date().getFullYear() - 10}
+                            toYear={new Date().getFullYear() + 10}
+                        />
                       </PopoverContent>
                     </Popover>
                     <FormMessage />
