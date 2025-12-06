@@ -59,13 +59,14 @@ export function useCollection<T = any>(
   type StateDataType = ResultItemType[] | null;
 
   const [data, setData] = useState<StateDataType>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true); // Start loading by default
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
   useEffect(() => {
+    // If the query/ref is not ready, reset state and wait.
     if (!memoizedTargetRefOrQuery) {
       setData(null);
-      setIsLoading(false);
+      setIsLoading(false); // Not loading because we aren't fetching anything
       setError(null);
       return;
     }
@@ -73,7 +74,6 @@ export function useCollection<T = any>(
     setIsLoading(true);
     setError(null);
 
-    // Directly use memoizedTargetRefOrQuery as it's assumed to be the final query
     const unsubscribe = onSnapshot(
       memoizedTargetRefOrQuery,
       (snapshot: QuerySnapshot<DocumentData>) => {
@@ -107,7 +107,7 @@ export function useCollection<T = any>(
     );
 
     return () => unsubscribe();
-  }, [memoizedTargetRefOrQuery]); // Re-run if the target query/reference changes.
+  }, [memoizedTargetRefOrQuery]);
   
   if (process.env.NODE_ENV === 'development' && memoizedTargetRefOrQuery && !(memoizedTargetRefOrQuery as any).__memo) {
     console.warn('useCollection was called with a query or reference that was not created with useMemoFirebase. This can lead to performance issues and bugs.', memoizedTargetRefOrQuery);
