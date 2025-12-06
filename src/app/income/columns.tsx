@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table"
 import { Transaction } from "@/lib/types"
-import { ArrowUpDown, CheckCircle, XCircle, Clock } from "lucide-react"
+import { ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { format, parseISO } from "date-fns"
 import { ptBR } from 'date-fns/locale';
