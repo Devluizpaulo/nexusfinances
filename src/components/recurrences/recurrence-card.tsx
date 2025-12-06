@@ -2,11 +2,10 @@
 
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { useFirestore, useUser, deleteDocumentNonBlocking, updateDocumentNonBlocking, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useUser, updateDocumentNonBlocking, useCollection, useMemoFirebase } from '@/firebase';
 import type { Recurrence, Transaction } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { Pencil, Trash2, Check, X, History, Loader2, Tag } from 'lucide-react';
+import { History, Loader2, Tag } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,6 +24,7 @@ import { AddTransactionSheet } from '../transactions/add-transaction-sheet';
 import { incomeCategories, expenseCategories } from '@/lib/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../ui/table';
+import { RecurrenceCardActions } from './recurrence-card-actions';
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('pt-BR', {
@@ -38,8 +38,6 @@ interface RecurrenceCardProps {
 }
 
 export function RecurrenceCard({ recurrence }: RecurrenceCardProps) {
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isConfirmingStop, setIsConfirmingStop] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
@@ -48,7 +46,6 @@ export function RecurrenceCard({ recurrence }: RecurrenceCardProps) {
   const { toast } = useToast();
 
   const collectionName = recurrence.type === 'income' ? 'incomes' : 'expenses';
-  const docRef = doc(firestore, `users/${user?.uid}/${collectionName}`, recurrence.id);
 
   const historyQuery = useMemoFirebase(() => {
     if (!user || !isHistoryOpen) return null;
@@ -60,24 +57,6 @@ export function RecurrenceCard({ recurrence }: RecurrenceCardProps) {
   }, [firestore, user, recurrence.id, collectionName, isHistoryOpen]);
 
   const { data: historyData, isLoading: isHistoryLoading } = useCollection<Transaction>(historyQuery);
-
-  const handleDelete = () => {
-    deleteDocumentNonBlocking(docRef);
-    toast({
-      title: 'Item recorrente excluído',
-      description: `O modelo de recorrência "${recurrence.description}" foi removido.`,
-    });
-    setIsDeleteDialogOpen(false);
-  };
-  
-  const handleStopRecurrence = () => {
-      updateDocumentNonBlocking(docRef, { isRecurring: false });
-      toast({
-          title: 'Recorrência interrompida',
-          description: `"${recurrence.description}" não será mais criada automaticamente.`,
-      });
-      setIsConfirmingStop(false);
-  }
 
   const nextDate = addMonths(parseISO(recurrence.date), 1);
   const categories = recurrence.type === 'income' ? incomeCategories : expenseCategories;
@@ -132,40 +111,7 @@ export function RecurrenceCard({ recurrence }: RecurrenceCardProps) {
         categories={categories}
         transaction={recurrence}
       />
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir modelo de recorrência?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Isso excluirá permanentemente o modelo de recorrência para "{recurrence.description}".
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={isConfirmingStop} onOpenChange={setIsConfirmingStop}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Interromper recorrência?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja parar a recorrência de "{recurrence.description}"? As transações futuras não serão mais criadas.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleStopRecurrence}>
-              Sim, interromper
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
+      
       <Card className="cursor-pointer hover:border-primary/50 transition-colors flex flex-col h-full" onClick={() => setIsHistoryOpen(true)}>
         <CardContent className="p-4 flex-grow">
           <div>
@@ -192,19 +138,7 @@ export function RecurrenceCard({ recurrence }: RecurrenceCardProps) {
            <p className="text-xs text-muted-foreground">
               {recurrence.isRecurring ? `Próximo: ${format(nextDate, 'dd/MM/yy', { locale: ptBR })}` : 'Não recorrente'}
             </p>
-          <div className="flex gap-1">
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); setIsEditing(true);}}>
-              <Pencil className="h-4 w-4" />
-            </Button>
-            {recurrence.isRecurring && (
-              <Button variant="ghost" size="icon" className="h-7 w-7 text-amber-600 hover:bg-amber-100 hover:text-amber-700" onClick={(e) => { e.stopPropagation(); setIsConfirmingStop(true);}}>
-                <X className="h-4 w-4" />
-              </Button>
-            )}
-            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={(e) => { e.stopPropagation(); setIsDeleteDialogOpen(true);}}>
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
+            <RecurrenceCardActions recurrence={recurrence} onEdit={() => setIsEditing(true)} />
         </div>
       </Card>
     </>

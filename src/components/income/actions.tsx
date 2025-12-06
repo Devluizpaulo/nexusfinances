@@ -26,25 +26,19 @@ import { useFirestore, useUser, deleteDocumentNonBlocking, updateDocumentNonBloc
 import { useToast } from "@/hooks/use-toast"
 import type { Transaction } from "@/lib/types"
 
-interface DataTableRowActionsProps<TData> {
-  row: Row<TData>
-  transactionType: "income" | "expense"
-  onEdit: (transaction: TData) => void;
+interface DataTableRowActionsProps {
+  row: Row<Transaction>
+  onEdit: (transaction: Transaction) => void;
 }
 
-export function DataTableRowActions<TData>({
-  row,
-  transactionType,
-  onEdit
-}: DataTableRowActionsProps<TData>) {
+export function DataTableRowActions({ row, onEdit }: DataTableRowActionsProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
 
-  const transaction = row.original as Transaction;
-  
-  const collectionName = transactionType === 'income' ? 'incomes' : 'expenses';
+  const transaction = row.original;
+  const collectionName = 'incomes';
 
   const handleUpdateStatus = () => {
     if (!user) {
@@ -55,7 +49,7 @@ export function DataTableRowActions<TData>({
     updateDocumentNonBlocking(docRef, { status: "paid" });
     toast({
       title: "Transação atualizada!",
-      description: `A transação foi marcada como ${transactionType === 'income' ? 'recebida' : 'paga'}.`,
+      description: `A transação foi marcada como recebida.`,
     });
   }
 
@@ -110,7 +104,7 @@ export function DataTableRowActions<TData>({
             <>
               <DropdownMenuItem onClick={handleUpdateStatus}>
                 <CheckCircle className="mr-2 h-3.5 w-3.5" />
-                Marcar como {transactionType === 'income' ? 'Recebida' : 'Paga'}
+                Marcar como Recebida
               </DropdownMenuItem>
               <DropdownMenuSeparator />
             </>
