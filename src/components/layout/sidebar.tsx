@@ -207,6 +207,13 @@ export function AppSidebar() {
                                         </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
+                                <SidebarMenuItem className="ml-5 border-l border-border pl-3">
+                                    <SidebarMenuButton asChild isActive={pathname.startsWith('/expenses/others')} tooltip={'Outras Despesas'} onClick={handleMobileClick}>
+                                        <Link href="/expenses/others">
+                                            Outras Despesas
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
                             </CollapsibleContent>
                         </Collapsible>
                        </>
