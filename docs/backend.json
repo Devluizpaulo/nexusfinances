@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -31,6 +32,14 @@
           "type": "string",
           "description": "URL of the user's profile picture.",
           "format": "uri"
+        },
+        "avatar": {
+            "type": "object",
+            "description": "User-selected custom avatar preferences.",
+            "properties": {
+                "icon": { "type": "string", "description": "The name of the Lucide icon." },
+                "bgColor": { "type": "string", "description": "The Tailwind CSS background color class." }
+            }
         },
         "phoneNumber": {
           "type": "string",
@@ -178,6 +187,14 @@
         "recurrenceSchedule": {
           "type": "string",
           "description": "Schedule for recurring expense (e.g., monthly, weekly)."
+        },
+        "creditCardId": {
+            "type": "string",
+            "description": "Optional reference to a CreditCard. If present, this expense is part of a credit card bill."
+        },
+        "consumption": {
+          "type": "string",
+          "description": "Optional consumption data for utility bills (e.g., '150 kWh', '25 m³')."
         }
       },
       "required": [
@@ -315,18 +332,130 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Budget",
       "type": "object",
-      "description": "Represents a budget for a specific category over a period.",
+      "description": "Represents a spending limit for a specific category over a period.",
       "properties": {
         "id": { "type": "string" },
         "userId": { "type": "string" },
         "name": { "type": "string" },
         "category": { "type": "string" },
         "amount": { "type": "number", "description": "The total budgeted amount." },
-        "period": { "type": "string", "enum": ["weekly", "monthly"] },
+        "period": { "type": "string", "enum": ["monthly"] },
         "startDate": { "type": "string", "format": "date-time" },
         "endDate": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "userId", "name", "category", "amount", "period", "startDate", "endDate"]
+    },
+    "CreditCard": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CreditCard",
+      "type": "object",
+      "description": "Represents a user's credit card.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "name": { "type": "string", "description": "A nickname for the card (e.g., 'Nubank Roxo', 'Inter Gold')." },
+        "lastFourDigits": { "type": "string", "description": "The last four digits of the card number." },
+        "limit": { "type": "number", "description": "The total credit limit of the card." },
+        "dueDate": { "type": "number", "description": "The day of the month the bill is due." },
+        "closingDate": { "type": "number", "description": "The day of the month the bill closes." }
+      },
+      "required": ["userId", "name", "lastFourDigits", "limit", "dueDate", "closingDate"]
+    },
+    "RentalContract": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "RentalContract",
+      "type": "object",
+      "description": "Represents a user's rental or housing contract details.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "landlordName": { "type": "string", "description": "Name of the landlord or real estate agency." },
+        "type": { "type": "string", "enum": ["Aluguel", "Condomínio", "Aluguel + Condomínio", "Outros"] },
+        "rentAmount": { "type": "number", "description": "The monthly rent amount, if applicable." },
+        "condoFee": { "type": "number", "description": "The monthly condo fee, if applicable." },
+        "totalAmount": { "type": "number", "description": "The total monthly payment amount (sum of rent, condo, etc.)." },
+        "dueDate": { "type": "number", "description": "The day of the month the payment is due." },
+        "paymentPeriodicity": { "type": "string", "enum": ["Mensal", "Bimestral", "Trimestral", "Anual"] },
+        "startDate": { "type": "string", "format": "date-time" },
+        "endDate": { "type": "string", "format": "date-time", "description": "Optional contract end date." },
+        "isAutoRenew": { "type": "boolean" },
+        "propertyAddress": { "type": "string" },
+        "securityDeposit": { "type": "number" },
+        "notes": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "inactive"] },
+        "paymentMethod": {
+            "type": "object",
+            "description": "Structured payment details.",
+            "properties": {
+                "method": { "type": "string", "enum": ["pix", "bankTransfer", "boleto", "creditCard", "cash", "debit"] },
+                "instructions": { "type": "string" },
+                "identifier": { "type": "string" }
+            }
+        }
+      },
+      "required": ["userId", "landlordName", "type", "totalAmount", "dueDate", "paymentPeriodicity", "startDate"]
+    },
+    "HealthProvider": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Health Provider",
+      "type": "object",
+      "description": "Represents a health-related company or service provider.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string", "enum": ["Academia", "Clínica", "Consultório", "Estúdio", "Centro Terapêutico", "Outro"] },
+        "address": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "website": { "type": "string", "format": "uri" }
+      },
+      "required": ["userId", "name", "type"]
+    },
+    "HealthProfessional": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Health Professional",
+      "type": "object",
+      "description": "Represents an individual health professional.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "specialty": { "type": "string", "description": "e.g., 'Cardiologista', 'Psicólogo', 'Personal Trainer'" },
+        "providerId": { "type": "string", "description": "Optional reference to a HealthProvider." },
+        "phone": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "notes": { "type": "string", "description": "For schedules, observations, etc." }
+      },
+      "required": ["userId", "name", "specialty"]
+    },
+     "HealthInsurance": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Health Insurance",
+      "type": "object",
+      "description": "Represents the user's health insurance details.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "type": { "type": "string", "enum": ["Saúde", "Odontológico"], "description": "Type of insurance plan." },
+        "operator": { "type": "string", "description": "Name of the insurance company." },
+        "planName": { "type": "string", "description": "Name of the plan." },
+        "cardNumber": { "type": "string", "description": "The insurance card number for the main holder." },
+        "emergencyContact": { "type": "string", "description": "Emergency contact number for the plan." },
+        "dependents": {
+          "type": "array",
+          "description": "A list of dependents on the plan.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "cardNumber": { "type": "string" }
+            },
+            "required": ["name"]
+          }
+        }
+      },
+      "required": ["userId", "type", "operator", "planName", "cardNumber"]
     },
     "SubscriptionPlan": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -488,6 +617,66 @@
           ]
         }
       },
+       {
+        "path": "/users/{userId}/creditCards/{cardId}",
+        "definition": {
+          "entityName": "CreditCard",
+          "schema": { "$ref": "#/backend/entities/CreditCard" },
+          "description": "Stores the user's registered credit cards.",
+          "params": [
+            { "name": "userId", "description": "The user's unique ID." },
+            { "name": "cardId", "description": "The credit card's unique ID." }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/rentalContracts/{contractId}",
+        "definition": {
+          "entityName": "RentalContract",
+          "schema": { "$ref": "#/backend/entities/RentalContract" },
+          "description": "Stores the user's rental contract details.",
+          "params": [
+            { "name": "userId", "description": "The user's unique ID." },
+            { "name": "contractId", "description": "The rental contract's unique ID." }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/healthProviders/{providerId}",
+        "definition": {
+          "entityName": "HealthProvider",
+          "schema": { "$ref": "#/backend/entities/HealthProvider" },
+          "description": "Stores user's health service providers like clinics and gyms.",
+          "params": [
+            { "name": "userId", "description": "The user's unique ID." },
+            { "name": "providerId", "description": "The health provider's unique ID." }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/healthProfessionals/{professionalId}",
+        "definition": {
+          "entityName": "HealthProfessional",
+          "schema": { "$ref": "#/backend/entities/HealthProfessional" },
+          "description": "Stores user's health professionals like doctors and therapists.",
+          "params": [
+            { "name": "userId", "description": "The user's unique ID." },
+            { "name": "professionalId", "description": "The health professional's unique ID." }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/healthInsurances/{insuranceId}",
+        "definition": {
+          "entityName": "HealthInsurance",
+          "schema": { "$ref": "#/backend/entities/HealthInsurance" },
+          "description": "Stores the user's health insurance details.",
+          "params": [
+            { "name": "userId", "description": "The user's unique ID." },
+            { "name": "insuranceId", "description": "The health insurance's unique ID." }
+          ]
+        }
+      },
       {
         "path": "/users/{userId}/notifications/{notificationId}",
         "definition": {
@@ -609,7 +798,7 @@
         "definition": {
           "entityName": "Budget",
           "schema": { "$ref": "#/backend/entities/Budget" },
-          "description": "Stores user-defined budgets for expense categories.",
+          "description": "Stores user-defined spending limits for expense categories.",
           "params": [
             { "name": "userId", "description": "The unique identifier of the user." },
             { "name": "budgetId", "description": "The unique identifier of the budget." }
@@ -661,5 +850,3 @@
     "reasoning": "The Firestore data structure is designed to support the xô planilhas application, focusing on secure and efficient data management for user finances.  The design follows the core principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), QAPs (Queries are not Filters), and Invariants.\n\n**Authorization Independence:** Achieved through denormalization of the `userId` field in the `incomes`, `expenses`, `debts`, `installments` and `goals` collections. This eliminates the need for `get()` calls to parent documents (users) in security rules, enabling atomic operations (transactions/batches) and simplifying debugging.\n\n**Structural Segregation:**  Employed by storing all `incomes`, `expenses`, `debts`, and `installments` for a given user under the `/users/{userId}` path. This ensures that all documents within these subcollections share the same security requirements, simplifying rules and improving maintainability. All private user data is segregated under the user's document.\n\n**Access Modeling:** Path-based ownership is consistently used for all user-owned data (incomes, expenses, debts, installments, goals). This makes security rules simple and efficient.\n\n**QAPs (Rules Are Not Filters):** The structure enables secure list operations. Because all documents within a collection share the same security requirements and authorization information (`userId`), it's possible to write rules that allow listing only the documents that the user has access to, without having to filter based on document content.\n\n**Invariants:** Enforced through clear ownership (`userId` in child collections) and consistent naming conventions. Timestamps can be added to each entity to track creation and modification times, if required.\n\n**Logging:** A top-level `/logs` collection is added to store system-wide events. Access is restricted to superadmins for reading, while creation is allowed for any authenticated user to enable client-side event logging."
   }
 }
-
-    

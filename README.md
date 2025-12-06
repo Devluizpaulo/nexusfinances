@@ -1,16 +1,20 @@
- Xô Planilhas: Seu Assistente Financeiro Pessoal
+# Xô Planilhas: Seu Assistente Financeiro Pessoal
 
 Xô Planilhas é uma aplicação web moderna construída com Next.js e Firebase, projetada para ajudar os usuários a gerenciar suas finanças pessoais de forma inteligente e intuitiva.
 
 ## ✨ Funcionalidades Principais
 
 - **Dashboard Interativo:** Visualize um resumo completo da sua saúde financeira com KPIs, gráficos de renda vs. despesas, e análise de gastos por categoria.
-- **Gerenciamento de Transações:** Adicione, edite e acompanhe suas rendas e despesas com status de pagamento.
+- **Gerenciamento de Transações:** Adicione, edite e acompanhe suas rendas e despesas com status de pagamento, organizadas por categorias como salário, freelancer, moradia, contas de consumo e muito mais.
 - **Controle de Dívidas:** Cadastre empréstimos e financiamentos, e gerencie o pagamento das parcelas.
+- **Cartões de Crédito:** Centralize a gestão de múltiplos cartões, acompanhando limites e faturas.
+- **Controle de Moradia:** Gerencie contratos de aluguel e condomínio.
+- **Central de Saúde:** Organize seus planos de saúde, contatos de clínicas e profissionais.
 - **Metas e Investimentos:** Crie e acompanhe o progresso de suas metas financeiras e reservas.
+- **Jornada de Educação Financeira:** Trilhas de conhecimento interativas para melhorar sua saúde financeira.
 - **Autenticação Segura:** Login social com Google e sistema de autenticação por e-mail e senha.
 - **Personalização:** Crie suas próprias categorias de renda e despesa para adaptar o sistema à sua realidade.
-- **Painel de Administração:** Uma área restrita para administradores gerenciarem usuários e visualizarem logs do sistema.
+- **Painel de Administração:** Uma área restrita para administradores gerenciarem usuários, conteúdos e planos.
 
 ## 🚀 Como Começar
 
@@ -34,11 +38,11 @@ Antes de começar, você precisa de um projeto Firebase configurado.
 
 O projeto usa variáveis de ambiente para se conectar ao Firebase.
 
-1.  Na raiz do projeto, renomeie o arquivo `.env.example` para `.env`.
+1.  Na raiz do projeto, crie um arquivo `.env` a partir do modelo. Você pode simplesmente copiar o conteúdo do arquivo `.env.example` se ele existir, ou criar um novo.
 2.  Abra o arquivo `.env` e preencha com as credenciais do seu projeto Firebase.
     - Para encontrar essas credenciais, vá para as **Configurações do projeto** (ícone de engrenagem) > **Geral**.
     - Role para baixo até a seção **"Seus apps"**. Se ainda não tiver um app da web, clique no ícone `</>` para criar um.
-    - Copie os valores do objeto `firebaseConfig` e cole-os nas variáveis correspondentes em seu arquivo `.env`.
+    - Copie os valores do objeto `firebaseConfig` e cole-os nas variáveis correspondentes em seu arquivo `.env` (ex: `NEXT_PUBLIC_FIREBASE_API_KEY=...`).
 
 ### 3. Instale as Dependências
 
@@ -65,3 +69,4 @@ Abra [http://localhost:9002](http://localhost:9002) em seu navegador para ver a 
 - **UI:** [React](https://reactjs.org/), [Tailwind CSS](https://tailwindcss.com/), [ShadCN/UI](https://ui.shadcn.com/)
 - **Gráficos:** [Recharts](https://recharts.org/)
 - **Gerenciamento de Formulários:** [React Hook Form](https://react-hook-form.com/) & [Zod](https://zod.dev/)
+- **IA Generativa:** [Google AI (Genkit)](https://firebase.google.com/docs/genkit)
