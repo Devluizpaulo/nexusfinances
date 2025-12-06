@@ -1,13 +1,13 @@
 
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { formatISO, format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { collection, doc } from 'firebase/firestore';
+import { collection, doc, arrayUnion, updateDoc } from 'firebase/firestore';
 import { useFirestore, useUser, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
 import { cn } from '@/lib/utils';
 import {
