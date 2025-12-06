@@ -531,7 +531,7 @@ export default function DashboardPage() {
 
             <div className="space-y-5">
               <h2 className="text-lg font-semibold tracking-tight">Resumo do período</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
                 <KpiCard
                   title="Renda Total"
                   value={formatCurrency(totalIncome)}
@@ -545,7 +545,7 @@ export default function DashboardPage() {
                   trend={expenseChange}
                   invertTrendColor
                 />
-                <Card className="col-span-2 md:col-span-1 lg:col-span-1 bg-primary/5 border-primary/20">
+                <Card className="col-span-2 md:col-span-3 lg:col-span-1 bg-primary/5 border-primary/20">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-primary">Balanço do Período</CardTitle>
                         <Scale className="h-4 w-4 text-primary" />
@@ -555,18 +555,6 @@ export default function DashboardPage() {
                         <p className="text-xs text-muted-foreground">Saldo de {periodLabel}</p>
                     </CardContent>
                 </Card>
-                <KpiCard
-                  title="Dívida Pendente"
-                  value={formatCurrency(totalDebt)}
-                  icon={Banknote}
-                  description="Total de dívidas em aberto"
-                />
-                 <KpiCard
-                  title="Metas"
-                  value={formatCurrency(totalGoals)}
-                  icon={PiggyBank}
-                  description="Total em reservas e investimentos"
-                />
               </div>
             </div>
             
@@ -756,6 +744,9 @@ export default function DashboardPage() {
                         router.push(`/debts?dueDate=${dateStr}`);
                       }
                     }}
+                    fromYear={new Date().getFullYear() - 10}
+                    toYear={new Date().getFullYear() + 10}
+                    captionLayout="dropdown-nav"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
@@ -855,6 +846,3 @@ export default function DashboardPage() {
   );
 }
 
-
-
-    
