@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -115,6 +116,7 @@ export function AddTransactionSheet({
   const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isAddCardSheetOpen, setIsAddCardSheetOpen] = useState(false);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   const paymentMethod = form.watch('paymentMethod');
   const isRecurring = form.watch('isRecurring');
@@ -317,7 +319,7 @@ export function AddTransactionSheet({
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Data</FormLabel>
-                    <Popover>
+                    <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
@@ -340,7 +342,10 @@ export function AddTransactionSheet({
                         <Calendar
                           mode="single"
                           selected={field.value}
-                          onSelect={field.onChange}
+                          onSelect={(date) => {
+                            field.onChange(date);
+                            setIsDatePickerOpen(false);
+                          }}
                           initialFocus
                           locale={ptBR}
                           captionLayout="dropdown"
