@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -432,7 +433,7 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
                             onSelect={field.onChange} 
                             initialFocus 
                             locale={ptBR} 
-                            captionLayout="dropdown"
+                            captionLayout="dropdown-buttons"
                             fromYear={new Date().getFullYear() - 10}
                             toYear={new Date().getFullYear() + 10}
                         />
@@ -466,7 +467,7 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
                             selected={field.value} 
                             onSelect={field.onChange} 
                             locale={ptBR}
-                            captionLayout="dropdown"
+                            captionLayout="dropdown-buttons"
                             fromYear={new Date().getFullYear() - 10}
                             toYear={new Date().getFullYear() + 10}
                         />

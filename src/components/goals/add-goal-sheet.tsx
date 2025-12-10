@@ -97,7 +97,6 @@ export function AddGoalSheet({ isOpen, onClose, goal }: AddGoalSheetProps) {
   const currentAmount = form.watch('currentAmount');
   const monthlyContribution = form.watch('monthlyContribution');
   const watchedTargetDate = form.watch('targetDate');
-  const [isTargetDateOpen, setIsTargetDateOpen] = useState(false);
 
   const remainingAmount = Math.max(targetAmount - currentAmount, 0);
   const estimatedMonths = monthlyContribution > 0 ? Math.ceil(remainingAmount / monthlyContribution) : null;
@@ -353,7 +352,7 @@ export function AddGoalSheet({ isOpen, onClose, goal }: AddGoalSheetProps) {
                 <FormItem className="flex flex-col">
                   <FormLabel>Data Alvo (Opcional)</FormLabel>
 
-                  <Popover open={isTargetDateOpen} onOpenChange={setIsTargetDateOpen}>
+                  <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
                         <Button
@@ -376,13 +375,10 @@ export function AddGoalSheet({ isOpen, onClose, goal }: AddGoalSheetProps) {
                       <Calendar
                         mode="single"
                         selected={field.value}
-                        onSelect={(date) => {
-                          field.onChange(date);
-                          if (date) setIsTargetDateOpen(false);
-                        }}
+                        onSelect={field.onChange}
                         initialFocus
                         locale={ptBR}
-                        captionLayout="dropdown"
+                        captionLayout="dropdown-buttons"
                         fromYear={new Date().getFullYear() - 10}
                         toYear={new Date().getFullYear() + 10}
                       />

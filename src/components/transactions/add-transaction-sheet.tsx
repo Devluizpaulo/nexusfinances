@@ -116,8 +116,7 @@ export function AddTransactionSheet({
   const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isAddCardSheetOpen, setIsAddCardSheetOpen] = useState(false);
-  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-
+  
   const paymentMethod = form.watch('paymentMethod');
   const isRecurring = form.watch('isRecurring');
   
@@ -319,7 +318,7 @@ export function AddTransactionSheet({
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Data</FormLabel>
-                    <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+                    <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
@@ -342,13 +341,10 @@ export function AddTransactionSheet({
                         <Calendar
                           mode="single"
                           selected={field.value}
-                          onSelect={(date) => {
-                            field.onChange(date);
-                            setIsDatePickerOpen(false);
-                          }}
+                          onSelect={field.onChange}
                           initialFocus
                           locale={ptBR}
-                          captionLayout="dropdown"
+                          captionLayout="dropdown-buttons"
                           fromYear={new Date().getFullYear() - 10}
                           toYear={new Date().getFullYear() + 10}
                         />
