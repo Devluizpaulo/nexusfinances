@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
@@ -6,7 +5,6 @@ import { FirebaseApp } from 'firebase/app';
 import { Firestore, doc, setDoc, getDoc, serverTimestamp, Timestamp, FieldValue, onSnapshot, collection, query, where } from 'firebase/firestore';
 import { FirebaseStorage } from 'firebase/storage';
 import { Auth, User, onAuthStateChanged, UserMetadata } from 'firebase/auth';
-import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 import type { SubscriptionPlan, UserSubscription } from '@/lib/types';
 
 
@@ -242,7 +240,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
   return (
     <FirebaseContext.Provider value={contextValue}>
-      {contextValue.areServicesAvailable && <FirebaseErrorListener />}
       {children}
     </FirebaseContext.Provider>
   );

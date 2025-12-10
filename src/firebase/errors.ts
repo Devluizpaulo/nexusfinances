@@ -102,8 +102,11 @@ function buildRequestObject(context: SecurityRuleContext): SecurityRuleRequest {
  * @returns A string containing the error message and the JSON payload.
  */
 function buildErrorMessage(requestObject: SecurityRuleRequest): string {
-  return `Missing or insufficient permissions: The following request was denied by Firestore Security Rules:
-${JSON.stringify(requestObject, null, 2)}`;
+  const message = `FirestoreError: Missing or insufficient permissions: The following request was denied by Firestore Security Rules:\n${JSON.stringify(requestObject, null, 2)}`;
+  if (process.env.NODE_ENV === 'development') {
+    console.error(message);
+  }
+  return message;
 }
 
 /**
