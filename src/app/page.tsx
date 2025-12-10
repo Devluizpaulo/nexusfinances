@@ -92,18 +92,11 @@ function ClientRoot() {
             </span>
           </Link>
           <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              className="font-medium hover:bg-primary/10 hover:text-primary"
-              onClick={() => redirect('/login')}
-            >
-              Entrar
+            <Button asChild variant="ghost" className="font-medium hover:bg-primary/10 hover:text-primary">
+              <Link href="/login">Entrar</Link>
             </Button>
-            <Button 
-              className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-primary/20 transition-all duration-300"
-              onClick={() => redirect('/login')}
-            >
-              Começar Agora
+            <Button asChild className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-primary/20 transition-all duration-300">
+              <Link href="/login">Começar Agora</Link>
             </Button>
           </div>
         </div>
@@ -604,9 +597,11 @@ function ClientRoot() {
               Junte-se a milhares de pessoas que abandonaram a complicação e encontraram a clareza financeira.
             </p>
             <div className="mt-8">
-              <Button size="lg" onClick={() => redirect('/login')}>
-                Criar minha conta gratuita
-                <ArrowRight className="ml-2 h-5 w-5" />
+              <Button size="lg" asChild>
+                <Link href="/login">
+                  Criar minha conta gratuita
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
               </Button>
             </div>
           </div>
