@@ -4,7 +4,7 @@
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { collection, query, orderBy, where, doc } from 'firebase/firestore';
-import { useUser, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { RentalContract, Transaction } from '@/lib/types';
 import { Loader2, Home, PlusCircle, Settings } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
@@ -18,6 +18,7 @@ import { columns } from '../columns';
 import { useToast } from '@/hooks/use-toast';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { expenseCategories } from '@/lib/types';
+import { updateDoc } from "firebase/firestore";
 
 export default function HousingPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -90,10 +91,18 @@ export default function HousingPage() {
   const handleStatusChange = (transaction: Transaction) => {
     if (!user || transaction.status === 'paid') return;
     const docRef = doc(firestore, `users/${user.uid}/expenses`, transaction.id);
-    updateDocumentNonBlocking(docRef, { status: "paid" });
-    toast({
-      title: "Transação atualizada!",
-      description: `A despesa foi marcada como paga.`,
+    updateDoc(docRef, { status: "paid" }).then(() => {
+        toast({
+            title: "Transação atualizada!",
+            description: `A despesa foi marcada como paga.`,
+        });
+    }).catch((e) => {
+        console.error("Error updating document: ", e);
+        toast({
+            variant: "destructive",
+            title: "Erro ao atualizar",
+            description: "Não foi possível marcar a despesa como paga."
+        });
     });
   }
 
@@ -174,7 +183,7 @@ export default function HousingPage() {
         
         <section>
           <h2 className="text-lg font-semibold mb-4">Histórico de Despesas de Moradia</h2>
-          {housingExpenses && housingExpenses.length > 0 ? (
+          {(housingExpenses ?? []).length > 0 ? (
             <DataTable
               columns={columns({ onEdit: handleEditTransaction, onStatusChange: handleStatusChange })}
               data={housingExpenses}

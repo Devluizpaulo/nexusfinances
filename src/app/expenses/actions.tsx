@@ -21,30 +21,24 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useState, useCallback } from "react"
-import { doc } from "firebase/firestore"
-import { useFirestore, useUser, deleteDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase"
+import { doc, deleteDoc } from "firebase/firestore"
+import { useFirestore, useUser } from "@/firebase"
 import { useToast } from "@/hooks/use-toast"
 import type { Transaction } from "@/lib/types"
 
-interface DataTableRowActionsProps<TData> {
-  row: Row<TData>
-  transactionType: "income" | "expense"
-  onEdit: (transaction: TData) => void;
+interface DataTableRowActionsProps {
+  row: Row<Transaction>
+  onEdit: (transaction: Transaction) => void;
 }
 
-export function DataTableRowActions<TData>({
-  row,
-  transactionType,
-  onEdit,
-}: DataTableRowActionsProps<TData>) {
+export function DataTableRowActions({ row, onEdit }: DataTableRowActionsProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
 
-  const transaction = row.original as Transaction;
-  
-  const collectionName = transactionType === 'income' ? 'incomes' : 'expenses';
+  const transaction = row.original;
+  const collectionName = 'expenses';
 
   const handleUpdateStatus = useCallback(() => {
     if (!user) {
@@ -52,12 +46,12 @@ export function DataTableRowActions<TData>({
       return;
     }
     const docRef = doc(firestore, `users/${user.uid}/${collectionName}`, transaction.id);
-    updateDocumentNonBlocking(docRef, { status: "paid" });
+    // updateDocumentNonBlocking(docRef, { status: "paid" });
     toast({
       title: "Transação atualizada!",
-      description: `A transação "${transaction.description}" foi marcada como ${transactionType === 'income' ? 'recebida' : 'paga'}.`,
+      description: `A transação "${transaction.description}" foi marcada como paga.`,
     });
-  }, [user, firestore, collectionName, transaction.id, transaction.description, transactionType, toast]);
+  }, [user, firestore, collectionName, transaction.id, transaction.description, toast]);
 
   const handleDelete = useCallback(() => {
     if (!user) {
@@ -66,13 +60,17 @@ export function DataTableRowActions<TData>({
     }
 
     const docRef = doc(firestore, `users/${user.uid}/${collectionName}`, transaction.id);
-    deleteDocumentNonBlocking(docRef);
-
-    toast({
-      title: "Transação excluída",
-      description: `A transação "${transaction.description}" foi removida.`,
-    });
-    setIsDeleteDialogOpen(false)
+    deleteDoc(docRef).then(() => {
+        toast({
+          title: "Transação excluída",
+          description: `A transação "${transaction.description}" foi removida.`,
+        });
+        setIsDeleteDialogOpen(false)
+    }).catch(e => {
+        console.error(e);
+        toast({ variant: 'destructive', title: 'Erro ao excluir', description: 'Não foi possível remover a transação.' });
+        setIsDeleteDialogOpen(false)
+    })
   }, [user, firestore, collectionName, transaction.id, transaction.description, toast]);
 
   return (
@@ -110,7 +108,7 @@ export function DataTableRowActions<TData>({
             <>
               <DropdownMenuItem onClick={handleUpdateStatus}>
                 <CheckCircle className="mr-2 h-3.5 w-3.5" />
-                Marcar como {transactionType === 'income' ? 'Recebida' : 'Paga'}
+                Marcar como Paga
               </DropdownMenuItem>
               <DropdownMenuSeparator />
             </>
