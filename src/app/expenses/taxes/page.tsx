@@ -14,6 +14,8 @@ import { DataTable } from '@/components/data-table/data-table';
 import { columns } from '../columns';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { isPast, isFuture, parseISO } from 'date-fns';
 
 export default function TaxesPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -34,6 +36,28 @@ export default function TaxesPage() {
   }, [user, firestore]);
 
   const { data: taxesExpenses, isLoading: isExpensesLoading } = useCollection<Transaction>(taxesExpensesQuery);
+  
+  const { upcoming, overdue, paid } = useMemo(() => {
+    const upcoming: Transaction[] = [];
+    const overdue: Transaction[] = [];
+    const paid: Transaction[] = [];
+
+    (taxesExpenses || []).forEach(t => {
+      if (t.status === 'paid') {
+        paid.push(t);
+      } else {
+        const dueDate = parseISO(t.date);
+        if (isPast(dueDate)) {
+          overdue.push(t);
+        } else {
+          upcoming.push(t);
+        }
+      }
+    });
+
+    return { upcoming, overdue, paid };
+  }, [taxesExpenses]);
+
 
   const handleOpenSheet = (transaction: Transaction | null = null) => {
     setEditingTransaction(transaction);
@@ -94,13 +118,34 @@ export default function TaxesPage() {
             </Button>
         </div>
       </PageHeader>
+      
+       <Tabs defaultValue="upcoming" className="mt-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="upcoming">A vencer</TabsTrigger>
+          <TabsTrigger value="overdue">Vencidos</TabsTrigger>
+          <TabsTrigger value="paid">Pagos</TabsTrigger>
+        </TabsList>
+        <TabsContent value="upcoming" className="mt-4">
+            <DataTable
+                columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
+                data={upcoming}
+            />
+        </TabsContent>
+        <TabsContent value="overdue" className="mt-4">
+             <DataTable
+                columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
+                data={overdue}
+            />
+        </TabsContent>
+         <TabsContent value="paid" className="mt-4">
+             <DataTable
+                columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
+                data={paid}
+            />
+        </TabsContent>
+      </Tabs>
 
-      {taxesExpenses && taxesExpenses.length > 0 ? (
-        <DataTable
-            columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
-            data={taxesExpenses}
-        />
-      ) : (
+      {!taxesExpenses || taxesExpenses.length === 0 && (
         <Card>
             <CardContent className="flex flex-col items-center justify-center py-12 px-4 text-center">
                 <div className="rounded-full bg-muted p-4 mb-4">
