@@ -4,7 +4,7 @@
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { collection, query, where, doc, orderBy } from 'firebase/firestore';
-import { useUser, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Transaction } from '@/lib/types';
 import { Loader2, Landmark, PlusCircle, Upload } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
@@ -15,12 +15,15 @@ import { columns } from '../columns';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { isPast, isFuture, parseISO } from 'date-fns';
+import { isPast, parseISO, startOfDay } from 'date-fns';
+
+type ActiveTab = 'upcoming' | 'overdue' | 'paid';
 
 export default function TaxesPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isImportSheetOpen, setIsImportSheetOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [activeTab, setActiveTab] = useState<ActiveTab>('upcoming');
 
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
@@ -38,25 +41,46 @@ export default function TaxesPage() {
   const { data: taxesExpenses, isLoading: isExpensesLoading } = useCollection<Transaction>(taxesExpensesQuery);
   
   const { upcoming, overdue, paid } = useMemo(() => {
-    const upcoming: Transaction[] = [];
-    const overdue: Transaction[] = [];
-    const paid: Transaction[] = [];
+    const data = {
+        upcoming: [] as Transaction[],
+        overdue: [] as Transaction[],
+        paid: [] as Transaction[],
+    };
 
-    (taxesExpenses || []).forEach(t => {
-      if (t.status === 'paid') {
-        paid.push(t);
-      } else {
-        const dueDate = parseISO(t.date);
-        if (isPast(dueDate)) {
-          overdue.push(t);
-        } else {
-          upcoming.push(t);
+    for (const t of taxesExpenses ?? []) {
+        if (t.status === 'paid') {
+            data.paid.push(t);
+            continue;
         }
-      }
-    });
 
-    return { upcoming, overdue, paid };
+        const dueDate = new Date(t.date);
+        if (isNaN(dueDate.getTime())) {
+            // Se a data for inválida, joga para 'a vencer' para revisão
+            data.upcoming.push(t);
+            continue;
+        }
+
+        if (isPast(startOfDay(dueDate))) {
+            data.overdue.push(t);
+        } else {
+            data.upcoming.push(t);
+        }
+    }
+    return data;
   }, [taxesExpenses]);
+
+  const tableData = useMemo(() => {
+    switch (activeTab) {
+      case 'upcoming':
+        return upcoming;
+      case 'overdue':
+        return overdue;
+      case 'paid':
+        return paid;
+      default:
+        return [];
+    }
+  }, [activeTab, upcoming, overdue, paid]);
 
 
   const handleOpenSheet = (transaction: Transaction | null = null) => {
@@ -72,11 +96,21 @@ export default function TaxesPage() {
   const handleStatusChange = (transaction: Transaction) => {
     if (!user || transaction.status === 'paid') return;
     const docRef = doc(firestore, `users/${user.uid}/expenses`, transaction.id);
-    updateDocumentNonBlocking(docRef, { status: "paid" });
-    toast({
-      title: "Transação atualizada!",
-      description: `A despesa foi marcada como paga.`,
-    });
+    
+    updateDoc(docRef, { status: "paid" })
+        .then(() => {
+            toast({
+                title: "Transação atualizada!",
+                description: `A despesa foi marcada como paga.`,
+            });
+        })
+        .catch(() => {
+            toast({
+                variant: "destructive",
+                title: "Erro ao atualizar",
+                description: "Não foi possível marcar a despesa como paga. Tente novamente.",
+            });
+        });
   }
 
   const isLoading = isUserLoading || isExpensesLoading;
@@ -119,33 +153,21 @@ export default function TaxesPage() {
         </div>
       </PageHeader>
       
-       <Tabs defaultValue="upcoming" className="mt-6">
+       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ActiveTab)} className="mt-6">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="upcoming">A vencer</TabsTrigger>
-          <TabsTrigger value="overdue">Vencidos</TabsTrigger>
-          <TabsTrigger value="paid">Pagos</TabsTrigger>
+          <TabsTrigger value="upcoming">A vencer ({upcoming.length})</TabsTrigger>
+          <TabsTrigger value="overdue">Vencidos ({overdue.length})</TabsTrigger>
+          <TabsTrigger value="paid">Pagos ({paid.length})</TabsTrigger>
         </TabsList>
-        <TabsContent value="upcoming" className="mt-4">
+        <div className="mt-4">
             <DataTable
                 columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
-                data={upcoming}
+                data={tableData}
             />
-        </TabsContent>
-        <TabsContent value="overdue" className="mt-4">
-             <DataTable
-                columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
-                data={overdue}
-            />
-        </TabsContent>
-         <TabsContent value="paid" className="mt-4">
-             <DataTable
-                columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
-                data={paid}
-            />
-        </TabsContent>
+        </div>
       </Tabs>
 
-      {!taxesExpenses || taxesExpenses.length === 0 && (
+      {(taxesExpenses ?? []).length === 0 && (
         <Card>
             <CardContent className="flex flex-col items-center justify-center py-12 px-4 text-center">
                 <div className="rounded-full bg-muted p-4 mb-4">
