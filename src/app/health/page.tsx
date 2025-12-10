@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Building, User, Heart, Shield, Loader2, Hospital } from 'lucide-react';
+import { PlusCircle, Building, User, Heart, Shield, Loader2, Hospital, Stethoscope } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useFirestore, useCollection, useUser, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
@@ -12,7 +12,9 @@ import { AddProviderSheet } from '@/components/health/add-provider-sheet';
 import { AddProfessionalSheet } from '@/components/health/add-professional-sheet';
 import { AddInsuranceSheet } from '@/components/health/add-insurance-sheet';
 import { HealthProviderCard } from '@/components/health/health-provider-card';
-import { Separator } from '@/components/ui/separator';
+import { ProfessionalCard } from '@/components/health/professional-card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 
 const ToothIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -115,135 +117,177 @@ export default function HealthPage() {
 
       <div className="space-y-8">
         <PageHeader
-          title="Saúde & Bem-Estar"
-          description="Sua agenda centralizada de contatos de saúde, convênios e profissionais."
+          title="Central de Saúde"
+          description="Sua agenda centralizada de convênios, profissionais e empresas de saúde."
         >
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => setIsProviderSheetOpen(true)}>
               <Building className="mr-2 h-4 w-4" />
-              Adicionar Empresa
+              Nova Empresa
             </Button>
             <Button onClick={() => setIsProfessionalSheetOpen(true)}>
               <User className="mr-2 h-4 w-4" />
-              Adicionar Profissional
+              Novo Profissional
             </Button>
           </div>
         </PageHeader>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Shield className="h-5 w-5 text-primary" />
-                  <CardTitle>Plano de Saúde</CardTitle>
-                </div>
-                <Button size="sm" variant="outline" onClick={() => handleEditInsurance(healthPlan, 'Saúde')}>
-                  {healthPlan ? 'Editar' : 'Adicionar'}
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {healthPlan ? (
-                <div className="space-y-3 text-sm">
-                  <div>
-                    <p className="text-muted-foreground">Operadora / Plano</p>
-                    <p className="font-semibold">{healthPlan.operator} / {healthPlan.planName}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Nº da Carteirinha (Titular)</p>
-                    <p className="font-semibold">{healthPlan.cardNumber}</p>
-                  </div>
-                   {healthPlan.dependents && healthPlan.dependents.length > 0 && (
-                      <div>
-                        <p className="text-muted-foreground">Dependentes</p>
-                        <div className="space-y-1 mt-1">
-                          {healthPlan.dependents.map(dep => (
-                            <p key={dep.name} className="text-xs">
-                              <span className="font-medium">{dep.name}:</span> {dep.cardNumber || 'N/D'}
-                            </p>
-                          ))}
-                        </div>
-                      </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center text-sm text-muted-foreground py-4">
-                  Nenhum plano de saúde cadastrado.
-                </div>
-              )}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <ToothIcon className="h-5 w-5 text-primary" />
-                  <CardTitle>Plano Odontológico</CardTitle>
-                </div>
-                <Button size="sm" variant="outline" onClick={() => handleEditInsurance(dentalPlan, 'Odontológico')}>
-                  {dentalPlan ? 'Editar' : 'Adicionar'}
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {dentalPlan ? (
-                <div className="space-y-3 text-sm">
-                   <div>
-                    <p className="text-muted-foreground">Operadora / Plano</p>
-                    <p className="font-semibold">{dentalPlan.operator} / {dentalPlan.planName}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Nº da Carteirinha (Titular)</p>
-                    <p className="font-semibold">{dentalPlan.cardNumber}</p>
-                  </div>
-                   {dentalPlan.dependents && dentalPlan.dependents.length > 0 && (
-                      <div>
-                        <p className="text-muted-foreground">Dependentes</p>
-                         <div className="space-y-1 mt-1">
-                          {dentalPlan.dependents.map(dep => (
-                            <p key={dep.name} className="text-xs">
-                              <span className="font-medium">{dep.name}:</span> {dep.cardNumber || 'N/D'}
-                            </p>
-                          ))}
-                        </div>
-                      </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center text-sm text-muted-foreground py-4">
-                  Nenhum plano odontológico cadastrado.
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+        <Tabs defaultValue="plans" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="plans">Meus Convênios</TabsTrigger>
+                <TabsTrigger value="professionals">Profissionais</TabsTrigger>
+                <TabsTrigger value="providers">Empresas e Clínicas</TabsTrigger>
+            </TabsList>
 
-        <Separator />
+            {/* Aba de Convênios */}
+            <TabsContent value="plans" className="mt-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <Card>
+                        <CardHeader>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                            <Shield className="h-5 w-5 text-primary" />
+                            <CardTitle>Plano de Saúde</CardTitle>
+                            </div>
+                            <Button size="sm" variant="outline" onClick={() => handleEditInsurance(healthPlan, 'Saúde')}>
+                            {healthPlan ? 'Editar' : 'Adicionar'}
+                            </Button>
+                        </div>
+                        </CardHeader>
+                        <CardContent>
+                        {healthPlan ? (
+                            <div className="space-y-3 text-sm">
+                            <div>
+                                <p className="text-muted-foreground">Operadora / Plano</p>
+                                <p className="font-semibold">{healthPlan.operator} / {healthPlan.planName}</p>
+                            </div>
+                            <div>
+                                <p className="text-muted-foreground">Nº da Carteirinha (Titular)</p>
+                                <p className="font-semibold">{healthPlan.cardNumber}</p>
+                            </div>
+                            {healthPlan.dependents && healthPlan.dependents.length > 0 && (
+                                <div>
+                                    <p className="text-muted-foreground">Dependentes</p>
+                                    <div className="space-y-1 mt-1">
+                                    {healthPlan.dependents.map(dep => (
+                                        <p key={dep.name} className="text-xs">
+                                        <span className="font-medium">{dep.name}:</span> {dep.cardNumber || 'N/D'}
+                                        </p>
+                                    ))}
+                                    </div>
+                                </div>
+                            )}
+                            </div>
+                        ) : (
+                            <div className="text-center text-sm text-muted-foreground py-4">
+                            Nenhum plano de saúde cadastrado.
+                            </div>
+                        )}
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                            <ToothIcon className="h-5 w-5 text-primary" />
+                            <CardTitle>Plano Odontológico</CardTitle>
+                            </div>
+                            <Button size="sm" variant="outline" onClick={() => handleEditInsurance(dentalPlan, 'Odontológico')}>
+                            {dentalPlan ? 'Editar' : 'Adicionar'}
+                            </Button>
+                        </div>
+                        </CardHeader>
+                        <CardContent>
+                        {dentalPlan ? (
+                            <div className="space-y-3 text-sm">
+                            <div>
+                                <p className="text-muted-foreground">Operadora / Plano</p>
+                                <p className="font-semibold">{dentalPlan.operator} / {dentalPlan.planName}</p>
+                            </div>
+                            <div>
+                                <p className="text-muted-foreground">Nº da Carteirinha (Titular)</p>
+                                <p className="font-semibold">{dentalPlan.cardNumber}</p>
+                            </div>
+                            {dentalPlan.dependents && dentalPlan.dependents.length > 0 && (
+                                <div>
+                                    <p className="text-muted-foreground">Dependentes</p>
+                                    <div className="space-y-1 mt-1">
+                                    {dentalPlan.dependents.map(dep => (
+                                        <p key={dep.name} className="text-xs">
+                                        <span className="font-medium">{dep.name}:</span> {dep.cardNumber || 'N/D'}
+                                        </p>
+                                    ))}
+                                    </div>
+                                </div>
+                            )}
+                            </div>
+                        ) : (
+                            <div className="text-center text-sm text-muted-foreground py-4">
+                            Nenhum plano odontológico cadastrado.
+                            </div>
+                        )}
+                        </CardContent>
+                    </Card>
+                </div>
+            </TabsContent>
 
-        <div className="space-y-4">
-          {providersData && providersData.length > 0 ? (
-            providersData.map(provider => (
-              <HealthProviderCard 
-                key={provider.id} 
-                provider={provider} 
-                professionals={professionalsData || []}
-                onEditProvider={handleEditProvider}
-                onEditProfessional={handleEditProfessional}
-              />
-            ))
-          ) : (
-            <Card>
-              <CardContent className="flex h-64 flex-col items-center justify-center rounded-lg border-2 border-dashed text-center">
-                <Hospital className="h-10 w-10 text-muted-foreground mb-4"/>
-                <h3 className="text-lg font-semibold">Sua agenda de saúde está vazia</h3>
-                <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-                  Comece adicionando uma empresa (clínica, academia) ou um profissional de saúde para organizar seus contatos.
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+            {/* Aba de Profissionais */}
+            <TabsContent value="professionals" className="mt-6">
+                <div className="space-y-4">
+                {professionalsData && professionalsData.length > 0 ? (
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {professionalsData.map(professional => (
+                            <ProfessionalCard 
+                                key={professional.id}
+                                professional={professional}
+                                providers={providersData || []}
+                                onEdit={handleEditProfessional}
+                            />
+                        ))}
+                    </div>
+                ) : (
+                    <Card>
+                    <CardContent className="flex h-64 flex-col items-center justify-center rounded-lg border-2 border-dashed text-center">
+                        <Stethoscope className="h-10 w-10 text-muted-foreground mb-4"/>
+                        <h3 className="text-lg font-semibold">Sua lista de profissionais está vazia</h3>
+                        <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+                        Adicione seus médicos, dentistas, terapeutas e outros profissionais de saúde para ter os contatos sempre à mão.
+                        </p>
+                    </CardContent>
+                    </Card>
+                )}
+                </div>
+            </TabsContent>
+
+            {/* Aba de Empresas */}
+            <TabsContent value="providers" className="mt-6">
+                 <div className="space-y-4">
+                {providersData && providersData.length > 0 ? (
+                    <div className="grid gap-4 md:grid-cols-2">
+                    {providersData.map(provider => (
+                    <HealthProviderCard 
+                        key={provider.id} 
+                        provider={provider} 
+                        professionals={professionalsData || []}
+                        onEditProvider={handleEditProvider}
+                        onEditProfessional={handleEditProfessional}
+                    />
+                    ))}
+                    </div>
+                ) : (
+                    <Card>
+                    <CardContent className="flex h-64 flex-col items-center justify-center rounded-lg border-2 border-dashed text-center">
+                        <Hospital className="h-10 w-10 text-muted-foreground mb-4"/>
+                        <h3 className="text-lg font-semibold">Nenhuma empresa de saúde cadastrada</h3>
+                        <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+                        Adicione clínicas, hospitais, academias e outros locais que você frequenta.
+                        </p>
+                    </CardContent>
+                    </Card>
+                )}
+                </div>
+            </TabsContent>
+        </Tabs>
       </div>
     </>
   );
