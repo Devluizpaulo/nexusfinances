@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useMemo, useReducer, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -37,11 +37,10 @@ import { useFirestore, useUser } from '@/firebase';
 import { collection, doc, writeBatch } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Types for better state management
+type WorkflowStep = 'upload' | 'analyzing' | 'review' | 'saving';
+type AnalysisQuality = 'high' | 'medium' | 'low';
 
-type ImportTransactionsSheetProps = {
-  isOpen: boolean;
-  onClose: () => void;
-};
 
 type ReviewTransaction = ExtractedTransaction & {
   id: string;
@@ -58,17 +57,114 @@ const documentTypes: Record<DocumentType, { label: string, icon: React.FC<any> }
   taxDocument: { label: 'Comprovante de Imposto', icon: FileText },
 };
 
+// State management with reducer
+type AppState = {
+  file: File | null;
+  fileBuffer: ArrayBuffer | null;
+  currentStep: WorkflowStep;
+  reviewTransactions: ReviewTransaction[];
+  documentType: DocumentType;
+  isProcessing: boolean;
+};
+
+type AppAction =
+  | { type: 'SET_FILE'; payload: { file: File, buffer: ArrayBuffer } }
+  | { type: 'SET_CURRENT_STEP'; payload: WorkflowStep }
+  | { type: 'SET_REVIEW_TRANSACTIONS'; payload: ReviewTransaction[] }
+  | { type: 'SET_DOCUMENT_TYPE'; payload: DocumentType }
+  | { type: 'TOGGLE_TRANSACTION_SELECTION'; payload: string }
+  | { type: 'TOGGLE_ALL_TRANSACTIONS'; payload: boolean }
+  | { type: 'UPDATE_TRANSACTION_CATEGORY'; payload: { id: string; category: string } }
+  | { type: 'UPDATE_TRANSACTION_TYPE'; payload: { id: string; type: 'income' | 'expense' } }
+  | { type: 'RESET' };
+
+const initialState: AppState = {
+  file: null,
+  fileBuffer: null,
+  currentStep: 'upload',
+  reviewTransactions: [],
+  documentType: 'bankStatement',
+  isProcessing: false,
+};
+
+function appReducer(state: AppState, action: AppAction): AppState {
+  switch (action.type) {
+    case 'SET_FILE':
+      return { ...state, file: action.payload.file, fileBuffer: action.payload.buffer, reviewTransactions: [] };
+    case 'SET_CURRENT_STEP':
+      return { ...state, currentStep: action.payload, isProcessing: ['analyzing', 'saving'].includes(action.payload) };
+    case 'SET_REVIEW_TRANSACTIONS':
+      return { ...state, reviewTransactions: action.payload };
+    case 'SET_DOCUMENT_TYPE':
+      return { ...state, documentType: action.payload };
+    case 'TOGGLE_TRANSACTION_SELECTION':
+      return {
+        ...state,
+        reviewTransactions: state.reviewTransactions.map(t =>
+          t.id === action.payload ? { ...t, selected: !t.selected } : t
+        ),
+      };
+    case 'TOGGLE_ALL_TRANSACTIONS':
+        return {
+            ...state,
+            reviewTransactions: state.reviewTransactions.map(t => ({...t, selected: action.payload}))
+        }
+    case 'UPDATE_TRANSACTION_CATEGORY':
+      return {
+        ...state,
+        reviewTransactions: state.reviewTransactions.map(t =>
+          t.id === action.payload.id ? { ...t, category: action.payload.category } : t
+        ),
+      };
+    case 'UPDATE_TRANSACTION_TYPE':
+      return {
+        ...state,
+        reviewTransactions: state.reviewTransactions.map(t =>
+          t.id === action.payload.id ? { ...t, type: action.payload.type } : t
+        ),
+      };
+    case 'RESET':
+      return initialState;
+    default:
+      return state;
+  }
+}
+
+// Helper hook for file operations
+function useFileProcessor() {
+  const readFileAsArrayBuffer = useCallback((file: File): Promise<ArrayBuffer> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as ArrayBuffer);
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    });
+  }, []);
+
+  const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return window.btoa(binary);
+  };
+  
+  return { readFileAsArrayBuffer, arrayBufferToBase64 };
+}
+
 
 export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsSheetProps) {
-  const [file, setFile] = useState<File | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [reviewTransactions, setReviewTransactions] = useState<ReviewTransaction[]>([]);
-  const [documentType, setDocumentType] = useState<DocumentType>('bankStatement');
+  const [state, dispatch] = useReducer(appReducer, initialState);
+  const { file, fileBuffer, currentStep, reviewTransactions, documentType, isProcessing } = state;
+  
   const { toast } = useToast();
   const { user } = useUser();
   const firestore = useFirestore();
+  const { readFileAsArrayBuffer, arrayBufferToBase64 } = useFileProcessor();
 
-  const onDrop = (acceptedFiles: File[]) => {
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
       const selectedFile = acceptedFiles[0];
       if (selectedFile.type !== 'application/pdf') {
@@ -79,10 +175,14 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
         });
         return;
       }
-      setFile(selectedFile);
-      setReviewTransactions([]);
+      try {
+        const buffer = await readFileAsArrayBuffer(selectedFile);
+        dispatch({ type: 'SET_FILE', payload: { file: selectedFile, buffer } });
+      } catch (error) {
+        toast({ variant: 'destructive', title: 'Erro ao ler arquivo', description: 'Não foi possível carregar o arquivo.' });
+      }
     }
-  };
+  }, [readFileAsArrayBuffer, toast]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -91,14 +191,19 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
   });
   
   const handleReset = () => {
-    setFile(null);
-    setReviewTransactions([]);
-    setIsProcessing(false);
+    dispatch({ type: 'RESET' });
     onClose();
+  }
+  
+  const handleModalOpenChange = (open: boolean) => {
+      if(!open) {
+          // Here you could add a confirmation dialog if there's progress
+          handleReset();
+      }
   }
 
   const handleImport = async () => {
-    if (!file) return;
+    if (!file || !fileBuffer) return;
 
     if (documentType !== 'bankStatement') {
       toast({
@@ -108,31 +213,29 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
       return;
     }
 
-    setIsProcessing(true);
+    dispatch({ type: 'SET_CURRENT_STEP', payload: 'analyzing' });
     
     try {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = async () => {
-            const base64File = reader.result as string; // Already a data URI
-            const result = await extractTransactionsFromPdf({ pdfBase64: base64File });
+        const base64String = arrayBufferToBase64(fileBuffer);
+        const dataUri = `data:application/pdf;base64,${base64String}`;
+        
+        const result = await extractTransactionsFromPdf({ pdfBase64: dataUri });
 
-            const transactionsToReview: ReviewTransaction[] = result.transactions.map((t, i) => ({
-              ...t,
-              id: `${Date.now()}-${i}`,
-              type: t.amount > 0 ? 'income' : 'expense',
-              category: t.suggestedCategory || 'Outros',
-              selected: true,
-            }));
-            
-            setReviewTransactions(transactionsToReview);
-            
-            toast({
-              title: 'Extração concluída!',
-              description: `${transactionsToReview.length} transações encontradas. Por favor, revise-as abaixo.`
-            });
-            setIsProcessing(false);
-        };
+        const transactionsToReview: ReviewTransaction[] = result.transactions.map((t) => ({
+          ...t,
+          id: crypto.randomUUID(),
+          type: t.amount > 0 ? 'income' : 'expense',
+          category: t.suggestedCategory || 'Outros',
+          selected: true,
+        }));
+        
+        dispatch({ type: 'SET_REVIEW_TRANSACTIONS', payload: transactionsToReview });
+        dispatch({ type: 'SET_CURRENT_STEP', payload: 'review' });
+        
+        toast({
+          title: 'Extração concluída!',
+          description: `${transactionsToReview.length} transações encontradas. Por favor, revise-as abaixo.`
+        });
 
     } catch (error) {
         console.error("Error processing PDF:", error);
@@ -141,24 +244,8 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
             title: 'Erro ao processar PDF',
             description: 'Não foi possível extrair as transações. Tente um arquivo diferente ou com um layout mais simples.',
         });
-        setIsProcessing(false);
+        dispatch({ type: 'SET_CURRENT_STEP', payload: 'upload' });
     }
-  };
-
-  const handleToggleSelect = (id: string) => {
-    setReviewTransactions(prev => prev.map(t => t.id === id ? { ...t, selected: !t.selected } : t));
-  };
-  
-  const handleSelectAll = (checked: boolean) => {
-    setReviewTransactions(prev => prev.map(t => ({...t, selected: checked})));
-  }
-
-  const handleCategoryChange = (id: string, category: string) => {
-    setReviewTransactions(prev => prev.map(t => t.id === id ? { ...t, category } : t));
-  };
-
-  const handleTypeChange = (id: string, type: 'income' | 'expense') => {
-    setReviewTransactions(prev => prev.map(t => t.id === id ? { ...t, type } : t));
   };
   
   const handleSave = async () => {
@@ -173,7 +260,7 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
       return;
     }
 
-    setIsProcessing(true);
+    dispatch({ type: 'SET_CURRENT_STEP', payload: 'saving' });
     
     try {
       const batch = writeBatch(firestore);
@@ -187,11 +274,11 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
             userId: user.uid,
             type: t.type,
             amount: Math.abs(t.amount), // Always store as positive
-            date: t.date,
+            date: t.date, // Assuming date is already YYYY-MM-DD
             description: t.description,
             category: t.category,
             isRecurring: false,
-            status: 'paid' as const, // Assume imported transactions are already paid
+            status: 'paid' as const,
         };
 
         batch.set(docRef, newTransaction);
@@ -213,8 +300,7 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
         title: 'Erro ao salvar',
         description: 'Não foi possível salvar as transações importadas. Tente novamente.',
       });
-    } finally {
-        setIsProcessing(false);
+       dispatch({ type: 'SET_CURRENT_STEP', payload: 'review' });
     }
   }
 
@@ -222,7 +308,7 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
   const uniqueCategories = Array.from(new Set(allCategories));
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleReset}>
+    <Dialog open={isOpen} onOpenChange={handleModalOpenChange}>
       <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>Importar Documento PDF</DialogTitle>
@@ -245,16 +331,16 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
             >
               <Loader2 className="h-12 w-12 animate-spin text-primary" />
               <p className="mt-4 text-sm font-medium text-muted-foreground">
-                {reviewTransactions.length > 0 ? 'Salvando transações...' : 'Analisando documento...'}
+                {currentStep === 'saving' ? 'Salvando transações...' : 'Analisando documento...'}
               </p>
               <p className="text-xs text-muted-foreground">Isso pode levar alguns segundos.</p>
             </motion.div>
-          ) : reviewTransactions.length === 0 ? (
+          ) : currentStep === 'upload' ? (
             <motion.div key="upload-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <label htmlFor="document-type" className="text-sm font-medium">Tipo de Documento</label>
-                  <Select value={documentType} onValueChange={(value) => setDocumentType(value as DocumentType)}>
+                  <Select value={documentType} onValueChange={(value) => dispatch({ type: 'SET_DOCUMENT_TYPE', payload: value as DocumentType })}>
                       <SelectTrigger id="document-type">
                         <SelectValue placeholder="Selecione o tipo de documento..." />
                       </SelectTrigger>
@@ -273,7 +359,7 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
                 <div
                   {...getRootProps()}
                   className={cn(
-                    'flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer transition-colors',
+                    'flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer transition-colors',
                     isDragActive ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
                   )}
                 >
@@ -284,8 +370,6 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
                       <p className="mt-2 font-semibold">Arquivo selecionado!</p>
                       <p className="text-xs">{file.name}</p>
                     </div>
-                  ) : isDragActive ? (
-                    <p>Solte o arquivo aqui...</p>
                   ) : (
                     <div className="text-center text-muted-foreground">
                       <UploadCloud className="mx-auto h-12 w-12" />
@@ -317,7 +401,7 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
                       <TableHead className="w-12">
                         <Checkbox 
                           checked={reviewTransactions.every(t => t.selected)}
-                          onCheckedChange={(checked) => handleSelectAll(Boolean(checked))}
+                          onCheckedChange={(checked) => dispatch({ type: 'TOGGLE_ALL_TRANSACTIONS', payload: Boolean(checked) })}
                         />
                       </TableHead>
                       <TableHead>Data</TableHead>
@@ -331,12 +415,12 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
                     {reviewTransactions.map(t => (
                       <TableRow key={t.id} className={cn(!t.selected && "bg-muted/50 text-muted-foreground")}>
                         <TableCell>
-                          <Checkbox checked={t.selected} onCheckedChange={() => handleToggleSelect(t.id)} />
+                          <Checkbox checked={t.selected} onCheckedChange={() => dispatch({ type: 'TOGGLE_TRANSACTION_SELECTION', payload: t.id })} />
                         </TableCell>
                         <TableCell>{t.date}</TableCell>
                         <TableCell>{t.description}</TableCell>
                         <TableCell>
-                          <Select value={t.type} onValueChange={(value: 'income' | 'expense') => handleTypeChange(t.id, value)}>
+                          <Select value={t.type} onValueChange={(value: 'income' | 'expense') => dispatch({ type: 'UPDATE_TRANSACTION_TYPE', payload: { id: t.id, type: value } })}>
                               <SelectTrigger className="h-8 w-28 text-xs">
                                   <SelectValue />
                               </SelectTrigger>
@@ -347,7 +431,7 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
                           </Select>
                         </TableCell>
                         <TableCell>
-                          <Select value={t.category} onValueChange={(value) => handleCategoryChange(t.id, value)}>
+                          <Select value={t.category} onValueChange={(value) => dispatch({ type: 'UPDATE_TRANSACTION_CATEGORY', payload: { id: t.id, category: value } })}>
                             <SelectTrigger className="h-8 w-36 text-xs">
                                   <SelectValue />
                               </SelectTrigger>
