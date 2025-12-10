@@ -154,6 +154,11 @@ function useFileProcessor() {
   return { readFileAsArrayBuffer, arrayBufferToBase64 };
 }
 
+type ImportTransactionsSheetProps = {
+  isOpen: boolean;
+  onClose: () => void;
+};
+
 
 export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsSheetProps) {
   const [state, dispatch] = useReducer(appReducer, initialState);

@@ -3,7 +3,7 @@
 
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { collection, query, where, doc, orderBy } from 'firebase/firestore';
+import { collection, query, where, doc, orderBy, updateDoc } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Transaction } from '@/lib/types';
 import { Loader2, Landmark, PlusCircle, Upload } from 'lucide-react';
@@ -160,30 +160,30 @@ export default function TaxesPage() {
           <TabsTrigger value="paid">Pagos ({paid.length})</TabsTrigger>
         </TabsList>
         <div className="mt-4">
-            <DataTable
+          {(taxesExpenses ?? []).length > 0 ? (
+              <DataTable
                 columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
                 data={tableData}
-            />
+              />
+          ) : (
+             <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                    <div className="rounded-full bg-muted p-4 mb-4">
+                        <Landmark className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">Nenhum imposto ou taxa cadastrado</h3>
+                    <p className="text-sm text-muted-foreground max-w-sm mb-6">
+                        Registre aqui seus impostos e taxas para manter um controle detalhado e evitar surpresas.
+                    </p>
+                    <Button onClick={() => handleOpenSheet()} disabled={!user}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Adicionar Primeiro Lançamento
+                    </Button>
+                </CardContent>
+            </Card>
+          )}
         </div>
       </Tabs>
-
-      {(taxesExpenses ?? []).length === 0 && (
-        <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12 px-4 text-center">
-                <div className="rounded-full bg-muted p-4 mb-4">
-                    <Landmark className="h-8 w-8 text-muted-foreground" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">Nenhum imposto ou taxa cadastrado</h3>
-                <p className="text-sm text-muted-foreground max-w-sm mb-6">
-                    Registre aqui seus impostos e taxas para manter um controle detalhado e evitar surpresas.
-                </p>
-                <Button onClick={() => handleOpenSheet()} disabled={!user}>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Adicionar Primeiro Lançamento
-                </Button>
-            </CardContent>
-        </Card>
-      )}
     </>
   );
 }
