@@ -20,7 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { doc } from "firebase/firestore"
 import { useFirestore, useUser, deleteDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase"
 import { useToast } from "@/hooks/use-toast"
@@ -46,7 +46,7 @@ export function DataTableRowActions<TData>({
   
   const collectionName = transactionType === 'income' ? 'incomes' : 'expenses';
 
-  const handleUpdateStatus = () => {
+  const handleUpdateStatus = useCallback(() => {
     if (!user) {
       toast({ variant: "destructive", title: "Erro", description: "Você não está autenticado." });
       return;
@@ -55,11 +55,11 @@ export function DataTableRowActions<TData>({
     updateDocumentNonBlocking(docRef, { status: "paid" });
     toast({
       title: "Transação atualizada!",
-      description: `A transação foi marcada como ${transactionType === 'income' ? 'recebida' : 'paga'}.`,
+      description: `A transação "${transaction.description}" foi marcada como ${transactionType === 'income' ? 'recebida' : 'paga'}.`,
     });
-  }
+  }, [user, firestore, collectionName, transaction.id, transaction.description, transactionType, toast]);
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     if (!user) {
       toast({ variant: "destructive", title: "Erro", description: "Você não está autenticado." });
       return;
@@ -73,7 +73,7 @@ export function DataTableRowActions<TData>({
       description: `A transação "${transaction.description}" foi removida.`,
     });
     setIsDeleteDialogOpen(false)
-  }
+  }, [user, firestore, collectionName, transaction.id, transaction.description, toast]);
 
   return (
     <>
