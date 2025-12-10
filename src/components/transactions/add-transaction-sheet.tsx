@@ -1,83 +1,33 @@
 
-
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import * as React from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { formatISO, format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { collection, doc, arrayUnion, updateDoc } from 'firebase/firestore';
-import { useFirestore, useUser, addDocumentNonBlocking, setDocumentNonBlocking, useCollection, useMemoFirebase } from '@/firebase';
 import { cn } from '@/lib/utils';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter,
 } from '@/components/ui/dialog';
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+  Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage,
 } from '@/components/ui/form';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { CalendarIcon, Loader2, PlusCircle } from 'lucide-react';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Switch } from '@/components/ui/switch';
-import { useToast } from '@/hooks/use-toast';
-import type { Transaction, CreditCard } from '@/lib/types';
+import type { Transaction } from '@/lib/types';
 import { Textarea } from '../ui/textarea';
 import { CurrencyInput } from '../ui/currency-input';
 import { Separator } from '../ui/separator';
 import { Label } from '@/components/ui/label';
 import { AddCreditCardSheet } from '../credit-cards/add-credit-card-sheet';
-
-const formSchema = z.object({
-  category: z.string().min(1, 'Escolha uma categoria.'),
-  amount: z.coerce.number().positive('Use um valor maior que zero.'),
-  date: z.date({
-    required_error: 'Escolha uma data.',
-  }),
-  description: z.string().optional(),
-  vendor: z.string().optional(),
-  isRecurring: z.boolean().default(false),
-  recurrenceSchedule: z.string().optional(),
-  status: z.enum(['paid', 'pending']).default('paid'),
-  paymentMethod: z.enum(['cash', 'creditCard']).default('cash'),
-  creditCardId: z.string().optional(),
-}).refine(data => {
-    if (data.paymentMethod === 'creditCard') {
-        return !!data.creditCardId;
-    }
-    return true;
-}, {
-    message: "Selecione um cartão de crédito.",
-    path: ["creditCardId"],
-});
-
-
-type TransactionFormValues = z.infer<typeof formSchema>;
+import { useTransactionForm, type TransactionFormValues } from '@/hooks/use-transaction-form';
 
 type AddTransactionSheetProps = {
   isOpen: boolean;
@@ -94,152 +44,28 @@ export function AddTransactionSheet({
   categories,
   transaction,
 }: AddTransactionSheetProps) {
-  const form = useForm<TransactionFormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      description: '',
-      vendor: '',
-      amount: 0,
-      category: '',
-      date: new Date(),
-      isRecurring: false,
-      recurrenceSchedule: 'monthly',
-      status: 'paid',
-      paymentMethod: 'cash',
-    },
+  const {
+    form,
+    user,
+    allCategories,
+    creditCardsData,
+    isAddCategoryDialogOpen,
+    setIsAddCategoryDialogOpen,
+    newCategoryName,
+    setNewCategoryName,
+    isAddCardSheetOpen,
+    setIsAddCardSheetOpen,
+    onSubmit,
+    handleAddCategory,
+  } = useTransactionForm({
+    transactionType,
+    categories,
+    transaction,
+    onClose,
   });
 
-  const firestore = useFirestore();
-  const { user } = useUser();
-  const { toast } = useToast();
-  
-  const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState('');
-  const [isAddCardSheetOpen, setIsAddCardSheetOpen] = useState(false);
-  
   const paymentMethod = form.watch('paymentMethod');
   const isRecurring = form.watch('isRecurring');
-  
-  const creditCardsQuery = useMemoFirebase(() => {
-    if (!user || !firestore) return null;
-    return collection(firestore, `users/${user.uid}/creditCards`);
-  }, [user, firestore]);
-
-  const { data: creditCardsData } = useCollection<CreditCard>(creditCardsQuery);
-
-  const allCategories = useMemo(() => {
-    const customCategories = transactionType === 'income' 
-      ? user?.customIncomeCategories 
-      : user?.customExpenseCategories;
-    
-    const combined = new Set([...categories, ...(customCategories || [])]);
-
-    return Array.from(combined);
-  }, [categories, user, transactionType]);
-
-
-  useEffect(() => {
-    if (isOpen && transaction) {
-      form.reset({
-        ...transaction,
-        description: transaction.description || '',
-        vendor: (transaction as any).vendor || '',
-        date: parseISO(transaction.date),
-        status: transaction.status || 'paid',
-        paymentMethod: transaction.creditCardId ? 'creditCard' : 'cash',
-        creditCardId: transaction.creditCardId || undefined,
-        recurrenceSchedule: transaction.recurrenceSchedule || 'monthly',
-      });
-    } else if (isOpen) {
-      form.reset({
-        description: '',
-        vendor: '',
-        amount: 0,
-        category: '',
-        date: new Date(),
-        isRecurring: false,
-        recurrenceSchedule: 'monthly',
-        status: 'paid',
-        paymentMethod: 'cash',
-        creditCardId: undefined,
-      });
-    }
-  }, [isOpen, transaction, form]);
-  
-  const onSubmit = (values: TransactionFormValues) => {
-    if (!user) {
-      toast({
-        variant: 'destructive',
-        title: 'Faça login para continuar',
-        description: 'Entre na sua conta para registrar essa movimentação.',
-      });
-      return;
-    }
-    
-    const collectionName = transactionType === 'income' ? 'incomes' : 'expenses';
-    const collectionPath = `users/${user.uid}/${collectionName}`;
-    
-    // Explicitly build the object to be saved, ensuring no undefined fields are sent.
-    const dataToSave: any = {
-      ...values,
-      date: formatISO(values.date),
-      userId: user.uid,
-      type: transactionType,
-    };
-
-    if (!values.isRecurring) {
-        delete dataToSave.recurrenceSchedule;
-    }
-    
-    // Only include creditCardId if the payment method is 'creditCard' and an ID is selected
-    if (transactionType === 'expense' && values.paymentMethod === 'creditCard' && values.creditCardId) {
-      dataToSave.creditCardId = values.creditCardId;
-    } else {
-      // Ensure creditCardId is not present or is null if not applicable
-      delete dataToSave.creditCardId;
-    }
-    // Remove the temporary paymentMethod field
-    delete dataToSave.paymentMethod;
-
-    if (transaction) {
-      const docRef = doc(firestore, collectionPath, transaction.id);
-      setDocumentNonBlocking(docRef, dataToSave, { merge: true });
-      toast({
-        title: 'Movimentação atualizada',
-        description: 'Seu painel já foi atualizado.',
-      });
-    } else {
-      addDocumentNonBlocking(collection(firestore, collectionPath), dataToSave);
-      toast({
-        title: 'Movimentação salva',
-        description: `Sua ${transactionType === 'income' ? 'renda' : 'despesa'} já entrou no painel.`,
-      });
-    }
-    
-    onClose();
-  };
-  
-  const handleAddCategory = async () => {
-    if (!user || !firestore || !newCategoryName.trim()) return;
-
-    const fieldToUpdate = transactionType === 'income' ? 'customIncomeCategories' : 'customExpenseCategories';
-    const userDocRef = doc(firestore, 'users', user.uid);
-
-    try {
-      await updateDoc(userDocRef, {
-        [fieldToUpdate]: arrayUnion(newCategoryName.trim())
-      });
-      toast({ title: 'Categoria adicionada', description: `"${newCategoryName.trim()}" foi incluída na sua lista.` });
-      
-      form.setValue('category', newCategoryName.trim());
-      
-      setNewCategoryName('');
-      setIsAddCategoryDialogOpen(false);
-    } catch (error) {
-      console.error(error);
-      toast({ variant: "destructive", title: "Não deu para salvar a categoria", description: "Tente de novo em alguns segundos." });
-    }
-  };
 
   const title = transaction ? `Editar ${transactionType === 'income' ? 'Renda' : 'Despesa'}` : `Adicionar ${transactionType === 'income' ? 'Renda' : 'Despesa'}`;
   const description = transaction ? 'Modifique os detalhes da sua transação.' : `Adicione uma nova ${transactionType === 'income' ? 'entrada de renda' : 'saída para suas despesas'}.`;
