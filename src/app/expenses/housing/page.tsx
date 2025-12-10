@@ -186,7 +186,7 @@ export default function HousingPage() {
           {(housingExpenses ?? []).length > 0 ? (
             <DataTable
               columns={columns({ onEdit: handleEditTransaction, onStatusChange: handleStatusChange })}
-              data={housingExpenses}
+              data={housingExpenses ?? []}
             />
           ) : (
              <div className="flex h-40 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
