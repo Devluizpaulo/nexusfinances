@@ -1,40 +1,55 @@
+
 'use client';
 
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query, where, orderBy } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import type { Recurrence } from '@/lib/types';
+import type { Recurrence, Transaction } from '@/lib/types';
 import { Loader2, Zap, PlusCircle, Upload } from 'lucide-react';
-import { RecurrenceCard } from '@/components/recurrences/recurrence-card';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
 import { PageHeader } from '@/components/page-header';
 import { AddUtilityBillSheet } from '@/components/utilities/add-utility-bill-sheet';
-
-const utilitiesKeywords = ['luz', 'energia', 'água', 'gás', 'internet', 'celular', 'plano', 'fatura'];
+import { DataTable } from '@/components/data-table/data-table';
+import { columns } from '../columns';
+import { useToast } from '@/hooks/use-toast';
+import { doc, updateDoc } from 'firebase/firestore';
 
 export default function UtilitiesPage() {
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [isImportSheetOpen, setIsImportSheetOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
+  const { toast } = useToast();
 
-  const recurringExpensesQuery = useMemoFirebase(() => {
+  const utilitiesExpensesQuery = useMemoFirebase(() => {
     if (!user) return null;
-    return query(collection(firestore, `users/${user.uid}/expenses`), where('isRecurring', '==', true));
+    return query(
+      collection(firestore, `users/${user.uid}/expenses`),
+      where('category', '==', 'Contas de Consumo'),
+      orderBy('date', 'desc')
+    );
   }, [firestore, user]);
 
-  const { data: expenseData, isLoading: isExpensesLoading } = useCollection<Recurrence>(recurringExpensesQuery);
-
-  const utilitiesExpenses = useMemo(() => {
-    return (expenseData || []).filter(expense => 
-        utilitiesKeywords.some(keyword => 
-          expense.category.toLowerCase().includes(keyword) || 
-          expense.description.toLowerCase().includes(keyword)
-        )
-    );
-  }, [expenseData]);
+  const { data: expenseData, isLoading: isExpensesLoading } = useCollection<Transaction>(utilitiesExpensesQuery);
+  
+  const handleOpenSheet = (transaction: Transaction | null = null) => {
+    setEditingTransaction(transaction);
+    setIsAddSheetOpen(true);
+  };
+  
+  const handleStatusChange = (transaction: Transaction) => {
+    if (!user || transaction.status === 'paid') return;
+    const docRef = doc(firestore, `users/${user.uid}/expenses`, transaction.id);
+    updateDoc(docRef, { status: "paid" });
+    toast({
+      title: "Transação atualizada!",
+      description: `A despesa foi marcada como paga.`,
+    });
+  }
 
   const isLoading = isUserLoading || isExpensesLoading;
 
@@ -61,39 +76,30 @@ export default function UtilitiesPage() {
         title="Contas de Consumo"
         description="Gerencie suas contas mensais de luz, água, internet, etc."
       >
-        <Button variant="outline" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>
-            <Upload className="mr-2 h-4 w-4" />
-            Importar Fatura com IA
-        </Button>
-         <Button onClick={() => setIsAddSheetOpen(true)} disabled={!user}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Adicionar Conta
-        </Button>
+        <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>
+                <Upload className="mr-2 h-4 w-4" />
+                Importar Fatura com IA
+            </Button>
+            <Button onClick={() => setIsAddSheetOpen(true)} disabled={!user}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Adicionar Conta
+            </Button>
+        </div>
       </PageHeader>
-
-      <Card className="mt-4">
-        <CardHeader>
-          <div className="flex items-center gap-3">
-              <Zap className="h-5 w-5 text-primary" />
-              <CardTitle className="text-lg">Contas de Consumo Recorrentes</CardTitle>
-          </div>
-          <CardDescription>Lista de suas contas mensais de consumo.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {utilitiesExpenses.length > 0 ? (
-             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {utilitiesExpenses.map((item) => (
-                  <RecurrenceCard key={item.id} recurrence={item} />
-                ))}
-            </div>
-          ) : (
-             <div className="flex h-40 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
-              <h3 className="font-semibold">Nenhuma conta de consumo encontrada</h3>
-              <p className="mt-1 text-sm text-muted-foreground">Adicione suas contas como despesas recorrentes para vê-las aqui.</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      
+      {expenseData && expenseData.length > 0 ? (
+        <DataTable
+            columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
+            data={expenseData}
+        />
+      ) : (
+        <div className="mt-6 flex h-64 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
+          <Zap className="h-12 w-12 text-muted-foreground mb-4" />
+          <h3 className="text-xl font-semibold">Nenhuma conta de consumo encontrada</h3>
+          <p className="mt-2 text-sm text-muted-foreground">Clique em "Adicionar Conta" para começar a organizar seus gastos com utilidades.</p>
+        </div>
+      )}
     </>
   );
 }
