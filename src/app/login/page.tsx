@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -227,8 +228,8 @@ function LoginClient() {
         <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-2 text-center">
              <Link href="/" className="flex items-center justify-center gap-2 mb-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <DollarSign className="h-6 w-6" />
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg">
+                  <Image src="/images/xoplanilhas_logo.png" alt="Logo Xô Planilhas" width={48} height={48} />
                 </div>
                 <span className="text-2xl font-bold tracking-tight">Xô Planilhas</span>
             </Link>

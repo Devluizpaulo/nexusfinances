@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { useUser } from '@/firebase';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import { useState } from 'react';
+import Image from 'next/image';
 
 const menuItems = [
     { 
@@ -79,8 +80,8 @@ export function AppSidebar() {
         <SidebarHeader className={cn("transition-transform duration-200", state === "collapsed" && "p-1")}>
             <div className="flex w-full justify-between items-center px-3">
                 <Button variant="ghost" className={cn("h-12 justify-start items-center gap-2 p-0", state === 'expanded' && "flex-grow")}>
-                    <div className="p-2.5 rounded-lg bg-primary text-primary-foreground">
-                        <DollarSign className="size-5" />
+                    <div className="p-1 rounded-lg bg-white">
+                        <Image src="/images/xoplanilhas_logo.png" alt="Logo Xô Planilhas" width={36} height={36} />
                     </div>
                     <span className={cn("text-lg font-semibold", state === "collapsed" && "hidden")}>Xô Planilhas</span>
                 </Button>

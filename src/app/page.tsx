@@ -81,11 +81,11 @@ function ClientRoot() {
         <div className="container mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
             <motion.div 
-              className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg group-hover:shadow-primary/20 transition-all duration-300"
+              className="flex h-12 w-12 items-center justify-center rounded-xl"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <DollarSign className="h-5 w-5" />
+              <Image src="/images/xoplanilhas_logo.png" alt="Logo Xô Planilhas" width={48} height={48} />
             </motion.div>
             <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
               Xô Planilhas
@@ -647,3 +647,4 @@ export default function RootPage() {
   // Once mounted on the client, render the actual component
   return <ClientRoot />;
 }
+

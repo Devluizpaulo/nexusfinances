@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import Image from 'next/image';
 
 const loginSchema = z.object({
   email: z.string().email('Por favor, insira um e-mail válido.'),
@@ -161,8 +162,8 @@ function AdminLoginClient() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <div className="mb-8 flex flex-col items-center text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
-          <DollarSign className="h-8 w-8" />
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl">
+          <Image src="/images/xoplanilhas_logo.png" alt="Logo Xô Planilhas" width={64} height={64} />
         </div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">
           Portal do Administrador

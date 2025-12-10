@@ -2,6 +2,7 @@
 import { ReactNode } from "react";
 import Link from 'next/link';
 import { DollarSign, ArrowLeft } from 'lucide-react';
+import Image from 'next/image';
 
 export default function LegalLayout({ children }: { children: ReactNode }) {
   return (
@@ -9,8 +10,8 @@ export default function LegalLayout({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur-sm">
         <div className="container mx-auto flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <DollarSign className="h-6 w-6" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg">
+                <Image src="/images/xoplanilhas_logo.png" alt="Logo Xô Planilhas" width={48} height={48} />
             </div>
             <span className="text-xl font-bold">Xô Planilhas</span>
           </Link>
