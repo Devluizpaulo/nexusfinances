@@ -2,10 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: 'Inter', sans-serif;
-}
-
 @layer base {
   :root {
     --background: 220 13% 95%; /* #F0F2F5 */
@@ -41,6 +37,7 @@ body {
     --sidebar-accent-foreground: 222 47.4% 11.2%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 224 71.4% 4.1%;
+    --font-inter: "Inter", sans-serif;
   }
   .dark {
     --background: 222 47% 11%;
@@ -84,6 +81,7 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-inter);
   }
   @media print {
     .print\:hidden {
