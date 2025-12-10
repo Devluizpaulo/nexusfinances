@@ -19,7 +19,7 @@ export function AuthenticatedLayout({
   children: React.ReactNode;
 }) {
   const { user, isUserLoading } = useUser();
-  const { newlyCreatedTransactions, clearNewlyCreatedTransactions } = useManageRecurrences();
+  // const { newlyCreatedTransactions, clearNewlyCreatedTransactions } = useManageRecurrences();
   useNotificationGenerator(); // Gera notificações de sistema
 
   if (isUserLoading) {
@@ -36,10 +36,10 @@ export function AuthenticatedLayout({
 
   return (
     <DashboardDateProvider>
-       <RecurringSummaryDialog 
+       {/* <RecurringSummaryDialog 
         transactions={newlyCreatedTransactions}
         onClose={clearNewlyCreatedTransactions}
-      />
+      /> */}
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
