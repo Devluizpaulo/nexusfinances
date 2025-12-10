@@ -21,7 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Progress } from '@/components/ui/progress';
-import { useFirestore, useUser, deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useUser, updateDocumentNonBlocking } from '@/firebase';
 
 import type { Goal, GoalCategory } from '@/lib/types';
 import {
@@ -36,7 +36,7 @@ import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2, Calendar, History, MoreVertical, Pencil, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { doc } from 'firebase/firestore';
+import { doc, deleteDoc } from 'firebase/firestore';
 
 import { format, parseISO, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -128,14 +128,23 @@ export function GoalCard({ goal, onAddContribution, onEdit }: GoalCardProps) {
       toast({ variant: "destructive", title: "Erro", description: "Você não está autenticado." });
       return;
     }
-
     const goalRef = doc(firestore, `users/${user.uid}/goals`, goal.id);
-    deleteDocumentNonBlocking(goalRef);
-    toast({
-      title: 'Item Excluído',
-      description: `O item "${goal.name}" foi removido.`,
-    });
-    setIsDeleteDialogOpen(false);
+    try {
+      await deleteDoc(goalRef);
+      toast({
+        title: 'Item Excluído',
+        description: `O item "${goal.name}" foi removido.`,
+      });
+    } catch(error) {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao excluir",
+        description: "Não foi possível remover o item.",
+      });
+    } finally {
+      setIsDeleteDialogOpen(false);
+    }
   };
 
   const progress = goal.targetAmount > 0 ? (goal.currentAmount / goal.targetAmount) * 100 : 100;

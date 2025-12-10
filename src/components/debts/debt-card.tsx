@@ -39,7 +39,7 @@ import { Badge } from '@/components/ui/badge';
 import { format, isPast, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, orderBy, doc, writeBatch, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, doc, writeBatch, getDocs, deleteDoc } from 'firebase/firestore';
 import type { Debt, Installment } from '@/lib/types';
 import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';

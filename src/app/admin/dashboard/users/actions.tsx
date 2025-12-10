@@ -21,8 +21,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useState } from "react"
-import { doc } from "firebase/firestore"
-import { useFirestore, useUser, deleteDocumentNonBlocking, updateDocumentNonBlocking } from "@/firebase"
+import { doc, deleteDoc } from "firebase/firestore"
+import { useFirestore, useUser, updateDocumentNonBlocking } from "@/firebase"
 import { useToast } from "@/hooks/use-toast"
 import type { AppUser } from "@/firebase"
 import { logEvent } from "@/lib/logger"
@@ -47,7 +47,7 @@ export function DataTableRowActions({
     return (userToModify as any).uid || (userToModify as any).id;
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!user || !firestore) {
       toast({ variant: "destructive", title: "Erro", description: "Você não está autenticado." });
       return;
@@ -68,20 +68,30 @@ export function DataTableRowActions({
     }
 
     const docRef = doc(firestore, `users`, userId);
-    deleteDocumentNonBlocking(docRef);
-    
-    logEvent(firestore, {
-        level: 'warn',
-        message: `O usuário "${userToModify.displayName}" (ID: ${userId}) foi excluído.`,
-        createdBy: user.uid,
-        createdByName: user.displayName || 'Admin',
-    });
+    try {
+        await deleteDoc(docRef);
+        
+        logEvent(firestore, {
+            level: 'warn',
+            message: `O usuário "${userToModify.displayName}" (ID: ${userId}) foi excluído.`,
+            createdBy: user.uid,
+            createdByName: user.displayName || 'Admin',
+        });
 
-    toast({
-      title: "Usuário excluído",
-      description: `O usuário "${userToModify.displayName}" foi removido.`,
-    });
-    setIsDeleteDialogOpen(false)
+        toast({
+        title: "Usuário excluído",
+        description: `O usuário "${userToModify.displayName}" foi removido.`,
+        });
+    } catch (error) {
+        console.error("Error deleting user:", error);
+        toast({
+            variant: "destructive",
+            title: "Erro ao excluir",
+            description: "Não foi possível remover o usuário.",
+        });
+    } finally {
+        setIsDeleteDialogOpen(false);
+    }
   }
   
   const handleChangeRole = () => {
