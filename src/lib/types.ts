@@ -10,6 +10,7 @@ export type Transaction = {
   description: string;
   category: string; // e.g., 'Salary', 'Groceries'
   isRecurring: boolean;
+  recurrenceSchedule?: 'monthly' | 'quarterly' | 'semiannual' | 'annual';
   userId?: string;
   recurringSourceId?: string;
   status: 'paid' | 'pending';

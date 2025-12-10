@@ -61,6 +61,7 @@ const formSchema = z.object({
   description: z.string().optional(),
   vendor: z.string().optional(),
   isRecurring: z.boolean().default(false),
+  recurrenceSchedule: z.string().optional(),
   status: z.enum(['paid', 'pending']).default('paid'),
   paymentMethod: z.enum(['cash', 'creditCard']).default('cash'),
   creditCardId: z.string().optional(),
@@ -101,6 +102,7 @@ export function AddTransactionSheet({
       category: '',
       date: new Date(),
       isRecurring: false,
+      recurrenceSchedule: 'monthly',
       status: 'paid',
       paymentMethod: 'cash',
     },
@@ -115,6 +117,7 @@ export function AddTransactionSheet({
   const [isAddCardSheetOpen, setIsAddCardSheetOpen] = useState(false);
 
   const paymentMethod = form.watch('paymentMethod');
+  const isRecurring = form.watch('isRecurring');
   
   const creditCardsQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -144,6 +147,7 @@ export function AddTransactionSheet({
         status: transaction.status || 'paid',
         paymentMethod: transaction.creditCardId ? 'creditCard' : 'cash',
         creditCardId: transaction.creditCardId || undefined,
+        recurrenceSchedule: transaction.recurrenceSchedule || 'monthly',
       });
     } else if (isOpen) {
       form.reset({
@@ -153,6 +157,7 @@ export function AddTransactionSheet({
         category: '',
         date: new Date(),
         isRecurring: false,
+        recurrenceSchedule: 'monthly',
         status: 'paid',
         paymentMethod: 'cash',
         creditCardId: undefined,
@@ -180,6 +185,10 @@ export function AddTransactionSheet({
       userId: user.uid,
       type: transactionType,
     };
+
+    if (!values.isRecurring) {
+        delete dataToSave.recurrenceSchedule;
+    }
     
     // Only include creditCardId if the payment method is 'creditCard' and an ID is selected
     if (transactionType === 'expense' && values.paymentMethod === 'creditCard' && values.creditCardId) {
@@ -445,7 +454,7 @@ export function AddTransactionSheet({
                     <div className="space-y-0.5">
                       <FormLabel>Recorrente</FormLabel>
                       <FormDescription>
-                        Esta transação se repetirá todo mês.
+                        Esta transação se repetirá.
                       </FormDescription>
                     </div>
                     <FormControl>
@@ -458,6 +467,31 @@ export function AddTransactionSheet({
                   </FormItem>
                 )}
               />
+              {isRecurring && (
+                <FormField
+                  control={form.control}
+                  name="recurrenceSchedule"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Periodicidade</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="monthly">Mensal</SelectItem>
+                          <SelectItem value="quarterly">Trimestral</SelectItem>
+                          <SelectItem value="semiannual">Semestral</SelectItem>
+                          <SelectItem value="annual">Anual</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
               <FormField
                 control={form.control}
                 name="status"

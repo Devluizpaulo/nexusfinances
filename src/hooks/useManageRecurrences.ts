@@ -9,10 +9,10 @@ import {
   getDocs,
 } from 'firebase/firestore';
 import { useFirestore, useUser, addDocumentNonBlocking } from '@/firebase';
-import { startOfMonth, endOfMonth, formatISO, setDate, parseISO, isSameMonth } from 'date-fns';
+import { startOfMonth, endOfMonth, formatISO, setDate, parseISO, isSameMonth, addMonths } from 'date-fns';
 import type { Transaction } from '@/lib/types';
 
-const LAST_CHECK_KEY = 'recurrencesLastCheck';
+const LAST_CHECK_KEY = 'recurrencesLastCheck_v2';
 
 export function useManageRecurrences() {
   const firestore = useFirestore();
@@ -23,15 +23,13 @@ export function useManageRecurrences() {
     if (!user || !firestore) return;
 
     const now = new Date();
-    const currentMonthStr = formatISO(now, { representation: 'date' }).substring(0, 7); 
+    const currentMonthIdentifier = formatISO(now, { representation: 'date' }).substring(0, 7); 
 
     const lastCheck = localStorage.getItem(LAST_CHECK_KEY);
-    if (lastCheck === currentMonthStr) {
+    if (lastCheck === currentMonthIdentifier) {
       return;
     }
 
-    const startOfCurrentMonth = startOfMonth(now);
-    const endOfCurrentMonth = endOfMonth(now);
     const createdForSummary: Transaction[] = [];
 
     const processRecurrence = async (type: 'incomes' | 'expenses') => {
@@ -40,53 +38,48 @@ export function useManageRecurrences() {
         where('isRecurring', '==', true)
       );
 
-      const monthQuery = query(
-        collection(firestore, `users/${user.uid}/${type}`),
-        where('date', '>=', formatISO(startOfCurrentMonth)),
-        where('date', '<=', formatISO(endOfCurrentMonth))
-      );
-
-      const [recurringSnapshot, monthSnapshot] = await Promise.all([
-        getDocs(recurringTemplatesQuery),
-        getDocs(monthQuery),
-      ]);
-      
-      const existingRecurringSourceIds = new Set(
-        monthSnapshot.docs
-          .map(doc => doc.data() as Transaction)
-          .filter(t => t.recurringSourceId)
-          .map(t => t.recurringSourceId)
-      );
+      const recurringSnapshot = await getDocs(recurringTemplatesQuery);
       
       for (const doc of recurringSnapshot.docs) {
-        const templateId = doc.id;
         const template = doc.data() as Transaction;
-        const templateDate = parseISO(template.date);
+        const templateId = doc.id;
+        const lastCreatedDate = parseISO(template.date);
 
-        if (existingRecurringSourceIds.has(templateId)) {
-            continue;
-        }
+        const schedule = template.recurrenceSchedule || 'monthly';
+        let monthsToAdd = 1;
+        if (schedule === 'quarterly') monthsToAdd = 3;
+        else if (schedule === 'semiannual') monthsToAdd = 6;
+        else if (schedule === 'annual') monthsToAdd = 12;
 
-        if (isSameMonth(templateDate, now)) {
-            continue;
-        }
-
-        let newDate = setDate(now, templateDate.getDate());
+        let nextDueDate = addMonths(lastCreatedDate, monthsToAdd);
         
-        if (newDate.getMonth() !== now.getMonth()) {
-            newDate = endOfMonth(now);
+        // Se a próxima data de vencimento ainda não chegou, não faz nada
+        if (nextDueDate > now) {
+            continue;
+        }
+        
+        // Verifica se já existe uma transação para este template neste mês
+        const monthQuery = query(
+          collection(firestore, `users/${user.uid}/${type}`),
+          where('recurringSourceId', '==', templateId),
+          where('date', '>=', formatISO(startOfMonth(now))),
+          where('date', '<=', formatISO(endOfMonth(now)))
+        );
+        
+        const monthSnapshot = await getDocs(monthQuery);
+        if(!monthSnapshot.empty) {
+            continue;
         }
 
         const newTransaction: Omit<Transaction, 'id'> & { type: 'income' | 'expense' } = {
           ...template,
           type: type === 'incomes' ? 'income' : 'expense',
-          date: formatISO(newDate, { representation: 'date' }),
+          date: formatISO(nextDueDate, { representation: 'date' }),
           isRecurring: false, 
           recurringSourceId: templateId,
           status: 'pending',
         };
         
-        // This is fire-and-forget, but we can capture the object for the summary
         const docRef = await addDocumentNonBlocking(collection(firestore, `users/${user.uid}/${type}`), newTransaction);
         if (docRef) {
           createdForSummary.push({ ...newTransaction, id: docRef.id });
@@ -103,7 +96,7 @@ export function useManageRecurrences() {
       setNewlyCreatedTransactions(createdForSummary);
     }
 
-    localStorage.setItem(LAST_CHECK_KEY, currentMonthStr);
+    localStorage.setItem(LAST_CHECK_KEY, currentMonthIdentifier);
 
   }, [user, firestore]);
 
