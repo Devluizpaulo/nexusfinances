@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -16,8 +17,8 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Building, Pencil, Phone, Trash2, User, Globe, Mail, MoreVertical } from 'lucide-react';
 import type { HealthProfessional, HealthProvider } from '@/lib/types';
-import { useFirestore, useUser, deleteDocumentNonBlocking } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
+import { doc, deleteDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
@@ -44,18 +45,30 @@ export function HealthProviderCard({ provider, professionals, onEditProvider, on
   
   const providerProfessionals = professionals.filter(p => p.providerId === provider.id);
   
-  const handleDeleteProvider = () => {
+  const handleDeleteProvider = async () => {
     if (!user) return;
-    deleteDocumentNonBlocking(doc(firestore, `users/${user.uid}/healthProviders`, provider.id));
-    toast({ title: "Empresa excluída", description: `"${provider.name}" foi removida.` });
-    setIsProviderDeleteDialogOpen(false);
+    try {
+        await deleteDoc(doc(firestore, `users/${user.uid}/healthProviders`, provider.id));
+        toast({ title: "Empresa excluída", description: `"${provider.name}" foi removida.` });
+    } catch (error) {
+        console.error("Error deleting provider:", error);
+        toast({ variant: "destructive", title: "Erro ao excluir", description: "Não foi possível remover a empresa." });
+    } finally {
+        setIsProviderDeleteDialogOpen(false);
+    }
   }
   
-  const handleDeleteProfessional = () => {
+  const handleDeleteProfessional = async () => {
     if (!user || !professionalToDelete) return;
-    deleteDocumentNonBlocking(doc(firestore, `users/${user.uid}/healthProfessionals`, professionalToDelete.id));
-    toast({ title: "Profissional excluído", description: `"${professionalToDelete.name}" foi removido.` });
-    setProfessionalToDelete(null);
+    try {
+        await deleteDoc(doc(firestore, `users/${user.uid}/healthProfessionals`, professionalToDelete.id));
+        toast({ title: "Profissional excluído", description: `"${professionalToDelete.name}" foi removido.` });
+    } catch(error) {
+        console.error("Error deleting professional:", error);
+        toast({ variant: "destructive", title: "Erro ao excluir", description: "Não foi possível remover o profissional." });
+    } finally {
+        setProfessionalToDelete(null);
+    }
   }
 
   return (

@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Row } from "@tanstack/react-table"
@@ -21,7 +22,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useState, useCallback } from "react"
-import { doc, deleteDoc } from "firebase/firestore"
+import { doc, deleteDoc, updateDoc } from "firebase/firestore"
 import { useFirestore, useUser } from "@/firebase"
 import { useToast } from "@/hooks/use-toast"
 import type { Transaction } from "@/lib/types"
@@ -40,37 +41,43 @@ export function DataTableRowActions({ row, onEdit }: DataTableRowActionsProps) {
   const transaction = row.original;
   const collectionName = 'expenses';
 
-  const handleUpdateStatus = useCallback(() => {
+  const handleUpdateStatus = useCallback(async () => {
     if (!user) {
       toast({ variant: "destructive", title: "Erro", description: "Você não está autenticado." });
       return;
     }
     const docRef = doc(firestore, `users/${user.uid}/${collectionName}`, transaction.id);
-    // updateDocumentNonBlocking(docRef, { status: "paid" });
-    toast({
-      title: "Transação atualizada!",
-      description: `A transação "${transaction.description}" foi marcada como paga.`,
-    });
+    try {
+        await updateDoc(docRef, { status: "paid" });
+        toast({
+          title: "Transação atualizada!",
+          description: `A transação "${transaction.description}" foi marcada como paga.`,
+        });
+    } catch (e) {
+        console.error("Error updating transaction status:", e);
+        toast({ variant: "destructive", title: "Erro ao atualizar", description: "Não foi possível marcar a despesa como paga." });
+    }
   }, [user, firestore, collectionName, transaction.id, transaction.description, toast]);
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback(async () => {
     if (!user) {
       toast({ variant: "destructive", title: "Erro", description: "Você não está autenticado." });
       return;
     }
 
     const docRef = doc(firestore, `users/${user.uid}/${collectionName}`, transaction.id);
-    deleteDoc(docRef).then(() => {
+    try {
+        await deleteDoc(docRef);
         toast({
           title: "Transação excluída",
           description: `A transação "${transaction.description}" foi removida.`,
         });
-        setIsDeleteDialogOpen(false)
-    }).catch(e => {
-        console.error(e);
+    } catch (e) {
+        console.error("Error deleting transaction:", e);
         toast({ variant: 'destructive', title: 'Erro ao excluir', description: 'Não foi possível remover a transação.' });
+    } finally {
         setIsDeleteDialogOpen(false)
-    })
+    }
   }, [user, firestore, collectionName, transaction.id, transaction.description, toast]);
 
   return (

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -21,7 +22,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Progress } from '@/components/ui/progress';
-import { useFirestore, useUser, updateDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useUser, updateDoc } from '@/firebase';
 
 import type { Goal, GoalCategory } from '@/lib/types';
 import {
@@ -104,7 +105,7 @@ export function GoalCard({ goal, onAddContribution, onEdit }: GoalCardProps) {
     const newCurrentAmount = remaining.reduce((sum, c) => sum + c.amount, 0);
 
     try {
-      await updateDocumentNonBlocking(goalRef, {
+      await updateDoc(goalRef, {
         contributions: remaining,
         currentAmount: newCurrentAmount,
       });

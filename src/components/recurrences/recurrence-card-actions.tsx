@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useState } from 'react';
-import { useFirestore, useUser, deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useUser, updateDoc, deleteDoc } from '@/firebase';
 import type { Recurrence } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -41,22 +42,34 @@ export function RecurrenceCardActions({ recurrence, onEdit }: RecurrenceCardActi
   const collectionName = recurrence.type === 'income' ? 'incomes' : 'expenses';
   const docRef = doc(firestore, `users/${user?.uid}/${collectionName}`, recurrence.id);
 
-  const handleDelete = () => {
-    deleteDocumentNonBlocking(docRef);
-    toast({
-      title: 'Item recorrente excluído',
-      description: `O modelo de recorrência "${recurrence.description}" foi removido.`,
-    });
-    setIsDeleteDialogOpen(false);
+  const handleDelete = async () => {
+    try {
+      await deleteDoc(docRef);
+      toast({
+        title: 'Item recorrente excluído',
+        description: `O modelo de recorrência "${recurrence.description}" foi removido.`,
+      });
+    } catch(e) {
+      console.error("Error deleting recurrence template:", e);
+      toast({ variant: 'destructive', title: 'Erro ao excluir', description: 'Não foi possível remover o modelo de recorrência.' });
+    } finally {
+        setIsDeleteDialogOpen(false);
+    }
   };
   
-  const handleStopRecurrence = () => {
-      updateDocumentNonBlocking(docRef, { isRecurring: false });
+  const handleStopRecurrence = async () => {
+    try {
+      await updateDoc(docRef, { isRecurring: false });
       toast({
           title: 'Recorrência interrompida',
           description: `"${recurrence.description}" não será mais criada automaticamente.`,
       });
-      setIsConfirmingStop(false);
+    } catch(e) {
+        console.error("Error stopping recurrence:", e);
+        toast({ variant: 'destructive', title: 'Erro ao interromper', description: 'Não foi possível interromper a recorrência.' });
+    } finally {
+        setIsConfirmingStop(false);
+    }
   }
 
   const stopPropagation = (e: React.MouseEvent) => e.stopPropagation();

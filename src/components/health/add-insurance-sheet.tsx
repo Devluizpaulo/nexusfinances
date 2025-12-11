@@ -5,8 +5,8 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { collection, doc } from 'firebase/firestore';
-import { useFirestore, useUser, addDocumentNonBlocking, setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
+import { collection, doc, deleteDoc } from 'firebase/firestore';
+import { useFirestore, useUser, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
 import {
   Dialog,
   DialogContent,
@@ -142,11 +142,16 @@ export function AddInsuranceSheet({ isOpen, onClose, insurance }: AddInsuranceSh
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!user || !isEditing) return;
-    deleteDocumentNonBlocking(doc(firestore, `users/${user.uid}/healthInsurances`, insurance.id));
-    toast({ title: "Convênio removido", description: "As informações do convênio foram excluídas." });
-    onClose();
+    try {
+        await deleteDoc(doc(firestore, `users/${user.uid}/healthInsurances`, insurance.id));
+        toast({ title: "Convênio removido", description: "As informações do convênio foram excluídas." });
+        onClose();
+    } catch (error) {
+        console.error("Error deleting insurance:", error);
+        toast({ variant: 'destructive', title: 'Erro ao remover', description: 'Não foi possível remover o convênio.' });
+    }
   };
 
   return (

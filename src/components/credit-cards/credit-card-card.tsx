@@ -1,14 +1,15 @@
+
 'use client';
 
 import { useMemo, useState } from 'react';
 import type { CreditCard, Transaction } from '@/lib/types';
-import { useFirestore, useUser, deleteDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useUser } from '@/firebase';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { doc } from 'firebase/firestore';
+import { doc, deleteDoc } from 'firebase/firestore';
 import { MoreVertical, Pencil, Trash2, ArrowRight } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -106,15 +107,21 @@ export function CreditCardCard({ card, expenses, onEdit }: CreditCardCardProps) 
   const progress = card.limit > 0 ? (currentBillAmount / card.limit) * 100 : 0;
   const remainingLimit = card.limit - currentBillAmount;
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!user) return;
     const cardRef = doc(firestore, `users/${user.uid}/creditCards`, card.id);
-    deleteDocumentNonBlocking(cardRef);
-    toast({
-      title: 'Cartão excluído',
-      description: `O cartão "${card.name}" foi removido.`,
-    });
-    setIsDeleteDialogOpen(false);
+    try {
+        await deleteDoc(cardRef);
+        toast({
+          title: 'Cartão excluído',
+          description: `O cartão "${card.name}" foi removido.`,
+        });
+    } catch (error) {
+        console.error("Error deleting card:", error);
+        toast({ variant: "destructive", title: "Erro ao excluir", description: "Não foi possível remover o cartão." });
+    } finally {
+        setIsDeleteDialogOpen(false);
+    }
   };
 
   return (

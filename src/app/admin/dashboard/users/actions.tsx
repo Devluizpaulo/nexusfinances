@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Row } from "@tanstack/react-table"
@@ -21,8 +22,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useState } from "react"
-import { doc, deleteDoc } from "firebase/firestore"
-import { useFirestore, useUser, updateDocumentNonBlocking } from "@/firebase"
+import { doc, deleteDoc, updateDoc } from "firebase/firestore"
+import { useFirestore, useUser } from "@/firebase"
 import { useToast } from "@/hooks/use-toast"
 import type { AppUser } from "@/firebase"
 import { logEvent } from "@/lib/logger"
@@ -94,7 +95,7 @@ export function DataTableRowActions({
     }
   }
   
-  const handleChangeRole = () => {
+  const handleChangeRole = async () => {
      if (!user || !firestore) {
       toast({ variant: "destructive", title: "Erro", description: "Você não está autenticado." });
       return;
@@ -115,23 +116,27 @@ export function DataTableRowActions({
     }
 
     const docRef = doc(firestore, `users`, userId);
-    updateDocumentNonBlocking(docRef, { role: newRole });
-
-    logEvent(firestore, {
-        level: 'info',
-        message: `A função do usuário "${userToModify.displayName}" foi alterada para ${newRole}.`,
-        createdBy: user.uid,
-        createdByName: user.displayName || 'Admin',
-    });
-
-    toast({
-      title: "Função Alterada",
-      description: `O usuário "${userToModify.displayName}" agora é ${newRole}.`,
-    });
-    setIsRoleDialogOpen(false)
+    try {
+        await updateDoc(docRef, { role: newRole });
+        logEvent(firestore, {
+            level: 'info',
+            message: `A função do usuário "${userToModify.displayName}" foi alterada para ${newRole}.`,
+            createdBy: user.uid,
+            createdByName: user.displayName || 'Admin',
+        });
+        toast({
+          title: "Função Alterada",
+          description: `O usuário "${userToModify.displayName}" agora é ${newRole}.`,
+        });
+    } catch (error) {
+        console.error("Error changing role:", error);
+        toast({ variant: "destructive", title: "Erro ao alterar função", description: "Não foi possível realizar a operação." });
+    } finally {
+        setIsRoleDialogOpen(false)
+    }
   }
 
-  const handleSetStatus = (newStatus: 'active' | 'inactive' | 'blocked') => {
+  const handleSetStatus = async (newStatus: 'active' | 'inactive' | 'blocked') => {
     if (!user || !firestore) {
       toast({ variant: "destructive", title: "Erro", description: "Você não está autenticado." });
       return;
@@ -150,19 +155,22 @@ export function DataTableRowActions({
     }
 
     const docRef = doc(firestore, `users`, userId);
-    updateDocumentNonBlocking(docRef, { status: newStatus });
-
-    logEvent(firestore, {
-      level: 'info',
-      message: `O status do usuário "${userToModify.displayName}" foi atualizado para ${newStatus}.`,
-      createdBy: user.uid,
-      createdByName: user.displayName || 'Admin',
-    });
-
-    toast({
-      title: "Status atualizado",
-      description: `O usuário "${userToModify.displayName}" agora está ${newStatus}.`,
-    });
+    try {
+        await updateDoc(docRef, { status: newStatus });
+        logEvent(firestore, {
+          level: 'info',
+          message: `O status do usuário "${userToModify.displayName}" foi atualizado para ${newStatus}.`,
+          createdBy: user.uid,
+          createdByName: user.displayName || 'Admin',
+        });
+        toast({
+          title: "Status atualizado",
+          description: `O usuário "${userToModify.displayName}" agora está ${newStatus}.`,
+        });
+    } catch (error) {
+        console.error("Error setting status:", error);
+        toast({ variant: "destructive", title: "Erro ao atualizar status", description: "Não foi possível realizar a operação." });
+    }
   };
 
   return (

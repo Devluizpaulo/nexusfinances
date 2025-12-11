@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -6,8 +7,8 @@ import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Building, Pencil, Phone, Trash2, User, Mail, MoreVertical } from 'lucide-react';
 import type { HealthProfessional, HealthProvider } from '@/lib/types';
-import { useFirestore, useUser, deleteDocumentNonBlocking } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
+import { doc, deleteDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Badge } from '../ui/badge';
@@ -28,11 +29,17 @@ export function ProfessionalCard({ professional, providers, onEdit }: Profession
   
   const provider = providers.find(p => p.id === professional.providerId);
   
-  const handleDeleteProfessional = () => {
+  const handleDeleteProfessional = async () => {
     if (!user) return;
-    deleteDocumentNonBlocking(doc(firestore, `users/${user.uid}/healthProfessionals`, professional.id));
-    toast({ title: "Profissional excluído", description: `"${professional.name}" foi removido.` });
-    setIsDeleteDialogOpen(false);
+    try {
+        await deleteDoc(doc(firestore, `users/${user.uid}/healthProfessionals`, professional.id));
+        toast({ title: "Profissional excluído", description: `"${professional.name}" foi removido.` });
+    } catch(error) {
+        console.error("Error deleting professional:", error);
+        toast({ variant: "destructive", title: "Erro ao excluir", description: "Não foi possível remover o profissional." });
+    } finally {
+        setIsDeleteDialogOpen(false);
+    }
   }
 
   return (
