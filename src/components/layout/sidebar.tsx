@@ -1,6 +1,6 @@
 'use client';
 import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator, SidebarGroup, SidebarGroupLabel } from '@/components/ui/sidebar';
-import { LayoutDashboard, Landmark, CreditCard, Banknote, PiggyBank, BarChart3, GraduationCap, ShieldCheck, LifeBuoy, Home, Zap, FileText, HeartPulse, Repeat, WalletCards } from 'lucide-react';
+import { LayoutDashboard, Landmark, CreditCard, Banknote, PiggyBank, BarChart3, GraduationCap, ShieldCheck, LifeBuoy, Home, Zap, FileText, HeartPulse, Repeat, WalletCards, History, List, LineChart, PieChart } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '../ui/button';
@@ -9,18 +9,43 @@ import { cn } from '@/lib/utils';
 import { useUser } from '@/firebase';
 import Image from 'next/image';
 
-const mainMenuItems = [
-    { href: '/dashboard', label: 'Painel', icon: LayoutDashboard },
-    { href: '/income', label: 'Rendas', icon: Landmark },
-    { href: '/expenses', label: 'Despesas', icon: CreditCard },
-    { href: '/debts', label: 'Dívidas', icon: Banknote },
-    { href: '/goals', label: 'Metas', icon: PiggyBank },
-];
-
-const secondaryMenuItems = [
-    { href: '/reports', label: 'Relatórios', icon: BarChart3 },
-    { href: '/education', label: 'Jornada Financeira', icon: GraduationCap },
-    { href: '/health', label: 'Saúde', icon: HeartPulse },
+const navSections = [
+    {
+        label: 'Visão Geral',
+        icon: LayoutDashboard,
+        href: '/dashboard',
+        subItems: [
+            { href: '/dashboard', label: 'Resumo', icon: LineChart },
+            { href: '/reports', label: 'Relatórios', icon: PieChart },
+        ]
+    },
+    {
+        label: 'Transações',
+        icon: Landmark,
+        href: '/transactions',
+        subItems: [
+            { href: '/income', label: 'Rendas', icon: Landmark },
+            { href: '/expenses', label: 'Despesas', icon: CreditCard },
+        ]
+    },
+    {
+        label: 'Dívidas',
+        icon: Banknote,
+        href: '/debts',
+        subItems: []
+    },
+    {
+        label: 'Metas',
+        icon: PiggyBank,
+        href: '/goals',
+        subItems: []
+    },
+    {
+        label: 'Jornada',
+        icon: GraduationCap,
+        href: '/education',
+        subItems: []
+    },
 ];
 
 const bottomMenuItems = [
@@ -38,29 +63,13 @@ export function AppSidebar() {
     }
   };
 
-  const renderMenuItem = (item: typeof mainMenuItems[0]) => (
-    <SidebarMenuItem key={item.href}>
-        <SidebarMenuButton 
-            asChild 
-            isActive={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))} 
-            tooltip={item.label} 
-            onClick={handleMobileClick}
-        >
-            <Link href={item.href}>
-                <item.icon />
-                <span>{item.label}</span>
-            </Link>
-        </SidebarMenuButton>
-    </SidebarMenuItem>
-  );
-
   return (
     <Sidebar variant="sidebar" collapsible="icon">
         <SidebarHeader>
             <Button variant="ghost" className="h-12 justify-start items-center gap-2 p-2 w-full" asChild>
                 <Link href="/dashboard">
-                    <div className="p-1 rounded-lg bg-white">
-                        <Image src="/images/xoplanilhas_logo.png" alt="Logo Xô Planilhas" width={36} height={36} />
+                    <div className="p-1.5 rounded-lg bg-background">
+                        <Image src="/images/xoplanilhas_logo.png" alt="Logo Xô Planilhas" width={32} height={32} />
                     </div>
                     <span className={cn("text-lg font-semibold group-data-[state=collapsed]:hidden")}>Xô Planilhas</span>
                 </Link>
@@ -68,21 +77,43 @@ export function AppSidebar() {
         </SidebarHeader>
         
         <SidebarMenu className="flex-1">
-            <SidebarGroup>
-                <SidebarGroupLabel>Principal</SidebarGroupLabel>
-                {mainMenuItems.map(renderMenuItem)}
-            </SidebarGroup>
-
-            <SidebarSeparator />
-
-            <SidebarGroup>
-                <SidebarGroupLabel>Análise</SidebarGroupLabel>
-                {secondaryMenuItems.map(renderMenuItem)}
-            </SidebarGroup>
+            {navSections.map((section) => {
+                const isActiveSection = pathname === section.href || (section.href !== '/dashboard' && pathname.startsWith(section.href));
+                return (
+                    <SidebarGroup key={section.href}>
+                        <SidebarMenuItem>
+                             <SidebarMenuButton 
+                                asChild 
+                                isActive={isActiveSection}
+                                tooltip={section.label} 
+                                onClick={handleMobileClick}
+                            >
+                                <Link href={section.href}>
+                                    <section.icon />
+                                    <span>{section.label}</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                        {isActiveSection && section.subItems.length > 0 && (
+                             <SidebarMenuSub>
+                                {section.subItems.map(subItem => (
+                                    <SidebarMenuSubItem key={subItem.href}>
+                                        <SidebarMenuSubButton asChild isActive={pathname.startsWith(subItem.href)} onClick={handleMobileClick}>
+                                             <Link href={subItem.href}>
+                                                <subItem.icon />
+                                                <span>{subItem.label}</span>
+                                            </Link>
+                                        </SidebarMenuSubButton>
+                                    </SidebarMenuSubItem>
+                                ))}
+                            </SidebarMenuSub>
+                        )}
+                    </SidebarGroup>
+                )
+            })}
             
             {user?.role === 'superadmin' && (
                 <SidebarGroup>
-                    <SidebarGroupLabel>Admin</SidebarGroupLabel>
                     <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={pathname.startsWith('/admin')} tooltip="Painel Admin" onClick={handleMobileClick}>
                             <Link href="/admin/dashboard">
@@ -98,7 +129,16 @@ export function AppSidebar() {
         <SidebarFooter>
             <SidebarSeparator />
             <SidebarMenu>
-                {bottomMenuItems.map(renderMenuItem)}
+                 {bottomMenuItems.map(item => (
+                     <SidebarMenuItem key={item.href}>
+                        <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label} onClick={handleMobileClick}>
+                            <Link href={item.href}>
+                                <item.icon />
+                                <span>{item.label}</span>
+                            </Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                 ))}
             </SidebarMenu>
         </SidebarFooter>
     </Sidebar>
