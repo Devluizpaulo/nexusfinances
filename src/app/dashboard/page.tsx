@@ -21,6 +21,7 @@ import { Loader2 } from 'lucide-react';
 import { ExpenseCategoryChart } from '@/components/dashboard/expense-category-chart';
 import { FinancialHealthScore } from '@/components/dashboard/financial-health-score';
 import { OverdueDebtsCard } from '@/components/dashboard/overdue-debts-card';
+import { ExpenseCalendar } from './_components/expense-calendar';
 
 export default function DashboardPage() {
   const { selectedDate } = useDashboardDate();
@@ -135,13 +136,19 @@ export default function DashboardPage() {
           />
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-           <div className="lg:col-span-2">
-            <IncomeExpenseChart transactions={allTransactions} />
-           </div>
-           <RecentTransactionsList transactions={allTransactions} />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2">
+                <IncomeExpenseChart transactions={allTransactions} />
+            </div>
+            <div className="space-y-6">
+                 <ExpenseCalendar expenses={expenseData || []} />
+            </div>
         </div>
-         <ExpenseCategoryChart transactions={expenseData || []} />
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+           <RecentTransactionsList transactions={allTransactions} />
+           <ExpenseCategoryChart transactions={expenseData || []} />
+        </div>
       </div>
 
        <div className="fixed bottom-6 right-6 z-40">
@@ -172,8 +179,18 @@ function DashboardSkeleton() {
         <Skeleton className="h-10 w-36 rounded-full" />
       </div>
         <Skeleton className="h-40 w-full rounded-xl" />
-        <Skeleton className="h-64 w-full rounded-xl" />
-        <Skeleton className="h-64 w-full rounded-xl" />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2">
+                <Skeleton className="h-96 w-full rounded-xl" />
+            </div>
+            <div className="space-y-6">
+                 <Skeleton className="h-80 w-full rounded-xl" />
+            </div>
+        </div>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+           <Skeleton className="h-96 w-full rounded-xl" />
+           <Skeleton className="h-96 w-full rounded-xl" />
+        </div>
     </div>
   )
 }

@@ -9,13 +9,14 @@ import type { Transaction } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
+import { useDashboardDate } from '@/context/dashboard-date-context';
 
 interface ExpenseCalendarProps {
   expenses: Transaction[];
 }
 
 export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
-  const [month, setMonth] = useState(new Date());
+  const { selectedDate, setSelectedDate } = useDashboardDate();
   const router = useRouter();
 
   const expensesByDay = useMemo(() => {
@@ -66,8 +67,9 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
       <CardContent className="p-0">
         <Calendar
           mode="single"
-          month={month}
-          onMonthChange={setMonth}
+          month={selectedDate}
+          onMonthChange={setSelectedDate}
+          selected={selectedDate}
           onDayClick={handleDayClick}
           locale={ptBR}
           className="w-full"
