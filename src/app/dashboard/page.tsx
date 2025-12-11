@@ -12,56 +12,19 @@ import { AddGoalSheet } from '@/components/goals/add-goal-sheet';
 import { AddBudgetSheet } from '@/components/budgets/add-budget-sheet';
 import { incomeCategories, expenseCategories } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useDashboardDate } from '@/context/dashboard-date-context';
 import { RecentTransactionsList } from './_components/recent-transactions-list';
 import { BalanceCard } from './_components/balance-card';
 import { DashboardHeader } from './_components/dashboard-header';
-import { FinancialHealthScore } from '@/components/dashboard/financial-health-score';
 import { IncomeExpenseChart } from '@/components/dashboard/income-expense-chart';
-import { OverdueDebtsCard } from '@/components/dashboard/overdue-debts-card';
-import { ExpenseCalendar } from './_components/expense-calendar';
-import { GetFinancialInsightsOutput } from '@/ai/flows/financial-insights-flow';
-import { Button } from '@/components/ui/button';
-import { Sparkles, Loader2 } from 'lucide-react';
-import { getFinancialInsights } from '@/ai/flows/financial-insights-flow';
-import { useToast } from '@/hooks/use-toast';
-
-function FinancialInsightAnalysis({ analysis }: { analysis: GetFinancialInsightsOutput | null }) {
-  if (!analysis) return null;
-  return (
-    <Card className="bg-primary/5 border-primary/20">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-primary">
-          <Sparkles className="h-5 w-5" />
-          Análise do Mês
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <p className="text-sm text-foreground/80">{analysis.summary}</p>
-        <ul className="space-y-2">
-          {analysis.actionPoints.map((point, index) => (
-            <li key={index} className="flex items-start gap-2 text-xs">
-              <div className="mt-1 h-1.5 w-1.5 rounded-full bg-primary" />
-              <span>{point}</span>
-            </li>
-          ))}
-        </ul>
-      </CardContent>
-    </Card>
-  );
-}
+import { Loader2 } from 'lucide-react';
 
 export default function DashboardPage() {
   const { selectedDate } = useDashboardDate();
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
-  const { toast } = useToast();
   
   const [sheetType, setSheetType] = useState<'income' | 'expense' | 'debt' | 'goal' | 'budget' | null>(null);
-  const [isAiLoading, setIsAiLoading] = useState(false);
-  const [aiAnalysis, setAiAnalysis] = useState<GetFinancialInsightsOutput | null>(null);
-
 
   const { start, end } = useMemo(() => {
     const start = startOfMonth(selectedDate);
@@ -114,37 +77,7 @@ export default function DashboardPage() {
     };
   }, [incomeData, expenseData]);
   
-  const allTransactions = useMemo(() => [...(incomeData || []), ...(expenseData || [])], [incomeData, expenseData]);
-
-  const handleGenerateInsights = async () => {
-    if (!user) return;
-    setIsAiLoading(true);
-    setAiAnalysis(null);
-    try {
-      const insights = await getFinancialInsights({
-        userName: user.displayName?.split(' ')[0] || 'Usuário',
-        incomes: incomeData || [],
-        expenses: expenseData || [],
-        debts: debtData || [],
-        goals: goalData || [],
-      });
-      if (insights) {
-        setAiAnalysis(insights);
-      } else {
-        throw new Error('A análise não retornou dados.');
-      }
-    } catch (error) {
-      console.error('Error generating AI insights:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Erro ao gerar análise',
-        description: 'Não foi possível obter os insights. Tente novamente mais tarde.',
-      });
-    } finally {
-      setIsAiLoading(false);
-    }
-  };
-
+  const allTransactions = useMemo(() => [...(incomeData || []), ...(expenseData || [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()), [incomeData, expenseData]);
 
   const handleOpenSheet = (type: 'income' | 'expense' | 'debt' | 'goal' | 'budget') => {
     setSheetType(type);
@@ -184,37 +117,11 @@ export default function DashboardPage() {
       <div className="space-y-6">
         <DashboardHeader />
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr,320px]">
-          <div className="space-y-6">
-            <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
-            <OverdueDebtsCard debts={debtData || []} />
-             <Button onClick={handleGenerateInsights} disabled={isAiLoading} variant="outline" className="w-full">
-              {isAiLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Sparkles className="mr-2 h-4 w-4" />
-              )}
-              {isAiLoading ? 'Analisando suas finanças...' : 'Gerar Análise com IA'}
-            </Button>
-            {aiAnalysis && <FinancialInsightAnalysis analysis={aiAnalysis} />}
-            <RecentTransactionsList transactions={allTransactions} />
-          </div>
-
-          <div className="space-y-6">
-             <div className="sticky top-20">
-                <ExpenseCalendar expenses={expenseData || []} />
-             </div>
-             <FinancialHealthScore 
-                income={totalIncome} 
-                expenses={totalExpenses} 
-                debts={debtData || []} 
-                goals={goalData || []}
-                transactions={expenseData || []}
-              />
-          </div>
+        <div className="space-y-6">
+          <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
+          <RecentTransactionsList transactions={allTransactions} />
+          <IncomeExpenseChart transactions={allTransactions} />
         </div>
-        
-        <IncomeExpenseChart transactions={allTransactions} />
       </div>
 
        <div className="fixed bottom-6 right-6 z-40">
@@ -244,18 +151,9 @@ function DashboardSkeleton() {
         </div>
         <Skeleton className="h-10 w-36 rounded-full" />
       </div>
-
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr,320px]">
-        <div className="space-y-6">
-          <Skeleton className="h-40 w-full rounded-xl" />
-          <Skeleton className="h-20 w-full rounded-xl" />
-        </div>
-         <div className="space-y-6">
-            <Skeleton className="h-80 w-full rounded-xl" />
-         </div>
-      </div>
-      
-       <Skeleton className="h-64 w-full rounded-xl" />
+        <Skeleton className="h-40 w-full rounded-xl" />
+        <Skeleton className="h-64 w-full rounded-xl" />
+        <Skeleton className="h-64 w-full rounded-xl" />
     </div>
   )
 }
