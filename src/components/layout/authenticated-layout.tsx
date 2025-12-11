@@ -8,8 +8,6 @@ import { AppSidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { DashboardDateProvider } from '@/context/dashboard-date-context';
-import { RecurringSummaryDialog } from '@/components/dashboard/recurring-summary-dialog';
-import { useManageRecurrences } from '@/hooks/useManageRecurrences';
 import { useNotificationGenerator } from '@/hooks/useNotificationGenerator';
 
 
@@ -19,7 +17,6 @@ export function AuthenticatedLayout({
   children: React.ReactNode;
 }) {
   const { user, isUserLoading } = useUser();
-  // const { newlyCreatedTransactions, clearNewlyCreatedTransactions } = useManageRecurrences();
   useNotificationGenerator(); // Gera notificações de sistema
 
   if (isUserLoading) {
@@ -36,10 +33,6 @@ export function AuthenticatedLayout({
 
   return (
     <DashboardDateProvider>
-       {/* <RecurringSummaryDialog 
-        transactions={newlyCreatedTransactions}
-        onClose={clearNewlyCreatedTransactions}
-      /> */}
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
