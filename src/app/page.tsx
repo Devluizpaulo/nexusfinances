@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -14,18 +12,15 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
 
 function ClientRoot() {
   const { user, isUserLoading } = useUser();
   const [email, setEmail] = useState('');
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     if (user) {
@@ -40,14 +35,6 @@ function ClientRoot() {
       params.append('email', email);
     }
     redirect(`/login?${params.toString()}`);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    setMousePosition({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    });
   };
   
   if (isUserLoading || user) {
@@ -65,19 +52,7 @@ function ClientRoot() {
   
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground overflow-x-hidden">
-      {/* Efeito de partículas no fundo */}
-      <div className="fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-background" />
-        <div 
-          className="absolute inset-0 opacity-30"
-          style={{
-            backgroundImage: 'radial-gradient(circle at 1px 1px, #3b82f6 1px, transparent 0)',
-            backgroundSize: '40px 40px',
-          }}
-        />
-      </div>
-
-      <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-sm px-4 py-3 md:px-6 transition-all duration-300 hover:shadow-md">
+      <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-sm px-4 py-3 md:px-6 transition-all duration-300">
         <div className="container mx-auto flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
             <motion.div 
@@ -466,9 +441,9 @@ function ClientRoot() {
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <Card className="group relative overflow-hidden border border-border/50 bg-background/50 backdrop-blur-sm transition-all hover:border-primary/30 hover:shadow-lg">
+              <div className="group relative overflow-hidden border border-border/50 bg-background/50 backdrop-blur-sm transition-all hover:border-primary/30 hover:shadow-lg">
                 <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/5 transition-all duration-500 group-hover:scale-150 group-hover:bg-primary/10" />
-                <CardContent className="relative pt-8">
+                <div className="relative pt-8 p-6">
                   <Quote className="absolute -top-5 left-6 h-10 w-10 text-primary/10 transition-all group-hover:text-primary/20" />
                   <p className="relative text-muted-foreground">
                     Finalmente um app que não me faz sentir burro. Em 15 minutos eu já tinha cadastrado tudo e entendi para onde estava indo meu dinheiro. Economizei 30% no primeiro mês!
@@ -483,12 +458,12 @@ function ClientRoot() {
                       <p className="text-sm text-muted-foreground">Freelancer • Usuário desde 2023</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
-              <Card className="group relative overflow-hidden border border-border/50 bg-background/50 backdrop-blur-sm transition-all hover:border-primary/30 hover:shadow-lg">
+              <div className="group relative overflow-hidden border border-border/50 bg-background/50 backdrop-blur-sm transition-all hover:border-primary/30 hover:shadow-lg">
                 <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/5 transition-all duration-500 group-hover:scale-150 group-hover:bg-primary/10" />
-                <CardContent className="relative pt-8">
+                <div className="relative pt-8 p-6">
                   <Quote className="absolute -top-5 left-6 h-10 w-10 text-primary/10 transition-all group-hover:text-primary/20" />
                   <p className="relative text-muted-foreground">
                     O calendário de vencimentos salvou meu mês. Eu sempre esquecia de pagar alguma conta. Agora, está tudo lá, bem visual. Nunca mais paguei multa por atraso!
@@ -503,12 +478,12 @@ function ClientRoot() {
                       <p className="text-sm text-muted-foreground">Analista de Marketing • Usuária desde 2024</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
-              <Card className="group relative overflow-hidden border border-border/50 bg-background/50 backdrop-blur-sm transition-all hover:border-primary/30 hover:shadow-lg md:col-span-2 lg:col-span-1">
+              <div className="group relative overflow-hidden border border-border/50 bg-background/50 backdrop-blur-sm transition-all hover:border-primary/30 hover:shadow-lg md:col-span-2 lg:col-span-1">
                 <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/5 transition-all duration-500 group-hover:scale-150 group-hover:bg-primary/10" />
-                <CardContent className="relative pt-8">
+                <div className="relative pt-8 p-6">
                   <Quote className="absolute -top-5 left-6 h-10 w-10 text-primary/10 transition-all group-hover:text-primary/20" />
                   <p className="relative text-muted-foreground">
                     Eu e meu marido usamos para planejar nossas finanças juntos. A simplicidade para ver o progresso das nossas metas é incrível. Já conseguimos economizar para nossa viagem dos sonhos!
@@ -523,8 +498,8 @@ function ClientRoot() {
                       <p className="text-sm text-muted-foreground">Empreendedora • Usuária desde 2023</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </motion.div>
 
             {/* Estatísticas */}
@@ -642,4 +617,3 @@ export default function RootPage() {
   // Once mounted on the client, render the actual component
   return <ClientRoot />;
 }
-

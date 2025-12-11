@@ -64,11 +64,11 @@ export const columns = ({ onEdit, onStatusChange }: ColumnsProps): ColumnDef<Tra
         currency: "BRL",
       }).format(amount)
 
-      return <div className="text-right font-medium">{formatted}</div>
+      return <div className="text-right font-medium text-emerald-600">{formatted}</div>
     },
   },
   {
     id: "actions",
-    cell: ({ row }) => <DataTableRowActions row={row} transactionType="income" onEdit={onEdit} />,
+    cell: ({ row }) => <DataTableRowActions row={row} onEdit={onEdit} />,
   },
 ]

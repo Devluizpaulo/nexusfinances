@@ -5,7 +5,6 @@ import { collection, query, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { DataTable } from '@/components/data-table/data-table';
 import { columns } from './columns';
-import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Loader2, Upload } from 'lucide-react';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
@@ -15,6 +14,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { startOfMonth, endOfMonth, startOfYear, endOfYear, parseISO, isWithinInterval } from 'date-fns';
+import { TransactionList } from '@/components/transactions/transaction-list';
 
 type ViewMode = 'month' | 'year' | 'all';
 
@@ -85,18 +85,18 @@ export default function IncomePage() {
     if (!user || transaction.status === 'paid') return;
     const docRef = doc(firestore, `users/${user.uid}/incomes`, transaction.id);
     try {
-        await updateDoc(docRef, { status: "paid" });
-        toast({
+      await updateDoc(docRef, { status: "paid" });
+      toast({
         title: "Transação atualizada!",
         description: `A transação foi marcada como recebida.`,
-        });
+      });
     } catch(e) {
-        console.error("Error updating transaction status:", e);
-        toast({
-            variant: "destructive",
-            title: "Erro ao atualizar",
-            description: "Não foi possível marcar a transação como recebida."
-        });
+      console.error("Error updating transaction status:", e);
+      toast({
+        variant: "destructive",
+        title: "Erro ao atualizar",
+        description: "Não foi possível marcar a transação como recebida."
+      });
     }
   }
 
@@ -123,22 +123,6 @@ export default function IncomePage() {
         isOpen={isImportSheetOpen}
         onClose={() => setIsImportSheetOpen(false)}
       />
-       <PageHeader
-        title="Todas as Rendas"
-        description="Liste todos os seus ganhos, sejam eles salários, trabalhos freelance ou outras fontes."
-      >
-        <div className="flex flex-col-reverse sm:flex-row gap-2">
-            <Button variant="outline" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>
-                <Upload className="mr-2 h-4 w-4" />
-                Importar PDF
-            </Button>
-            <Button onClick={() => handleOpenSheet()} disabled={!user}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Registrar renda
-            </Button>
-        </div>
-      </PageHeader>
-
       <div className="flex justify-between items-center mb-4">
         <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)}>
           <TabsList>
@@ -147,10 +131,21 @@ export default function IncomePage() {
             <TabsTrigger value="all">Tudo</TabsTrigger>
           </TabsList>
         </Tabs>
+
+        <div className="flex items-center gap-2">
+           <Button variant="outline" size="sm" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>
+                <Upload className="mr-2 h-4 w-4" />
+                <span className="hidden sm:inline">Importar PDF</span>
+            </Button>
+            <Button size="sm" onClick={() => handleOpenSheet()} disabled={!user}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">Registrar renda</span>
+            </Button>
+        </div>
       </div>
 
       {searchParams.get('date') && (
-        <div className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+        <div className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-muted-foreground">
           <span>
             Filtrando rendas do dia{' '}
             <span className="font-medium">{searchParams.get('date')}</span>.
@@ -164,10 +159,24 @@ export default function IncomePage() {
           </button>
         </div>
       )}
-      <DataTable
-        columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
-        data={filteredIncomeData}
-      />
+
+      {/* Mobile view */}
+      <div className="md:hidden">
+        <TransactionList 
+          transactions={filteredIncomeData}
+          onEdit={handleOpenSheet}
+          onStatusChange={handleStatusChange}
+          transactionType="income"
+        />
+      </div>
+
+      {/* Desktop view */}
+      <div className="hidden md:block">
+        <DataTable
+            columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
+            data={filteredIncomeData}
+        />
+      </div>
     </>
   );
 }
