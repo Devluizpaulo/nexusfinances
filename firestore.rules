@@ -27,8 +27,6 @@ service cloud.firestore {
       allow read, write: if isOwner(userId);
       
       // Superadmins podem listar, ler, e modificar qualquer perfil de usuário.
-      // A chamada a isSuperAdmin() aqui é segura, pois não cria um ciclo de dependência
-      // quando um admin lê o documento de OUTRO usuário.
       allow list, get, update, delete: if isSuperAdmin();
     }
     
@@ -123,11 +121,10 @@ service cloud.firestore {
     
     // Regra para consulta de grupo (Collection Group Query)
     match /{path=**}/installments/{installmentId} {
-      // CORREÇÃO CRÍTICA:
-      // A regra anterior permitia que qualquer usuário autenticado lesse parcelas
-      // se o `userId` no documento correspondesse ao uid do solicitante.
-      // A nova regra garante que a consulta só retorne documentos
-      // onde o campo 'userId' é igual ao uid do usuário autenticado.
+      // CORREÇÃO CRÍTICA DE SEGURANÇA:
+      // A regra agora valida o 'userId' a partir dos dados do próprio recurso (`resource.data`),
+      // que é a forma correta de proteger collection group queries.
+      // Isso impede que um usuário liste parcelas de outros usuários.
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
