@@ -20,15 +20,22 @@ const navSections = [
         ]
     },
     {
-        label: 'Transações',
+        label: 'Rendas',
         icon: Landmark,
-        href: '/income', // O link pai pode levar para a primeira subpágina
+        href: '/income',
         subItems: [
-            { href: '/income', label: 'Rendas', icon: Landmark },
-            { href: '/expenses', label: 'Despesas', icon: CreditCard },
+            { href: '/income', label: 'Visão Geral', icon: List },
             { href: '/income/salary', label: 'Salário', icon: Briefcase },
             { href: '/income/freelancer', label: 'Freelancer', icon: PenSquare },
             { href: '/income/others', label: 'Outras', icon: WalletCards },
+        ]
+    },
+    {
+        label: 'Despesas',
+        icon: CreditCard,
+        href: '/expenses',
+        subItems: [
+            { href: '/expenses', label: 'Visão Geral', icon: List },
             { href: '/expenses/housing', label: 'Moradia', icon: Home },
             { href: '/expenses/utilities', label: 'Contas', icon: Zap },
             { href: '/expenses/taxes', label: 'Impostos', icon: FileText },
