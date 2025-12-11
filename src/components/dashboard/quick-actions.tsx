@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { Landmark, CreditCard, Banknote, Target, Plus, Files } from "lucide-react";
+import { Landmark, CreditCard, Banknote, Target, Plus, Files, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,6 +10,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 type QuickActionsProps = {
   onAddIncome: () => void;
@@ -26,16 +28,18 @@ export function QuickActions({
   onAddGoal,
   onAddBudget,
 }: QuickActionsProps) {
+    const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <DropdownMenu>
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
         <Button size="lg" className="h-16 w-16 rounded-full shadow-lg">
-          <Plus className="h-6 w-6" />
+           <Plus className={cn("h-7 w-7 transition-transform duration-300", isOpen && "rotate-45 scale-75")} />
           <span className="sr-only">Adicionar</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" side="top" className="w-64 mb-2">
-        <DropdownMenuLabel>Ações rápidas</DropdownMenuLabel>
+        <DropdownMenuLabel>Criar novo...</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onAddIncome} className="flex items-center gap-3 py-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-100 dark:bg-emerald-900/50">
