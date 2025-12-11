@@ -1,5 +1,6 @@
+
 import { z } from 'zod';
-import type { LucideIcon } from 'lucide-react';
+import type { ElementType } from 'react';
 
 
 export type Transaction = {
@@ -316,7 +317,7 @@ export type EducationTrack = {
   slug: string;
   title: string;
   description: string;
-  icon: LucideIcon;
+  icon: ElementType;
   color: string;
   bgColor: string;
   borderColor: string;

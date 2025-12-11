@@ -1,11 +1,13 @@
+
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
-import { type LucideIcon, ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
+import { type ElementType } from "react";
+import { ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type KpiCardProps = {
   title: string;
   value: string;
-  icon: LucideIcon;
+  icon: ElementType;
   description?: string;
   trend?: number;
   invertTrendColor?: boolean;
