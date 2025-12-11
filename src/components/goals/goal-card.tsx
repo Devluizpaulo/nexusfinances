@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
@@ -264,7 +265,7 @@ export function GoalCard({ goal, onAddContribution, onEdit }: GoalCardProps) {
                         labelFormatter={(label) => `Data: ${label}`}
                       />
                       <Line type="monotone" dataKey="total" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
-                    </ResponsiveContainer>
+                    </LineChart>
                   </ResponsiveContainer>
                 </div>
               </div>
@@ -488,3 +489,5 @@ export function GoalCard({ goal, onAddContribution, onEdit }: GoalCardProps) {
     </>
   );
 }
+
+    
