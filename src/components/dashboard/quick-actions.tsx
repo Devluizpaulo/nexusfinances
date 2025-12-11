@@ -38,35 +38,45 @@ export function QuickActions({
         <DropdownMenuLabel>Ações rápidas</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onAddIncome} className="flex items-center gap-3 py-2">
-          <Landmark className="h-5 w-5 text-emerald-600" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-emerald-100 dark:bg-emerald-900/50">
+            <Landmark className="h-5 w-5 text-emerald-600" />
+          </div>
           <div className="flex flex-col">
             <span className="font-medium">Adicionar renda</span>
             <span className="text-xs text-muted-foreground">Salário, freelance, etc.</span>
           </div>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onAddExpense} className="flex items-center gap-3 py-2">
-          <CreditCard className="h-5 w-5 text-red-600" />
+           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-red-100 dark:bg-red-900/50">
+            <CreditCard className="h-5 w-5 text-red-600" />
+          </div>
           <div className="flex flex-col">
             <span className="font-medium">Adicionar despesa</span>
             <span className="text-xs text-muted-foreground">Contas, compras, etc.</span>
           </div>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onAddDebt} className="flex items-center gap-3 py-2">
-          <Banknote className="h-5 w-5 text-amber-600" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-amber-100 dark:bg-amber-900/50">
+            <Banknote className="h-5 w-5 text-amber-600" />
+          </div>
           <div className="flex flex-col">
             <span className="font-medium">Adicionar dívida</span>
             <span className="text-xs text-muted-foreground">Empréstimos, parcelas</span>
           </div>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onAddGoal} className="flex items-center gap-3 py-2">
-          <Target className="h-5 w-5 text-sky-600" />
+           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-sky-100 dark:bg-sky-900/50">
+            <Target className="h-5 w-5 text-sky-600" />
+          </div>
           <div className="flex flex-col">
             <span className="font-medium">Nova reserva</span>
             <span className="text-xs text-muted-foreground">Metas de economia</span>
           </div>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onAddBudget} className="flex items-center gap-3 py-2">
-          <Files className="h-5 w-5 text-violet-600" />
+           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-violet-100 dark:bg-violet-900/50">
+            <Files className="h-5 w-5 text-violet-600" />
+          </div>
           <div className="flex flex-col">
             <span className="font-medium">Criar limite</span>
             <span className="text-xs text-muted-foreground">Limite de gastos</span>

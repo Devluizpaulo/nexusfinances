@@ -6,6 +6,7 @@ import { formatCurrency } from "@/lib/utils";
 import { ArrowUpCircle, ArrowDownCircle, Wallet } from "lucide-react";
 import { format, parseISO } from 'date-fns';
 import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 interface RecentTransactionsListProps {
     transactions: Transaction[];
@@ -23,22 +24,31 @@ export function RecentTransactionsList({ transactions }: RecentTransactionsListP
             <CardContent>
                 {recent.length > 0 ? (
                     <div className="space-y-4">
-                        {recent.map(t => (
-                            <div key={t.id} className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className={`flex h-10 w-10 items-center justify-center rounded-lg bg-muted ${t.type === 'income' ? 'text-success' : 'text-destructive'}`}>
-                                        {t.type === 'income' ? <ArrowUpCircle size={22} /> : <ArrowDownCircle size={22} />}
+                        {recent.map(t => {
+                            const isIncome = t.type === 'income';
+                            return (
+                                <div key={t.id} className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className={cn(
+                                            "flex h-10 w-10 items-center justify-center rounded-lg",
+                                            isIncome ? 'bg-emerald-100 dark:bg-emerald-900/50 text-success' : 'bg-red-100 dark:bg-red-900/50 text-destructive'
+                                        )}>
+                                            {isIncome ? <ArrowUpCircle size={22} /> : <ArrowDownCircle size={22} />}
+                                        </div>
+                                        <div>
+                                            <p className="font-medium">{t.description}</p>
+                                            <p className="text-sm text-muted-foreground">{t.category} &bull; {format(parseISO(t.date), "dd 'de' MMM", { locale: ptBR })}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="font-medium">{t.description}</p>
-                                        <p className="text-sm text-muted-foreground">{t.category} &bull; {format(parseISO(t.date), "dd 'de' MMM", { locale: ptBR })}</p>
-                                    </div>
+                                    <p className={cn(
+                                        "font-semibold text-base",
+                                        isIncome ? 'text-success' : 'text-foreground'
+                                    )}>
+                                        {isIncome ? '+' : '-'} {formatCurrency(t.amount)}
+                                    </p>
                                 </div>
-                                <p className={`font-semibold text-base ${t.type === 'income' ? 'text-success' : 'text-foreground'}`}>
-                                    {t.type === 'income' ? '+' : '-'} {formatCurrency(t.amount)}
-                                </p>
-                            </div>
-                        ))}
+                            )
+                        })}
                     </div>
                 ) : (
                     <div className="flex flex-col items-center justify-center h-40 text-center text-muted-foreground">

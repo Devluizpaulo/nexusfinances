@@ -20,17 +20,21 @@ export function BalanceCard({ balance, income, expenses }: BalanceCardProps) {
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-4 text-sm">
                 <div className="flex items-center gap-2">
-                    <ArrowUpCircle className="h-5 w-5 text-success" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/50">
+                        <ArrowUpCircle className="h-6 w-6 text-success" />
+                    </div>
                     <div>
                         <p className="text-muted-foreground">Renda</p>
-                        <p className="font-semibold">{formatCurrency(income)}</p>
+                        <p className="font-semibold text-success">{formatCurrency(income)}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                     <ArrowDownCircle className="h-5 w-5 text-destructive" />
+                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/50">
+                        <ArrowDownCircle className="h-6 w-6 text-destructive" />
+                    </div>
                     <div>
                         <p className="text-muted-foreground">Despesas</p>
-                        <p className="font-semibold">{formatCurrency(expenses)}</p>
+                        <p className="font-semibold text-destructive">{formatCurrency(expenses)}</p>
                     </div>
                 </div>
             </CardContent>
