@@ -22,8 +22,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useState, useCallback } from "react"
-import { doc, deleteDoc, updateDoc } from "firebase/firestore"
-import { useFirestore, useUser } from "@/firebase"
+import { doc, updateDoc } from "firebase/firestore"
+import { useFirestore, useUser, deleteDocumentNonBlocking } from "@/firebase"
 import { useToast } from "@/hooks/use-toast"
 import type { Transaction } from "@/lib/types"
 
@@ -65,30 +65,27 @@ export function DataTableRowActions<TData>({
     }
   }, [user, firestore, collectionName, transaction.id, transaction.description, transactionType, toast]);
 
-  const handleDelete = useCallback(async () => {
+  const handleDelete = useCallback(() => {
     if (!user) {
       toast({ variant: "destructive", title: "Erro", description: "Você não está autenticado." });
       return;
     }
 
+    setIsDeleteDialogOpen(false);
+
     const docRef = doc(firestore, `users/${user.uid}/${collectionName}`, transaction.id);
-    
-    try {
-        await deleteDoc(docRef);
-        toast({
-          title: "Transação excluída",
-          description: `A transação "${transaction.description}" foi removida.`,
-        });
-    } catch(e) {
-        console.error("Error deleting transaction:", e);
-        toast({
-          variant: "destructive",
-          title: "Erro ao excluir",
-          description: "Não foi possível remover a transação.",
-        });
-    } finally {
-        setIsDeleteDialogOpen(false)
-    }
+
+    toast({
+      title: "Excluindo transação...",
+      description: `A transação "${transaction.description}" será removida.`,
+    });
+
+    deleteDocumentNonBlocking(docRef);
+
+    toast({
+      title: "Transação excluída",
+      description: `A transação "${transaction.description}" foi removida.`,
+    });
   }, [user, firestore, collectionName, transaction.id, transaction.description, toast]);
 
   return (

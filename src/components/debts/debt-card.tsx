@@ -39,6 +39,7 @@ import { format, isPast, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useFirestore, useCollection, useMemoFirebase, useUser, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
 import { collection, query, orderBy, doc, writeBatch, getDocs } from 'firebase/firestore';
+import { motion } from 'framer-motion';
 import type { Debt, Installment } from '@/lib/types';
 import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -121,27 +122,30 @@ export function DebtCard({ debt, selectedDueDate }: DebtCardProps) {
     const debtRef = doc(firestore, `users/${user.uid}/debts`, debt.id);
     const installmentsColRef = collection(debtRef, 'installments');
 
-    try {
-        const batch = writeBatch(firestore);
-        const installmentsSnapshot = await getDocs(installmentsColRef);
-        installmentsSnapshot.forEach((doc) => {
-            batch.delete(doc.ref);
-        });
-        batch.delete(debtRef);
-        await batch.commit();
+    // Executa a deleção em background para não bloquear a UI
+    (async () => {
+      try {
+          const batch = writeBatch(firestore);
+          const installmentsSnapshot = await getDocs(installmentsColRef);
+          installmentsSnapshot.forEach((doc) => {
+              batch.delete(doc.ref);
+          });
+          batch.delete(debtRef);
+          await batch.commit();
 
-        toast({
-            title: 'Dívida Excluída',
-            description: `A dívida "${debt.name}" e todas as suas parcelas foram removidas.`,
-        });
-    } catch (error) {
-        console.error("Error deleting debt: ", error);
-        toast({
-            variant: 'destructive',
-            title: 'Erro ao excluir dívida',
-            description: 'Não foi possível remover a dívida. Tente novamente.',
-        });
-    }
+          toast({
+              title: 'Dívida Excluída',
+              description: `A dívida "${debt.name}" e todas as suas parcelas foram removidas.`,
+          });
+      } catch (error) {
+          console.error("Error deleting debt: ", error);
+          toast({
+              variant: 'destructive',
+              title: 'Erro ao excluir dívida',
+              description: 'Não foi possível remover a dívida. Tente novamente.',
+          });
+      }
+    })();
   }, [user, firestore, debt.id, debt.name, toast]);
 
 
@@ -160,7 +164,15 @@ export function DebtCard({ debt, selectedDueDate }: DebtCardProps) {
   const isPaid = paidAmount >= debt.totalAmount;
 
   return (
-    <>
+    <motion.div
+      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -4, scale: 0.98 }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.995 }}
+      className="h-full"
+    >
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -278,6 +290,6 @@ export function DebtCard({ debt, selectedDueDate }: DebtCardProps) {
           </CardFooter>
         )}
       </Card>
-    </>
+    </motion.div>
   );
 }

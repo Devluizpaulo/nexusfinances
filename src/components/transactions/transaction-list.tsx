@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/transactions/status-badge';
+import { AnimatePresence, motion } from 'framer-motion';
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -50,55 +51,83 @@ export function TransactionList({
 
   return (
     <div className="space-y-6">
-      {Object.entries(groupedByMonth).map(([month, monthTransactions]) => (
-        <div key={month}>
-          <h2 className="mb-2 text-sm font-semibold capitalize text-muted-foreground">
-            {month}
-          </h2>
-          <Card>
-            <CardContent className="p-0">
-              <div className="divide-y">
-                {monthTransactions.map((t) => (
-                  <div key={t.id} className="flex items-center p-3">
-                    <div className="flex-1 space-y-1">
-                      <p className="font-medium">{t.description}</p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>{format(parseISO(t.date), 'dd/MM')}</span>
-                        <span>•</span>
-                        <span>{t.category}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                       <div className="flex flex-col items-end">
-                            <p className={cn(
+      <AnimatePresence initial={false}>
+        {Object.entries(groupedByMonth).map(([month, monthTransactions]) => (
+          <motion.div
+            key={month}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+          >
+            <h2 className="mb-2 text-sm font-semibold capitalize text-muted-foreground">
+              {month}
+            </h2>
+            <Card>
+              <CardContent className="p-0">
+                <div className="divide-y">
+                  <AnimatePresence initial={false}>
+                    {monthTransactions.map((t) => (
+                      <motion.div
+                        key={t.id}
+                        layout
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.16, ease: 'easeOut' }}
+                        whileHover={{ backgroundColor: 'rgba(148, 163, 184, 0.08)', scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
+                        className="flex items-center p-3"
+                      >
+                        <div className="flex-1 space-y-1">
+                          <p className="font-medium">{t.description}</p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span>{format(parseISO(t.date), 'dd/MM')}</span>
+                            <span>•</span>
+                            <span>{t.category}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex flex-col items-end">
+                            <p
+                              className={cn(
                                 'font-semibold',
-                                transactionType === 'income' ? 'text-emerald-600' : 'text-foreground'
-                            )}>
-                                {transactionType === 'income' ? '+' : '-'} {formatCurrency(t.amount)}
+                                transactionType === 'income' ? 'text-emerald-600' : 'text-foreground',
+                              )}
+                            >
+                              {transactionType === 'income' ? '+' : '-'} {formatCurrency(t.amount)}
                             </p>
-                            <StatusBadge status={t.status} type={transactionType} onClick={() => onStatusChange(t)} />
-                       </div>
-                       <DropdownMenu>
-                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <StatusBadge
+                              status={t.status}
+                              type={transactionType}
+                              onClick={() => onStatusChange(t)}
+                            />
+                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
                                 <MoreVertical className="h-4 w-4" />
-                            </Button>
-                         </DropdownMenuTrigger>
-                         <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => onEdit(t)}>Editar</DropdownMenuItem>
-                            {t.status === 'pending' && (
-                                <DropdownMenuItem onClick={() => onStatusChange(t)}>Marcar como {transactionType === 'income' ? 'Recebido' : 'Pago'}</DropdownMenuItem>
-                            )}
-                         </DropdownMenuContent>
-                       </DropdownMenu>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      ))}
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => onEdit(t)}>Editar</DropdownMenuItem>
+                              {t.status === 'pending' && (
+                                <DropdownMenuItem onClick={() => onStatusChange(t)}>
+                                  Marcar como {transactionType === 'income' ? 'Recebido' : 'Pago'}
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   );
 }

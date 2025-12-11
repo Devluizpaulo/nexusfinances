@@ -1,7 +1,6 @@
+"use client";
 
-'use client';
-
-import { useState, useMemo, useCallback } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 
 import {
   Card,
@@ -11,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,6 +45,7 @@ import { Badge } from '../ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Separator } from '../ui/separator';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { motion } from 'framer-motion';
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('pt-BR', {
@@ -318,176 +319,184 @@ export function GoalCard({ goal, onAddContribution, onEdit }: GoalCardProps) {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Card className={cn("flex flex-col", isCompleted ? 'border-green-300 bg-green-50/50 dark:border-green-800 dark:bg-green-900/20' : '')}>
-        <CardHeader className="pb-4">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">{icon}</span>
-              <div>
-                <div className="flex items-center gap-2">
-                  <CardTitle className="text-lg">{goal.name}</CardTitle>
-                  {isCompleted && (
-                    <Badge variant="secondary" className="text-[10px] font-semibold text-emerald-700">
-                      Meta batida
-                    </Badge>
-                  )}
-                  {!isCompleted && progress >= 80 && (
-                    <Badge variant="outline" className="text-[10px] font-semibold text-amber-700 border-amber-300">
-                      Quase lá
-                    </Badge>
-                  )}
-                </div>
-                {goal.targetDate && (
-                  <div className="flex items-center text-xs text-muted-foreground mt-1">
-                    <Calendar className="mr-1.5 h-3 w-3" />
-                    <span>{`Data limite: ${format(parseISO(goal.targetDate), 'dd/MM/yyyy', { locale: ptBR })}`}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
-                  <MoreVertical className="h-4 w-4" />
-                  <span className="sr-only">Opções</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setIsDetailsOpen(true)}>
-                  <Eye className="mr-2 h-4 w-4" />
-                  <span>Ver Detalhes</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onEdit(goal)}>
-                  <Pencil className="mr-2 h-4 w-4" />
-                  <span>Editar</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-destructive">
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  <span>Excluir</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </CardHeader>
-        <CardContent className="flex-grow space-y-4">
-          <Separator/>
-          <div className="space-y-1">
-             <div className="flex items-baseline justify-between">
-                <span className="text-sm text-muted-foreground">Alcançado</span>
-                 <p className="text-sm font-medium text-muted-foreground">
-                    {formatCurrency(goal.targetAmount)}
-                </p>
-             </div>
-             <div className="flex items-baseline justify-between">
-                <p className="text-2xl font-bold text-foreground">
-                    {formatCurrency(goal.currentAmount)}
-                </p>
-                <span className="text-sm text-muted-foreground">Objetivo</span>
-             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Progress value={progress} className="h-3 bg-primary/20" indicatorClassName="bg-primary" />
-            <span className="text-sm font-semibold text-primary">{Math.min(100, progress).toFixed(0)}%</span>
-          </div>
-          {!isCompleted && estimatedDate && estimatedMonths !== null && remainingAmount > 0 && (
-            <p className="mt-1 text-xs text-muted-foreground">
-              Faltam {formatCurrency(remainingAmount)} para bater a meta. No ritmo atual você deve alcançar em{' '}
-              <span className="font-medium">
-                {format(estimatedDate, "MMMM 'de' yyyy", { locale: ptBR })}
-              </span>
-              {' '}(~{estimatedMonths} {estimatedMonths === 1 ? 'mês' : 'meses'}).
-            </p>
-          )}
-          {!isCompleted && remainingAmount > 0 && suggestedMonthlyByHorizon && (
-            <div className="mt-1 space-y-1 text-[11px] text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <span className="text-[10px]">Simular prazo:</span>
-                {[6, 12, 24].map((h) => (
-                  <button
-                    key={h}
-                    type="button"
-                    onClick={() => setSelectedHorizon(h as 6 | 12 | 24)}
-                    className={cn(
-                      'rounded-full border px-2 py-0.5 text-[10px]',
-                      selectedHorizon === h
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-border bg-background hover:border-primary/40'
+      <motion.div
+        initial={{ opacity: 0, y: 8, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: -4, scale: 0.98 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+        whileHover={{ scale: 1.01 }}
+        whileTap={{ scale: 0.995 }}
+        className="h-full"
+      >
+        <Card className={cn("flex flex-col", isCompleted ? 'border-green-300 bg-green-50/50 dark:border-green-800 dark:bg-green-900/20' : '')}>
+          <CardHeader className="pb-4">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">{icon}</span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-lg">{goal.name}</CardTitle>
+                    {isCompleted && (
+                      <Badge variant="secondary" className="text-[10px] font-semibold text-emerald-700">
+                        Meta batida
+                      </Badge>
                     )}
-                  >
-                    {h}m
-                  </button>
-                ))}
-              </div>
-              <p>
-                Para concluir em{' '}
-                <span className="font-medium">{selectedHorizon} meses</span>, o aporte ideal seria de{' '}
-                <span className="font-medium">
-                  {formatCurrency(suggestedMonthlyByHorizon[selectedHorizon])}
-                </span>{' '}
-                por mês
-                {goal.monthlyContribution && goal.monthlyContribution > 0 && (
-                  <>
-                    {' '}({goal.monthlyContribution < suggestedMonthlyByHorizon[selectedHorizon]
-                      ? `+${formatCurrency(suggestedMonthlyByHorizon[selectedHorizon] - goal.monthlyContribution)} em relação ao aporte atual`
-                      : 'igual ou abaixo do que você já planejou'})
-                    .
-                  </>
-                )}
-                .
-              </p>
-              <div className="flex justify-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-7 px-2 text-[11px]"
-                  onClick={() => onEdit(goal)}
-                >
-                  Ajustar aporte mensal
-                </Button>
-              </div>
-            </div>
-          )}
-           {sortedContributions.length > 0 && (
-              <div className="space-y-2 pt-2">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs font-semibold text-muted-foreground">
-                    Últimos aportes:
-                  </p>
-                    <button
-                      type="button"
-                      className="inline-flex items-center gap-1 rounded-full border border-transparent px-2 py-0.5 text-[11px] font-medium text-primary hover:border-primary/40 hover:bg-primary/5"
-                      onClick={() => setIsHistoryOpen(true)}
-                    >
-                      <History className="h-3 w-3" />
-                      Ver todos
-                    </button>
-                </div>
-                <div className="space-y-1.5 text-sm">
-                  {sortedContributions.slice(0, 3).map((c, index) => (
-                    <div key={c.id || `${c.date}-${index}`} className="flex items-center justify-between gap-2 text-xs">
-                       <span className="text-muted-foreground">{format(parseISO(c.date), 'dd/MM/yyyy', { locale: ptBR })}</span>
-                       <Badge variant="secondary" className="font-mono">+ {formatCurrency(c.amount)}</Badge>
+                    {!isCompleted && progress >= 80 && (
+                      <Badge variant="outline" className="text-[10px] font-semibold text-amber-700 border-amber-300">
+                        Quase lá
+                      </Badge>
+                    )}
+                  </div>
+                  {goal.targetDate && (
+                    <div className="flex items-center text-xs text-muted-foreground mt-1">
+                      <Calendar className="mr-1.5 h-3 w-3" />
+                      <span>{`Data limite: ${format(parseISO(goal.targetDate), 'dd/MM/yyyy', { locale: ptBR })}`}</span>
                     </div>
+                  )}
+                </div>
+              </div>
+               <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                    <MoreVertical className="h-4 w-4" />
+                    <span className="sr-only">Opções</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setIsDetailsOpen(true)}>
+                    <Eye className="mr-2 h-4 w-4" />
+                    <span>Ver Detalhes</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onEdit(goal)}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    <span>Editar</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-destructive">
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    <span>Excluir</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </CardHeader>
+          <CardContent className="flex-grow space-y-4">
+            <Separator/>
+            <div className="space-y-1">
+               <div className="flex items-baseline justify-between">
+                  <span className="text-sm text-muted-foreground">Alcançado</span>
+                   <p className="text-sm font-medium text-muted-foreground">
+                      {formatCurrency(goal.targetAmount)}
+                  </p>
+               </div>
+               <div className="flex items-baseline justify-between">
+                  <p className="text-2xl font-bold text-foreground">
+                      {formatCurrency(goal.currentAmount)}
+                  </p>
+                  <span className="text-sm text-muted-foreground">Objetivo</span>
+               </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Progress value={progress} className="h-3 bg-primary/20" indicatorClassName="bg-primary" />
+              <span className="text-sm font-semibold text-primary">{Math.min(100, progress).toFixed(0)}%</span>
+            </div>
+            {!isCompleted && estimatedDate && estimatedMonths !== null && remainingAmount > 0 && (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Faltam {formatCurrency(remainingAmount)} para bater a meta. No ritmo atual você deve alcançar em{' '}
+                <span className="font-medium">
+                  {format(estimatedDate, "MMMM 'de' yyyy", { locale: ptBR })}
+                </span>
+                {' '}(~{estimatedMonths} {estimatedMonths === 1 ? 'mês' : 'meses'}).
+              </p>
+            )}
+            {!isCompleted && remainingAmount > 0 && suggestedMonthlyByHorizon && (
+              <div className="mt-1 space-y-1 text-[11px] text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <span className="text-[10px]">Simular prazo:</span>
+                  {[6, 12, 24].map((h) => (
+                    <button
+                      key={h}
+                      type="button"
+                      onClick={() => setSelectedHorizon(h as 6 | 12 | 24)}
+                      className={cn(
+                        'rounded-full border px-2 py-0.5 text-[10px]',
+                        selectedHorizon === h
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border bg-background hover:border-primary/40'
+                      )}
+                    >
+                      {h}m
+                    </button>
                   ))}
+                </div>
+                <p>
+                  Para concluir em{' '}
+                  <span className="font-medium">{selectedHorizon} meses</span>, o aporte ideal seria de{' '}
+                  <span className="font-medium">
+                    {formatCurrency(suggestedMonthlyByHorizon[selectedHorizon])}
+                  </span>{' '}
+                  por mês
+                  {goal.monthlyContribution && goal.monthlyContribution > 0 && (
+                    <>
+                      {' '}({goal.monthlyContribution < suggestedMonthlyByHorizon[selectedHorizon]
+                        ? `+${formatCurrency(suggestedMonthlyByHorizon[selectedHorizon] - goal.monthlyContribution)} em relação ao aporte atual`
+                        : 'igual ou abaixo do que você já planejou'})
+                      .
+                    </>
+                  )}
+                  .
+                </p>
+                <div className="flex justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 px-2 text-[11px]"
+                    onClick={() => onEdit(goal)}
+                  >
+                    Ajustar aporte mensal
+                  </Button>
                 </div>
               </div>
             )}
-        </CardContent>
-        <CardFooter>
-          <Button
-            className="w-full"
-            onClick={() => onAddContribution(goal)}
-            disabled={isCompleted}
-          >
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Adicionar novo aporte
-          </Button>
-        </CardFooter>
-      </Card>
+             {sortedContributions.length > 0 && (
+                <div className="space-y-2 pt-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-semibold text-muted-foreground">
+                      Últimos aportes:
+                    </p>
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1 rounded-full border border-transparent px-2 py-0.5 text-[11px] font-medium text-primary hover:border-primary/40 hover:bg-primary/5"
+                        onClick={() => setIsHistoryOpen(true)}
+                      >
+                        <History className="h-3 w-3" />
+                        Ver todos
+                      </button>
+                  </div>
+                  <div className="space-y-1.5 text-sm">
+                    {sortedContributions.slice(0, 3).map((c, index) => (
+                      <div key={c.id || `${c.date}-${index}`} className="flex items-center justify-between gap-2 text-xs">
+                         <span className="text-muted-foreground">{format(parseISO(c.date), 'dd/MM/yyyy', { locale: ptBR })}</span>
+                         <Badge variant="secondary" className="font-mono">+ {formatCurrency(c.amount)}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+          </CardContent>
+          <CardFooter>
+            <Button
+              className="w-full"
+              onClick={() => onAddContribution(goal)}
+              disabled={isCompleted}
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Adicionar novo aporte
+            </Button>
+          </CardFooter>
+        </Card>
+      </motion.div>
     </>
   );
 }
-
-    
