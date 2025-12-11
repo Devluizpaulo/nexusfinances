@@ -19,6 +19,7 @@ import { columns } from '../columns';
 import { useToast } from '@/hooks/use-toast';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { expenseCategories } from '@/lib/types';
+import { TransactionList } from '@/components/transactions/transaction-list';
 
 export default function HousingPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -185,10 +186,25 @@ export default function HousingPage() {
         <section>
           <h2 className="text-lg font-semibold mb-4">Histórico de Despesas de Moradia</h2>
           {(housingExpenses ?? []).length > 0 ? (
-            <DataTable
-              columns={columns({ onEdit: handleEditTransaction, onStatusChange: handleStatusChange })}
-              data={housingExpenses ?? []}
-            />
+            <>
+              {/* Mobile view */}
+              <div className="md:hidden">
+                <TransactionList 
+                  transactions={housingExpenses ?? []}
+                  onEdit={handleEditTransaction}
+                  onStatusChange={handleStatusChange}
+                  transactionType="expense"
+                />
+              </div>
+
+              {/* Desktop view */}
+              <div className="hidden md:block">
+                <DataTable
+                  columns={columns({ onEdit: handleEditTransaction, onStatusChange: handleStatusChange })}
+                  data={housingExpenses ?? []}
+                />
+              </div>
+            </>
           ) : (
              <div className="flex h-40 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
               <Home className="h-10 w-10 text-muted-foreground mb-4" />

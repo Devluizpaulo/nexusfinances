@@ -15,6 +15,7 @@ import { AddUtilityBillSheet } from '@/components/utilities/add-utility-bill-she
 import { DataTable } from '@/components/data-table/data-table';
 import { columns } from '../columns';
 import { useToast } from '@/hooks/use-toast';
+import { TransactionList } from '@/components/transactions/transaction-list';
 
 export default function UtilitiesPage() {
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
@@ -98,10 +99,25 @@ export default function UtilitiesPage() {
       </PageHeader>
       
       {expenseData && expenseData.length > 0 ? (
-        <DataTable
-            columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
-            data={expenseData}
-        />
+        <>
+          {/* Mobile view */}
+          <div className="md:hidden">
+            <TransactionList 
+              transactions={expenseData}
+              onEdit={handleOpenSheet}
+              onStatusChange={handleStatusChange}
+              transactionType="expense"
+            />
+          </div>
+
+          {/* Desktop view */}
+          <div className="hidden md:block">
+            <DataTable
+                columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
+                data={expenseData}
+            />
+          </div>
+        </>
       ) : (
         <div className="mt-6 flex h-64 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
           <Zap className="h-12 w-12 text-muted-foreground mb-4" />

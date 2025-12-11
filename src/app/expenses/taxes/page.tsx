@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { isPast, parseISO, startOfDay } from 'date-fns';
+import { TransactionList } from '@/components/transactions/transaction-list';
 
 type ActiveTab = 'upcoming' | 'overdue' | 'paid';
 
@@ -161,10 +162,25 @@ export default function TaxesPage() {
         </TabsList>
         <div className="mt-4">
           {(taxesExpenses ?? []).length > 0 ? (
-              <DataTable
-                columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
-                data={tableData}
-              />
+            <>
+              {/* Mobile view */}
+              <div className="md:hidden">
+                <TransactionList 
+                  transactions={tableData}
+                  onEdit={handleOpenSheet}
+                  onStatusChange={handleStatusChange}
+                  transactionType="expense"
+                />
+              </div>
+
+              {/* Desktop view */}
+              <div className="hidden md:block">
+                <DataTable
+                  columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
+                  data={tableData}
+                />
+              </div>
+            </>
           ) : (
              <Card>
                 <CardContent className="flex flex-col items-center justify-center py-12 px-4 text-center">
