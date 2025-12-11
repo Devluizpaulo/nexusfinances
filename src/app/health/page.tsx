@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Building, User, Heart, Shield, Loader2, Hospital, Stethoscope } from 'lucide-react';
+import { PlusCircle, Building, User, Shield, Loader2, Hospital, Stethoscope } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useFirestore, useCollection, useUser, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
