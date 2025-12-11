@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -26,7 +27,7 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
       if (value !== numericDisplayValue) {
         setDisplayValue(format(value));
       }
-    }, [value]);
+    }, [value, displayValue]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const rawValue = e.target.value.replace(/[^0-9]/g, '');

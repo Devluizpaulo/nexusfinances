@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -176,7 +177,7 @@ export default function SubscriptionsPage() {
       ) : (
         <div className="mt-6 flex h-64 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
           <h3 className="text-xl font-semibold">Nenhuma assinatura encontrada</h3>
-          <p className="mt-2 text-sm text-muted-foreground">Clique em "Adicionar Assinatura" para começar a organizar seus serviços.</p>
+          <p className="mt-2 text-sm text-muted-foreground">Clique em &quot;Adicionar Assinatura&quot; para começar a organizar seus serviços.</p>
         </div>
       )}
     </>

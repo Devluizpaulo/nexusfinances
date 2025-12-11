@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -143,9 +144,9 @@ export default function BudgetsPage() {
                   <div className="w-full max-w-sm rounded-lg border bg-background/50 p-4">
                     <p className="mb-2 text-center text-sm font-medium text-muted-foreground">Exemplos de limites:</p>
                     <ul className="space-y-1 text-center text-sm text-muted-foreground">
-                      <li>"Limite de R$ 800 para Mercado"</li>
-                      <li>"Até R$ 300 para Lazer e Restaurantes"</li>
-                      <li>"Não ultrapassar R$ 150 em Compras"</li>
+                      <li>&quot;Limite de R$ 800 para Mercado&quot;</li>
+                      <li>&quot;Até R$ 300 para Lazer e Restaurantes&quot;</li>
+                      <li>&quot;Não ultrapassar R$ 150 em Compras&quot;</li>
                     </ul>
                   </div>
                    <Button className="mt-6" onClick={() => setIsSheetOpen(true)}>

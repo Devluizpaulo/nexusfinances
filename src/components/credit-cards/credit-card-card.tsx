@@ -131,7 +131,7 @@ export function CreditCardCard({ card, expenses, onEdit }: CreditCardCardProps) 
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Cartão?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. O cartão "{card.name}" será excluído.
+              Esta ação não pode ser desfeita. O cartão &quot;{card.name}&quot; será excluído.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

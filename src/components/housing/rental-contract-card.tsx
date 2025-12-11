@@ -135,7 +135,7 @@ export function RentalContractCard({ contract, onEdit }: RentalContractCardProps
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Contrato?</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o contrato com "{contract.landlordName}"? A despesa recorrente associada também será removida.
+              Tem certeza que deseja excluir o contrato com &quot;{contract.landlordName}&quot;? A despesa recorrente associada também será removida.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

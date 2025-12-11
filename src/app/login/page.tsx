@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -107,7 +106,7 @@ function LoginClient() {
       }
       setActiveTab('register'); // Default to register tab if email is present
     }
-  }, [searchParams, loginForm, registerForm]);
+  }, [searchParams, loginForm, registerForm, activeTab]);
 
   const handleGoogleSignIn = async () => {
     if (!auth) return;
@@ -393,7 +392,7 @@ function LoginClient() {
          <div className="relative flex h-full flex-col justify-end p-10 text-primary-foreground">
             <div className="z-10 rounded-lg bg-black/30 p-6 backdrop-blur-sm">
                 <h2 className="text-3xl font-bold">Simples. Visual. Sem estresse.</h2>
-                <p className="mt-2 text-primary-foreground/80">"Finalmente uma ferramenta que entende o que eu preciso. Em minutos, todo o meu fluxo financeiro estava organizado."</p>
+                <p className="mt-2 text-primary-foreground/80">&quot;Finalmente uma ferramenta que entende o que eu preciso. Em minutos, todo o meu fluxo financeiro estava organizado.&quot;</p>
             </div>
         </div>
       </div>

@@ -1,9 +1,10 @@
+
 'use client';
 
 import { useState } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { useFirestore, useUser, deleteDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useUser } from '@/firebase';
 import type { Budget } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Pencil, Trash2 } from 'lucide-react';
@@ -17,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { doc } from 'firebase/firestore';
+import { doc, deleteDoc } from 'firebase/firestore';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -47,10 +48,10 @@ export function BudgetCard({ budget, onEdit }: BudgetCardProps) {
   const isOverBudget = progress > 100;
   const isApproachingBudget = progress >= 80 && progress <= 100;
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!user) return;
     const budgetRef = doc(firestore, `users/${user.uid}/budgets`, budget.id);
-    deleteDocumentNonBlocking(budgetRef);
+    await deleteDoc(budgetRef);
     toast({
         title: "Limite de gasto excluído",
         description: `O limite "${budget.name}" foi removido.`
@@ -76,7 +77,7 @@ export function BudgetCard({ budget, onEdit }: BudgetCardProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita e excluirá permanentemente o limite de gasto "{budget.name}".
+              Esta ação não pode ser desfeita e excluirá permanentemente o limite de gasto &quot;{budget.name}&quot;.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

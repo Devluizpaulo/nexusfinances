@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState } from 'react';
@@ -82,7 +81,7 @@ export function RecurrenceCardActions({ recurrence, onEdit }: RecurrenceCardActi
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir modelo de recorrência?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Isso excluirá permanentemente o modelo de recorrência para "{recurrence.description}".
+              Esta ação não pode ser desfeita. Isso excluirá permanentemente o modelo de recorrência para &quot;{recurrence.description}&quot;.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -99,7 +98,7 @@ export function RecurrenceCardActions({ recurrence, onEdit }: RecurrenceCardActi
           <AlertDialogHeader>
             <AlertDialogTitle>Interromper recorrência?</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja parar a recorrência de "{recurrence.description}"? As transações futuras não serão mais criadas.
+              Tem certeza que deseja parar a recorrência de &quot;{recurrence.description}&quot;? As transações futuras não serão mais criadas.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

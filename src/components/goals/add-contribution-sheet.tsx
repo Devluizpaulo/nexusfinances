@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -106,7 +107,7 @@ export function AddContributionSheet({ isOpen, onClose, goal }: AddContributionS
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Adicionar Aporte para "{goal?.name}"</DialogTitle>
+          <DialogTitle>Adicionar Aporte para &quot;{goal?.name}&quot;</DialogTitle>
           <DialogDescription>
             Registre um novo valor para se aproximar do seu objetivo.
           </DialogDescription>

@@ -49,7 +49,7 @@ export function ProfessionalCard({ professional, providers, onEdit }: Profession
               <AlertDialogHeader>
                   <AlertDialogTitle>Excluir Profissional?</AlertDialogTitle>
                   <AlertDialogDescription>
-                      Tem certeza que deseja excluir "{professional.name}"? Esta ação não pode ser desfeita.
+                      Tem certeza que deseja excluir &quot;{professional.name}&quot;? Esta ação não pode ser desfeita.
                   </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

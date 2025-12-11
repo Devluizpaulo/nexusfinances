@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -8,7 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Check, Edit, Loader2, Trash2 } from 'lucide-react';
 import type { SubscriptionPlan } from '@/lib/types';
 import { doc } from 'firebase/firestore';
-import { useFirestore, useUser, deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
@@ -33,7 +34,7 @@ export function PlanCard({ plan, onEdit }: PlanCardProps) {
     if (!user) return;
     setIsToggling(true);
     const planRef = doc(firestore, 'subscriptionPlans', plan.id);
-    await updateDocumentNonBlocking(planRef, { active });
+    await updateDoc(planRef, { active });
     toast({
       title: `Plano ${active ? 'ativado' : 'desativado'}`,
       description: `O plano "${plan.name}" agora está ${active ? 'visível' : 'oculto'} para os usuários.`,
@@ -45,7 +46,7 @@ export function PlanCard({ plan, onEdit }: PlanCardProps) {
     if (!user) return;
     setIsDeleting(true);
     const planRef = doc(firestore, 'subscriptionPlans', plan.id);
-    await deleteDocumentNonBlocking(planRef);
+    await deleteDoc(planRef);
     toast({
       title: 'Plano excluído!',
       description: `O plano "${plan.name}" foi removido com sucesso.`,
@@ -61,7 +62,7 @@ export function PlanCard({ plan, onEdit }: PlanCardProps) {
           <AlertDialogHeader>
             <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Isso excluirá permanentemente o plano "{plan.name}". Os usuários
+              Esta ação não pode ser desfeita. Isso excluirá permanentemente o plano &quot;{plan.name}&quot;. Os usuários
               inscritos neste plano não serão afetados imediatamente, mas o plano não estará mais disponível para novas
               assinaturas.
             </AlertDialogDescription>

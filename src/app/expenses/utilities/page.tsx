@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -122,7 +121,7 @@ export default function UtilitiesPage() {
         <div className="mt-6 flex h-64 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
           <Zap className="h-12 w-12 text-muted-foreground mb-4" />
           <h3 className="text-xl font-semibold">Nenhuma conta de consumo encontrada</h3>
-          <p className="mt-2 text-sm text-muted-foreground">Clique em "Adicionar Conta" para começar a organizar seus gastos com utilidades.</p>
+          <p className="mt-2 text-sm text-muted-foreground">Clique em &quot;Adicionar Conta&quot; para começar a organizar seus gastos com utilidades.</p>
         </div>
       )}
     </>

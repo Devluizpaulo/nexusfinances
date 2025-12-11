@@ -195,7 +195,7 @@ export default function AdminDashboardPage() {
                      <div className="flex h-40 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
                         <h3 className="text-lg font-semibold">Nenhuma trilha encontrada</h3>
                         <p className="mt-1 text-sm text-muted-foreground">
-                          Clique em "Nova trilha" para criar a primeira jornada de aprendizado.
+                          Clique em &quot;Nova trilha&quot; para criar a primeira jornada de aprendizado.
                         </p>
                     </div>
                   )}

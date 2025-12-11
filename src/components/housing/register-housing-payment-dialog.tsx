@@ -154,7 +154,7 @@ export function RegisterHousingPaymentDialog({ isOpen, onClose, contract }: Regi
         <DialogHeader>
           <DialogTitle>Registrar Pagamento de Moradia</DialogTitle>
           <DialogDescription>
-            Confirme os detalhes do pagamento para o contrato com "{contract.landlordName}".
+            Confirme os detalhes do pagamento para o contrato com &quot;{contract.landlordName}&quot;.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>

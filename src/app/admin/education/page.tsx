@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -48,7 +49,7 @@ export default function AdminEducationPage() {
           {isLoading && <p className="text-sm text-muted-foreground">Carregando...</p>}
           {!isLoading && (!tracks || tracks.length === 0) && (
             <p className="text-sm text-muted-foreground">
-              Nenhuma trilha cadastrada ainda. Clique em "Nova trilha" para criar a primeira.
+              Nenhuma trilha cadastrada ainda. Clique em &quot;Nova trilha&quot; para criar a primeira.
             </p>
           )}
 

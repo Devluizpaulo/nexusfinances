@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -90,7 +89,7 @@ export function GoalCard({ goal, onAddContribution, onEdit }: GoalCardProps) {
   const { user } = useUser();
   const { toast } = useToast();
 
-  const contributions = ((goal as any).contributions || []) as GoalContribution[];
+  const contributions = useMemo(() => ((goal as any).contributions || []) as GoalContribution[], [goal]);
 
   const sortedContributions = useMemo(
     () => [...contributions].sort((a, b) => (a.date < b.date ? 1 : -1)),

@@ -198,7 +198,7 @@ export function DataTableRowActions({
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar Alteração de Função</AlertDialogTitle>
             <AlertDialogDescription>
-              Você tem certeza que deseja alterar a função de "{userToModify.displayName}" para {newRole}?
+              Você tem certeza que deseja alterar a função de &quot;{userToModify.displayName}&quot; para {newRole}?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

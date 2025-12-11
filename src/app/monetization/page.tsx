@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -73,7 +74,7 @@ export default function MonetizationPage() {
           </div>
           <h3 className="text-xl font-semibold tracking-tight">Nenhum plano de assinatura encontrado</h3>
           <p className="mt-2 text-sm text-muted-foreground">
-            Clique em "Novo Plano" para criar o primeiro plano de assinatura para seus usuários.
+            Clique em &quot;Novo Plano&quot; para criar o primeiro plano de assinatura para seus usuários.
           </p>
           <Button className="mt-4" onClick={() => setIsFormOpen(true)}>
             <PlusCircle className="mr-2 h-4 w-4" />

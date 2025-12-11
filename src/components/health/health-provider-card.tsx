@@ -78,7 +78,7 @@ export function HealthProviderCard({ provider, professionals, onEditProvider, on
               <AlertDialogHeader>
                   <AlertDialogTitle>Excluir Empresa?</AlertDialogTitle>
                   <AlertDialogDescription>
-                      Tem certeza que deseja excluir "{provider.name}"? Esta ação não pode ser desfeita.
+                      Tem certeza que deseja excluir &quot;{provider.name}&quot;? Esta ação não pode ser desfeita.
                   </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -93,7 +93,7 @@ export function HealthProviderCard({ provider, professionals, onEditProvider, on
               <AlertDialogHeader>
                   <AlertDialogTitle>Excluir Profissional?</AlertDialogTitle>
                   <AlertDialogDescription>
-                      Tem certeza que deseja excluir "{professionalToDelete?.name}"? Esta ação não pode ser desfeita.
+                      Tem certeza que deseja excluir &quot;{professionalToDelete?.name}&quot;? Esta ação não pode ser desfeita.
                   </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

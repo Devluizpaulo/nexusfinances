@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { useFirestore, useUser, updateDocumentNonBlocking, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
 import type { Recurrence, Transaction } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { History, Loader2, Tag } from 'lucide-react';
@@ -16,7 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { doc, collection, query, where, orderBy } from 'firebase/firestore';
+import { doc, collection, query, where, orderBy, updateDoc } from 'firebase/firestore';
 import { format, parseISO, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from '../ui/badge';
@@ -68,7 +69,7 @@ export function RecurrenceCard({ recurrence }: RecurrenceCardProps) {
             <DialogHeader>
               <DialogTitle>Histórico de Lançamentos</DialogTitle>
               <DialogDescription>
-                Histórico de lançamentos para a recorrência "{recurrence.description}".
+                Histórico de lançamentos para a recorrência &quot;{recurrence.description}&quot;.
               </DialogDescription>
             </DialogHeader>
             <div className="max-h-[60vh] overflow-y-auto">

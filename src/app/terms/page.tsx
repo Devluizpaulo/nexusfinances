@@ -55,7 +55,7 @@ export default function TermsOfServicePage() {
 
         <h2>7. Limitação de Responsabilidade</h2>
         <p>Em nenhuma circunstância o Xô Planilhas, nem seus diretores, funcionários ou parceiros, serão responsáveis por quaisquer danos indiretos, incidentais, especiais, consequenciais ou punitivos, incluindo, sem limitação, perda de lucros, dados, uso, boa vontade ou outras perdas intangíveis, resultantes do seu acesso ou uso ou incapacidade de acessar ou usar o serviço.</p>
-        <p>O serviço é fornecido "COMO ESTÁ" e "COMO DISPONÍVEL", sem garantias de qualquer tipo.</p>
+        <p>O serviço é fornecido &quot;COMO ESTÁ&quot; e &quot;COMO DISPONÍVEL&quot;, sem garantias de qualquer tipo.</p>
 
         <h2>8. Alterações nos Termos</h2>
         <p>Reservamo-nos o direito, a nosso exclusivo critério, de modificar ou substituir estes Termos a qualquer momento. Se uma revisão for material, tentaremos fornecer um aviso com pelo menos 30 dias de antecedência antes que quaisquer novos termos entrem em vigor.</p>
