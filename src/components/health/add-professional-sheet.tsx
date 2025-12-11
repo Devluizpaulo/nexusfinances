@@ -4,8 +4,8 @@ import { useForm } from 'react-hook-form';
 import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { collection, doc } from 'firebase/firestore';
-import { useFirestore, useUser, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
+import { collection, doc, addDoc, setDoc } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
 import {
   Dialog,
   DialogContent,
@@ -100,10 +100,10 @@ export function AddProfessionalSheet({ isOpen, onClose, professional, providers 
 
       if (isEditing) {
         const docRef = doc(collectionRef, professional!.id);
-        setDocumentNonBlocking(docRef, dataToSave, { merge: true });
+        await setDoc(docRef, dataToSave, { merge: true });
         toast({ title: 'Profissional atualizado!', description: `Os dados de ${values.name} foram salvos.` });
       } else {
-        addDocumentNonBlocking(collectionRef, dataToSave);
+        await addDoc(collectionRef, dataToSave);
         toast({ title: 'Profissional adicionado!', description: `${values.name} foi cadastrado com sucesso.` });
       }
       onClose();

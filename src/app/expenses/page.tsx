@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { collection, query, orderBy, doc } from 'firebase/firestore';
-import { useCollection, useFirestore, useUser, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
+import { collection, query, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { DataTable } from '@/components/data-table/data-table';
 import { columns } from './columns';
 import { PageHeader } from '@/components/page-header';
@@ -82,14 +82,23 @@ export default function ExpensesPage() {
     setEditingTransaction(null);
   };
 
-  const handleStatusChange = (transaction: Transaction) => {
+  const handleStatusChange = async (transaction: Transaction) => {
     if (!user || transaction.status === 'paid') return;
     const docRef = doc(firestore, `users/${user.uid}/expenses`, transaction.id);
-    updateDocumentNonBlocking(docRef, { status: "paid" });
-    toast({
-      title: "Transação atualizada!",
-      description: `A despesa foi marcada como paga.`,
-    });
+    try {
+        await updateDoc(docRef, { status: "paid" });
+        toast({
+        title: "Transação atualizada!",
+        description: `A despesa foi marcada como paga.`,
+        });
+    } catch (e) {
+        console.error("Error updating document: ", e);
+        toast({
+            variant: "destructive",
+            title: "Erro ao atualizar",
+            description: "Não foi possível marcar a despesa como paga."
+        });
+    }
   }
   
   const isLoading = isUserLoading || isExpensesLoading;

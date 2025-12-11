@@ -6,8 +6,8 @@ import { useForm } from 'react-hook-form';
 import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { collection, doc } from 'firebase/firestore';
-import { useFirestore, useUser, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
+import { collection, doc, setDoc, addDoc } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
 import {
   Dialog,
   DialogContent,
@@ -149,7 +149,7 @@ export function AddGoalSheet({ isOpen, onClose, goal }: AddGoalSheetProps) {
       if(goal) {
         // Editing an existing goal
         const goalRef = doc(firestore, `users/${user.uid}/goals`, goal.id);
-        setDocumentNonBlocking(goalRef, goalData, { merge: true });
+        await setDoc(goalRef, goalData, { merge: true });
         toast({
             title: 'Meta atualizada',
             description: `"${values.name}" foi atualizada.`,
@@ -171,7 +171,7 @@ export function AddGoalSheet({ isOpen, onClose, goal }: AddGoalSheetProps) {
           contributions: initialContribution,
         };
 
-        addDocumentNonBlocking(goalsColRef, newGoalData);
+        await addDoc(goalsColRef, newGoalData);
 
         const progress = values.targetAmount > 0 ? (values.currentAmount / values.targetAmount) * 100 : 0;
 
@@ -251,7 +251,7 @@ export function AddGoalSheet({ isOpen, onClose, goal }: AddGoalSheetProps) {
                           Educação: '🎓',
                           Aposentadoria: '💼',
                           Investir: '📈',
-                          'Quitar Dívidas': '📉',
+                          'Quitar Dívidas': '💸',
                           Outros: '✨',
                         };
                         const icon = iconMap[category] || '🎯';

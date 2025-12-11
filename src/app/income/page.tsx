@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { collection, query, orderBy, doc } from 'firebase/firestore';
-import { useCollection, useFirestore, useUser, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
+import { collection, query, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { DataTable } from '@/components/data-table/data-table';
 import { columns } from './columns';
+import { PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Loader2, Upload } from 'lucide-react';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
@@ -12,7 +13,6 @@ import { incomeCategories, type Transaction } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
-import { PageHeader } from '@/components/page-header';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { startOfMonth, endOfMonth, startOfYear, endOfYear, parseISO, isWithinInterval } from 'date-fns';
 
@@ -81,14 +81,23 @@ export default function IncomePage() {
     setEditingTransaction(null);
   };
 
-  const handleStatusChange = (transaction: Transaction) => {
+  const handleStatusChange = async (transaction: Transaction) => {
     if (!user || transaction.status === 'paid') return;
     const docRef = doc(firestore, `users/${user.uid}/incomes`, transaction.id);
-    updateDocumentNonBlocking(docRef, { status: "paid" });
-    toast({
-      title: "Transação atualizada!",
-      description: `A transação foi marcada como recebida.`,
-    });
+    try {
+        await updateDoc(docRef, { status: "paid" });
+        toast({
+        title: "Transação atualizada!",
+        description: `A transação foi marcada como recebida.`,
+        });
+    } catch(e) {
+        console.error("Error updating transaction status:", e);
+        toast({
+            variant: "destructive",
+            title: "Erro ao atualizar",
+            description: "Não foi possível marcar a transação como recebida."
+        });
+    }
   }
 
   const isLoading = isUserLoading || isIncomeLoading;

@@ -4,8 +4,8 @@ import { useForm } from 'react-hook-form';
 import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { collection, doc } from 'firebase/firestore';
-import { useFirestore, useUser, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
+import { collection, doc, addDoc, setDoc } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
 import {
   Dialog,
   DialogContent,
@@ -100,10 +100,10 @@ export function AddProviderSheet({ isOpen, onClose, provider }: AddProviderSheet
 
       if (isEditing) {
         const docRef = doc(collectionRef, provider!.id);
-        setDocumentNonBlocking(docRef, dataToSave, { merge: true });
+        await setDoc(docRef, dataToSave, { merge: true });
         toast({ title: 'Empresa atualizada!', description: `Os dados de ${values.name} foram salvos.` });
       } else {
-        addDocumentNonBlocking(collectionRef, dataToSave);
+        await addDoc(collectionRef, dataToSave);
         toast({ title: 'Empresa adicionada!', description: `${values.name} foi cadastrada com sucesso.` });
       }
       onClose();

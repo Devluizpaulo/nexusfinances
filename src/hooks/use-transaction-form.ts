@@ -5,8 +5,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { formatISO, parseISO } from 'date-fns';
-import { collection, doc, arrayUnion, updateDoc } from 'firebase/firestore';
-import { useFirestore, useUser, addDocumentNonBlocking, setDocumentNonBlocking, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, doc, arrayUnion, updateDoc, setDoc, addDoc } from 'firebase/firestore';
+import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import type { Transaction, CreditCard } from '@/lib/types';
 
@@ -118,7 +118,7 @@ export function useTransactionForm({
     }
   }, [transaction, form]);
   
-  const onSubmit = (values: TransactionFormValues) => {
+  const onSubmit = async (values: TransactionFormValues) => {
     if (!user) {
       toast({
         variant: 'destructive',
@@ -149,22 +149,30 @@ export function useTransactionForm({
     }
     delete dataToSave.paymentMethod;
 
-    if (transaction) {
-      const docRef = doc(firestore, collectionPath, transaction.id);
-      setDocumentNonBlocking(docRef, dataToSave, { merge: true });
+    try {
+      if (transaction) {
+        const docRef = doc(firestore, collectionPath, transaction.id);
+        await setDoc(docRef, dataToSave, { merge: true });
+        toast({
+          title: 'Movimentação atualizada',
+          description: 'Seu painel já foi atualizado.',
+        });
+      } else {
+        await addDoc(collection(firestore, collectionPath), dataToSave);
+        toast({
+          title: 'Movimentação salva',
+          description: `Sua ${transactionType === 'income' ? 'renda' : 'despesa'} já entrou no painel.`,
+        });
+      }
+      onClose();
+    } catch (error) {
+      console.error("Error saving transaction:", error);
       toast({
-        title: 'Movimentação atualizada',
-        description: 'Seu painel já foi atualizado.',
-      });
-    } else {
-      addDocumentNonBlocking(collection(firestore, collectionPath), dataToSave);
-      toast({
-        title: 'Movimentação salva',
-        description: `Sua ${transactionType === 'income' ? 'renda' : 'despesa'} já entrou no painel.`,
+        variant: "destructive",
+        title: "Erro ao salvar",
+        description: "Não foi possível salvar a transação. Tente novamente."
       });
     }
-    
-    onClose();
   };
   
   const handleAddCategory = async () => {

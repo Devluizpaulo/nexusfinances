@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { collection, setDoc, updateDoc, getDocs, query, where, doc, deleteDoc, orderBy } from 'firebase/firestore';
-import { useUser, useFirestore, useCollection, useMemoFirebase, deleteDocumentNonBlocking, useUserSubcollection, updateDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Transaction } from '@/lib/types';
 import { Loader2, Briefcase, PlusCircle, TrendingUp, TrendingDown, Edit, Star, Trash2, MoreVertical, Upload, PenSquare, List, Calendar, DollarSign } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -86,14 +86,23 @@ export default function FreelancerPage() {
     setIsAddSheetOpen(false);
   };
 
-   const handleStatusChange = (transaction: Transaction) => {
+   const handleStatusChange = async (transaction: Transaction) => {
     if (!user || transaction.status === 'paid') return;
     const docRef = doc(firestore, `users/${user.uid}/incomes`, transaction.id);
-    updateDocumentNonBlocking(docRef, { status: "paid" });
-    toast({
-      title: "Transação atualizada!",
-      description: `A transação foi marcada como recebida.`,
-    });
+    try {
+        await updateDoc(docRef, { status: "paid" });
+        toast({
+        title: "Transação atualizada!",
+        description: `A transação foi marcada como recebida.`,
+        });
+    } catch (e) {
+        console.error("Error updating transaction status:", e);
+        toast({
+            variant: "destructive",
+            title: "Erro ao atualizar",
+            description: "Não foi possível marcar a transação como recebida."
+        });
+    }
   }
 
   const isLoading = isUserLoading || isIncomesLoading;

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, useReducer, useRef } from 'react';
+import { useState, useCallback, useMemo, useReducer } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Loader2, FileUp, FileCheck2, AlertTriangle, Wallet, Check, ChevronsUpDown, FileText, CreditCard, UploadCloud } from 'lucide-react';
+import { Loader2, FileCheck2, Wallet, CreditCard, UploadCloud, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useDropzone } from 'react-dropzone';
 import { cn } from '@/lib/utils';
@@ -34,21 +34,17 @@ import {
 } from "@/components/ui/select"
 import { Checkbox } from '../ui/checkbox';
 import { useFirestore, useUser } from '@/firebase';
-import { collection, doc, writeBatch } from 'firebase/firestore';
+import { collection, writeBatch } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Types for better state management
+// Types
 type WorkflowStep = 'upload' | 'analyzing' | 'review' | 'saving';
-type AnalysisQuality = 'high' | 'medium' | 'low';
-
-
 type ReviewTransaction = ExtractedTransaction & {
   id: string;
   type: 'income' | 'expense';
   category: string;
   selected: boolean;
 };
-
 type DocumentType = 'bankStatement' | 'creditCardBill' | 'taxDocument';
 
 const documentTypes: Record<DocumentType, { label: string, icon: React.FC<any> }> = {
@@ -57,18 +53,17 @@ const documentTypes: Record<DocumentType, { label: string, icon: React.FC<any> }
   taxDocument: { label: 'Comprovante de Imposto', icon: FileText },
 };
 
-// State management with reducer
+// State
 type AppState = {
   file: File | null;
-  fileBuffer: ArrayBuffer | null;
+  pdfDataUri: string | null;
   currentStep: WorkflowStep;
   reviewTransactions: ReviewTransaction[];
   documentType: DocumentType;
   isProcessing: boolean;
 };
-
 type AppAction =
-  | { type: 'SET_FILE'; payload: { file: File, buffer: ArrayBuffer } }
+  | { type: 'SET_FILE'; payload: { file: File, pdfDataUri: string } }
   | { type: 'SET_CURRENT_STEP'; payload: WorkflowStep }
   | { type: 'SET_REVIEW_TRANSACTIONS'; payload: ReviewTransaction[] }
   | { type: 'SET_DOCUMENT_TYPE'; payload: DocumentType }
@@ -80,7 +75,7 @@ type AppAction =
 
 const initialState: AppState = {
   file: null,
-  fileBuffer: null,
+  pdfDataUri: null,
   currentStep: 'upload',
   reviewTransactions: [],
   documentType: 'bankStatement',
@@ -90,7 +85,7 @@ const initialState: AppState = {
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case 'SET_FILE':
-      return { ...state, file: action.payload.file, fileBuffer: action.payload.buffer, reviewTransactions: [] };
+      return { ...state, file: action.payload.file, pdfDataUri: action.payload.pdfDataUri, reviewTransactions: [] };
     case 'SET_CURRENT_STEP':
       return { ...state, currentStep: action.payload, isProcessing: ['analyzing', 'saving'].includes(action.payload) };
     case 'SET_REVIEW_TRANSACTIONS':
@@ -130,28 +125,17 @@ function appReducer(state: AppState, action: AppAction): AppState {
   }
 }
 
-// Helper hook for file operations
+// Hook
 function useFileProcessor() {
-  const readFileAsArrayBuffer = useCallback((file: File): Promise<ArrayBuffer> => {
+  const readFileAsDataURL = useCallback((file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as ArrayBuffer);
+      reader.onload = () => resolve(reader.result as string);
       reader.onerror = reject;
-      reader.readAsArrayBuffer(file);
+      reader.readAsDataURL(file);
     });
   }, []);
-
-  const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
-    let binary = '';
-    const bytes = new Uint8Array(buffer);
-    const len = bytes.byteLength;
-    for (let i = 0; i < len; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    return window.btoa(binary);
-  };
-  
-  return { readFileAsArrayBuffer, arrayBufferToBase64 };
+  return { readFileAsDataURL };
 }
 
 type ImportTransactionsSheetProps = {
@@ -159,15 +143,14 @@ type ImportTransactionsSheetProps = {
   onClose: () => void;
 };
 
-
 export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsSheetProps) {
   const [state, dispatch] = useReducer(appReducer, initialState);
-  const { file, fileBuffer, currentStep, reviewTransactions, documentType, isProcessing } = state;
+  const { file, pdfDataUri, currentStep, reviewTransactions, documentType, isProcessing } = state;
   
   const { toast } = useToast();
   const { user } = useUser();
   const firestore = useFirestore();
-  const { readFileAsArrayBuffer, arrayBufferToBase64 } = useFileProcessor();
+  const { readFileAsDataURL } = useFileProcessor();
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -181,13 +164,13 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
         return;
       }
       try {
-        const buffer = await readFileAsArrayBuffer(selectedFile);
-        dispatch({ type: 'SET_FILE', payload: { file: selectedFile, buffer } });
+        const dataUri = await readFileAsDataURL(selectedFile);
+        dispatch({ type: 'SET_FILE', payload: { file: selectedFile, pdfDataUri: dataUri } });
       } catch (error) {
         toast({ variant: 'destructive', title: 'Erro ao ler arquivo', description: 'Não foi possível carregar o arquivo.' });
       }
     }
-  }, [readFileAsArrayBuffer, toast]);
+  }, [readFileAsDataURL, toast]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -201,14 +184,13 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
   }
   
   const handleModalOpenChange = (open: boolean) => {
-      if(!open) {
-          // Here you could add a confirmation dialog if there's progress
+      if(!open && currentStep !== 'saving') {
           handleReset();
       }
   }
 
   const handleImport = async () => {
-    if (!file || !fileBuffer) return;
+    if (!file || !pdfDataUri) return;
 
     if (documentType !== 'bankStatement') {
       toast({
@@ -221,12 +203,9 @@ export function ImportTransactionsSheet({ isOpen, onClose }: ImportTransactionsS
     dispatch({ type: 'SET_CURRENT_STEP', payload: 'analyzing' });
     
     try {
-        const base64String = arrayBufferToBase64(fileBuffer);
-        const dataUri = `data:application/pdf;base64,${base64String}`;
-        
-        const result = await extractTransactionsFromPdf({ pdfBase64: dataUri });
+        const result = await extractTransactionsFromPdf({ pdfBase64: pdfDataUri });
 
-        const transactionsToReview: ReviewTransaction[] = result.transactions.map((t) => ({
+        const transactionsToReview: ReviewTransaction[] = (result.transactions || []).map((t) => ({
           ...t,
           id: crypto.randomUUID(),
           type: t.amount > 0 ? 'income' : 'expense',

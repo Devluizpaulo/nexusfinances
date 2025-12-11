@@ -3,8 +3,8 @@
 
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { collection, query, where, doc, orderBy } from 'firebase/firestore';
-import { useUser, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
+import { collection, query, where, doc, orderBy, updateDoc } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Transaction } from '@/lib/types';
 import { Loader2, HeartPulse, PlusCircle, Upload } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
@@ -45,14 +45,23 @@ export default function HealthExpensesPage() {
     setIsSheetOpen(false);
   };
   
-  const handleStatusChange = (transaction: Transaction) => {
+  const handleStatusChange = async (transaction: Transaction) => {
     if (!user || transaction.status === 'paid') return;
     const docRef = doc(firestore, `users/${user.uid}/expenses`, transaction.id);
-    updateDocumentNonBlocking(docRef, { status: "paid" });
-    toast({
-      title: "Transação atualizada!",
-      description: `A despesa foi marcada como paga.`,
-    });
+    try {
+      await updateDoc(docRef, { status: "paid" });
+      toast({
+        title: "Transação atualizada!",
+        description: `A despesa foi marcada como paga.`,
+      });
+    } catch (e) {
+      console.error("Error updating document: ", e);
+      toast({
+          variant: "destructive",
+          title: "Erro ao atualizar",
+          description: "Não foi possível marcar a despesa como paga."
+      });
+    }
   }
 
   const isLoading = isUserLoading || isExpensesLoading;

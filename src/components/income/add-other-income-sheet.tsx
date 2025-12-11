@@ -7,8 +7,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { formatISO, format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { collection, doc, arrayUnion, updateDoc } from 'firebase/firestore';
-import { useFirestore, useUser, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
+import { collection, doc, arrayUnion, updateDoc, addDoc, setDoc } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
 import { cn } from '@/lib/utils';
 import {
   Dialog,
@@ -113,7 +113,7 @@ export function AddOtherIncomeSheet({
     }
   }, [isOpen, transaction, form]);
   
-  const onSubmit = (values: OtherIncomeFormValues) => {
+  const onSubmit = async (values: OtherIncomeFormValues) => {
     if (!user) {
       toast({
         variant: 'destructive',
@@ -131,22 +131,30 @@ export function AddOtherIncomeSheet({
       type: 'income',
     };
 
-    if (transaction) {
-      const docRef = doc(firestore, collectionPath, transaction.id);
-      setDocumentNonBlocking(docRef, dataToSave, { merge: true });
+    try {
+      if (transaction) {
+        const docRef = doc(firestore, collectionPath, transaction.id);
+        await setDoc(docRef, dataToSave, { merge: true });
+        toast({
+          title: 'Renda atualizada',
+          description: 'Seu painel já foi atualizado.',
+        });
+      } else {
+        await addDoc(collection(firestore, collectionPath), dataToSave);
+        toast({
+          title: 'Renda salva',
+          description: `Sua renda de "${values.description}" já entrou no painel.`,
+        });
+      }
+      onClose();
+    } catch (error) {
+      console.error("Error saving income:", error);
       toast({
-        title: 'Renda atualizada',
-        description: 'Seu painel já foi atualizado.',
-      });
-    } else {
-      addDocumentNonBlocking(collection(firestore, collectionPath), dataToSave);
-      toast({
-        title: 'Renda salva',
-        description: `Sua renda de "${values.description}" já entrou no painel.`,
+        variant: 'destructive',
+        title: 'Erro ao salvar',
+        description: 'Não foi possível salvar a transação. Tente novamente.'
       });
     }
-    
-    onClose();
   };
 
   const title = transaction ? `Editar Renda` : `Adicionar Outra Renda`;

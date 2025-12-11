@@ -4,8 +4,8 @@ import { useForm } from 'react-hook-form';
 import { useEffect, useMemo, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { collection, doc, arrayUnion, updateDoc } from 'firebase/firestore';
-import { useFirestore, useUser, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
+import { collection, doc, arrayUnion, updateDoc, setDoc, addDoc } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
 import {
   Dialog,
   DialogContent,
@@ -116,7 +116,7 @@ export function AddBudgetSheet({ isOpen, onClose, budget }: AddBudgetSheetProps)
             startDate: budget.startDate || formatISO(startOfMonth(new Date())), 
             endDate: budget.endDate || formatISO(endOfMonth(new Date()))
         };
-        setDocumentNonBlocking(budgetRef, updatedData, { merge: true });
+        await setDoc(budgetRef, updatedData, { merge: true });
         toast({ title: 'Limite atualizado!', description: `O limite de gasto "${values.name}" foi salvo.` });
       } else {
         // When creating, always calculate new start and end dates for the current month
@@ -132,7 +132,7 @@ export function AddBudgetSheet({ isOpen, onClose, budget }: AddBudgetSheetProps)
         };
 
         const budgetsColRef = collection(firestore, `users/${user.uid}/budgets`);
-        addDocumentNonBlocking(budgetsColRef, newBudgetData);
+        await addDoc(budgetsColRef, newBudgetData);
         toast({ title: 'Limite de gasto criado!', description: `O limite "${values.name}" foi criado com sucesso.` });
       }
       onClose();

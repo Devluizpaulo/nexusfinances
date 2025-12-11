@@ -1,3 +1,4 @@
+
 'use client';
     
 import {
@@ -15,6 +16,7 @@ import {FirestorePermissionError} from '@/firebase/errors';
 /**
  * Initiates a setDoc operation for a document reference.
  * Does NOT await the write operation internally.
+ * @deprecated Use direct async/await call to `setDoc` with try/catch for better error handling and UI feedback.
  */
 export function setDocumentNonBlocking(docRef: DocumentReference, data: any, options: SetOptions) {
   setDoc(docRef, data, options).catch(error => {
@@ -35,6 +37,7 @@ export function setDocumentNonBlocking(docRef: DocumentReference, data: any, opt
  * Initiates an addDoc operation for a collection reference.
  * Does NOT await the write operation internally.
  * Returns the Promise for the new doc ref, but typically not awaited by caller.
+ * @deprecated Use direct async/await call to `addDoc` with try/catch for better error handling and UI feedback.
  */
 export function addDocumentNonBlocking(colRef: CollectionReference, data: any) {
   const promise = addDoc(colRef, data)
@@ -55,6 +58,7 @@ export function addDocumentNonBlocking(colRef: CollectionReference, data: any) {
 /**
  * Initiates an updateDoc operation for a document reference.
  * Does NOT await the write operation internally.
+ * @deprecated Use direct async/await call to `updateDoc` with try/catch for better error handling and UI feedback.
  */
 export function updateDocumentNonBlocking(docRef: DocumentReference, data: any) {
   updateDoc(docRef, data)
@@ -74,6 +78,7 @@ export function updateDocumentNonBlocking(docRef: DocumentReference, data: any) 
 /**
  * Initiates a deleteDoc operation for a document reference.
  * Does NOT await the write operation internally.
+ * @deprecated Use direct async/await call to `deleteDoc` with try/catch for better error handling and UI feedback.
  */
 export function deleteDocumentNonBlocking(docRef: DocumentReference) {
   deleteDoc(docRef)

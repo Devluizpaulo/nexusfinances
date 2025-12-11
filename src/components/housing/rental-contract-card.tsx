@@ -67,7 +67,7 @@ export function RentalContractCard({ contract, onEdit }: RentalContractCardProps
     : 'border-border';
 
   const handleDeleteContract = async () => {
-    if (!user) return;
+    if (!user || !firestore) return;
     try {
       const batch = writeBatch(firestore);
       const contractRef = doc(firestore, `users/${user.uid}/rentalContracts`, contract.id);

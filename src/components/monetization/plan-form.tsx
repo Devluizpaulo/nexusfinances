@@ -4,8 +4,8 @@ import { useForm } from 'react-hook-form';
 import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { collection, doc } from 'firebase/firestore';
-import { useFirestore, useUser, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
+import { collection, doc, addDoc, setDoc } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
 import {
   Dialog,
   DialogContent,
@@ -106,11 +106,11 @@ export function PlanForm({ isOpen, onClose, plan }: PlanFormProps) {
       const dataToSave = { ...values, userId: user.uid };
       if (isEditing) {
         const planRef = doc(firestore, 'subscriptionPlans', plan!.id);
-        setDocumentNonBlocking(planRef, dataToSave, { merge: true });
+        await setDoc(planRef, dataToSave, { merge: true });
         toast({ title: 'Plano atualizado!', description: `O plano "${values.name}" foi salvo.` });
       } else {
         const plansColRef = collection(firestore, 'subscriptionPlans');
-        addDocumentNonBlocking(plansColRef, dataToSave);
+        await addDoc(plansColRef, dataToSave);
         toast({ title: 'Plano criado!', description: `O plano "${values.name}" foi criado com sucesso.` });
       }
       onClose();

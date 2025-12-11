@@ -11,7 +11,7 @@ import { MoreVertical, Pencil, FileTerminal, Power, PowerOff, History } from 'lu
 import type { RentalContract } from '@/lib/types';
 import { format, parseISO } from 'date-fns';
 import { cn, formatCurrency } from '@/lib/utils';
-import { useFirestore, useUser, updateDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useUser, updateDoc } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { doc } from 'firebase/firestore';
 
@@ -28,15 +28,19 @@ export function ManageContractsDialog({ isOpen, onClose, contracts, onEditContra
   const { toast } = useToast();
   const [contractToAdjust, setContractToAdjust] = useState<RentalContract | null>(null);
 
-  const handleToggleStatus = (contract: RentalContract) => {
+  const handleToggleStatus = async (contract: RentalContract) => {
     if (!user) return;
     const newStatus = contract.status === 'active' ? 'inactive' : 'active';
     const contractRef = doc(firestore, `users/${user.uid}/rentalContracts`, contract.id);
-    updateDocumentNonBlocking(contractRef, { status: newStatus });
-    toast({
-        title: `Contrato ${newStatus === 'active' ? 'Reativado' : 'Encerrado'}`,
-        description: `O status do contrato com "${contract.landlordName}" foi alterado.`
-    });
+    try {
+      await updateDoc(contractRef, { status: newStatus });
+      toast({
+          title: `Contrato ${newStatus === 'active' ? 'Reativado' : 'Encerrado'}`,
+          description: `O status do contrato com "${contract.landlordName}" foi alterado.`
+      });
+    } catch(e) {
+      toast({ variant: 'destructive', title: "Erro", description: "Não foi possível alterar o status do contrato." });
+    }
   }
 
   const handleApplyAdjustment = () => {
@@ -44,6 +48,7 @@ export function ManageContractsDialog({ isOpen, onClose, contracts, onEditContra
     
     // Abre o formulário de edição em modo de "renovação"
     onEditContract(contractToAdjust, true);
+    onClose(); // Fecha o diálogo de gerenciamento
 
     setContractToAdjust(null);
   }

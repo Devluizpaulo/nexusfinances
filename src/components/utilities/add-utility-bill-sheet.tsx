@@ -7,8 +7,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { formatISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { collection, doc } from 'firebase/firestore';
-import { useFirestore, useUser, addDocumentNonBlocking } from '@/firebase';
+import { collection, doc, addDoc } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
 import { cn } from '@/lib/utils';
 import {
   Dialog,
@@ -110,7 +110,7 @@ export function AddUtilityBillSheet({ isOpen, onClose }: AddUtilityBillSheetProp
         userId: user.uid,
       };
 
-      addDocumentNonBlocking(expensesColRef, expenseData);
+      await addDoc(expensesColRef, expenseData);
 
       toast({
         title: 'Conta de Consumo Adicionada!',

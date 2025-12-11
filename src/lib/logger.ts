@@ -1,5 +1,4 @@
-import { collection, serverTimestamp, Firestore } from 'firebase/firestore';
-import { addDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp, Firestore, addDoc } from 'firebase/firestore';
 
 export type LogLevel = 'info' | 'warn' | 'error';
 
@@ -11,12 +10,12 @@ interface LogPayload {
 }
 
 /**
- * Logs a new event to the Firestore 'logs' collection without blocking.
+ * Logs a new event to the Firestore 'logs' collection.
  *
  * @param firestore - The Firestore instance.
  * @param payload - The log data to be saved.
  */
-export function logEvent(firestore: Firestore, payload: LogPayload) {
+export async function logEvent(firestore: Firestore, payload: LogPayload) {
   if (!firestore) {
     console.error('Logger: Firestore instance is not available.');
     return;
@@ -28,7 +27,10 @@ export function logEvent(firestore: Firestore, payload: LogPayload) {
     timestamp: serverTimestamp(),
   };
 
-  addDocumentNonBlocking(logsCollection, logData);
+  try {
+    await addDoc(logsCollection, logData);
+  } catch (error) {
+    console.error("Failed to write log to Firestore:", error);
+    // Optionally, you could have a fallback logging mechanism here
+  }
 }
-
-    

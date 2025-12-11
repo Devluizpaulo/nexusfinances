@@ -3,8 +3,8 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { doc } from 'firebase/firestore';
-import { useFirestore, useUser, updateDocumentNonBlocking } from '@/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
 import type { Goal } from '@/lib/types';
 import {
   Dialog,
@@ -80,7 +80,7 @@ export function AddContributionSheet({ isOpen, onClose, goal }: AddContributionS
       };
 
       // Atualiza o valor acumulado e o histórico embutido da meta
-      updateDocumentNonBlocking(goalRef, {
+      await updateDoc(goalRef, {
         currentAmount: newCurrentAmount,
         contributions: [newContribution, ...existingContributions],
       });

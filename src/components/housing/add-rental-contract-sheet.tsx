@@ -8,8 +8,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { formatISO, setDate, addYears, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { collection, doc, writeBatch } from 'firebase/firestore';
-import { useFirestore, useUser, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
+import { collection, doc, writeBatch, addDoc, setDoc } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
 import { cn, formatCurrency } from '@/lib/utils';
 import {
   Dialog,

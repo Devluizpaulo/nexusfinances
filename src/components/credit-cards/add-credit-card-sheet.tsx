@@ -4,8 +4,8 @@ import { useForm } from 'react-hook-form';
 import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { collection, doc } from 'firebase/firestore';
-import { useFirestore, useUser, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
+import { collection, doc, addDoc, setDoc } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
 import {
   Dialog,
   DialogContent,
@@ -98,11 +98,11 @@ export function AddCreditCardSheet({ isOpen, onClose, card }: AddCreditCardSheet
 
       if (isEditing) {
         const cardRef = doc(firestore, `users/${user.uid}/creditCards`, card!.id);
-        setDocumentNonBlocking(cardRef, dataToSave, { merge: true });
+        await setDoc(cardRef, dataToSave, { merge: true });
         toast({ title: 'Cartão atualizado!', description: `O cartão "${values.name}" foi salvo.` });
       } else {
         const cardsColRef = collection(firestore, `users/${user.uid}/creditCards`);
-        addDocumentNonBlocking(cardsColRef, dataToSave);
+        await addDoc(cardsColRef, dataToSave);
         toast({ title: 'Cartão adicionado!', description: `O cartão "${values.name}" foi criado.` });
       }
       onClose();

@@ -11,8 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { CalendarIcon, Loader2, PlusCircle, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, useUser, addDocumentNonBlocking } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
+import { collection, addDoc } from 'firebase/firestore';
 import type { RentalContract } from '@/lib/types';
 import { format, formatISO, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -130,7 +130,7 @@ export function RegisterHousingPaymentDialog({ isOpen, onClose, contract }: Regi
             notes: `Pagamento referente ao contrato com ${contract.landlordName}. Itens: ${JSON.stringify({contract: mainItemsDescriptions, additional: values.additionalItems})}`,
         };
 
-        await addDocumentNonBlocking(expensesColRef, expenseData);
+        await addDoc(expensesColRef, expenseData);
 
         toast({
             title: 'Pagamento Registrado!',
