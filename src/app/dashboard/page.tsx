@@ -1,31 +1,32 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { KpiCard } from '@/components/dashboard/kpi-card';
-import { Landmark, CreditCard, Scale, PiggyBank } from 'lucide-react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy } from 'firebase/firestore';
-import type { Transaction, Debt, Goal } from '@/lib/types';
-import { startOfMonth, endOfMonth, format, subMonths, addMonths } from 'date-fns';
+import type { Transaction, Debt, Goal, Budget } from '@/lib/types';
+import { startOfMonth, endOfMonth, format, subMonths } from 'date-fns';
 import { QuickActions } from '@/components/dashboard/quick-actions';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { AddDebtSheet } from '@/components/debts/add-debt-sheet';
 import { AddGoalSheet } from '@/components/goals/add-goal-sheet';
+import { AddBudgetSheet } from '@/components/budgets/add-budget-sheet';
 import { incomeCategories, expenseCategories } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useDashboardDate } from '@/context/dashboard-date-context';
 import { RecentTransactionsList } from './_components/recent-transactions-list';
 import { BalanceCard } from './_components/balance-card';
 import { DashboardHeader } from './_components/dashboard-header';
+import { FinancialHealthScore } from '@/components/dashboard/financial-health-score';
+import { IncomeExpenseChart } from '@/components/dashboard/income-expense-chart';
+import { OverdueDebtsCard } from '@/components/dashboard/overdue-debts-card';
 
 export default function DashboardPage() {
   const { selectedDate } = useDashboardDate();
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
   
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [sheetType, setSheetType] = useState<'income' | 'expense' | 'debt' | 'goal' | null>(null);
+  const [sheetType, setSheetType] = useState<'income' | 'expense' | 'debt' | 'goal' | 'budget' | null>(null);
 
   const { start, end } = useMemo(() => {
     const start = startOfMonth(selectedDate);
@@ -37,10 +38,8 @@ export default function DashboardPage() {
   const transactionsQuery = useMemoFirebase(() => {
     if (!user) return null;
     const oneMonthAgo = subMonths(end, 1);
-    return query(
-      collection(firestore, `users/${user.uid}/expenses`), // Fetch all for recent list
-      orderBy('date', 'desc')
-    );
+    const baseQuery = collection(firestore, `users/${user.uid}/expenses`);
+    return query(baseQuery, orderBy('date', 'desc'));
   }, [firestore, user, end]);
 
   const incomesForPeriodQuery = useMemoFirebase(() => {
@@ -88,17 +87,15 @@ export default function DashboardPage() {
     };
   }, [incomeData, expenseData]);
 
-  const handleOpenSheet = (type: 'income' | 'expense' | 'debt' | 'goal') => {
+  const handleOpenSheet = (type: 'income' | 'expense' | 'debt' | 'goal' | 'budget') => {
     setSheetType(type);
-    setIsSheetOpen(true);
   };
   
   const handleCloseSheet = () => {
-    setIsSheetOpen(false);
     setSheetType(null);
   };
 
-  const isLoading = isUserLoading || isIncomeLoading || isExpensesLoading || isTransactionsLoading;
+  const isLoading = isUserLoading || isIncomeLoading || isExpensesLoading || isTransactionsLoading || isDebtsLoading || isGoalsLoading;
 
   if (isLoading) {
     return <DashboardSkeleton />;
@@ -107,17 +104,21 @@ export default function DashboardPage() {
   return (
     <>
       <AddTransactionSheet
-        isOpen={isSheetOpen && (sheetType === 'income' || sheetType === 'expense')}
+        isOpen={sheetType === 'income' || sheetType === 'expense'}
         onClose={handleCloseSheet}
         transactionType={sheetType === 'income' ? 'income' : 'expense'}
         categories={sheetType === 'income' ? incomeCategories : expenseCategories}
       />
       <AddDebtSheet
-        isOpen={isSheetOpen && sheetType === 'debt'}
+        isOpen={sheetType === 'debt'}
         onClose={handleCloseSheet}
       />
       <AddGoalSheet 
-        isOpen={isSheetOpen && sheetType === 'goal'} 
+        isOpen={sheetType === 'goal'} 
+        onClose={handleCloseSheet}
+      />
+      <AddBudgetSheet 
+        isOpen={sheetType === 'budget'} 
         onClose={handleCloseSheet}
       />
     
@@ -131,7 +132,21 @@ export default function DashboardPage() {
               onAddExpense={() => handleOpenSheet('expense')}
               onAddDebt={() => handleOpenSheet('debt')}
               onAddGoal={() => handleOpenSheet('goal')}
+              onAddBudget={() => handleOpenSheet('budget')}
           />
+        </div>
+
+        <OverdueDebtsCard debts={debtData || []} />
+        
+        <div className="grid gap-6 lg:grid-cols-2">
+          <FinancialHealthScore 
+            income={totalIncome} 
+            expenses={totalExpenses} 
+            debts={debtData || []} 
+            goals={goalData || []}
+            transactions={expenseData || []}
+          />
+          <IncomeExpenseChart transactions={[...(incomeData || []), ...(expenseData || [])]} />
         </div>
         
         <RecentTransactionsList transactions={recentTransactions ?? []} />
@@ -144,7 +159,6 @@ export default function DashboardPage() {
 function DashboardSkeleton() {
   return (
     <div className="space-y-6 animate-pulse">
-      {/* Header Skeleton */}
       <div className="flex items-center justify-between">
         <div className="space-y-2">
           <Skeleton className="h-7 w-48" />
@@ -153,7 +167,6 @@ function DashboardSkeleton() {
         <Skeleton className="h-10 w-10 rounded-full" />
       </div>
 
-      {/* Balance Card Skeleton */}
       <Card>
         <CardHeader>
           <Skeleton className="h-4 w-24" />
@@ -171,14 +184,12 @@ function DashboardSkeleton() {
         </CardContent>
       </Card>
       
-      {/* Quick Actions Skeleton */}
       <div className="grid grid-cols-4 gap-2">
         {Array.from({ length: 4 }).map((_, i) => (
           <Skeleton key={i} className="h-16 w-full rounded-lg" />
         ))}
       </div>
 
-      {/* Recent Transactions Skeleton */}
       <Card>
         <CardHeader>
           <Skeleton className="h-6 w-48" />
@@ -198,7 +209,6 @@ function DashboardSkeleton() {
           ))}
         </CardContent>
       </Card>
-
     </div>
   )
 }

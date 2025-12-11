@@ -21,8 +21,8 @@ import { useDropzone } from 'react-dropzone';
 import { cn } from '@/lib/utils';
 import { extractPayslipData } from '@/ai/flows/extract-payslip-data-flow';
 import type { ExtractPayslipOutput, IncomeCategory } from '@/lib/types';
-import { useFirestore, useUser, addDocumentNonBlocking } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
+import { addDoc, collection } from 'firebase/firestore';
 import { format, parseISO, isValid } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Separator } from '../ui/separator';
@@ -467,7 +467,7 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
         importedAt: new Date().toISOString(),
       };
 
-      await addDocumentNonBlocking(incomesColRef, incomeData);
+      await addDoc(incomesColRef, incomeData);
 
       toast({
         title: 'Renda registrada com sucesso!',
@@ -587,7 +587,7 @@ export function ImportPayslipSheet({ isOpen, onClose }: ImportPayslipSheetProps)
   return (
 
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleReset()}>
-      <DialogContent size="full" className="!max-w-[95vw] lg:!max-w-[80vw] h-[90vh] p-0 gap-0 overflow-hidden">
+      <DialogContent className="!max-w-[95vw] lg:!max-w-[80vw] h-[90vh] p-0 gap-0 overflow-hidden">
         <ScrollArea>
           <div className="flex flex-col h-full bg-background">
             {/* Header */}

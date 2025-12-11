@@ -47,9 +47,8 @@ export function ManageContractsDialog({ isOpen, onClose, contracts, onEditContra
   const handleApplyAdjustment = () => {
     if (!contractToAdjust) return;
     
-    // Abre o formulário de edição em modo de "renovação"
     onEditContract(contractToAdjust, true);
-    onClose(); // Fecha o diálogo de gerenciamento
+    onClose();
 
     setContractToAdjust(null);
   }
@@ -72,7 +71,7 @@ export function ManageContractsDialog({ isOpen, onClose, contracts, onEditContra
       </AlertDialog>
 
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent size="lg">
+      <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>Gerenciador de Contratos</DialogTitle>
           <DialogDescription>

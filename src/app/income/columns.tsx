@@ -69,6 +69,6 @@ export const columns = ({ onEdit, onStatusChange }: ColumnsProps): ColumnDef<Tra
   },
   {
     id: "actions",
-    cell: ({ row }) => <DataTableRowActions row={row} onEdit={onEdit} />,
+    cell: ({ row }) => <DataTableRowActions row={row} onEdit={onEdit} transactionType="income" />,
   },
 ]
