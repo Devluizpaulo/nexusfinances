@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useCallback, useMemo, useReducer } from 'react';
@@ -34,7 +35,7 @@ import {
 } from "@/components/ui/select"
 import { Checkbox } from '../ui/checkbox';
 import { useFirestore, useUser } from '@/firebase';
-import { collection, writeBatch } from 'firebase/firestore';
+import { collection, writeBatch, doc } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Types

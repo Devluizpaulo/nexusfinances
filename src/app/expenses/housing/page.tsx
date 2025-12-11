@@ -1,9 +1,10 @@
 
+
 'use client';
 
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { collection, query, orderBy, where, doc } from 'firebase/firestore';
+import { collection, query, orderBy, where, doc, updateDoc } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { RentalContract, Transaction } from '@/lib/types';
 import { Loader2, Home, PlusCircle, Settings } from 'lucide-react';
@@ -18,7 +19,6 @@ import { columns } from '../columns';
 import { useToast } from '@/hooks/use-toast';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { expenseCategories } from '@/lib/types';
-import { updateDoc } from "firebase/firestore";
 
 export default function HousingPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -88,22 +88,23 @@ export default function HousingPage() {
     setIsSheetOpen(false);
   };
   
-  const handleStatusChange = (transaction: Transaction) => {
+  const handleStatusChange = async (transaction: Transaction) => {
     if (!user || transaction.status === 'paid') return;
     const docRef = doc(firestore, `users/${user.uid}/expenses`, transaction.id);
-    updateDoc(docRef, { status: "paid" }).then(() => {
+    try {
+        await updateDoc(docRef, { status: "paid" });
         toast({
             title: "Transação atualizada!",
             description: `A despesa foi marcada como paga.`,
         });
-    }).catch((e) => {
+    } catch (e) {
         console.error("Error updating document: ", e);
         toast({
             variant: "destructive",
             title: "Erro ao atualizar",
             description: "Não foi possível marcar a despesa como paga."
         });
-    });
+    }
   }
 
   const isLoading = isUserLoading || isContractsLoading || isExpensesLoading;

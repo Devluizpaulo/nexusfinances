@@ -11,7 +11,6 @@ import { FinancialHealthScore } from '@/components/dashboard/financial-health-sc
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, getDocs, orderBy, limit, collectionGroup } from 'firebase/firestore';
 import type { Transaction, Debt, Goal, Installment, Budget, UserSubscription, SubscriptionPlan } from '@/lib/types';
-import { useManageRecurrences } from '@/hooks/useManageRecurrences';
 import { useNotificationGenerator } from '@/hooks/useNotificationGenerator';
 import { Calendar } from '@/components/ui/calendar';
 import { startOfMonth, endOfMonth, parseISO, format, startOfDay, isBefore, endOfWeek, addMonths, isSameMonth, subYears, subMonths, startOfYear, endOfYear, addYears, subYears as subYearsFn } from 'date-fns';
@@ -50,7 +49,6 @@ export default function DashboardPage() {
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
   
-  useManageRecurrences();
   useNotificationGenerator();
 
   const [isIncomeSheetOpen, setIsIncomeSheetOpen] = useState(false);
@@ -808,5 +806,6 @@ export default function DashboardPage() {
     </>
   );
 }
+
 
 

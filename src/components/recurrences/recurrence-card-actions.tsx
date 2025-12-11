@@ -1,12 +1,13 @@
 
+
 'use client';
 
 import { useState } from 'react';
-import { useFirestore, useUser, updateDoc, deleteDoc } from '@/firebase';
+import { useFirestore, useUser } from '@/firebase';
 import type { Recurrence } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-import { doc } from 'firebase/firestore';
+import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import {
   AlertDialog,
   AlertDialogAction,

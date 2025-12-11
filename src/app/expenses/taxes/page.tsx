@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -93,24 +94,23 @@ export default function TaxesPage() {
     setIsSheetOpen(false);
   };
   
-  const handleStatusChange = (transaction: Transaction) => {
+  const handleStatusChange = async (transaction: Transaction) => {
     if (!user || transaction.status === 'paid') return;
     const docRef = doc(firestore, `users/${user.uid}/expenses`, transaction.id);
     
-    updateDoc(docRef, { status: "paid" })
-        .then(() => {
-            toast({
-                title: "Transação atualizada!",
-                description: `A despesa foi marcada como paga.`,
-            });
-        })
-        .catch(() => {
-            toast({
-                variant: "destructive",
-                title: "Erro ao atualizar",
-                description: "Não foi possível marcar a despesa como paga. Tente novamente.",
-            });
+    try {
+        await updateDoc(docRef, { status: "paid" });
+        toast({
+            title: "Transação atualizada!",
+            description: `A despesa foi marcada como paga.`,
         });
+    } catch(e) {
+        toast({
+            variant: "destructive",
+            title: "Erro ao atualizar",
+            description: "Não foi possível marcar a despesa como paga. Tente novamente.",
+        });
+    }
   }
 
   const isLoading = isUserLoading || isExpensesLoading;

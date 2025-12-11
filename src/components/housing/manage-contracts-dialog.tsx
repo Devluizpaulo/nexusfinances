@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -11,9 +12,9 @@ import { MoreVertical, Pencil, FileTerminal, Power, PowerOff, History } from 'lu
 import type { RentalContract } from '@/lib/types';
 import { format, parseISO } from 'date-fns';
 import { cn, formatCurrency } from '@/lib/utils';
-import { useFirestore, useUser, updateDoc } from '@/firebase';
+import { useFirestore, useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { doc } from 'firebase/firestore';
+import { doc, updateDoc } from 'firebase/firestore';
 
 interface ManageContractsDialogProps {
   isOpen: boolean;

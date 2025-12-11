@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -22,7 +23,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Progress } from '@/components/ui/progress';
-import { useFirestore, useUser, updateDoc } from '@/firebase';
+import { useFirestore, useUser } from '@/firebase';
 
 import type { Goal, GoalCategory } from '@/lib/types';
 import {
@@ -37,7 +38,7 @@ import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2, Calendar, History, MoreVertical, Pencil, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { doc, deleteDoc } from 'firebase/firestore';
+import { doc, deleteDoc, updateDoc } from 'firebase/firestore';
 
 import { format, parseISO, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
