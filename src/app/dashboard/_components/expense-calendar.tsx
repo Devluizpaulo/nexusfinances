@@ -72,7 +72,7 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
           locale={ptBR}
           className="w-full"
           classNames={{
-            day_cell: 'h-10 w-10 text-center text-sm p-0 relative focus-within:relative focus-within:z-20',
+            day: 'h-10 w-10 text-center text-sm p-0 relative focus-within:relative focus-within:z-20',
           }}
           components={{
             DayContent: DayWithExpenses,
