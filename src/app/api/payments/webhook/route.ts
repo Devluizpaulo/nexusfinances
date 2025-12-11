@@ -4,12 +4,56 @@ import { MercadoPagoConfig, Payment } from 'mercadopago';
 import { doc, updateDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase/server-init';
 import type { SubscriptionPlan } from '@/lib/types';
+import crypto from 'crypto';
+
+
+// Função para verificar a assinatura do webhook
+async function verifySignature(request: NextRequest): Promise<boolean> {
+  const signatureHeader = request.headers.get('x-signature');
+  const requestId = request.headers.get('x-request-id');
+  if (!signatureHeader || !requestId) {
+    return false; // Assinatura ou ID da requisição ausente
+  }
+  
+  const parts = signatureHeader.split(',').reduce((acc, part) => {
+    const [key, value] = part.split('=');
+    acc[key.trim()] = value.trim();
+    return acc;
+  }, {} as Record<string, string>);
+
+  const ts = parts['ts'];
+  const hash = parts['v1'];
+
+  if (!ts || !hash) {
+    return false;
+  }
+  
+  const secret = process.env.MERCADO_PAGO_WEBHOOK_SECRET;
+  if (!secret) {
+    console.error("MERCADO_PAGO_WEBHOOK_SECRET não está configurado.");
+    return false;
+  }
+  
+  const manifest = `id:${requestId};ts:${ts};`;
+
+  const hmac = crypto.createHmac('sha256', secret);
+  hmac.update(manifest);
+  const expectedHash = hmac.digest('hex');
+
+  return crypto.timingSafeEqual(Buffer.from(expectedHash), Buffer.from(hash));
+}
 
 
 export async function POST(req: NextRequest) {
+  // Verificação de assinatura primeiro
+  const isVerified = await verifySignature(req);
+  if (!isVerified) {
+    return NextResponse.json({ error: 'Assinatura inválida.' }, { status: 401 });
+  }
+
   try {
     const body = await req.json();
-    console.log('Webhook do Mercado Pago recebido:', body);
+    console.log('Webhook do Mercado Pago recebido e verificado:', body);
     
     // Verificando se é uma notificação de pagamento
     if (body.type === 'payment') {
@@ -63,10 +107,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ status: 'received' }, { status: 200 });
 
   } catch (error: any) {
-    console.error('Erro no webhook do Mercado Pago:', error);
-    // Em caso de erro, é importante não retornar um erro 500 para o Mercado Pago,
-    // pois ele pode tentar reenviar a notificação. Logamos o erro e retornamos 200.
-    return NextResponse.json({ error: error.message }, { status: 200 });
+    console.error('Erro no processamento do webhook do Mercado Pago:', error);
+    // Retorna um erro 500 para que o Mercado Pago tente reenviar a notificação
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
-
