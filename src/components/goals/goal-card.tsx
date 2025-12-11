@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 
 import {
   Card,
@@ -22,7 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Progress } from '@/components/ui/progress';
-import { useFirestore, useUser } from '@/firebase';
+import { useFirestore, useUser, deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 
 import type { Goal, GoalCategory } from '@/lib/types';
 import {
@@ -37,7 +36,7 @@ import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2, Calendar, History, MoreVertical, Pencil, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { doc, deleteDoc, updateDoc } from 'firebase/firestore';
+import { doc } from 'firebase/firestore';
 
 import { format, parseISO, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -62,7 +61,7 @@ interface GoalCardProps {
 type GoalContribution = {
   id: string;
   amount: number;
-  date: string;
+  date: string; // ISO string
 };
 
 const goalIcons: Record<GoalCategory, string> = {
@@ -96,57 +95,37 @@ export function GoalCard({ goal, onAddContribution, onEdit }: GoalCardProps) {
     [contributions],
   );
 
-  const handleDeleteContribution = async (contributionId: string) => {
+  const handleDeleteContribution = useCallback((contributionId: string) => {
     if (!user || !firestore) return;
 
     const goalRef = doc(firestore, `users/${user.uid}/goals`, goal.id);
-
     const remaining = contributions.filter((c) => c.id !== contributionId);
     const newCurrentAmount = remaining.reduce((sum, c) => sum + c.amount, 0);
 
-    try {
-      await updateDoc(goalRef, {
-        contributions: remaining,
-        currentAmount: newCurrentAmount,
-      });
+    toast({ title: 'Removendo aporte...' });
+    updateDocumentNonBlocking(goalRef, {
+      contributions: remaining,
+      currentAmount: newCurrentAmount,
+    });
+    toast({ title: 'Aporte removido!', description: 'O histórico da sua reserva foi atualizado.' });
 
-      toast({
-        title: 'Aporte removido',
-        description: 'O aporte foi excluído do histórico desta reserva.',
-      });
-    } catch (error) {
-      console.error('Erro ao remover aporte:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Erro ao remover aporte',
-        description: 'Não foi possível atualizar o histórico. Tente novamente.',
-      });
-    }
-  };
+  }, [user, firestore, goal, contributions, toast]);
 
-  const handleDeleteGoal = async () => {
+  const handleDeleteGoal = useCallback(() => {
     if (!user || !firestore) {
       toast({ variant: "destructive", title: "Erro", description: "Você não está autenticado." });
       return;
     }
+    
+    setIsDeleteDialogOpen(false);
+    toast({ title: 'Excluindo item...', description: `"${goal.name}" será removido.` });
+    
     const goalRef = doc(firestore, `users/${user.uid}/goals`, goal.id);
-    try {
-      await deleteDoc(goalRef);
-      toast({
-        title: 'Item Excluído',
-        description: `O item "${goal.name}" foi removido.`,
-      });
-    } catch(error) {
-      console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Erro ao excluir",
-        description: "Não foi possível remover o item.",
-      });
-    } finally {
-      setIsDeleteDialogOpen(false);
-    }
-  };
+    deleteDocumentNonBlocking(goalRef);
+    
+    toast({ title: 'Item Excluído', description: `O item "${goal.name}" foi removido.` });
+    
+  }, [user, firestore, goal.id, goal.name, toast]);
 
   const progress = goal.targetAmount > 0 ? (goal.currentAmount / goal.targetAmount) * 100 : 100;
   const isCompleted = goal.currentAmount >= goal.targetAmount;
@@ -285,7 +264,7 @@ export function GoalCard({ goal, onAddContribution, onEdit }: GoalCardProps) {
                         labelFormatter={(label) => `Data: ${label}`}
                       />
                       <Line type="monotone" dataKey="total" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
-                    </LineChart>
+                    </ResponsiveContainer>
                   </ResponsiveContainer>
                 </div>
               </div>
@@ -412,8 +391,7 @@ export function GoalCard({ goal, onAddContribution, onEdit }: GoalCardProps) {
           </div>
           {!isCompleted && estimatedDate && estimatedMonths !== null && remainingAmount > 0 && (
             <p className="mt-1 text-xs text-muted-foreground">
-              Faltam {formatCurrency(remainingAmount)} para bater a meta. No ritmo atual você deve alcançar em
-              {' '}
+              Faltam {formatCurrency(remainingAmount)} para bater a meta. No ritmo atual você deve alcançar em{' '}
               <span className="font-medium">
                 {format(estimatedDate, "MMMM 'de' yyyy", { locale: ptBR })}
               </span>

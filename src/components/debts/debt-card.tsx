@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
   Card,
   CardContent,
@@ -38,8 +37,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { format, isPast, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, orderBy, doc, writeBatch, getDocs, deleteDoc } from 'firebase/firestore';
+import { useFirestore, useCollection, useMemoFirebase, useUser, updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase';
+import { collection, query, orderBy, doc, writeBatch, getDocs } from 'firebase/firestore';
 import type { Debt, Installment } from '@/lib/types';
 import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -74,27 +73,28 @@ export function DebtCard({ debt, selectedDueDate }: DebtCardProps) {
 
   const { data: installmentsData } = useCollection<Installment>(installmentsQuery);
 
-  const handlePayInstallment = async (installment: Installment) => {
+  const handlePayInstallment = useCallback(async (installment: Installment) => {
     if (!user || !firestore) return;
     
     const installmentRef = doc(firestore, `users/${user.uid}/debts/${debt.id}/installments`, installment.id);
     const debtRef = doc(firestore, `users/${user.uid}/debts`, debt.id);
 
+    toast({
+        title: 'Processando Pagamento...',
+        description: `Marcando a parcela ${installment.installmentNumber} como paga.`,
+    });
+
     try {
       const batch = writeBatch(firestore);
-      
       batch.update(installmentRef, { status: 'paid' });
-
       const newPaidAmount = (debt.paidAmount || 0) + installment.amount;
       batch.update(debtRef, { paidAmount: newPaidAmount });
-
       await batch.commit();
 
       toast({
         title: 'Parcela Paga!',
         description: `A parcela ${installment.installmentNumber} da dívida "${debt.name}" foi marcada como paga.`,
       });
-
     } catch (error) {
       console.error("Error paying installment: ", error);
       toast({
@@ -103,29 +103,31 @@ export function DebtCard({ debt, selectedDueDate }: DebtCardProps) {
         description: 'Não foi possível atualizar o status da parcela.',
       });
     }
-  };
+  }, [user, firestore, debt.id, debt.name, debt.paidAmount, toast]);
 
-  const handleDeleteDebt = async () => {
+  const handleDeleteDebt = useCallback(async () => {
     if (!user || !firestore) {
         toast({ variant: "destructive", title: "Erro", description: "Você não está autenticado." });
         return;
     }
+
+    setIsDeleteDialogOpen(false);
+
+    toast({
+      title: 'Excluindo Dívida...',
+      description: `Removendo "${debt.name}" e todas as suas parcelas.`,
+    });
 
     const debtRef = doc(firestore, `users/${user.uid}/debts`, debt.id);
     const installmentsColRef = collection(debtRef, 'installments');
 
     try {
         const batch = writeBatch(firestore);
-
-        // Delete all installments in the subcollection
         const installmentsSnapshot = await getDocs(installmentsColRef);
         installmentsSnapshot.forEach((doc) => {
             batch.delete(doc.ref);
         });
-
-        // Delete the main debt document
         batch.delete(debtRef);
-
         await batch.commit();
 
         toast({
@@ -140,8 +142,7 @@ export function DebtCard({ debt, selectedDueDate }: DebtCardProps) {
             description: 'Não foi possível remover a dívida. Tente novamente.',
         });
     }
-    setIsDeleteDialogOpen(false);
-  };
+  }, [user, firestore, debt.id, debt.name, toast]);
 
 
   const getInstallmentStatus = (installment: Installment) => {
