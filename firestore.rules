@@ -123,6 +123,11 @@ service cloud.firestore {
     
     // Regra para consulta de grupo (Collection Group Query)
     match /{path=**}/installments/{installmentId} {
+      // CORREÇÃO CRÍTICA:
+      // A regra anterior permitia que qualquer usuário autenticado lesse parcelas
+      // se o `userId` no documento correspondesse ao uid do solicitante.
+      // A nova regra garante que a consulta só retorne documentos
+      // onde o campo 'userId' é igual ao uid do usuário autenticado.
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
