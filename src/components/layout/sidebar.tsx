@@ -1,5 +1,6 @@
+
 'use client';
-import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator, SidebarGroup, SidebarGroupLabel } from '@/components/ui/sidebar';
+import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator, SidebarGroup, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton } from '@/components/ui/sidebar';
 import { LayoutDashboard, Landmark, CreditCard, Banknote, PiggyBank, BarChart3, GraduationCap, ShieldCheck, LifeBuoy, Home, Zap, FileText, HeartPulse, Repeat, WalletCards, History, List, LineChart, PieChart } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -11,7 +12,7 @@ import Image from 'next/image';
 
 const navSections = [
     {
-        label: 'Visão Geral',
+        label: 'Dashboard',
         icon: LayoutDashboard,
         href: '/dashboard',
         subItems: [
@@ -22,10 +23,18 @@ const navSections = [
     {
         label: 'Transações',
         icon: Landmark,
-        href: '/transactions',
+        href: '/income', // O link pai pode levar para a primeira subpágina
         subItems: [
             { href: '/income', label: 'Rendas', icon: Landmark },
             { href: '/expenses', label: 'Despesas', icon: CreditCard },
+            { href: '/income/salary', label: 'Salário', icon: Briefcase },
+            { href: '/income/freelancer', label: 'Freelancer', icon: PenSquare },
+            { href: '/income/others', label: 'Outras', icon: WalletCards },
+            { href: '/expenses/housing', label: 'Moradia', icon: Home },
+            { href: '/expenses/utilities', label: 'Contas', icon: Zap },
+            { href: '/expenses/taxes', label: 'Impostos', icon: FileText },
+            { href: '/expenses/health', label: 'Saúde', icon: HeartPulse },
+            { href: '/expenses/subscriptions', label: 'Assinaturas', icon: Repeat },
         ]
     },
     {
@@ -71,7 +80,7 @@ export function AppSidebar() {
                     <div className="p-1.5 rounded-lg bg-background">
                         <Image src="/images/xoplanilhas_logo.png" alt="Logo Xô Planilhas" width={32} height={32} />
                     </div>
-                    <span className={cn("text-lg font-semibold group-data-[state=collapsed]:hidden")}>Xô Planilhas</span>
+                    <span className={cn("text-lg font-semibold group-data-[state=expanded]:inline-flex hidden")}>Xô Planilhas</span>
                 </Link>
             </Button>
         </SidebarHeader>
@@ -90,7 +99,7 @@ export function AppSidebar() {
                             >
                                 <Link href={section.href}>
                                     <section.icon />
-                                    <span>{section.label}</span>
+                                    <span className="group-data-[state=expanded]:inline-flex hidden">{section.label}</span>
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
@@ -98,7 +107,7 @@ export function AppSidebar() {
                              <SidebarMenuSub>
                                 {section.subItems.map(subItem => (
                                     <SidebarMenuSubItem key={subItem.href}>
-                                        <SidebarMenuSubButton asChild isActive={pathname.startsWith(subItem.href)} onClick={handleMobileClick}>
+                                        <SidebarMenuSubButton asChild isActive={pathname === subItem.href} onClick={handleMobileClick}>
                                              <Link href={subItem.href}>
                                                 <subItem.icon />
                                                 <span>{subItem.label}</span>
@@ -118,7 +127,7 @@ export function AppSidebar() {
                         <SidebarMenuButton asChild isActive={pathname.startsWith('/admin')} tooltip="Painel Admin" onClick={handleMobileClick}>
                             <Link href="/admin/dashboard">
                                 <ShieldCheck className="text-destructive" />
-                                <span>Painel Admin</span>
+                                <span className="group-data-[state=expanded]:inline-flex hidden">Painel Admin</span>
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -134,7 +143,7 @@ export function AppSidebar() {
                         <SidebarMenuButton asChild isActive={pathname.startsWith(item.href)} tooltip={item.label} onClick={handleMobileClick}>
                             <Link href={item.href}>
                                 <item.icon />
-                                <span>{item.label}</span>
+                                <span className="group-data-[state=expanded]:inline-flex hidden">{item.label}</span>
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
