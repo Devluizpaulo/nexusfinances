@@ -1,7 +1,6 @@
-
 'use client';
 import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator, SidebarGroup, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton } from '@/components/ui/sidebar';
-import { LayoutDashboard, Landmark, CreditCard, Banknote, PiggyBank, BarChart3, GraduationCap, ShieldCheck, LifeBuoy, Home, Zap, FileText, HeartPulse, Repeat, WalletCards, History, List, LineChart, PieChart } from 'lucide-react';
+import { LayoutDashboard, Landmark, CreditCard, Banknote, PiggyBank, BarChart3, GraduationCap, ShieldCheck, LifeBuoy, Home, Zap, FileText, HeartPulse, Repeat, WalletCards, History, List, LineChart, PieChart, Briefcase, PenSquare } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '../ui/button';
