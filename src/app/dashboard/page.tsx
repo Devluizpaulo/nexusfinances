@@ -18,6 +18,9 @@ import { BalanceCard } from './_components/balance-card';
 import { DashboardHeader } from './_components/dashboard-header';
 import { IncomeExpenseChart } from '@/components/dashboard/income-expense-chart';
 import { Loader2 } from 'lucide-react';
+import { ExpenseCategoryChart } from '@/components/dashboard/expense-category-chart';
+import { FinancialHealthScore } from '@/components/dashboard/financial-health-score';
+import { OverdueDebtsCard } from '@/components/dashboard/overdue-debts-card';
 
 export default function DashboardPage() {
   const { selectedDate } = useDashboardDate();
@@ -116,12 +119,29 @@ export default function DashboardPage() {
     
       <div className="space-y-6">
         <DashboardHeader />
-
-        <div className="space-y-6">
-          <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
-          <RecentTransactionsList transactions={allTransactions} />
-          <IncomeExpenseChart transactions={allTransactions} />
+        
+        <OverdueDebtsCard debts={debtData || []} />
+        
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
+          </div>
+          <FinancialHealthScore
+            income={totalIncome}
+            expenses={totalExpenses}
+            debts={debtData || []}
+            goals={goalData || []}
+            transactions={allTransactions}
+          />
         </div>
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+           <div className="lg:col-span-2">
+            <IncomeExpenseChart transactions={allTransactions} />
+           </div>
+           <RecentTransactionsList transactions={allTransactions} />
+        </div>
+         <ExpenseCategoryChart transactions={expenseData || []} />
       </div>
 
        <div className="fixed bottom-6 right-6 z-40">

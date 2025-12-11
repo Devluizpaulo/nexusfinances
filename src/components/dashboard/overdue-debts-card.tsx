@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/table';
 import { AlertTriangle, Info, Loader2 } from 'lucide-react';
 import { useFirestore, useUser } from '@/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, collectionGroup } from 'firebase/firestore';
 import type { Debt, Installment } from '@/lib/types';
 import { format, isPast, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
