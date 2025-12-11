@@ -2,7 +2,6 @@
 'use client';
 
 import * as React from 'react';
-import { useForm } from 'react-hook-form';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -27,7 +26,7 @@ import { CurrencyInput } from '../ui/currency-input';
 import { Separator } from '../ui/separator';
 import { Label } from '@/components/ui/label';
 import { AddCreditCardSheet } from '../credit-cards/add-credit-card-sheet';
-import { useTransactionForm, type TransactionFormValues } from '@/hooks/use-transaction-form';
+import { useTransactionForm } from '@/hooks/use-transaction-form';
 
 type AddTransactionSheetProps = {
   isOpen: boolean;
@@ -288,7 +287,6 @@ export function AddTransactionSheet({
                       <Switch
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-slate-300"
                       />
                     </FormControl>
                   </FormItem>
@@ -334,7 +332,6 @@ export function AddTransactionSheet({
                       <Switch
                         checked={field.value === 'paid'}
                         onCheckedChange={(checked) => field.onChange(checked ? 'paid' : 'pending')}
-                        className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-slate-300"
                       />
                     </FormControl>
                   </FormItem>
