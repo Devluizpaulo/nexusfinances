@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -27,9 +28,6 @@ export default function UtilitiesPage() {
 
   const utilitiesExpensesQuery = useMemoFirebase(() => {
     if (!user) return null;
-    console.log('Creating utilities query for user:', user.uid);
-    console.log('Category filter:', 'Contas de Consumo');
-    console.log('Collection path:', `users/${user.uid}/expenses`);
     return query(
       collection(firestore, `users/${user.uid}/expenses`),
       where('category', '==', 'Contas de Consumo'),
@@ -38,53 +36,6 @@ export default function UtilitiesPage() {
   }, [firestore, user]);
 
   const { data: expenseData, isLoading: isExpensesLoading } = useCollection<Transaction>(utilitiesExpensesQuery);
-
-  // Debug: Log the query and results
-  console.log('Utilities Query:', utilitiesExpensesQuery);
-  console.log('Utilities Data:', expenseData);
-  console.log('Is Loading:', isExpensesLoading);
-  console.log('User:', user);
-  
-  // Test query without category filter
-  const allExpensesQuery = useMemoFirebase(() => {
-    if (!user) return null;
-    console.log('Creating ALL expenses query for user:', user.uid);
-    return query(
-      collection(firestore, `users/${user.uid}/expenses`),
-      orderBy('date', 'desc')
-    );
-  }, [firestore, user]);
-
-  const { data: allExpenses } = useCollection<Transaction>(allExpensesQuery);
-  console.log('All Expenses Data:', allExpenses);
-  console.log('All Expenses Length:', allExpenses?.length);
-  
-  // Filter manually to see if category matches
-  const manualFiltered = allExpenses?.filter(expense => {
-    console.log('Checking expense:', expense.category, 'vs', 'Contas de Consumo', expense.category === 'Contas de Consumo');
-    console.log('Expense details:', expense);
-    return expense.category === 'Contas de Consumo';
-  });
-  console.log('Manual filtered utilities:', manualFiltered);
-  
-  // Try different category variations
-  const categoryVariations = [
-    'Contas de Consumo',
-    'Contas de Consumo ',
-    ' Contas de Consumo',
-    'Contas de Consumo\n',
-    'Contas de Consumo\t'
-  ];
-  
-  const testVariations = categoryVariations.map(cat => ({
-    category: cat,
-    matches: allExpenses?.filter(expense => expense.category === cat)
-  }));
-  
-  console.log('Category variations test:', testVariations);
-  
-  // Use manual filtered data for now
-  const effectiveExpenseData = manualFiltered || expenseData;
   
   const handleOpenSheet = (transaction: Transaction | null = null) => {
     setEditingTransaction(transaction);
@@ -147,12 +98,12 @@ export default function UtilitiesPage() {
         </div>
       </PageHeader>
       
-      {effectiveExpenseData && effectiveExpenseData.length > 0 ? (
+      {expenseData && expenseData.length > 0 ? (
         <>
           {/* Mobile view */}
           <div className="md:hidden">
             <TransactionList 
-              transactions={effectiveExpenseData}
+              transactions={expenseData}
               onEdit={handleOpenSheet}
               onStatusChange={handleStatusChange}
               transactionType="expense"
@@ -163,7 +114,7 @@ export default function UtilitiesPage() {
           <div className="hidden md:block">
             <DataTable
                 columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
-                data={effectiveExpenseData}
+                data={expenseData}
             />
           </div>
         </>

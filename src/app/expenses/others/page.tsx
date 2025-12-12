@@ -2,10 +2,10 @@
 
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { collection, query, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, orderBy, where, doc, updateDoc } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Transaction } from '@/lib/types';
-import { Loader2, WalletCards, PlusCircle, Upload } from 'lucide-react';
+import { Loader2, PlusCircle, Upload } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { AddOtherExpenseSheet } from '@/components/expenses/add-other-expense-sheet';
 import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
@@ -14,10 +14,8 @@ import { columns } from '../columns';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { PenSquare } from 'lucide-react';
+import { specificExpenseCategories } from '@/lib/types';
 
-const specificExpenseCategories = [
-    'Moradia', 'Contas de Consumo', 'Impostos & Taxas', 'Assinaturas & Serviços'
-];
 
 export default function OthersExpensesPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -28,27 +26,17 @@ export default function OthersExpensesPage() {
   const { user, isUserLoading } = useUser();
   const { toast } = useToast();
 
-  const allExpensesQuery = useMemoFirebase(() => {
+  const otherExpensesQuery = useMemoFirebase(() => {
     if (!user) return null;
     return query(
       collection(firestore, `users/${user.uid}/expenses`),
+      where('category', 'not-in', specificExpenseCategories),
+      orderBy('category'),
       orderBy('date', 'desc')
     );
   }, [user, firestore]);
   
-  const { data: allExpenses, isLoading: isExpensesLoading } = useCollection<Transaction>(allExpensesQuery);
-
-  const otherExpenses = useMemo(() => {
-    if (!allExpenses) return [];
-    return allExpenses.filter(expense => {
-        const categoryLower = expense.category.toLowerCase();
-        // Check if the category is NOT one of the specific ones
-        return !specificExpenseCategories.some(specificCat => 
-            categoryLower.includes(specificCat.toLowerCase())
-        );
-    });
-  }, [allExpenses]);
-  
+  const { data: otherExpenses, isLoading: isExpensesLoading } = useCollection<Transaction>(otherExpensesQuery);
 
   const handleOpenSheet = (transaction: Transaction | null = null) => {
     setEditingTransaction(transaction);
@@ -117,7 +105,7 @@ export default function OthersExpensesPage() {
         </div>
       </PageHeader>
       
-      {otherExpenses.length > 0 ? (
+      {otherExpenses && otherExpenses.length > 0 ? (
           <DataTable
             columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
             data={otherExpenses}

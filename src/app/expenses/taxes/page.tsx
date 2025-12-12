@@ -33,9 +33,6 @@ export default function TaxesPage() {
 
   const taxesExpensesQuery = useMemoFirebase(() => {
     if (!user) return null;
-    console.log('Creating query for user:', user.uid);
-    console.log('Category filter:', 'Impostos & Taxas');
-    console.log('Collection path:', `users/${user.uid}/expenses`);
     return query(
       collection(firestore, `users/${user.uid}/expenses`),
       where('category', '==', 'Impostos & Taxas'),
@@ -44,53 +41,6 @@ export default function TaxesPage() {
   }, [user, firestore]);
 
   const { data: taxesExpenses, isLoading: isExpensesLoading } = useCollection<Transaction>(taxesExpensesQuery);
-
-  // Debug: Log the query and results
-  console.log('Taxes Query:', taxesExpensesQuery);
-  console.log('Taxes Data:', taxesExpenses);
-  console.log('Is Loading:', isExpensesLoading);
-  console.log('User:', user);
-  
-  // Test query without category filter
-  const allExpensesQuery = useMemoFirebase(() => {
-    if (!user) return null;
-    console.log('Creating ALL expenses query for user:', user.uid);
-    return query(
-      collection(firestore, `users/${user.uid}/expenses`),
-      orderBy('date', 'desc')
-    );
-  }, [user, firestore]);
-
-  const { data: allExpenses } = useCollection<Transaction>(allExpensesQuery);
-  console.log('All Expenses Data:', allExpenses);
-  console.log('All Expenses Length:', allExpenses?.length);
-  
-  // Filter manually to see if category matches
-  const manualFiltered = allExpenses?.filter(expense => {
-    console.log('Checking expense:', expense.category, 'vs', 'Impostos & Taxas', expense.category === 'Impostos & Taxas');
-    console.log('Expense details:', expense);
-    return expense.category === 'Impostos & Taxas';
-  });
-  console.log('Manual filtered taxes:', manualFiltered);
-  
-  // Try different category variations
-  const categoryVariations = [
-    'Impostos & Taxas',
-    'Impostos & Taxas ',
-    ' Impostos & Taxas',
-    'Impostos & Taxas\n',
-    'Impostos & Taxas\t'
-  ];
-  
-  const testVariations = categoryVariations.map(cat => ({
-    category: cat,
-    matches: allExpenses?.filter(expense => expense.category === cat)
-  }));
-  
-  console.log('Category variations test:', testVariations);
-  
-  // Use manual filtered data for now
-  const effectiveTaxesExpenses = manualFiltered || taxesExpenses;
   
   const { upcoming, overdue, paid } = useMemo(() => {
     const data = {
@@ -99,10 +49,7 @@ export default function TaxesPage() {
         paid: [] as Transaction[],
     };
 
-    console.log('Processing effectiveTaxesExpenses:', effectiveTaxesExpenses);
-
-    for (const t of effectiveTaxesExpenses ?? []) {
-        console.log('Processing transaction:', t);
+    for (const t of taxesExpenses ?? []) {
         if (t.status === 'paid') {
             data.paid.push(t);
             continue;
@@ -110,7 +57,6 @@ export default function TaxesPage() {
 
         const dueDate = new Date(t.date);
         if (isNaN(dueDate.getTime())) {
-            // Se a data for inválida, joga para 'a vencer' para revisão
             data.upcoming.push(t);
             continue;
         }
@@ -122,14 +68,13 @@ export default function TaxesPage() {
         }
     }
 
-    console.log('Final data:', data);
     return data;
-  }, [effectiveTaxesExpenses]);
+  }, [taxesExpenses]);
 
   const tableData = useMemo(() => {
     switch (activeTab) {
       case 'all':
-        return effectiveTaxesExpenses ?? [];
+        return taxesExpenses ?? [];
       case 'upcoming':
         return upcoming;
       case 'overdue':
@@ -139,7 +84,7 @@ export default function TaxesPage() {
       default:
         return [];
     }
-  }, [activeTab, upcoming, overdue, paid, effectiveTaxesExpenses]);
+  }, [activeTab, upcoming, overdue, paid, taxesExpenses]);
 
 
   const handleOpenSheet = (transaction: Transaction | null = null) => {
@@ -213,13 +158,13 @@ export default function TaxesPage() {
       
        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as ActiveTab)} className="mt-6">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="all">Todos ({(effectiveTaxesExpenses ?? []).length})</TabsTrigger>
+          <TabsTrigger value="all">Todos ({(taxesExpenses ?? []).length})</TabsTrigger>
           <TabsTrigger value="upcoming">A vencer ({upcoming.length})</TabsTrigger>
           <TabsTrigger value="overdue">Vencidos ({overdue.length})</TabsTrigger>
           <TabsTrigger value="paid">Pagos ({paid.length})</TabsTrigger>
         </TabsList>
         <div className="mt-4">
-          {(effectiveTaxesExpenses ?? []).length > 0 ? (
+          {(taxesExpenses ?? []).length > 0 ? (
             <>
               {/* Mobile view */}
               <div className="md:hidden">

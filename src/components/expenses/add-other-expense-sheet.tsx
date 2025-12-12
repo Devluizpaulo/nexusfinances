@@ -46,11 +46,11 @@ import { useToast } from '@/hooks/use-toast';
 import type { Transaction } from '@/lib/types';
 import { Textarea } from '../ui/textarea';
 import { CurrencyInput } from '../ui/currency-input';
-import { expenseCategories } from '@/lib/types';
+import { expenseCategories, specificExpenseCategories } from '@/lib/types';
 import { Label } from '../ui/label';
 
 const otherExpenseCategories = expenseCategories.filter(
-  c => !['Moradia', 'Contas de Consumo', 'Impostos & Taxas', 'Assinaturas & Serviços'].includes(c)
+  c => !specificExpenseCategories.includes(c)
 );
 
 const formSchema = z.object({

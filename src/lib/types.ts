@@ -1,4 +1,3 @@
-
 import { z } from 'zod';
 import type { ElementType } from 'react';
 
@@ -151,18 +150,17 @@ export type Notification = {
   entityId?: string;
 }
 
+// Categorias que possuem páginas/lógicas específicas
+export const specificExpenseCategories = [
+    'Moradia', 'Contas de Consumo', 'Impostos & Taxas', 'Assinaturas & Serviços', 'Saúde', 'Educação'
+] as const;
 
 export const expenseCategories = [
+    ...specificExpenseCategories,
     'Alimentação',
-    'Moradia',
-    'Contas de Consumo',
     'Transporte',
-    'Saúde',
-    'Educação',
     'Lazer',
     'Compras',
-    'Assinaturas & Serviços',
-    'Impostos & Taxas',
     'Investimentos',
     'Outros',
 ] as const;

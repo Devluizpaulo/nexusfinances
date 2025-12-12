@@ -41,9 +41,6 @@ export default function HousingPage() {
   
   const housingExpensesQuery = useMemoFirebase(() => {
     if (!user) return null;
-    console.log('Creating housing query for user:', user.uid);
-    console.log('Category filter:', 'Moradia');
-    console.log('Collection path:', `users/${user.uid}/expenses`);
     return query(
       collection(firestore, `users/${user.uid}/expenses`),
       where('category', '==', 'Moradia'),
@@ -53,54 +50,7 @@ export default function HousingPage() {
 
   const { data: contractsData, isLoading: isContractsLoading } = useCollection<RentalContract>(contractsQuery);
   const { data: housingExpenses, isLoading: isExpensesLoading } = useCollection<Transaction>(housingExpensesQuery);
-
-  // Debug: Log the query and results
-  console.log('Housing Query:', housingExpensesQuery);
-  console.log('Housing Data:', housingExpenses);
-  console.log('Is Loading:', isExpensesLoading);
-  console.log('User:', user);
   
-  // Test query without category filter
-  const allExpensesQuery = useMemoFirebase(() => {
-    if (!user) return null;
-    console.log('Creating ALL expenses query for user:', user.uid);
-    return query(
-      collection(firestore, `users/${user.uid}/expenses`),
-      orderBy('date', 'desc')
-    );
-  }, [firestore, user]);
-
-  const { data: allExpenses } = useCollection<Transaction>(allExpensesQuery);
-  console.log('All Expenses Data:', allExpenses);
-  console.log('All Expenses Length:', allExpenses?.length);
-  
-  // Filter manually to see if category matches
-  const manualFiltered = allExpenses?.filter(expense => {
-    console.log('Checking expense:', expense.category, 'vs', 'Moradia', expense.category === 'Moradia');
-    console.log('Expense details:', expense);
-    return expense.category === 'Moradia';
-  });
-  console.log('Manual filtered housing:', manualFiltered);
-  
-  // Try different category variations
-  const categoryVariations = [
-    'Moradia',
-    'Moradia ',
-    ' Moradia',
-    'Moradia\n',
-    'Moradia\t'
-  ];
-  
-  const testVariations = categoryVariations.map(cat => ({
-    category: cat,
-    matches: allExpenses?.filter(expense => expense.category === cat)
-  }));
-  
-  console.log('Category variations test:', testVariations);
-  
-  // Use manual filtered data for now
-  const effectiveHousingExpenses = manualFiltered || housingExpenses;
-
   const { activeContracts, inactiveContracts } = useMemo(() => {
     const active: RentalContract[] = [];
     const inactive: RentalContract[] = [];
@@ -223,12 +173,12 @@ export default function HousingPage() {
           <div className="lg:col-span-2 space-y-6">
             <section>
               <h2 className="text-lg font-semibold mb-4">Histórico de Despesas de Moradia</h2>
-              {(effectiveHousingExpenses ?? []).length > 0 ? (
+              {(housingExpenses ?? []).length > 0 ? (
                 <>
                   {/* Mobile view */}
                   <div className="md:hidden">
                     <TransactionList 
-                      transactions={effectiveHousingExpenses ?? []}
+                      transactions={housingExpenses ?? []}
                       onEdit={handleEditTransaction}
                       onStatusChange={handleStatusChange}
                       transactionType="expense"
@@ -239,7 +189,7 @@ export default function HousingPage() {
                   <div className="hidden md:block">
                     <DataTable
                       columns={columns({ onEdit: handleEditTransaction, onStatusChange: handleStatusChange })}
-                      data={effectiveHousingExpenses ?? []}
+                      data={housingExpenses ?? []}
                     />
                   </div>
                 </>
