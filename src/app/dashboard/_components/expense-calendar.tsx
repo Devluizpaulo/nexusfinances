@@ -1,15 +1,20 @@
+
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import type { Transaction } from '@/lib/types';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
-import { Badge } from '@/components/ui/badge';
 import { useDashboardDate } from '@/context/dashboard-date-context';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface ExpenseCalendarProps {
   expenses: Transaction[];
@@ -29,6 +34,8 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
       return acc;
     }, {} as Record<string, number>);
   }, [expenses]);
+  
+  const maxExpense = useMemo(() => Math.max(0, ...Object.values(expensesByDay)), [expensesByDay]);
 
   const handleDayClick = (day: Date) => {
     const formattedDate = format(day, 'yyyy-MM-dd');
@@ -36,24 +43,15 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
       router.push(`/expenses?date=${formattedDate}`);
     }
   };
-
-  const DayWithExpenses = ({ date }: { date: Date }) => {
-    const dayStr = format(date, 'yyyy-MM-dd');
-    const total = expensesByDay[dayStr];
-    if (total > 0) {
-      return (
-        <div className="relative flex h-full w-full flex-col items-center justify-center">
-          <span>{date.getDate()}</span>
-          <Badge
-            variant="destructive"
-            className="absolute bottom-0.5 scale-[0.6] rounded-full p-0.5 px-1 font-mono"
-          >
-            -{formatCurrency(total)}
-          </Badge>
-        </div>
-      );
-    }
-    return <span>{date.getDate()}</span>;
+  
+  const getIntensityClass = (total: number) => {
+    if (total === 0 || maxExpense === 0) return '';
+    const percentage = (total / maxExpense) * 100;
+    
+    if (percentage > 75) return 'bg-rose-900/80 text-rose-100';
+    if (percentage > 50) return 'bg-rose-900/60 text-rose-200';
+    if (percentage > 25) return 'bg-rose-900/40';
+    return 'bg-rose-900/20';
   };
 
   return (
@@ -61,25 +59,48 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
       <CardHeader className="pb-2">
         <CardTitle className="text-base">Calendário de Despesas</CardTitle>
         <CardDescription className="text-xs">
-          Clique em um dia para ver os detalhes.
+          Passe o mouse ou clique em um dia para ver os detalhes.
         </CardDescription>
       </CardHeader>
       <CardContent className="p-0">
-        <Calendar
-          mode="single"
-          month={selectedDate}
-          onMonthChange={setSelectedDate}
-          selected={selectedDate}
-          onDayClick={handleDayClick}
-          locale={ptBR}
-          className="w-full"
-          classNames={{
-            day: 'h-10 w-10 text-center text-sm p-0 relative focus-within:relative focus-within:z-20',
-          }}
-          components={{
-            DayContent: DayWithExpenses,
-          }}
-        />
+        <TooltipProvider delayDuration={100}>
+            <Calendar
+            mode="single"
+            month={selectedDate}
+            onMonthChange={setSelectedDate}
+            onDayClick={handleDayClick}
+            className="w-full"
+            classNames={{
+                day: "h-10 w-10 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
+                day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+            }}
+            components={{
+                DayContent: ({ date }) => {
+                    const dayStr = format(date, 'yyyy-MM-dd');
+                    const total = expensesByDay[dayStr];
+
+                    if (total > 0) {
+                        return (
+                             <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <div className={cn(
+                                        "relative flex h-full w-full flex-col items-center justify-center rounded-md transition-colors hover:bg-rose-900/90",
+                                        getIntensityClass(total)
+                                    )}>
+                                        {date.getDate()}
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p className="font-semibold text-destructive">Gasto: {formatCurrency(total)}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        );
+                    }
+                    return <span>{date.getDate()}</span>;
+                },
+            }}
+            />
+        </TooltipProvider>
       </CardContent>
     </Card>
   );
