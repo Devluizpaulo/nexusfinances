@@ -21,19 +21,19 @@ const subscriptionCategories = [
   { 
     id: 'media',
     title: 'Mídia & Streaming',
-    keywords: ['Netflix', 'YouTube', 'Spotify', 'Amazon Prime', 'Disney+', 'HBO Max', 'Música', 'Filmes', 'Jornal', 'Revista', 'Notícias', 'Kindle', 'Livros'],
+    keywords: ['netflix', 'youtube', 'spotify', 'amazon prime', 'disney+', 'hbo max', 'música', 'filmes', 'jornal', 'revista', 'notícias', 'kindle', 'livros', 'globoplay', 'streaming'],
     icon: Film,
   },
   { 
     id: 'software',
     title: 'Software & IAs',
-    keywords: ['Software', 'Assinatura', 'IA', 'Adobe', 'Office', 'Nuvem', 'Produtividade', 'Notion', 'ChatGPT'],
+    keywords: ['software', 'assinatura', 'ia', 'adobe', 'office', 'nuvem', 'produtividade', 'notion', 'chatgpt', 'contabilizei'],
     icon: Cpu
   },
   { 
     id: 'services',
     title: 'Outros Serviços',
-    keywords: ['Academia', 'Gympass', 'Yoga', 'Meditação', 'Saúde'],
+    keywords: ['academia', 'gympass', 'yoga', 'meditação', 'saúde'],
     icon: Repeat,
   }
 ];
@@ -46,7 +46,11 @@ export default function SubscriptionsPage() {
 
   const recurringExpensesQuery = useMemoFirebase(() => {
     if (!user) return null;
-    return query(collection(firestore, `users/${user.uid}/expenses`), where('isRecurring', '==', true));
+    return query(
+      collection(firestore, `users/${user.uid}/expenses`), 
+      where('isRecurring', '==', true),
+      where('category', 'in', ['Assinaturas & Serviços', 'Lazer', 'Saúde', 'Educação', 'Outros'])
+    );
   }, [firestore, user]);
 
   const { data: expenseData, isLoading: isExpensesLoading } = useCollection<Recurrence>(recurringExpensesQuery);
@@ -58,32 +62,20 @@ export default function SubscriptionsPage() {
       services: []
     };
     
-    const nonSubscriptionKeywords = [
-        'Moradia', 'Aluguel', 'Condomínio', 'Hipoteca', 
-        'Luz', 'Água', 'Gás', 'Internet', 'Celular', 'Plano',
-        'IPTU', 'IPVA', 'Seguro Residencial', 'Seguro de Carro'
-    ].map(k => k.toLowerCase());
-
     (expenseData || []).forEach(expense => {
       const expenseDescription = expense.description.toLowerCase();
       const expenseCategoryLower = expense.category.toLowerCase();
 
-      if (nonSubscriptionKeywords.some(keyword => expenseCategoryLower.includes(keyword) || expenseDescription.includes(keyword))) {
-          return; // Skip non-subscription recurring expenses
+      let assigned = false;
+      for (const cat of subscriptionCategories) {
+        if (cat.id !== 'services' && cat.keywords.some(keyword => expenseDescription.includes(keyword) || expenseCategoryLower.includes(keyword))) {
+          grouped[cat.id].push(expense);
+          assigned = true;
+          break;
+        }
       }
-      
-      if (expenseCategoryLower === 'assinaturas & serviços' || expense.isRecurring) {
-        let assigned = false;
-        for (const cat of subscriptionCategories) {
-          if (cat.id !== 'services' && cat.keywords.some(keyword => expenseDescription.includes(keyword.toLowerCase()) || expenseCategoryLower.includes(keyword.toLowerCase()))) {
-            grouped[cat.id].push(expense);
-            assigned = true;
-            break;
-          }
-        }
-        if (!assigned) {
-          grouped['services'].push(expense);
-        }
+      if (!assigned) {
+        grouped['services'].push(expense);
       }
     });
 
