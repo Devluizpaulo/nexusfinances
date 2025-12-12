@@ -98,22 +98,22 @@ export default function GoalsPage() {
         title="Metas e Reservas"
         description="Acompanhe o progresso dos seus sonhos e objetivos financeiros."
       >
-          <Button onClick={() => setIsAddGoalSheetOpen(true)} disabled={!user}>
+          <Button onClick={() => setIsAddGoalSheetOpen(true)} disabled={!user} className="bg-emerald-500/20 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/30 hover:border-emerald-500/50">
             <PlusCircle className="mr-2 h-4 w-4" />
             Adicionar Reserva/Investimento
           </Button>
       </PageHeader>
       
       {(!goalData || goalData.length === 0) ? (
-         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-12 text-center" style={{minHeight: '400px'}}>
-           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-4">
-              <PiggyBank className="h-8 w-8 text-primary" />
+         <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-800/60 bg-slate-950/70 p-12 text-center shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]" style={{minHeight: '400px'}}>
+           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 mb-4">
+              <PiggyBank className="h-8 w-8 text-emerald-400" />
             </div>
-            <h3 className="text-xl font-semibold">Defina seu primeiro objetivo</h3>
-            <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+            <h3 className="text-xl font-semibold text-slate-100">Defina seu primeiro objetivo</h3>
+            <p className="mt-2 max-w-sm text-sm text-slate-400">
               Cadastre sua primeira reserva ou meta de investimento para ver seu progresso, visualizar o quanto falta e manter a motivação em alta.
             </p>
-            <Button className="mt-6" onClick={() => setIsAddGoalSheetOpen(true)}>
+            <Button className="mt-6 bg-emerald-500/20 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/30 hover:border-emerald-500/50" onClick={() => setIsAddGoalSheetOpen(true)}>
               <PlusCircle className="mr-2 h-4 w-4" />
               Adicionar Primeira Meta
             </Button>
@@ -121,7 +121,9 @@ export default function GoalsPage() {
       ) : (
          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
           {orderedGoals.map((goal) => (
-            <GoalCard key={goal.id} goal={goal} onAddContribution={handleOpenContributionSheet} onEdit={handleOpenEditSheet} />
+            <div key={goal.id} className="rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
+              <GoalCard goal={goal} onAddContribution={handleOpenContributionSheet} onEdit={handleOpenEditSheet} />
+            </div>
           ))}
         </div>
       )}

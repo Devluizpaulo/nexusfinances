@@ -31,9 +31,9 @@ export function TransactionList({
 }: TransactionListProps) {
   if (transactions.length === 0) {
     return (
-      <div className="flex h-40 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
-        <h3 className="font-semibold">Nenhuma transação encontrada</h3>
-        <p className="mt-1 text-sm text-muted-foreground">
+      <div className="flex h-40 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-800/60 bg-slate-950/70 p-8 text-center shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
+        <h3 className="font-semibold text-slate-100">Nenhuma transação encontrada</h3>
+        <p className="mt-1 text-sm text-slate-400">
           Adicione uma nova transação para começar.
         </p>
       </div>
@@ -60,12 +60,12 @@ export function TransactionList({
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
           >
-            <h2 className="mb-2 text-sm font-semibold capitalize text-muted-foreground">
+            <h2 className="mb-2 text-sm font-semibold capitalize text-slate-400">
               {month}
             </h2>
-            <Card>
+            <Card className="border-slate-900/60 bg-slate-950/70 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
               <CardContent className="p-0">
-                <div className="divide-y">
+                <div className="divide-y divide-slate-800/60">
                   <AnimatePresence initial={false}>
                     {monthTransactions.map((t) => (
                       <motion.div
@@ -75,13 +75,13 @@ export function TransactionList({
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -4 }}
                         transition={{ duration: 0.16, ease: 'easeOut' }}
-                        whileHover={{ backgroundColor: 'rgba(148, 163, 184, 0.08)', scale: 1.01 }}
+                        whileHover={{ backgroundColor: 'rgba(51, 65, 85, 0.4)', scale: 1.01 }}
                         whileTap={{ scale: 0.99 }}
-                        className="flex items-center p-3"
+                        className="flex items-center p-3 border-b border-slate-800/60 last:border-b-0"
                       >
                         <div className="flex-1 space-y-1">
-                          <p className="font-medium">{t.description}</p>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <p className="font-medium text-slate-100">{t.description}</p>
+                          <div className="flex items-center gap-2 text-xs text-slate-400">
                             <span>{format(parseISO(t.date), 'dd/MM')}</span>
                             <span>•</span>
                             <span>{t.category}</span>
@@ -92,7 +92,7 @@ export function TransactionList({
                             <p
                               className={cn(
                                 'font-semibold',
-                                transactionType === 'income' ? 'text-emerald-600' : 'text-foreground',
+                                transactionType === 'income' ? 'text-emerald-300' : 'text-rose-300',
                               )}
                             >
                               {transactionType === 'income' ? '+' : '-'} {formatCurrency(t.amount)}
@@ -105,7 +105,7 @@ export function TransactionList({
                           </div>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60">
                                 <MoreVertical className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>

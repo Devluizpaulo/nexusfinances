@@ -23,8 +23,8 @@ export function DashboardHeader() {
 
     return (
         <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-                 <Avatar className="h-11 w-11 border-2 border-primary/20">
+            <div className="flex items-center gap-4">
+                 <Avatar className="h-12 w-12 border-2 border-slate-700/60 shadow-[0_4px_12px_-4px_rgba(15,23,42,0.8)]">
                     {user?.photoURL ? (
                         <AvatarImage src={user.photoURL} alt="Avatar do usuário"/>
                     ) : user?.avatar ? (
@@ -32,23 +32,40 @@ export function DashboardHeader() {
                             <Icon className="h-6 w-6" />
                         </div>
                     ) : (
-                        <AvatarFallback>{user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
+                        <AvatarFallback className="bg-gradient-to-br from-slate-800 to-slate-900 text-slate-100 font-semibold">{user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
                     )}
                 </Avatar>
                 <div>
-                    <h1 className="text-xl font-bold tracking-tight">{getFirstName(user?.displayName)}</h1>
-                    <p className="text-sm text-muted-foreground">Bem-vindo(a) de volta.</p>
+                    <h1 className="text-2xl font-bold tracking-tight text-slate-100">{getFirstName(user?.displayName)}</h1>
+                    <p className="text-sm text-slate-400">Aqui está seu resumo financeiro.</p>
                 </div>
             </div>
             
-            <div className="flex items-center gap-1 rounded-full bg-muted p-1">
-                <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full" onClick={() => setSelectedDate(subMonths(selectedDate, 1))}>
+            <div className="flex items-center gap-2 rounded-2xl border border-slate-700/60 bg-slate-950/80 p-1.5 shadow-[0_4px_12px_-4px_rgba(15,23,42,0.3)]">
+                <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    className="h-8 w-8 rounded-xl hover:bg-slate-800/60 text-slate-400 hover:text-slate-100 transition-all duration-200" 
+                    onClick={() => setSelectedDate(subMonths(selectedDate, 1))}
+                    title="Mês anterior"
+                >
                     <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <span className="w-28 text-center text-sm font-medium capitalize">
-                    {format(selectedDate, "MMMM", { locale: ptBR })}
-                </span>
-                <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full" onClick={() => setSelectedDate(addMonths(selectedDate, 1))}>
+                <div className="min-w-[120px] text-center">
+                    <span className="text-sm font-semibold text-slate-100 capitalize">
+                        {format(selectedDate, "MMMM", { locale: ptBR })}
+                    </span>
+                    <div className="text-xs text-slate-500">
+                        {format(selectedDate, "yyyy", { locale: ptBR })}
+                    </div>
+                </div>
+                <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    className="h-8 w-8 rounded-xl hover:bg-slate-800/60 text-slate-400 hover:text-slate-100 transition-all duration-200" 
+                    onClick={() => setSelectedDate(addMonths(selectedDate, 1))}
+                    title="Próximo mês"
+                >
                     <ChevronRight className="h-4 w-4" />
                 </Button>
             </div>

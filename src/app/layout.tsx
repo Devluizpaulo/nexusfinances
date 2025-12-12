@@ -25,13 +25,8 @@ export default function RootLayout({
       <head>
         <meta name="google-adsense-account" content="ca-pub-5750464088623363" />
       </head>
-      <body className={cn("font-sans antialiased", inter.variable)}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
+      <body className={cn("font-sans antialiased bg-slate-950 text-slate-100", inter.variable)}>
+        <ThemeProvider>
           <FirebaseClientProvider>
             {children}
           </FirebaseClientProvider>

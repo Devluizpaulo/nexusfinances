@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Bell, UserCircle, LogOut, Menu } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { useSidebar } from '../ui/sidebar';
-import { ThemeToggle } from '../theme-toggle';
 import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import Link from 'next/link';
@@ -160,20 +159,24 @@ export function Header() {
   const { toggleSidebar } = useSidebar();
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center border-b bg-background/95 px-4 backdrop-blur-sm sm:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center border-b border-slate-900/70 bg-slate-950/85 px-4 sm:px-6 backdrop-blur-xl shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
       <div className="flex w-full items-center justify-between gap-4">
         {/* Botão para abrir sidebar no mobile */}
-        <Button onClick={toggleSidebar} variant="ghost" size="icon" className="md:hidden">
-            <Menu className="h-6 w-6"/>
-            <span className="sr-only">Abrir Menu</span>
+        <Button
+          onClick={toggleSidebar}
+          variant="ghost"
+          size="icon"
+          className="md:hidden rounded-full text-slate-300 hover:bg-slate-900/80 hover:text-white"
+        >
+          <Menu className="h-6 w-6" />
+          <span className="sr-only">Abrir Menu</span>
         </Button>
-        
+
         {/* Espaçador para centralizar o conteúdo do meio em telas maiores */}
-        <div className="hidden md:flex"></div>
-        
+        <div className="hidden md:flex" />
+
         {/* Ações da Direita */}
         <div className="flex items-center gap-2 ml-auto">
-          <ThemeToggle />
           <NotificationsMenu />
           <UserMenu />
         </div>

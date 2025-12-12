@@ -62,14 +62,14 @@ export function DataTable<TData, TValue>({
   return (
     <div className="space-y-4">
       {toolbar && <div className="flex items-center justify-between">{toolbar}</div>}
-      <div className="rounded-md border">
+      <div className="rounded-2xl border border-slate-900/60 bg-slate-950/70 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow key={headerGroup.id} className="border-slate-800/60 hover:bg-slate-900/40">
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead key={header.id} className="text-slate-400">
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -88,10 +88,10 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
-                  className="group"
+                  className="group border-slate-800/40 hover:bg-slate-900/30"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className="text-slate-200">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -104,7 +104,7 @@ export function DataTable<TData, TValue>({
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center"
+                  className="h-24 text-center text-slate-400"
                 >
                   Nenhum resultado.
                 </TableCell>

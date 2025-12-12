@@ -123,37 +123,41 @@ export default function IncomePage() {
         isOpen={isImportSheetOpen}
         onClose={() => setIsImportSheetOpen(false)}
       />
-      <div className="flex justify-between items-center mb-4">
-        <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)}>
-          <TabsList>
-            <TabsTrigger value="month">Mês Atual</TabsTrigger>
-            <TabsTrigger value="year">Ano Atual</TabsTrigger>
-            <TabsTrigger value="all">Tudo</TabsTrigger>
-          </TabsList>
-        </Tabs>
+      <div className="space-y-6 bg-slate-950/60 p-1 rounded-3xl sm:p-2">
+        <div className="space-y-4 rounded-3xl border border-slate-900/60 bg-gradient-to-b from-slate-950/90 to-slate-900/70 px-4 py-4 sm:px-6 sm:py-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
+          <div className="flex justify-between items-center">
+            <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)}>
+              <TabsList className="bg-slate-900/80 border border-slate-800/60">
+                <TabsTrigger value="month" className="text-sm text-slate-300 data-[state=active]:bg-slate-800 data-[state=active]:text-white">Mês Atual</TabsTrigger>
+                <TabsTrigger value="year" className="text-sm text-slate-300 data-[state=active]:bg-slate-800 data-[state=active]:text-white">Ano Atual</TabsTrigger>
+                <TabsTrigger value="all" className="text-sm text-slate-300 data-[state=active]:bg-slate-800 data-[state=active]:text-white">Tudo</TabsTrigger>
+              </TabsList>
+            </Tabs>
 
-        <div className="flex items-center gap-2">
-           <Button variant="outline" size="sm" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>
-                <Upload className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">Importar PDF</span>
-            </Button>
-            <Button size="sm" onClick={() => handleOpenSheet()} disabled={!user}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              <span className="hidden sm:inline">Registrar renda</span>
-            </Button>
+            <div className="flex items-center gap-2">
+               <Button variant="outline" size="sm" onClick={() => setIsImportSheetOpen(true)} disabled={!user} className="border-slate-700 bg-slate-900/80 text-slate-200 hover:bg-slate-800 hover:border-slate-600">
+                    <Upload className="mr-2 h-4 w-4" />
+                    <span className="hidden sm:inline">Importar PDF</span>
+                </Button>
+                <Button size="sm" onClick={() => handleOpenSheet()} disabled={!user} className="bg-emerald-500/20 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/30 hover:border-emerald-500/50">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  <span className="hidden sm:inline">Registrar renda</span>
+                </Button>
+            </div>
+          </div>
         </div>
       </div>
 
       {searchParams.get('date') && (
-        <div className="mb-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-muted-foreground">
+        <div className="mb-3 rounded-2xl border border-slate-800/80 bg-slate-950/80 px-4 py-3 text-xs text-slate-400 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
           <span>
             Filtrando rendas do dia{' '}
-            <span className="font-medium">{searchParams.get('date')}</span>.
+            <span className="font-medium text-slate-200">{searchParams.get('date')}</span>.
           </span>{' '}
           <button
             type="button"
             onClick={() => router.push('/income')}
-            className="ml-2 font-semibold text-amber-900 underline-offset-2 hover:underline"
+            className="ml-2 font-semibold text-emerald-300 underline-offset-2 hover:underline"
           >
             Limpar filtro
           </button>
@@ -161,7 +165,7 @@ export default function IncomePage() {
       )}
 
       {/* Mobile view */}
-      <div className="md:hidden">
+      <div className="md:hidden rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
         <TransactionList 
           transactions={filteredIncomeData}
           onEdit={handleOpenSheet}
@@ -171,7 +175,7 @@ export default function IncomePage() {
       </div>
 
       {/* Desktop view */}
-      <div className="hidden md:block">
+      <div className="hidden md:block rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
         <DataTable
             columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
             data={filteredIncomeData}

@@ -41,6 +41,9 @@ export default function HousingPage() {
   
   const housingExpensesQuery = useMemoFirebase(() => {
     if (!user) return null;
+    console.log('Creating housing query for user:', user.uid);
+    console.log('Category filter:', 'Moradia');
+    console.log('Collection path:', `users/${user.uid}/expenses`);
     return query(
       collection(firestore, `users/${user.uid}/expenses`),
       where('category', '==', 'Moradia'),
@@ -50,6 +53,53 @@ export default function HousingPage() {
 
   const { data: contractsData, isLoading: isContractsLoading } = useCollection<RentalContract>(contractsQuery);
   const { data: housingExpenses, isLoading: isExpensesLoading } = useCollection<Transaction>(housingExpensesQuery);
+
+  // Debug: Log the query and results
+  console.log('Housing Query:', housingExpensesQuery);
+  console.log('Housing Data:', housingExpenses);
+  console.log('Is Loading:', isExpensesLoading);
+  console.log('User:', user);
+  
+  // Test query without category filter
+  const allExpensesQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    console.log('Creating ALL expenses query for user:', user.uid);
+    return query(
+      collection(firestore, `users/${user.uid}/expenses`),
+      orderBy('date', 'desc')
+    );
+  }, [firestore, user]);
+
+  const { data: allExpenses } = useCollection<Transaction>(allExpensesQuery);
+  console.log('All Expenses Data:', allExpenses);
+  console.log('All Expenses Length:', allExpenses?.length);
+  
+  // Filter manually to see if category matches
+  const manualFiltered = allExpenses?.filter(expense => {
+    console.log('Checking expense:', expense.category, 'vs', 'Moradia', expense.category === 'Moradia');
+    console.log('Expense details:', expense);
+    return expense.category === 'Moradia';
+  });
+  console.log('Manual filtered housing:', manualFiltered);
+  
+  // Try different category variations
+  const categoryVariations = [
+    'Moradia',
+    'Moradia ',
+    ' Moradia',
+    'Moradia\n',
+    'Moradia\t'
+  ];
+  
+  const testVariations = categoryVariations.map(cat => ({
+    category: cat,
+    matches: allExpenses?.filter(expense => expense.category === cat)
+  }));
+  
+  console.log('Category variations test:', testVariations);
+  
+  // Use manual filtered data for now
+  const effectiveHousingExpenses = manualFiltered || housingExpenses;
 
   const { activeContracts, inactiveContracts } = useMemo(() => {
     const active: RentalContract[] = [];
@@ -168,75 +218,83 @@ export default function HousingPage() {
       </PageHeader>
       
       <div className="space-y-6">
-        {activeContracts.length > 0 && (
-          <section className="space-y-4">
-            <h2 className="text-lg font-semibold">Contratos Ativos</h2>
-            <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-              {activeContracts.map(contract => (
-                <RentalContractCard
-                  key={contract.id}
-                  contract={contract}
-                  onEdit={handleEditContract}
-                />
-              ))}
-            </div>
-          </section>
-        )}
-        
-        <section>
-          <h2 className="text-lg font-semibold mb-4">Histórico de Despesas de Moradia</h2>
-          {(housingExpenses ?? []).length > 0 ? (
-            <>
-              {/* Mobile view */}
-              <div className="md:hidden">
-                <TransactionList 
-                  transactions={housingExpenses ?? []}
-                  onEdit={handleEditTransaction}
-                  onStatusChange={handleStatusChange}
-                  transactionType="expense"
-                />
-              </div>
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Main content - 2 columns */}
+          <div className="lg:col-span-2 space-y-6">
+            <section>
+              <h2 className="text-lg font-semibold mb-4">Histórico de Despesas de Moradia</h2>
+              {(effectiveHousingExpenses ?? []).length > 0 ? (
+                <>
+                  {/* Mobile view */}
+                  <div className="md:hidden">
+                    <TransactionList 
+                      transactions={effectiveHousingExpenses ?? []}
+                      onEdit={handleEditTransaction}
+                      onStatusChange={handleStatusChange}
+                      transactionType="expense"
+                    />
+                  </div>
 
-              {/* Desktop view */}
-              <div className="hidden md:block">
-                <DataTable
-                  columns={columns({ onEdit: handleEditTransaction, onStatusChange: handleStatusChange })}
-                  data={housingExpenses ?? []}
-                />
-              </div>
-            </>
-          ) : (
-             <div className="flex h-40 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
-              <Home className="h-10 w-10 text-muted-foreground mb-4" />
-              <h3 className="font-semibold">Nenhuma despesa de moradia encontrada</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Cadastre um contrato ou uma despesa avulsa para começar.
-              </p>
-            </div>
-          )}
-        </section>
+                  {/* Desktop view */}
+                  <div className="hidden md:block">
+                    <DataTable
+                      columns={columns({ onEdit: handleEditTransaction, onStatusChange: handleStatusChange })}
+                      data={effectiveHousingExpenses ?? []}
+                    />
+                  </div>
+                </>
+              ) : (
+                 <div className="flex h-40 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
+                  <Home className="h-10 w-10 text-muted-foreground mb-4" />
+                  <h3 className="font-semibold">Nenhuma despesa de moradia encontrada</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Cadastre um contrato ou uma despesa avulsa para começar.
+                  </p>
+                </div>
+              )}
+            </section>
+          </div>
 
-        {inactiveContracts.length > 0 && (
-          <Accordion type="single" collapsible className="w-full mt-8">
-            <AccordionItem value="inactive-contracts">
-              <AccordionTrigger>
-                <h2 className="text-lg font-semibold">
-                  Contratos Encerrados ({inactiveContracts.length})
-                </h2>
-              </AccordionTrigger>
+          {/* Sidebar - 1 column */}
+          <div className="lg:col-span-1 space-y-6">
+            {activeContracts.length > 0 && (
+              <section className="space-y-4">
+                <h2 className="text-lg font-semibold">Contratos Ativos</h2>
+                <div className="space-y-4">
+                  {activeContracts.map(contract => (
+                    <RentalContractCard
+                      key={contract.id}
+                      contract={contract}
+                      onEdit={handleEditContract}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
 
-              <AccordionContent className="pt-4 grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-                {inactiveContracts.map(contract => (
-                  <RentalContractCard
-                    key={contract.id}
-                    contract={contract}
-                    onEdit={handleEditContract}
-                  />
-                ))}
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        )}
+            {inactiveContracts.length > 0 && (
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="inactive-contracts">
+                  <AccordionTrigger>
+                    <h2 className="text-lg font-semibold">
+                      Contratos Encerrados ({inactiveContracts.length})
+                    </h2>
+                  </AccordionTrigger>
+
+                  <AccordionContent className="pt-4 space-y-4">
+                    {inactiveContracts.map(contract => (
+                      <RentalContractCard
+                        key={contract.id}
+                        contract={contract}
+                        onEdit={handleEditContract}
+                      />
+                    ))}
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            )}
+          </div>
+        </div>
       </div>
     </>
   );

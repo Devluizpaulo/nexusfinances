@@ -86,12 +86,12 @@ export function OverdueDebtsCard({ debts }: OverdueDebtsCardProps) {
 
   if (isLoading) {
     return (
-        <Card>
+        <Card className="rounded-2xl border border-rose-900/60 bg-rose-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
             <CardHeader className="flex flex-row items-center gap-4">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                <Loader2 className="h-6 w-6 animate-spin text-rose-400" />
                 <div>
-                    <CardTitle>Verificando pendências...</CardTitle>
-                    <CardDescription>
+                    <CardTitle className="text-rose-100">Verificando pendências...</CardTitle>
+                    <CardDescription className="text-rose-300">
                         Estamos buscando por parcelas vencidas.
                     </CardDescription>
                 </div>
@@ -105,13 +105,13 @@ export function OverdueDebtsCard({ debts }: OverdueDebtsCardProps) {
   }
 
   return (
-    <Card className="border-destructive bg-red-50 dark:bg-red-900/20 dark:border-red-800/50">
+    <Card className="rounded-2xl border border-rose-900/60 bg-rose-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
       <CardHeader>
         <div className="flex flex-row items-center gap-4">
-            <AlertTriangle className="h-6 w-6 text-destructive" />
+            <AlertTriangle className="h-6 w-6 text-rose-400" />
             <div>
-                <CardTitle className="text-red-800 dark:text-red-300">Atenção! Você possui pendências.</CardTitle>
-                <CardDescription className="text-red-700 dark:text-red-400">
+                <CardTitle className="text-rose-100">Atenção! Você possui pendências.</CardTitle>
+                <CardDescription className="text-rose-300">
                     As seguintes parcelas estão vencidas e requerem sua atenção.
                 </CardDescription>
             </div>
@@ -120,20 +120,20 @@ export function OverdueDebtsCard({ debts }: OverdueDebtsCardProps) {
       <CardContent>
         <Table>
           <TableHeader>
-            <TableRow className="hover:bg-red-100/50 dark:hover:bg-red-900/30">
-              <TableHead className="text-red-900 dark:text-red-300">Dívida</TableHead>
-              <TableHead className="text-red-900 dark:text-red-300">Nº da Parcela</TableHead>
-              <TableHead className="text-red-900 dark:text-red-300">Vencimento</TableHead>
-              <TableHead className="text-right text-red-900 dark:text-red-300">Valor</TableHead>
+            <TableRow className="hover:bg-rose-900/30">
+              <TableHead className="text-rose-300">Dívida</TableHead>
+              <TableHead className="text-rose-300">Nº da Parcela</TableHead>
+              <TableHead className="text-rose-300">Vencimento</TableHead>
+              <TableHead className="text-right text-rose-300">Valor</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {overdueInstallments.map(installment => (
-              <TableRow key={installment.id} className="border-red-200 hover:bg-red-100/50 dark:border-red-800/60 dark:hover:bg-red-900/30">
-                <TableCell className="font-medium text-red-900 dark:text-red-200">{installment.debtName}</TableCell>
-                <TableCell className="text-red-900 dark:text-red-200">{installment.installmentNumber}</TableCell>
-                <TableCell className="text-red-900 dark:text-red-200">{format(parseISO(installment.dueDate), 'PPP', { locale: ptBR })}</TableCell>
-                <TableCell className="text-right text-red-900 dark:text-red-200 font-bold">{formatCurrency(installment.amount)}</TableCell>
+              <TableRow key={installment.id} className="border-rose-800/60 hover:bg-rose-900/30">
+                <TableCell className="font-medium text-rose-100">{installment.debtName}</TableCell>
+                <TableCell className="text-rose-100">{installment.installmentNumber}</TableCell>
+                <TableCell className="text-rose-100">{format(parseISO(installment.dueDate), 'PPP', { locale: ptBR })}</TableCell>
+                <TableCell className="text-right text-rose-100 font-bold">{formatCurrency(installment.amount)}</TableCell>
               </TableRow>
             ))}
           </TableBody>

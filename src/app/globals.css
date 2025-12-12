@@ -4,70 +4,26 @@
 
 @layer base {
   :root {
-    --background: 240 10% 99%; /* almost white */
-    --foreground: 240 10% 3.9%;
+    --background: 222 84% 4.9%; /* slate-950 */
+    --foreground: 210 40% 98%; /* slate-100 */
 
-    --card: 240 10% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card: 222 84% 4.9%; /* slate-950 */
+    --card-foreground: 210 40% 98%; /* slate-100 */
 
-    --popover: 240 10% 100%;
-    --popover-foreground: 240 10% 3.9%;
-
-    --primary: 221 83% 53%; /* Monday.com Blue */
-    --primary-foreground: 210 20% 98%;
-
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-
-    --destructive: 350 85% 61%; /* Monday.com Red */
-    --destructive-foreground: 0 0% 98%;
-
-    --success: 142 71% 45%; /* Monday.com Green */
-    --success-foreground: 0 0% 98%;
-    
-    --warning: 38 92% 50%; /* Monday.com Yellow */
-    --warning-foreground: 0 0% 98%;
-
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 221 83% 53%;
-
-    --radius: 0.5rem;
-
-    --chart-1: 221 83% 53%;
-    --chart-2: 142 71% 45%;
-    --chart-3: 38 92% 50%;
-    --chart-4: 25 80% 57%;
-    --chart-5: 350 85% 61%;
-  }
-
-  .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-
-    --card: 240 5% 10%;
-    --card-foreground: 0 0% 98%;
-
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 222 84% 4.9%; /* slate-950 */
+    --popover-foreground: 210 40% 98%; /* slate-100 */
 
     --primary: 217 91% 60%;
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 215 28% 17%; /* slate-800 */
+    --secondary-foreground: 210 40% 98%; /* slate-100 */
 
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --muted: 215 28% 17%; /* slate-800 */
+    --muted-foreground: 217.9 10.6% 64.9%; /* slate-400 */
 
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 215 28% 17%; /* slate-800 */
+    --accent-foreground: 210 40% 98%; /* slate-100 */
 
     --destructive: 350 78% 55%;
     --destructive-foreground: 0 0% 98%;
@@ -78,10 +34,12 @@
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 98%;
 
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
+    --border: 215 28% 17%; /* slate-800 */
+    --input: 215 28% 17%; /* slate-800 */
     --ring: 217 91% 60%;
     
+    --radius: 0.5rem;
+
     --chart-1: 217 91% 60%;
     --chart-2: 142 71% 45%;
     --chart-3: 38 92% 50%;
