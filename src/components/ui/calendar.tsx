@@ -33,59 +33,73 @@ interface CalendarDropdownProps {
   disabled?: boolean;
 }
 
-const CalendarDropdown = React.forwardRef<HTMLButtonElement, CalendarDropdownProps>(
-  ({ value, onChange, children, "aria-label": ariaLabel, ...props }, ref) => {
-    const options = useMemo(() => 
-      React.Children.toArray(children || []) as React.ReactElement<React.HTMLProps<HTMLOptionElement>>[],
-      [children]
-    );
-    
-    const selected = useMemo(() => 
-      options.find((child) => child.props.value === value),
-      [options, value]
-    );
-    
-    const handleChange = useCallback((value: string) => {
+const CalendarDropdown = React.forwardRef<
+  HTMLButtonElement,
+  CalendarDropdownProps
+>((props, ref): React.ReactNode => {
+  const { value, onChange, children, 'aria-label': ariaLabel } = props;
+
+  const options = React.useMemo(
+    () =>
+      React.Children.toArray(
+        children || []
+      ) as React.ReactElement<React.HTMLProps<HTMLOptionElement>>[],
+    [children]
+  );
+
+  const selected = React.useMemo(
+    () => options.find((child) => child.props.value === value),
+    [options, value]
+  );
+
+  const handleChange = React.useCallback(
+    (value: string) => {
       const changeEvent = {
         target: { value },
       } as React.ChangeEvent<HTMLSelectElement>;
       onChange?.(changeEvent);
-    }, [onChange]);
-
-    if (!children) {
-      return null;
-    }
-
-    return (
-      <Select
-        value={value?.toString()}
-        onValueChange={handleChange}
-        disabled={props.disabled}
-      >
-        <SelectTrigger 
-          ref={ref}
-          className="pr-1.5 focus:ring-0 h-8 text-xs w-fit bg-slate-900/80 border-slate-800/60 hover:bg-slate-800/60 focus:border-slate-600/80 text-slate-300 hover:text-slate-100 transition-colors"
-          aria-label={ariaLabel}
-        >
-          <SelectValue className="text-foreground">{selected?.props?.children}</SelectValue>
-        </SelectTrigger>
-        <SelectContent position="popper" className="z-50 bg-slate-950 border-slate-800 text-slate-100">
-          <ScrollArea className="h-72">
-            {options.map((option, id: number) => (
-              <SelectItem
-                key={`${option.props.value}-${id}`}
-                value={option.props.value?.toString() ?? ""}
-                className="focus:bg-slate-800"
-              >
-                {option.props.children}
-              </SelectItem>
-            ))}
-          </ScrollArea>
-        </SelectContent>
-      </Select>
-    );
+    },
+    [onChange]
+  );
+  
+  if (!children) {
+    return null;
   }
-);
+
+  return (
+    <Select
+      value={value?.toString()}
+      onValueChange={handleChange}
+      disabled={props.disabled}
+    >
+      <SelectTrigger
+        ref={ref}
+        className="pr-1.5 focus:ring-0 h-8 text-xs w-fit bg-slate-900/80 border-slate-800/60 hover:bg-slate-800/60 focus:border-slate-600/80 text-slate-300 hover:text-slate-100 transition-colors"
+        aria-label={ariaLabel}
+      >
+        <SelectValue className="text-foreground">
+          {selected?.props?.children}
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent
+        position="popper"
+        className="z-50 bg-slate-950 border-slate-800 text-slate-100"
+      >
+        <ScrollArea className="h-72">
+          {options.map((option, id: number) => (
+            <SelectItem
+              key={`${option.props.value}-${id}`}
+              value={option.props.value?.toString() ?? ''}
+              className="focus:bg-slate-800"
+            >
+              {option.props.children}
+            </SelectItem>
+          ))}
+        </ScrollArea>
+      </SelectContent>
+    </Select>
+  );
+});
 
 CalendarDropdown.displayName = "CalendarDropdown";
 
@@ -142,7 +156,7 @@ function Calendar({
     IconRight: ({ ...props }) => (
       <ChevronRight className="h-5 w-5" aria-hidden="true" />
     ),
-    Dropdown: CalendarDropdown,
+    Dropdown: CalendarDropdown as React.ElementType,
   }), []);
   
   if (isLoading) {
