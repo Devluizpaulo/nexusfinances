@@ -18,12 +18,10 @@ import { RecentTransactionsList } from './_components/recent-transactions-list';
 import { BalanceCard } from './_components/balance-card';
 import { DashboardHeader } from './_components/dashboard-header';
 import { IncomeExpenseChart } from '@/components/dashboard/income-expense-chart';
-import { ArrowUpCircle, ArrowDownCircle } from "lucide-react";
 import { ExpenseCategoryChart } from '@/components/dashboard/expense-category-chart';
 import { FinancialHealthScore } from '@/components/dashboard/financial-health-score';
 import { OverdueDebtsCard } from '@/components/dashboard/overdue-debts-card';
 import { ExpenseCalendar } from './_components/expense-calendar';
-import { formatCurrency } from '@/lib/utils';
 
 export default function DashboardPage() {
   const { selectedDate } = useDashboardDate();
@@ -124,41 +122,14 @@ export default function DashboardPage() {
         <div className="space-y-4 rounded-3xl border border-slate-900/60 bg-gradient-to-b from-slate-950/90 to-slate-900/70 px-4 py-4 sm:px-6 sm:py-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
           <DashboardHeader />
 
-          <div className="mt-4 grid gap-4 md:grid-cols-3 items-stretch">
-            <div className="md:col-span-2">
-              <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
-            </div>
-
-            <div className="grid gap-4 md:grid-rows-2">
-              <div className="flex flex-col justify-between rounded-2xl border border-slate-800/80 bg-slate-950/80 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)] transition hover:border-slate-700/80 hover:bg-slate-900/90">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Entradas no mês</span>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20 border border-emerald-500/30">
-                    <ArrowUpCircle className="h-5 w-5 text-emerald-300" />
-                  </div>
-                </div>
-                <p className="mt-2 text-2xl font-semibold text-emerald-300">
-                  {formatCurrency(totalIncome)}
-                </p>
-                <span className="mt-1 text-[11px] text-slate-500">Total de receitas registradas no período.</span>
-              </div>
-
-              <div className="flex flex-col justify-between rounded-2xl border border-slate-800/80 bg-slate-950/80 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)] transition hover:border-slate-700/80 hover:bg-slate-900/90">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Despesas no mês</span>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-500/20 border border-rose-500/30">
-                    <ArrowDownCircle className="h-5 w-5 text-rose-300" />
-                  </div>
-                </div>
-                <p className="mt-2 text-2xl font-semibold text-rose-300">
-                  {formatCurrency(totalExpenses)}
-                </p>
-                <span className="mt-1 text-[11px] text-slate-500">Somatório das suas saídas neste período.</span>
-              </div>
+           <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
+             <div className="hidden lg:block">
+              <ExpenseCalendar expenses={expenseData || []} />
             </div>
           </div>
         </div>
-
+        
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
             <IncomeExpenseChart transactions={allTransactions} />
@@ -172,10 +143,6 @@ export default function DashboardPage() {
                 transactions={allTransactions}
               />
             </div>
-        </div>
-
-        <div className="hidden lg:block rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
-          <ExpenseCalendar expenses={expenseData || []} />
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

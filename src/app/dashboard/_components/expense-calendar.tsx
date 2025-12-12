@@ -5,7 +5,6 @@ import { useMemo, useCallback, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { format, isSameMonth, isToday } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import type { Transaction } from '@/lib/types';
 import { formatCurrency, cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
@@ -97,21 +96,21 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
   };
 
   return (
-    <Card className="rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)] h-full">
-      <CardHeader className="p-2">
+    <Card className="h-full rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
+      <CardHeader className="p-0">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
-            <CardTitle>Calendário de Despesas</CardTitle>
-            <CardDescription className="mt-1">
+            <CardTitle className="text-base text-slate-200">Calendário de Despesas</CardTitle>
+            <CardDescription className="mt-1 text-xs">
               Passe o mouse ou clique em um dia para ver os detalhes.
             </CardDescription>
           </div>
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-full sm:w-[140px] h-9 text-xs border-slate-800/80 bg-slate-950/70 hover:border-slate-700/80">
+            <SelectTrigger className="w-full sm:w-[140px] h-8 text-xs border-slate-800/80 bg-slate-950/70 hover:border-slate-700/80">
               <SelectValue placeholder="Categoria" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todas as categorias</SelectItem>
+              <SelectItem value="all">Todas</SelectItem>
               {expenseCategories.map(category => (
                 <SelectItem key={category} value={category}>
                   {category}
@@ -120,15 +119,15 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
             </SelectContent>
           </Select>
         </div>
-        <div className="mt-4 p-3 bg-slate-900/80 rounded-lg">
+        <div className="mt-4 p-2.5 bg-slate-900/80 rounded-lg">
             <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-300">Total de despesas no mês:</span>
+                <span className="text-xs font-medium text-slate-300">Total de despesas no mês:</span>
                 <span className="font-bold text-rose-300">{formatCurrency(monthlySummary.total)}</span>
             </div>
             <p className="text-xs text-slate-500 text-right mt-0.5">{monthlySummary.count} transação(ões)</p>
         </div>
       </CardHeader>
-      <CardContent className="p-0">
+      <CardContent className="p-0 mt-2">
         <TooltipProvider delayDuration={100}>
             <Calendar
               mode="single"
@@ -136,16 +135,17 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
               onMonthChange={setSelectedDate}
               onDayClick={handleDayClick}
               className="w-full"
-              locale={ptBR}
+              captionLayout="dropdown-buttons"
+              fromYear={new Date().getFullYear() - 5}
+              toYear={new Date().getFullYear() + 5}
               classNames={{
-                day_today: "bg-slate-800 text-white font-bold ring-2 ring-slate-500 ring-offset-background ring-offset-2",
-                day: "h-9 w-9 rounded-md"
+                day_today: "ring-2 ring-slate-500 ring-offset-2 ring-offset-background",
+                day: "h-8 w-8 rounded-md"
               }}
               components={{
                 DayContent: ({ date }) => {
                   const dayStr = format(date, 'yyyy-MM-dd');
                   const dayData = expensesByDay[dayStr];
-                  const isCurrentDay = isToday(date);
                   
                   return (
                     <Tooltip>
@@ -154,12 +154,11 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
                           className={cn(
                             "relative flex h-full w-full flex-col items-center justify-center rounded-md transition-transform duration-200 ease-out hover:scale-110",
                             dayData && dayData.total > 0 ? getIntensityClass(dayData.total) : 'text-slate-400',
-                            isCurrentDay && "ring-2 ring-slate-500/80 ring-offset-1 ring-offset-slate-950",
                           )}
                         >
                           <span className="text-xs font-medium">{date.getDate()}</span>
                            {dayData && dayData.count > 1 && (
-                            <Badge variant="secondary" className="absolute -top-1 -right-1 h-4 min-w-4 p-0 text-[9px] flex items-center justify-center bg-slate-900 text-slate-300 border border-slate-700">
+                            <Badge variant="secondary" className="absolute -top-1 -right-1 h-3.5 min-w-[0.875rem] p-0 text-[9px] flex items-center justify-center bg-slate-900 text-slate-300 border border-slate-700">
                               {dayData.count}
                             </Badge>
                           )}
@@ -192,12 +191,12 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
             />
         </TooltipProvider>
         
-        <div className="px-3 pb-1">
-          <div className="flex items-center justify-center gap-x-2.5 text-xs text-slate-400">
+        <div className="px-1 pb-1 mt-1">
+          <div className="flex items-center justify-center gap-x-2 text-[11px] text-slate-400">
             <span className="font-medium">Intensidade:</span>
               {intensityLevels.map((level, index) => (
-                <div key={index} className="flex items-center gap-1.5">
-                  <div className={cn("w-3 h-3 rounded-sm border", level.class.split(' ').filter(c => c.startsWith('bg-') || c.startsWith('border-')).join(' '))} />
+                <div key={index} className="flex items-center gap-1">
+                  <div className={cn("w-2.5 h-2.5 rounded-sm border", level.class.split(' ').filter(c => c.startsWith('bg-') || c.startsWith('border-')).join(' '))} />
                   <span>{level.label}</span>
                 </div>
               ))}
