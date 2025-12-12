@@ -1,6 +1,6 @@
 'use client';
 import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator, SidebarGroup, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton } from '@/components/ui/sidebar';
-import { LayoutDashboard, Landmark, CreditCard, Banknote, PiggyBank, BarChart3, GraduationCap, ShieldCheck, LifeBuoy, Home, Zap, FileText, HeartPulse, Repeat, WalletCards, History, List, LineChart, PieChart, Briefcase, PenSquare } from 'lucide-react';
+import { LayoutDashboard, Landmark, CreditCard, Banknote, PiggyBank, BarChart3, GraduationCap, ShieldCheck, LifeBuoy, Home, Zap, FileText, HeartPulse, Repeat, WalletCards, History, List, LineChart, PieChart, Briefcase, PenSquare, BookOpen } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '../ui/button';
@@ -40,6 +40,7 @@ const navSections = [
             { href: '/expenses/utilities', label: 'Contas', icon: Zap },
             { href: '/expenses/taxes', label: 'Impostos', icon: FileText },
             { href: '/expenses/health', label: 'Saúde', icon: HeartPulse },
+            { href: '/expenses/education', label: 'Educação', icon: BookOpen },
             { href: '/expenses/subscriptions', label: 'Assinaturas', icon: Repeat },
         ]
     },
