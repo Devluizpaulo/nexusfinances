@@ -118,46 +118,43 @@ export default function DashboardPage() {
         onClose={handleCloseSheet}
       />
     
-      <div className="space-y-6 bg-slate-950/60 p-1 rounded-3xl sm:p-2">
-        <div className="space-y-4 rounded-3xl border border-slate-900/60 bg-gradient-to-b from-slate-950/90 to-slate-900/70 px-4 py-4 sm:px-6 sm:py-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
+      <div className="space-y-6">
+        {/* === Header e Balanço === */}
+        <div className="space-y-4 rounded-3xl border border-slate-900/60 bg-gradient-to-b from-slate-950/90 to-slate-900/70 p-4 sm:p-6 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
           <DashboardHeader />
         </div>
-
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <div className="hidden lg:block">
-            <ExpenseCalendar expenses={expenseData || []} />
-          </div>
-          <div>
-            <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
-          </div>
-        </div>
+        <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
         
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2 rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
-            <IncomeExpenseChart transactions={allTransactions} />
+        {/* === Gráficos de Análise === */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+          <div className="lg:col-span-3">
+             <IncomeExpenseChart transactions={allTransactions} />
           </div>
-          <div className="rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
-              <FinancialHealthScore
-                income={totalIncome}
-                expenses={totalExpenses}
-                debts={debtData || []}
-                goals={goalData || []}
-                transactions={allTransactions}
-              />
-            </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <div className="rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
-            <RecentTransactionsList transactions={allTransactions} />
-          </div>
-          <div className="rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
+          <div className="lg:col-span-2">
             <ExpenseCategoryChart transactions={expenseData || []} />
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
-          <OverdueDebtsCard debts={debtData || []} />
+        {/* === Atividade Recente e Pendências === */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <RecentTransactionsList transactions={allTransactions} />
+          <div className="space-y-6">
+            <OverdueDebtsCard debts={debtData || []} />
+          </div>
+        </div>
+
+        {/* === Ferramentas de Exploração === */}
+         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+           <div className="hidden lg:block">
+            <ExpenseCalendar expenses={expenseData || []} />
+          </div>
+           <FinancialHealthScore
+              income={totalIncome}
+              expenses={totalExpenses}
+              debts={debtData || []}
+              goals={goalData || []}
+              transactions={allTransactions}
+            />
         </div>
       </div>
 
@@ -167,7 +164,6 @@ export default function DashboardPage() {
           onAddExpense={() => handleOpenSheet('expense')}
           onAddDebt={() => handleOpenSheet('debt')}
           onAddGoal={() => handleOpenSheet('goal')}
-          onAddBudget={() => handleOpenSheet('budget')}
         />
       </div>
     </>
@@ -177,7 +173,7 @@ export default function DashboardPage() {
 
 function DashboardSkeleton() {
   return (
-    <div className="space-y-6 bg-slate-950/60 p-1 rounded-3xl sm:p-2 animate-pulse">
+    <div className="space-y-6 animate-pulse">
       <div className="space-y-4 rounded-3xl border border-slate-900/60 bg-gradient-to-b from-slate-950/90 to-slate-900/70 px-4 py-4 sm:px-6 sm:py-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -189,14 +185,15 @@ function DashboardSkeleton() {
           </div>
           <Skeleton className="h-10 w-36 rounded-full bg-slate-800/60" />
         </div>
-        <Skeleton className="h-40 w-full rounded-2xl bg-slate-800/60" />
       </div>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+      <Skeleton className="h-40 w-full rounded-2xl bg-slate-800/60" />
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+        <div className="lg:col-span-3">
           <Skeleton className="h-96 w-full rounded-2xl bg-slate-800/60" />
         </div>
-        <div className="space-y-6">
-          <Skeleton className="h-80 w-full rounded-2xl bg-slate-800/60" />
+        <div className="lg:col-span-2">
+           <Skeleton className="h-96 w-full rounded-2xl bg-slate-800/60" />
         </div>
       </div>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

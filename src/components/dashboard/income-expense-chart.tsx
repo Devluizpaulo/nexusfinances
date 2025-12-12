@@ -44,12 +44,12 @@ export function IncomeExpenseChart({ transactions }: { transactions: Transaction
 
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Renda vs. Despesas (Mensal)</CardTitle>
-        <CardDescription>Comparativo dos últimos meses.</CardDescription>
+    <Card className="h-full rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
+      <CardHeader className="p-0">
+        <CardTitle className="text-base text-slate-200">Renda vs. Despesas</CardTitle>
+        <CardDescription className="mt-1 text-xs">Comparativo dos últimos meses.</CardDescription>
       </CardHeader>
-      <CardContent className="pt-2">
+      <CardContent className="p-0 pt-4">
         {chartData.length === 0 ? (
           <div className="flex h-[360px] w-full flex-col items-center justify-center text-center text-sm text-muted-foreground">
             <p>Ainda não há movimentações suficientes para mostrar o gráfico.</p>

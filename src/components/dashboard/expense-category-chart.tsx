@@ -71,12 +71,12 @@ export function ExpenseCategoryChart({ transactions }: { transactions: Transacti
 
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Despesas por Categoria</CardTitle>
-        <CardDescription>Análise dos gastos no período selecionado.</CardDescription>
+    <Card className="h-full rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
+      <CardHeader className="p-0">
+        <CardTitle className="text-base text-slate-200">Despesas por Categoria</CardTitle>
+        <CardDescription className="mt-1 text-xs">Análise dos gastos no período selecionado.</CardDescription>
       </CardHeader>
-      <CardContent className="flex items-center justify-center">
+      <CardContent className="p-0 mt-2 flex items-center justify-center">
         {chartData.length > 0 ? (
             <ChartContainer
               config={chartConfig}

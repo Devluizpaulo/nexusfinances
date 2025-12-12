@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from "@/components/ui/button";
-import { Landmark, CreditCard, Banknote, Target, Plus, Files, X } from "lucide-react";
+import { Landmark, CreditCard, Banknote, Target, Plus, Files, X, PiggyBank } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,7 +18,6 @@ type QuickActionsProps = {
   onAddExpense: () => void;
   onAddDebt: () => void;
   onAddGoal: () => void;
-  onAddBudget: () => void;
 };
 
 export function QuickActions({
@@ -26,7 +25,6 @@ export function QuickActions({
   onAddExpense,
   onAddDebt,
   onAddGoal,
-  onAddBudget,
 }: QuickActionsProps) {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -70,20 +68,11 @@ export function QuickActions({
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onAddGoal} className="flex items-center gap-3 py-2 hover:bg-slate-800/60">
            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-sky-500/20 border border-sky-500/30">
-            <Target className="h-5 w-5 text-sky-300" />
+            <PiggyBank className="h-5 w-5 text-sky-300" />
           </div>
           <div className="flex flex-col">
             <span className="font-medium text-slate-100">Nova reserva</span>
             <span className="text-xs text-slate-400">Metas de economia</span>
-          </div>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={onAddBudget} className="flex items-center gap-3 py-2 hover:bg-slate-800/60">
-           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-violet-500/20 border border-violet-500/30">
-            <Files className="h-5 w-5 text-violet-300" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-medium text-slate-100">Criar limite</span>
-            <span className="text-xs text-slate-400">Limite de gastos</span>
           </div>
         </DropdownMenuItem>
       </DropdownMenuContent>
