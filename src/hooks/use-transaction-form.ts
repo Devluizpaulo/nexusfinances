@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -21,7 +22,7 @@ const formSchema = z.object({
   isRecurring: z.boolean().default(false),
   recurrenceSchedule: z.string().optional(),
   status: z.enum(['paid', 'pending']).default('paid'),
-  paymentMethod: z.enum(['cash', 'creditCard']).default('cash'),
+  paymentMethod: z.enum(['cash', 'creditCard', 'pix']).default('cash'),
   creditCardId: z.string().optional(),
 }).refine(data => {
     if (data.paymentMethod === 'creditCard') {

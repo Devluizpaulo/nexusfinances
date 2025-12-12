@@ -224,6 +224,7 @@ export function AddTransactionSheet({
                           <SelectContent>
                             <SelectItem value="cash">À vista (dinheiro/débito)</SelectItem>
                             <SelectItem value="creditCard">Cartão de Crédito</SelectItem>
+                            <SelectItem value="pix">PIX</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
