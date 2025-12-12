@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -133,7 +134,7 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Entradas no mês</span>
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20 border border-emerald-500/30">
-                    <ArrowUpCircle className="h-5 w-5 text-black" />
+                    <ArrowUpCircle className="h-5 w-5 text-emerald-300" />
                   </div>
                 </div>
                 <p className="mt-2 text-2xl font-semibold text-emerald-300">
@@ -162,11 +163,7 @@ export default function DashboardPage() {
           <div className="lg:col-span-2 rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
             <IncomeExpenseChart transactions={allTransactions} />
           </div>
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
-              <ExpenseCalendar expenses={expenseData || []} />
-            </div>
-            <div className="rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
+          <div className="rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
               <FinancialHealthScore
                 income={totalIncome}
                 expenses={totalExpenses}
@@ -175,7 +172,10 @@ export default function DashboardPage() {
                 transactions={allTransactions}
               />
             </div>
-          </div>
+        </div>
+
+        <div className="hidden lg:block rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
+          <ExpenseCalendar expenses={expenseData || []} />
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
