@@ -22,7 +22,7 @@ export function DashboardHeader() {
     const Icon = user?.avatar?.icon ? (LucideIcons as any)[user.avatar.icon] || LucideIcons.User : LucideIcons.User;
 
     return (
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-4">
                  <Avatar className="h-12 w-12 border-2 border-slate-700/60 shadow-[0_4px_12px_-4px_rgba(15,23,42,0.8)]">
                     {user?.photoURL ? (
@@ -41,11 +41,11 @@ export function DashboardHeader() {
                 </div>
             </div>
             
-            <div className="flex items-center gap-2 rounded-2xl border border-slate-700/60 bg-slate-950/80 p-1.5 shadow-[0_4px_12px_-4px_rgba(15,23,42,0.3)]">
+            <div className="flex items-center gap-2 rounded-full border border-slate-700/60 bg-slate-950/80 p-1 shadow-inner">
                 <Button 
                     size="icon" 
                     variant="ghost" 
-                    className="h-8 w-8 rounded-xl hover:bg-slate-800/60 text-slate-400 hover:text-slate-100 transition-all duration-200" 
+                    className="h-8 w-8 rounded-full text-slate-400 hover:text-slate-100 transition-all duration-200" 
                     onClick={() => setSelectedDate(subMonths(selectedDate, 1))}
                     title="Mês anterior"
                 >
@@ -62,7 +62,7 @@ export function DashboardHeader() {
                 <Button 
                     size="icon" 
                     variant="ghost" 
-                    className="h-8 w-8 rounded-xl hover:bg-slate-800/60 text-slate-400 hover:text-slate-100 transition-all duration-200" 
+                    className="h-8 w-8 rounded-full text-slate-400 hover:text-slate-100 transition-all duration-200" 
                     onClick={() => setSelectedDate(addMonths(selectedDate, 1))}
                     title="Próximo mês"
                 >
