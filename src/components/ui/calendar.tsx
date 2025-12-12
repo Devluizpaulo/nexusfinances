@@ -63,9 +63,7 @@ const CalendarDropdown = React.forwardRef<HTMLButtonElement, CalendarDropdownPro
           className="pr-1.5 focus:ring-0 h-8 text-xs w-fit bg-slate-900/80 border-slate-800/60 hover:bg-slate-800/60 focus:border-slate-600/80 text-slate-300 hover:text-slate-100 transition-colors"
           aria-label={ariaLabel}
         >
-          <SelectValue placeholder="Select...">
-            {selected?.props?.children}
-          </SelectValue>
+          <SelectValue className="text-foreground">{selected?.props?.children}</SelectValue>
         </SelectTrigger>
         <SelectContent position="popper" className="z-50 bg-slate-950 border-slate-800 text-slate-100">
           <ScrollArea className="h-72">
