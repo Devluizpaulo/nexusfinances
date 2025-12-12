@@ -50,7 +50,7 @@ import { expenseCategories, specificExpenseCategories } from '@/lib/types';
 import { Label } from '../ui/label';
 
 const otherExpenseCategories = expenseCategories.filter(
-  (c) => !(specificExpenseCategories as string[]).includes(c)
+  (c) => !(specificExpenseCategories as unknown as string[]).includes(c)
 );
 
 const formSchema = z.object({
