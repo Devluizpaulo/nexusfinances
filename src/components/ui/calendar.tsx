@@ -52,6 +52,10 @@ const CalendarDropdown = React.forwardRef<HTMLButtonElement, CalendarDropdownPro
       onChange?.(changeEvent);
     }, [onChange]);
 
+    if (!children) {
+      return null;
+    }
+
     return (
       <Select
         value={value?.toString()}
