@@ -21,6 +21,7 @@ import { ExpenseCategoryChart } from '@/components/dashboard/expense-category-ch
 import { FinancialHealthScore } from '@/components/dashboard/financial-health-score';
 import { OverdueDebtsCard } from '@/components/dashboard/overdue-debts-card';
 import { ExpenseCalendar } from './_components/expense-calendar';
+import { FinancialInsightsCard } from './_components/FinancialInsightsCard';
 
 export default function DashboardPage() {
   const { selectedDate } = useDashboardDate();
@@ -82,6 +83,15 @@ export default function DashboardPage() {
   
   const allTransactions = useMemo(() => [...(incomeData || []), ...(expenseData || [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()), [incomeData, expenseData]);
 
+  const financialDataForAI = useMemo(() => ({
+    userName: user?.firstName || '',
+    incomes: incomeData || [],
+    expenses: expenseData || [],
+    debts: debtData || [],
+    goals: goalData || [],
+  }), [user, incomeData, expenseData, debtData, goalData]);
+
+
   const handleOpenSheet = (type: 'income' | 'expense' | 'debt' | 'goal' | 'budget') => {
     setSheetType(type);
   };
@@ -139,9 +149,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <RecentTransactionsList transactions={allTransactions} />
-          <div className="space-y-6">
-            <OverdueDebtsCard debts={debtData || []} />
+            <FinancialInsightsCard financialData={financialDataForAI} />
             <FinancialHealthScore
               income={totalIncome}
               expenses={totalExpenses}
@@ -149,8 +157,16 @@ export default function DashboardPage() {
               goals={goalData || []}
               transactions={allTransactions}
             />
-          </div>
         </div>
+        
+        <div className="grid grid-cols-1 gap-6">
+           <OverdueDebtsCard debts={debtData || []} />
+        </div>
+
+        <div className="grid grid-cols-1 gap-6">
+            <RecentTransactionsList transactions={allTransactions} />
+        </div>
+
       </div>
     </>
   );
