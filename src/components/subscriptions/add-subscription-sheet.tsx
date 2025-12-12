@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -179,7 +180,7 @@ export function AddSubscriptionSheet({ isOpen, onClose, transaction }: AddSubscr
 
       if (isEditing) {
         const docRef = doc(expensesColRef, transaction.id);
-        setDocumentNonBlocking(docRef, expenseData);
+        setDocumentNonBlocking(docRef, expenseData, { merge: true });
         toast({
           title: 'Assinatura Atualizada!',
           description: `${values.serviceName} foi atualizada com sucesso.`,
