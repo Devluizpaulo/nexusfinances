@@ -25,12 +25,7 @@ export type CalendarProps = React.ComponentProps<typeof DayPicker> & {
   isLoading?: boolean;
 };
 
-function CalendarDropdown({
-  value,
-  onChange,
-  children,
-  ...props
-}: DropdownProps): React.ReactNode {
+function CalendarDropdown({ value, onChange, children, ...props }: DropdownProps) {
   const options = React.useMemo(
     () =>
       React.Children.toArray(
@@ -64,7 +59,7 @@ function CalendarDropdown({
       onValueChange={(value) => {
         handleChange(value);
       }}
-      disabled={props.disabled}
+      disabled={(props as any).disabled}
     >
       <SelectTrigger
         className="pr-1.5 focus:ring-0 h-8 text-xs w-fit bg-slate-900/80 border-slate-800/60 hover:bg-slate-800/60 focus:border-slate-600/80 text-slate-300 hover:text-slate-100 transition-colors"
@@ -146,7 +141,7 @@ function Calendar({
     IconRight: ({ ...props }) => (
       <ChevronRight className="h-5 w-5" aria-hidden="true" />
     ),
-    Dropdown: CalendarDropdown as React.ElementType,
+    Dropdown: CalendarDropdown,
   }), []);
   
   if (isLoading) {
