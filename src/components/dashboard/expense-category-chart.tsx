@@ -34,7 +34,7 @@ export function ExpenseCategoryChart({ transactions }: { transactions: Transacti
     }
 
     const expenseByCat = transactions
-      .filter((t) => t.type === 'expense')
+      .filter((t) => t.type === 'expense' || !t.type) // Inclui transações sem tipo como despesas
       .reduce((acc, t) => {
         if (!acc[t.category]) {
           acc[t.category] = 0;
@@ -73,8 +73,8 @@ export function ExpenseCategoryChart({ transactions }: { transactions: Transacti
   return (
     <Card className="h-full rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
       <CardHeader className="p-0">
-        <CardTitle className="text-base text-slate-200">Despesas por Categoria</CardTitle>
-        <CardDescription className="mt-1 text-xs">Análise dos gastos no período selecionado.</CardDescription>
+        <CardTitle className="text-base text-slate-200">Composição de Gastos</CardTitle>
+        <CardDescription className="mt-1 text-xs">Análise por categoria no período selecionado.</CardDescription>
       </CardHeader>
       <CardContent className="p-0 mt-2 flex items-center justify-center">
         {chartData.length > 0 ? (
