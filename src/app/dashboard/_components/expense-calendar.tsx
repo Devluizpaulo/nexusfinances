@@ -31,10 +31,10 @@ interface DayData {
 }
 
 const intensityLevels = [
-  { threshold: 0, label: 'Sem despesas', class: 'bg-slate-100 text-slate-600 border border-slate-200' },
-  { threshold: 25, label: 'Baixo', class: 'bg-rose-100 text-rose-700 border border-rose-200' },
-  { threshold: 50, label: 'Médio', class: 'bg-rose-200 text-rose-800 border border-rose-300' },
-  { threshold: 75, label: 'Alto', class: 'bg-rose-300 text-rose-900 border border-rose-400' },
+  { threshold: 0, label: 'Sem despesas', class: 'bg-slate-800/20 text-slate-400 border border-transparent' },
+  { threshold: 1, label: 'Baixo', class: 'bg-rose-900/40 text-rose-100 border-rose-800/50' },
+  { threshold: 40, label: 'Médio', class: 'bg-rose-800/60 text-rose-50 border-rose-700/80' },
+  { threshold: 75, label: 'Alto', class: 'bg-rose-600/80 text-white border-rose-500' },
 ];
 
 export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
@@ -97,125 +97,110 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
   };
 
   return (
-    <Card>
-      <CardHeader className="pb-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+    <Card className="rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)] h-full">
+      <CardHeader className="p-2">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
-            <CardTitle className="text-base">Calendário de Despesas</CardTitle>
-            <CardDescription className="text-xs">
+            <CardTitle>Calendário de Despesas</CardTitle>
+            <CardDescription className="mt-1">
               Passe o mouse ou clique em um dia para ver os detalhes.
             </CardDescription>
           </div>
-          <div className="flex items-center gap-2">
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-[140px] h-8 text-xs">
-                <SelectValue placeholder="Categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas</SelectItem>
-                {expenseCategories.map(category => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="w-full sm:w-[140px] h-9 text-xs border-slate-800/80 bg-slate-950/70 hover:border-slate-700/80">
+              <SelectValue placeholder="Categoria" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as categorias</SelectItem>
+              {expenseCategories.map(category => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-        <div className="mt-2 p-2 bg-slate-50 rounded-lg">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div className="text-xs">
-              <span className="font-medium">Total do mês: </span>
-              <span className="font-bold text-rose-600">{formatCurrency(monthlySummary.total)}</span>
-              <span className="text-muted-foreground ml-2">({monthlySummary.count} transações)</span>
+        <div className="mt-4 p-3 bg-slate-900/80 rounded-lg">
+            <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-slate-300">Total de despesas no mês:</span>
+                <span className="font-bold text-rose-300">{formatCurrency(monthlySummary.total)}</span>
             </div>
-          </div>
+            <p className="text-xs text-slate-500 text-right mt-0.5">{monthlySummary.count} transação(ões)</p>
         </div>
       </CardHeader>
       <CardContent className="p-0">
         <TooltipProvider delayDuration={100}>
             <Calendar
-            mode="single"
-            month={selectedDate}
-            onMonthChange={setSelectedDate}
-            onDayClick={handleDayClick}
-            className="w-full"
-            locale={ptBR}
-            classNames={{
-                day: "h-10 w-10 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
-                day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-                day_today: "bg-slate-900 text-white font-bold",
-            }}
-            components={{
+              mode="single"
+              month={selectedDate}
+              onMonthChange={setSelectedDate}
+              onDayClick={handleDayClick}
+              className="w-full"
+              locale={ptBR}
+              classNames={{
+                day_today: "bg-slate-800 text-white font-bold ring-2 ring-slate-500 ring-offset-background ring-offset-2",
+                day: "h-9 w-9 rounded-md"
+              }}
+              components={{
                 DayContent: ({ date }) => {
-                    const dayStr = format(date, 'yyyy-MM-dd');
-                    const dayData = expensesByDay[dayStr];
-                    const isCurrentDay = isToday(date);
-
-                    if (dayData && dayData.total > 0) {
-                        return (
-                             <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <div className={cn(
-                                        "relative flex h-full w-full flex-col items-center justify-center rounded-md transition-colors hover:scale-105 cursor-pointer",
-                                        getIntensityClass(dayData.total),
-                                        isCurrentDay && "ring-2 ring-slate-400 ring-offset-1"
-                                    )}>
-                                        <span className="text-xs font-medium">{date.getDate()}</span>
-                                        {dayData.count > 1 && (
-                                          <Badge variant="secondary" className="absolute -top-1 -right-1 h-4 w-4 p-0 text-[10px]">
-                                            {dayData.count}
-                                          </Badge>
-                                        )}
-                                    </div>
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-xs">
-                                  <div className="space-y-1">
-                                    <p className="font-semibold text-rose-600">{formatCurrency(dayData.total)}</p>
-                                    <p className="text-xs text-muted-foreground">{dayData.count} transação(ões)</p>
-                                    <div className="space-y-1">
-                                      {Object.entries(dayData.categories).slice(0, 3).map(([cat, amount]) => (
-                                        <div key={cat} className="flex justify-between text-xs">
-                                          <span>{cat}:</span>
-                                          <span>{formatCurrency(amount)}</span>
-                                        </div>
-                                      ))}
-                                      {Object.keys(dayData.categories).length > 3 && (
-                                        <p className="text-xs text-muted-foreground italic">
-                                          +{Object.keys(dayData.categories).length - 3} outras...
-                                        </p>
-                                      )}
-                                    </div>
-                                  </div>
-                                </TooltipContent>
-                            </Tooltip>
-                        );
-                    }
-                    return (
-                      <div className={cn(
-                        "flex h-full w-full items-center justify-center rounded-md",
-                        isCurrentDay && "bg-slate-900 text-white font-bold"
-                      )}>
-                        {date.getDate()}
-                      </div>
-                    );
+                  const dayStr = format(date, 'yyyy-MM-dd');
+                  const dayData = expensesByDay[dayStr];
+                  const isCurrentDay = isToday(date);
+                  
+                  return (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div
+                          className={cn(
+                            "relative flex h-full w-full flex-col items-center justify-center rounded-md transition-transform duration-200 ease-out hover:scale-110",
+                            dayData && dayData.total > 0 ? getIntensityClass(dayData.total) : 'text-slate-400',
+                            isCurrentDay && "ring-2 ring-slate-500/80 ring-offset-1 ring-offset-slate-950",
+                          )}
+                        >
+                          <span className="text-xs font-medium">{date.getDate()}</span>
+                           {dayData && dayData.count > 1 && (
+                            <Badge variant="secondary" className="absolute -top-1 -right-1 h-4 min-w-4 p-0 text-[9px] flex items-center justify-center bg-slate-900 text-slate-300 border border-slate-700">
+                              {dayData.count}
+                            </Badge>
+                          )}
+                        </div>
+                      </TooltipTrigger>
+                      {dayData && dayData.total > 0 && (
+                        <TooltipContent>
+                          <div className="space-y-1">
+                            <p className="font-semibold text-rose-400">{formatCurrency(dayData.total)}</p>
+                            <div className="space-y-1">
+                              {Object.entries(dayData.categories).slice(0, 3).map(([cat, amount]) => (
+                                <div key={cat} className="flex justify-between text-xs gap-2">
+                                  <span className="text-slate-400">{cat}:</span>
+                                  <span className="font-medium">{formatCurrency(amount)}</span>
+                                </div>
+                              ))}
+                              {Object.keys(dayData.categories).length > 3 && (
+                                <p className="text-xs text-slate-500 italic">
+                                  +{Object.keys(dayData.categories).length - 3} outras...
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  );
                 },
-            }}
+              }}
             />
         </TooltipProvider>
         
-        {/* Legenda */}
-        <div className="px-3 pb-3">
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span className="font-medium">Intensidade de gastos:</span>
-            <div className="flex items-center gap-2">
+        <div className="px-3 pb-1">
+          <div className="flex items-center justify-center gap-x-2.5 text-xs text-slate-400">
+            <span className="font-medium">Intensidade:</span>
               {intensityLevels.map((level, index) => (
-                <div key={index} className="flex items-center gap-1">
-                  <div className={cn("w-3 h-3 rounded-sm border", level.class)} />
-                  <span className="hidden sm:inline">{level.label}</span>
+                <div key={index} className="flex items-center gap-1.5">
+                  <div className={cn("w-3 h-3 rounded-sm border", level.class.split(' ').filter(c => c.startsWith('bg-') || c.startsWith('border-')).join(' '))} />
+                  <span>{level.label}</span>
                 </div>
               ))}
-            </div>
           </div>
         </div>
       </CardContent>

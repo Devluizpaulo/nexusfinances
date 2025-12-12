@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./select"
+import { ScrollArea } from "./scroll-area"
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker> & {
   minYear?: number;
@@ -59,27 +60,25 @@ const CalendarDropdown = React.forwardRef<HTMLButtonElement, CalendarDropdownPro
       >
         <SelectTrigger 
           ref={ref}
-          className="pr-1.5 focus:ring-0 h-8 text-xs w-fit bg-transparent border-slate-700/60 hover:bg-slate-800/60 focus:border-slate-500 transition-colors"
+          className="pr-1.5 focus:ring-0 h-8 text-xs w-fit bg-slate-900/80 border-slate-800/60 hover:bg-slate-800/60 focus:border-slate-600/80 text-slate-300 hover:text-slate-100 transition-colors"
           aria-label={ariaLabel}
         >
           <SelectValue placeholder="Select...">
             {selected?.props?.children}
           </SelectValue>
         </SelectTrigger>
-        <SelectContent position="popper" className="z-50">
-          <SelectScrollUpButton />
-          <div className="max-h-80 overflow-y-auto">
+        <SelectContent position="popper" className="z-50 bg-slate-950 border-slate-800 text-slate-100">
+          <ScrollArea className="h-72">
             {options.map((option, id: number) => (
               <SelectItem
                 key={`${option.props.value}-${id}`}
                 value={option.props.value?.toString() ?? ""}
-                className="focus:bg-slate-100 focus:text-slate-900"
+                className="focus:bg-slate-800"
               >
                 {option.props.children}
               </SelectItem>
             ))}
-          </div>
-          <SelectScrollDownButton />
+          </ScrollArea>
         </SelectContent>
       </Select>
     );
@@ -111,29 +110,25 @@ function Calendar({
     nav: "space-x-1 flex items-center",
     nav_button: cn(
       buttonVariants({ variant: "outline" }),
-      "h-8 w-8 bg-transparent p-0 opacity-50 hover:opacity-100 hover:bg-slate-100 transition-all duration-200"
+      "h-8 w-8 bg-transparent p-0 opacity-50 hover:opacity-100 hover:bg-slate-800/60 transition-all duration-200"
     ),
     nav_button_previous: "absolute left-1",
     nav_button_next: "absolute right-1",
     table: "w-full border-collapse space-y-1",
     head_row: "flex",
-    head_cell:
-      "text-muted-foreground rounded-md w-9 sm:w-10 font-normal text-[0.8rem] font-medium",
+    head_cell: "text-slate-400 rounded-md w-9 font-normal text-[0.8rem]",
     row: "flex w-full mt-2",
-    cell: "h-9 w-9 sm:w-10 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+    cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
     day: cn(
       buttonVariants({ variant: "ghost" }),
-      "h-9 w-9 sm:w-10 p-0 font-normal aria-selected:opacity-100 hover:bg-slate-100 hover:text-slate-900 transition-colors duration-200 rounded-md"
+      "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-slate-800/60 hover:text-slate-100 transition-colors duration-200 rounded-md"
     ),
     day_range_end: "day-range-end",
-    day_selected:
-      "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground font-medium",
-    day_today: "bg-accent text-accent-foreground font-bold border-2 border-slate-300",
-    day_outside:
-      "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground",
-    day_disabled: "text-muted-foreground opacity-50 cursor-not-allowed",
-    day_range_middle:
-      "aria-selected:bg-accent aria-selected:text-accent-foreground",
+    day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground font-medium",
+    day_today: "bg-accent text-accent-foreground font-bold border-2 border-slate-600",
+    day_outside: "day-outside text-slate-500 opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground",
+    day_disabled: "text-slate-500 opacity-50 cursor-not-allowed",
+    day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
     day_hidden: "invisible",
     ...classNames,
   }), [classNames]);
@@ -145,6 +140,7 @@ function Calendar({
     IconRight: ({ ...props }) => (
       <ChevronRight className="h-5 w-5" aria-hidden="true" />
     ),
+    Dropdown: CalendarDropdown,
   }), []);
   
   if (isLoading) {
@@ -152,12 +148,12 @@ function Calendar({
       <div className={cn("p-3", className)}>
         <div className="animate-pulse space-y-4">
           <div className="flex justify-center gap-2">
-            <div className="h-8 w-20 bg-slate-200 rounded" />
-            <div className="h-8 w-16 bg-slate-200 rounded" />
+            <div className="h-8 w-20 bg-slate-800 rounded" />
+            <div className="h-8 w-16 bg-slate-800 rounded" />
           </div>
           <div className="grid grid-cols-7 gap-1">
             {Array.from({ length: 35 }).map((_, i) => (
-              <div key={i} className="h-9 bg-slate-200 rounded" />
+              <div key={i} className="h-9 bg-slate-800 rounded" />
             ))}
           </div>
         </div>
@@ -171,7 +167,7 @@ function Calendar({
       fromYear={defaultMinYear}
       toYear={defaultMaxYear}
       showOutsideDays={showOutsideDays}
-      className={cn("p-3", className)}
+      className={cn("p-1", className)}
       classNames={calendarClassNames}
       components={calendarComponents}
       disabled={isLoading}
@@ -180,40 +176,5 @@ function Calendar({
   );
 }
 Calendar.displayName = "Calendar"
-
-const SelectScrollUpButton = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.ScrollUpButton>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollUpButton>
->(({ className, ...props }, ref) => (
-  <SelectPrimitive.ScrollUpButton
-    ref={ref}
-    className={cn(
-      "flex cursor-default items-center justify-center py-1 hover:bg-slate-100 transition-colors", 
-      className
-    )}
-    {...props}
-  >
-    <ChevronUp className="h-4 w-4" />
-  </SelectPrimitive.ScrollUpButton>
-));
-SelectScrollUpButton.displayName = "SelectScrollUpButton";
-
-const SelectScrollDownButton = React.forwardRef<
-  React.ElementRef<typeof SelectPrimitive.ScrollDownButton>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollDownButton>
->(({ className, ...props }, ref) => (
-  <SelectPrimitive.ScrollDownButton
-    ref={ref}
-    className={cn(
-      "flex cursor-default items-center justify-center py-1 hover:bg-slate-100 transition-colors", 
-      className
-    )}
-    {...props}
-  >
-    <ChevronDown className="h-4 w-4" />
-  </SelectPrimitive.ScrollDownButton>
-));
-SelectScrollDownButton.displayName = "SelectScrollDownButton";
-
 
 export { Calendar }
