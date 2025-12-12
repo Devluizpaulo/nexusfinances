@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -6,15 +7,20 @@ import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebas
 import { DataTable } from '@/components/data-table/data-table';
 import { columns } from './columns';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Loader2, Upload } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
+import { PlusCircle, Loader2, Upload, TrendingUp, BarChart3, PieChart } from 'lucide-react';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { incomeCategories, type Transaction } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { startOfMonth, endOfMonth, startOfYear, endOfYear, parseISO, isWithinInterval } from 'date-fns';
+import { startOfMonth, endOfMonth, startOfYear, endOfYear, parseISO, isWithinInterval, differenceInMonths, format } from 'date-fns';
 import { TransactionList } from '@/components/transactions/transaction-list';
+import { KpiCard } from '@/components/dashboard/kpi-card';
+import { formatCurrency } from '@/lib/utils';
+import { IncomeExpenseChart } from '@/components/dashboard/income-expense-chart';
+import { ExpenseCategoryChart } from '@/components/dashboard/expense-category-chart';
 
 type ViewMode = 'month' | 'year' | 'all';
 
@@ -68,8 +74,35 @@ export default function IncomePage() {
       return filtered.filter((t) => t.date === dateFilter);
     }
     
-    return filtered;
+    return filtered.sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());
   }, [incomeData, searchParams, viewMode]);
+
+  const { totalIncome, averageMonthlyIncome, topCategory } = useMemo(() => {
+    if (!filteredIncomeData || filteredIncomeData.length === 0) {
+      return { totalIncome: 0, averageMonthlyIncome: 0, topCategory: 'N/A' };
+    }
+
+    const total = filteredIncomeData.reduce((sum, t) => sum + t.amount, 0);
+
+    const firstDate = parseISO(filteredIncomeData[filteredIncomeData.length - 1].date);
+    const lastDate = parseISO(filteredIncomeData[0].date);
+    const monthCount = differenceInMonths(lastDate, firstDate) + 1;
+    const average = total / (monthCount > 0 ? monthCount : 1);
+    
+    const categoryTotals = filteredIncomeData.reduce((acc, t) => {
+        acc[t.category] = (acc[t.category] || 0) + t.amount;
+        return acc;
+    }, {} as Record<string, number>);
+
+    const topCat = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
+
+    return {
+        totalIncome: total,
+        averageMonthlyIncome: average,
+        topCategory: topCat
+    };
+  }, [filteredIncomeData]);
+
 
   const handleOpenSheet = (transaction: Transaction | null = null) => {
     setEditingTransaction(transaction);
@@ -123,9 +156,8 @@ export default function IncomePage() {
         isOpen={isImportSheetOpen}
         onClose={() => setIsImportSheetOpen(false)}
       />
-      <div className="space-y-6 bg-slate-950/60 p-1 rounded-3xl sm:p-2">
-        <div className="space-y-4 rounded-3xl border border-slate-900/60 bg-gradient-to-b from-slate-950/90 to-slate-900/70 px-4 py-4 sm:px-6 sm:py-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
-          <div className="flex justify-between items-center">
+      <div className="space-y-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as ViewMode)}>
               <TabsList className="bg-slate-900/80 border border-slate-800/60">
                 <TabsTrigger value="month" className="text-sm text-slate-300 data-[state=active]:bg-slate-800 data-[state=active]:text-white">Mês Atual</TabsTrigger>
@@ -145,41 +177,75 @@ export default function IncomePage() {
                 </Button>
             </div>
           </div>
+          
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <KpiCard
+            title="Renda Total no Período"
+            value={formatCurrency(totalIncome)}
+            icon={TrendingUp}
+          />
+          <KpiCard
+            title="Renda Média Mensal"
+            value={formatCurrency(averageMonthlyIncome)}
+            icon={BarChart3}
+          />
+          <KpiCard
+            title="Principal Fonte de Renda"
+            value={topCategory}
+            icon={PieChart}
+          />
         </div>
-      </div>
 
-      {searchParams.get('date') && (
-        <div className="mb-3 rounded-2xl border border-slate-800/80 bg-slate-950/80 px-4 py-3 text-xs text-slate-400 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
-          <span>
-            Filtrando rendas do dia{' '}
-            <span className="font-medium text-slate-200">{searchParams.get('date')}</span>.
-          </span>{' '}
-          <button
-            type="button"
-            onClick={() => router.push('/income')}
-            className="ml-2 font-semibold text-emerald-300 underline-offset-2 hover:underline"
-          >
-            Limpar filtro
-          </button>
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <div className="lg:col-span-3">
+                <IncomeExpenseChart transactions={filteredIncomeData} />
+            </div>
+            <div className="lg:col-span-2">
+                <ExpenseCategoryChart transactions={filteredIncomeData} />
+            </div>
         </div>
-      )}
 
-      {/* Mobile view */}
-      <div className="md:hidden rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
-        <TransactionList 
-          transactions={filteredIncomeData}
-          onEdit={handleOpenSheet}
-          onStatusChange={handleStatusChange}
-          transactionType="income"
-        />
-      </div>
-
-      {/* Desktop view */}
-      <div className="hidden md:block rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
-        <DataTable
-            columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
-            data={filteredIncomeData}
-        />
+        <Card>
+            <CardHeader>
+                <CardTitle>Histórico de Rendas</CardTitle>
+                <CardDescription>
+                    Todas as suas rendas registradas no período selecionado.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                {searchParams.get('date') && (
+                    <div className="mb-3 rounded-md border bg-muted/50 p-3 text-xs text-muted-foreground">
+                    <span>
+                        Filtrando rendas do dia{' '}
+                        <span className="font-medium text-foreground">{searchParams.get('date')}</span>.
+                    </span>{' '}
+                    <button
+                        type="button"
+                        onClick={() => router.push('/income')}
+                        className="ml-2 font-semibold text-primary underline-offset-2 hover:underline"
+                    >
+                        Limpar filtro
+                    </button>
+                    </div>
+                )}
+                {/* Mobile view */}
+                <div className="md:hidden">
+                    <TransactionList 
+                    transactions={filteredIncomeData}
+                    onEdit={handleOpenSheet}
+                    onStatusChange={handleStatusChange}
+                    transactionType="income"
+                    />
+                </div>
+                {/* Desktop view */}
+                <div className="hidden md:block">
+                    <DataTable
+                        columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
+                        data={filteredIncomeData}
+                    />
+                </div>
+            </CardContent>
+        </Card>
       </div>
     </>
   );
