@@ -121,12 +121,14 @@ export default function DashboardPage() {
       <div className="space-y-6 bg-slate-950/60 p-1 rounded-3xl sm:p-2">
         <div className="space-y-4 rounded-3xl border border-slate-900/60 bg-gradient-to-b from-slate-950/90 to-slate-900/70 px-4 py-4 sm:px-6 sm:py-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
           <DashboardHeader />
+        </div>
 
-           <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <div className="hidden lg:block">
+            <ExpenseCalendar expenses={expenseData || []} />
+          </div>
+          <div>
             <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
-             <div className="hidden lg:block">
-              <ExpenseCalendar expenses={expenseData || []} />
-            </div>
           </div>
         </div>
         
