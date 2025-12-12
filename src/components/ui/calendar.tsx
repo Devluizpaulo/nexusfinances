@@ -4,7 +4,7 @@
 import * as React from "react"
 import { useMemo, useCallback, forwardRef } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker } from "react-day-picker"
+import { DayPicker, DropdownProps } from "react-day-picker"
 import * as SelectPrimitive from "@radix-ui/react-select"
 import { ChevronUp, ChevronDown } from "lucide-react"
 
@@ -25,24 +25,16 @@ export type CalendarProps = React.ComponentProps<typeof DayPicker> & {
   isLoading?: boolean;
 };
 
-interface CalendarDropdownProps {
-  value?: string | number;
-  onChange?: (event: React.ChangeEvent<HTMLSelectElement>) => void;
-  children?: React.ReactNode;
-  "aria-label"?: string;
-  disabled?: boolean;
-}
-
-const CalendarDropdown = React.forwardRef<
-  HTMLButtonElement,
-  CalendarDropdownProps
->((props, ref): React.ReactNode => {
-  const { value, onChange, children, 'aria-label': ariaLabel } = props;
-
+function CalendarDropdown({
+  value,
+  onChange,
+  children,
+  ...props
+}: DropdownProps): React.ReactNode {
   const options = React.useMemo(
     () =>
       React.Children.toArray(
-        children || []
+        children
       ) as React.ReactElement<React.HTMLProps<HTMLOptionElement>>[],
     [children]
   );
@@ -61,7 +53,7 @@ const CalendarDropdown = React.forwardRef<
     },
     [onChange]
   );
-  
+
   if (!children) {
     return null;
   }
@@ -69,17 +61,16 @@ const CalendarDropdown = React.forwardRef<
   return (
     <Select
       value={value?.toString()}
-      onValueChange={handleChange}
+      onValueChange={(value) => {
+        handleChange(value);
+      }}
       disabled={props.disabled}
     >
       <SelectTrigger
-        ref={ref}
         className="pr-1.5 focus:ring-0 h-8 text-xs w-fit bg-slate-900/80 border-slate-800/60 hover:bg-slate-800/60 focus:border-slate-600/80 text-slate-300 hover:text-slate-100 transition-colors"
-        aria-label={ariaLabel}
+        aria-label={props.name}
       >
-        <SelectValue className="text-foreground">
-          {selected?.props?.children}
-        </SelectValue>
+        <SelectValue>{selected?.props?.children}</SelectValue>
       </SelectTrigger>
       <SelectContent
         position="popper"
@@ -89,7 +80,7 @@ const CalendarDropdown = React.forwardRef<
           {options.map((option, id: number) => (
             <SelectItem
               key={`${option.props.value}-${id}`}
-              value={option.props.value?.toString() ?? ''}
+              value={option.props.value?.toString() ?? ""}
               className="focus:bg-slate-800"
             >
               {option.props.children}
@@ -99,8 +90,7 @@ const CalendarDropdown = React.forwardRef<
       </SelectContent>
     </Select>
   );
-});
-
+}
 CalendarDropdown.displayName = "CalendarDropdown";
 
 function Calendar({
