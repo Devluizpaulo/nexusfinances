@@ -48,7 +48,7 @@ import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import type { Transaction } from '@/lib/types';
-import { subscriptionCategoriesConfig } from '@/app/expenses/subscriptions/page';
+import { subscriptionCategoriesConfig } from '@/lib/config';
 import { useEffect } from 'react';
 
 
@@ -205,7 +205,7 @@ export function AddSubscriptionSheet({ isOpen, onClose, transaction }: AddSubscr
     }
   };
 
-  const categoryInfo = subscriptionCategoriesConfig.find(c => c.value === selectedCategory);
+  const categoryInfo = subscriptionCategoriesConfig.find(c => c.id === selectedCategory);
   const DialogIcon = categoryInfo ? categoryInfo.icon : Film;
 
   return (
@@ -265,11 +265,6 @@ export function AddSubscriptionSheet({ isOpen, onClose, transaction }: AddSubscr
                       ))}
                     </SelectContent>
                   </Select>
-                  {categoryInfo && (
-                    <FormDescription>
-                      Ex: {categoryInfo.examples}
-                    </FormDescription>
-                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -477,7 +472,6 @@ export function AddSubscriptionSheet({ isOpen, onClose, transaction }: AddSubscr
                 {form.formState.isSubmitting && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                <Film className="mr-2 h-4 w-4" />
                 Salvar Assinatura
               </Button>
             </DialogFooter>

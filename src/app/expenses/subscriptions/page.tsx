@@ -10,28 +10,7 @@ import { AddSubscriptionSheet } from '@/components/subscriptions/add-subscriptio
 import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
 import { PageHeader } from '@/components/page-header';
 import { SubscriptionColumn } from '@/components/subscriptions/subscription-column';
-
-// Define as categorias e seus ícones
-export const subscriptionCategoriesConfig = [
-  {
-    id: 'media' as const,
-    title: 'Mídia & Streaming',
-    keywords: ['netflix', 'youtube', 'spotify', 'amazon prime', 'disney+', 'hbo max', 'música', 'filmes', 'jornal', 'revista', 'notícias', 'kindle', 'livros', 'globoplay', 'streaming'],
-    icon: Film,
-  },
-  {
-    id: 'software' as const,
-    title: 'Software & IAs',
-    keywords: ['software', 'assinatura', 'ia', 'adobe', 'office', 'nuvem', 'produtividade', 'notion', 'chatgpt', 'contabilizei', 'aws', 'google cloud', 'vps'],
-    icon: Cpu,
-  },
-  {
-    id: 'services' as const,
-    title: 'Outros Serviços',
-    keywords: ['academia', 'gympass', 'yoga', 'meditação', 'saúde'],
-    icon: Repeat,
-  },
-];
+import { subscriptionCategoriesConfig } from '@/lib/config';
 
 export default function SubscriptionsPage() {
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
