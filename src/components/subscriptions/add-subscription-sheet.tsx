@@ -3,10 +3,10 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { format, formatISO } from 'date-fns';
+import { format, formatISO, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { collection } from 'firebase/firestore';
-import { useFirestore, useUser, addDocumentNonBlocking } from '@/firebase';
+import { collection, setDoc, doc } from 'firebase/firestore';
+import { useFirestore, useUser, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
 import { cn } from '@/lib/utils';
 import {
   Dialog,
@@ -47,16 +47,10 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import type { Transaction } from '@/lib/types';
+import { subscriptionCategoriesConfig } from '@/app/expenses/subscriptions/page';
+import { useEffect } from 'react';
 
-const subscriptionCategories = [
-  { value: 'streaming_video', label: 'Streaming de Vídeo', icon: Film, examples: 'Netflix, Disney+, HBO Max, Prime Video' },
-  { value: 'streaming_music', label: 'Streaming de Música', icon: Music, examples: 'Spotify, Apple Music, Deezer, YouTube Music' },
-  { value: 'gaming', label: 'Games', icon: Gamepad2, examples: 'Xbox Game Pass, PlayStation Plus, Steam' },
-  { value: 'cloud', label: 'Armazenamento em Nuvem', icon: Cloud, examples: 'iCloud, Google One, Dropbox' },
-  { value: 'software', label: 'Software & Produtividade', icon: Cpu, examples: 'Adobe, Office 365, Notion, ChatGPT' },
-  { value: 'education', label: 'Educação & Cursos', icon: BookOpen, examples: 'Udemy, Coursera, Duolingo Plus' },
-  { value: 'fitness', label: 'Academia & Bem-estar', icon: Dumbbell, examples: 'Gympass, Nike Training, Calm' },
-];
 
 const billingCycles = [
   { value: 'monthly', label: 'Mensal' },
@@ -84,9 +78,10 @@ type SubscriptionFormValues = z.infer<typeof formSchema>;
 type AddSubscriptionSheetProps = {
   isOpen: boolean;
   onClose: () => void;
+  transaction?: Transaction | null;
 };
 
-export function AddSubscriptionSheet({ isOpen, onClose }: AddSubscriptionSheetProps) {
+export function AddSubscriptionSheet({ isOpen, onClose, transaction }: AddSubscriptionSheetProps) {
   const form = useForm<SubscriptionFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -108,6 +103,44 @@ export function AddSubscriptionSheet({ isOpen, onClose }: AddSubscriptionSheetPr
   const { user } = useUser();
   const { toast } = useToast();
 
+  const isEditing = !!transaction;
+
+  useEffect(() => {
+    if (isOpen) {
+      if (isEditing) {
+        const metadata = (transaction as any).metadata || {};
+        form.reset({
+          serviceName: transaction.description,
+          category: metadata.subscriptionType || '',
+          amount: transaction.amount,
+          billingCycle: metadata.billingCycle || 'monthly',
+          billingDay: metadata.billingDay || 5,
+          startDate: parseISO(transaction.date),
+          paymentMethod: metadata.paymentMethod || 'credit_card',
+          creditCardName: metadata.creditCardName || '',
+          isShared: metadata.isShared || false,
+          sharedWith: metadata.sharedWith || '',
+          notes: metadata.notes || '',
+        });
+      } else {
+        form.reset({
+          serviceName: '',
+          category: '',
+          amount: 0,
+          billingCycle: 'monthly',
+          billingDay: 5,
+          startDate: new Date(),
+          paymentMethod: 'credit_card',
+          creditCardName: '',
+          isShared: false,
+          sharedWith: '',
+          notes: '',
+        });
+      }
+    }
+  }, [isOpen, isEditing, transaction, form]);
+
+
   const paymentMethod = form.watch('paymentMethod');
   const selectedCategory = form.watch('category');
 
@@ -122,19 +155,16 @@ export function AddSubscriptionSheet({ isOpen, onClose }: AddSubscriptionSheetPr
 
     try {
       const expensesColRef = collection(firestore, `users/${user.uid}/expenses`);
-
-      const categoryLabel = subscriptionCategories.find(c => c.value === values.category)?.label || 'Assinatura';
       
       const expenseData: any = {
         userId: user.uid,
         amount: values.amount,
-        category: categoryLabel,
+        category: 'Assinaturas & Serviços',
         description: values.serviceName,
         date: formatISO(values.startDate),
         isRecurring: true,
         type: 'expense',
         status: 'pending',
-        // Metadata específica para assinaturas
         metadata: {
           subscriptionType: values.category,
           billingCycle: values.billingCycle,
@@ -147,12 +177,20 @@ export function AddSubscriptionSheet({ isOpen, onClose }: AddSubscriptionSheetPr
         }
       };
 
-      addDocumentNonBlocking(expensesColRef, expenseData);
-
-      toast({
-        title: 'Assinatura Adicionada!',
-        description: `${values.serviceName} foi cadastrada com sucesso.`,
-      });
+      if (isEditing) {
+        const docRef = doc(expensesColRef, transaction.id);
+        setDocumentNonBlocking(docRef, expenseData);
+        toast({
+          title: 'Assinatura Atualizada!',
+          description: `${values.serviceName} foi atualizada com sucesso.`,
+        });
+      } else {
+        addDocumentNonBlocking(expensesColRef, expenseData);
+        toast({
+          title: 'Assinatura Adicionada!',
+          description: `${values.serviceName} foi cadastrada com sucesso.`,
+        });
+      }
 
       form.reset();
       onClose();
@@ -167,7 +205,8 @@ export function AddSubscriptionSheet({ isOpen, onClose }: AddSubscriptionSheetPr
     }
   };
 
-  const categoryInfo = subscriptionCategories.find(c => c.value === selectedCategory);
+  const categoryInfo = subscriptionCategoriesConfig.find(c => c.value === selectedCategory);
+  const DialogIcon = categoryInfo ? categoryInfo.icon : Film;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -175,10 +214,10 @@ export function AddSubscriptionSheet({ isOpen, onClose }: AddSubscriptionSheetPr
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-lg">
-              <Film className="h-5 w-5 text-primary" />
+              <DialogIcon className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <DialogTitle>Nova Assinatura</DialogTitle>
+              <DialogTitle>{isEditing ? 'Editar Assinatura' : 'Nova Assinatura'}</DialogTitle>
               <DialogDescription>
                 Cadastre um serviço de streaming, software ou outra assinatura recorrente.
               </DialogDescription>
@@ -216,11 +255,11 @@ export function AddSubscriptionSheet({ isOpen, onClose }: AddSubscriptionSheetPr
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {subscriptionCategories.map((cat) => (
-                        <SelectItem key={cat.value} value={cat.value}>
+                      {subscriptionCategoriesConfig.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
                           <div className="flex items-center gap-2">
                             <cat.icon className="h-4 w-4" />
-                            <span>{cat.label}</span>
+                            <span>{cat.title}</span>
                           </div>
                         </SelectItem>
                       ))}

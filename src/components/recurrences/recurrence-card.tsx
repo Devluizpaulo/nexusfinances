@@ -21,8 +21,7 @@ import { doc, collection, query, where, orderBy, updateDoc } from 'firebase/fire
 import { format, parseISO, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Badge } from '../ui/badge';
-import { AddTransactionSheet } from '../transactions/add-transaction-sheet';
-import { incomeCategories, expenseCategories } from '@/lib/types';
+import { AddSubscriptionSheet } from '../subscriptions/add-subscription-sheet';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../ui/table';
 import { RecurrenceCardActions } from './recurrence-card-actions';
@@ -36,10 +35,10 @@ const formatCurrency = (amount: number) => {
 
 interface RecurrenceCardProps {
   recurrence: Recurrence;
+  onEdit: () => void;
 }
 
-export function RecurrenceCard({ recurrence }: RecurrenceCardProps) {
-  const [isEditing, setIsEditing] = useState(false);
+export function RecurrenceCard({ recurrence, onEdit }: RecurrenceCardProps) {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   const firestore = useFirestore();
@@ -60,7 +59,6 @@ export function RecurrenceCard({ recurrence }: RecurrenceCardProps) {
   const { data: historyData, isLoading: isHistoryLoading } = useCollection<Transaction>(historyQuery);
 
   const nextDate = addMonths(parseISO(recurrence.date), 1);
-  const categories = recurrence.type === 'income' ? incomeCategories : expenseCategories;
 
   return (
     <>
@@ -105,23 +103,11 @@ export function RecurrenceCard({ recurrence }: RecurrenceCardProps) {
         </DialogContent>
       </Dialog>
       
-      <AddTransactionSheet 
-        isOpen={isEditing}
-        onClose={() => setIsEditing(false)}
-        transactionType={recurrence.type}
-        categories={categories}
-        transaction={recurrence}
-      />
-      
       <Card className="cursor-pointer hover:border-primary/50 transition-colors flex flex-col h-full" onClick={() => setIsHistoryOpen(true)}>
         <CardContent className="p-4 flex-grow">
           <div>
             <p className="font-semibold text-base">{recurrence.description}</p>
             <div className="flex items-center gap-2 mt-1">
-              <Badge variant="outline" className="text-xs">
-                <Tag className="h-3 w-3 mr-1" />
-                {recurrence.category}
-              </Badge>
               {recurrence.isRecurring && (
                 <Badge variant="secondary" className="text-xs">
                   Recorrente
@@ -139,7 +125,7 @@ export function RecurrenceCard({ recurrence }: RecurrenceCardProps) {
            <p className="text-xs text-muted-foreground">
               {recurrence.isRecurring ? `Próximo: ${format(nextDate, 'dd/MM/yy', { locale: ptBR })}` : 'Não recorrente'}
             </p>
-            <RecurrenceCardActions recurrence={recurrence} onEdit={() => setIsEditing(true)} />
+            <RecurrenceCardActions recurrence={recurrence} onEdit={onEdit} />
         </div>
       </Card>
     </>

@@ -1,74 +1,76 @@
-
 'use client';
 
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query, where, updateDoc, doc } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import type { Recurrence } from '@/lib/types';
-import { Loader2, Film, HeartPulse, Cpu, Newspaper, Repeat, PlusCircle, Upload } from 'lucide-react';
-import { RecurrenceCard } from '@/components/recurrences/recurrence-card';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import type { Recurrence, Transaction } from '@/lib/types';
+import { Loader2, Film, Cpu, Repeat, PlusCircle, Upload, LayoutGrid, List } from 'lucide-react';
 import { AddSubscriptionSheet } from '@/components/subscriptions/add-subscription-sheet';
 import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
 import { PageHeader } from '@/components/page-header';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { SubscriptionColumn } from '@/components/subscriptions/subscription-column';
 
 // Define as categorias e seus ícones
-const subscriptionCategories = [
-  { 
-    id: 'media',
+export const subscriptionCategoriesConfig = [
+  {
+    id: 'media' as const,
     title: 'Mídia & Streaming',
     keywords: ['netflix', 'youtube', 'spotify', 'amazon prime', 'disney+', 'hbo max', 'música', 'filmes', 'jornal', 'revista', 'notícias', 'kindle', 'livros', 'globoplay', 'streaming'],
     icon: Film,
   },
-  { 
-    id: 'software',
+  {
+    id: 'software' as const,
     title: 'Software & IAs',
-    keywords: ['software', 'assinatura', 'ia', 'adobe', 'office', 'nuvem', 'produtividade', 'notion', 'chatgpt', 'contabilizei'],
-    icon: Cpu
+    keywords: ['software', 'assinatura', 'ia', 'adobe', 'office', 'nuvem', 'produtividade', 'notion', 'chatgpt', 'contabilizei', 'aws', 'google cloud', 'vps'],
+    icon: Cpu,
   },
-  { 
-    id: 'services',
+  {
+    id: 'services' as const,
     title: 'Outros Serviços',
     keywords: ['academia', 'gympass', 'yoga', 'meditação', 'saúde'],
     icon: Repeat,
-  }
+  },
 ];
 
 export default function SubscriptionsPage() {
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [isImportSheetOpen, setIsImportSheetOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
 
   const recurringExpensesQuery = useMemoFirebase(() => {
     if (!user) return null;
     return query(
-      collection(firestore, `users/${user.uid}/expenses`), 
+      collection(firestore, `users/${user.uid}/expenses`),
       where('isRecurring', '==', true),
       where('category', 'in', ['Assinaturas & Serviços', 'Lazer', 'Saúde', 'Educação', 'Outros'])
     );
   }, [firestore, user]);
 
-  const { data: expenseData, isLoading: isExpensesLoading } = useCollection<Recurrence>(recurringExpensesQuery);
+  const { data: expenseData, isLoading: isExpensesLoading } = useCollection<Transaction>(recurringExpensesQuery);
 
   const groupedExpenses = useMemo(() => {
     const grouped: Record<string, Recurrence[]> = {
       media: [],
       software: [],
-      services: []
+      services: [],
     };
     
     (expenseData || []).forEach(expense => {
+      // Use a metadata se existir, senão, use a lógica de keywords
+      const subCategory = (expense as any).metadata?.subscriptionType;
+      if (subCategory && grouped[subCategory]) {
+        grouped[subCategory].push(expense);
+        return;
+      }
+      
       const expenseDescription = expense.description.toLowerCase();
-      const expenseCategoryLower = expense.category.toLowerCase();
-
       let assigned = false;
-      for (const cat of subscriptionCategories) {
-        if (cat.id !== 'services' && cat.keywords.some(keyword => expenseDescription.includes(keyword) || expenseCategoryLower.includes(keyword))) {
+      for (const cat of subscriptionCategoriesConfig) {
+        if (cat.id !== 'services' && cat.keywords.some(keyword => expenseDescription.includes(keyword))) {
           grouped[cat.id].push(expense);
           assigned = true;
           break;
@@ -81,7 +83,17 @@ export default function SubscriptionsPage() {
 
     return grouped;
   }, [expenseData]);
+
+  const handleEdit = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    setIsAddSheetOpen(true);
+  };
   
+  const handleCloseSheet = () => {
+    setEditingTransaction(null);
+    setIsAddSheetOpen(false);
+  };
+
   const isLoading = isUserLoading || isExpensesLoading;
 
   if (isLoading) {
@@ -91,85 +103,51 @@ export default function SubscriptionsPage() {
       </div>
     );
   }
-  
-  const handleOpenSheet = () => {
-    setIsAddSheetOpen(true);
-  };
 
-  const handleCloseSheet = () => {
-    setIsAddSheetOpen(false);
-  };
-  
   const hasAnySubscription = Object.values(groupedExpenses).some(arr => arr.length > 0);
 
   return (
     <>
-       <AddSubscriptionSheet
-        isOpen={isAddSheetOpen}
-        onClose={handleCloseSheet}
-      />
-       <ImportTransactionsSheet 
-        isOpen={isImportSheetOpen}
-        onClose={() => setIsImportSheetOpen(false)}
-      />
-      <PageHeader
-        title="Streams & Assinaturas"
-        description="Gerencie seus serviços recorrentes de streaming, software e outros."
-      >
-        <div className="flex gap-2">
+      <AddSubscriptionSheet isOpen={isAddSheetOpen} onClose={handleCloseSheet} transaction={editingTransaction} />
+      <ImportTransactionsSheet isOpen={isImportSheetOpen} onClose={() => setIsImportSheetOpen(false)} />
+
+      <PageHeader title="Streams & Assinaturas" description="Gerencie seus serviços recorrentes de streaming, software e outros.">
+        <div className="flex items-center gap-2">
+           <div className="hidden sm:flex items-center gap-1 rounded-lg border bg-muted p-1">
+             <Button variant={viewMode === 'card' ? 'secondary' : 'ghost'} size="icon" className="h-7 w-7" onClick={() => setViewMode('card')}>
+               <LayoutGrid className="h-4 w-4" />
+             </Button>
+             <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} size="icon" className="h-7 w-7" onClick={() => setViewMode('list')}>
+               <List className="h-4 w-4" />
+             </Button>
+           </div>
           <Button onClick={() => setIsAddSheetOpen(true)} disabled={!user}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Nova Assinatura
           </Button>
           <Button variant="outline" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>
             <Upload className="mr-2 h-4 w-4" />
-            Importar PDF com IA
+            <span className="hidden sm:inline">Importar PDF com IA</span>
           </Button>
         </div>
       </PageHeader>
 
       {hasAnySubscription ? (
-        <Tabs defaultValue="media" className="mt-4">
-          <TabsList className="grid w-full grid-cols-3">
-            {subscriptionCategories.map(cat => (
-              <TabsTrigger key={cat.id} value={cat.id}>
-                <cat.icon className="mr-2 h-4 w-4" />
-                {cat.title}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          
-          {subscriptionCategories.map(cat => (
-            <TabsContent key={cat.id} value={cat.id} className="mt-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>{cat.title}</CardTitle>
-                  <CardDescription>
-                    Total de {groupedExpenses[cat.id]?.length || 0} assinatura(s) nesta categoria.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {groupedExpenses[cat.id] && groupedExpenses[cat.id].length > 0 ? (
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                      {groupedExpenses[cat.id].map(item => (
-                        <RecurrenceCard key={item.id} recurrence={item} />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex h-40 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
-                      <h3 className="font-semibold">Nenhuma assinatura encontrada</h3>
-                      <p className="mt-1 text-sm text-muted-foreground">Assinaturas desta categoria aparecerão aqui.</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
+          {subscriptionCategoriesConfig.map(categoryConfig => (
+            <SubscriptionColumn
+              key={categoryConfig.id}
+              categoryConfig={categoryConfig}
+              subscriptions={groupedExpenses[categoryConfig.id] || []}
+              viewMode={viewMode}
+              onEdit={handleEdit}
+            />
           ))}
-        </Tabs>
+        </div>
       ) : (
         <div className="mt-6 flex h-64 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
           <h3 className="text-xl font-semibold">Nenhuma assinatura encontrada</h3>
-          <p className="mt-2 text-sm text-muted-foreground">Clique em &quot;Adicionar Assinatura&quot; para começar a organizar seus serviços.</p>
+          <p className="mt-2 text-sm text-muted-foreground">Clique em &quot;Nova Assinatura&quot; para começar a organizar seus serviços.</p>
         </div>
       )}
     </>
