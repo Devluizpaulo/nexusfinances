@@ -40,11 +40,13 @@ function CalendarDropdown({ value, onChange, children, ...props }: DropdownProps
   );
 
   const handleChange = React.useCallback(
-    (value: string) => {
-      const changeEvent = {
-        target: { value },
-      } as React.ChangeEvent<HTMLSelectElement>;
-      onChange?.(changeEvent);
+    (newValue: string) => {
+      if (onChange) {
+        const event = {
+          target: { value: newValue },
+        } as React.ChangeEvent<HTMLSelectElement>;
+        onChange(event);
+      }
     },
     [onChange]
   );
@@ -55,17 +57,17 @@ function CalendarDropdown({ value, onChange, children, ...props }: DropdownProps
 
   return (
     <Select
-      value={value?.toString()}
-      onValueChange={(value) => {
-        handleChange(value);
-      }}
+      value={value?.toString() || ""}
+      onValueChange={handleChange}
       disabled={(props as any).disabled}
     >
       <SelectTrigger
         className="pr-1.5 focus:ring-0 h-8 text-xs w-fit bg-slate-900/80 border-slate-800/60 hover:bg-slate-800/60 focus:border-slate-600/80 text-slate-300 hover:text-slate-100 transition-colors"
         aria-label={props.name}
       >
-        <SelectValue>{selected?.props?.children}</SelectValue>
+        <SelectValue>
+          {selected?.props?.children || props.name || "Selecione"}
+        </SelectValue>
       </SelectTrigger>
       <SelectContent
         position="popper"
