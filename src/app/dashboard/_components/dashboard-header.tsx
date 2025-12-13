@@ -24,7 +24,7 @@ export function DashboardHeader() {
     return (
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-4">
-                 <Avatar className="h-12 w-12 border-2 border-slate-700/60 shadow-[0_4px_12px_-4px_rgba(15,23,42,0.8)]">
+                 <Avatar className="h-12 w-12">
                     {user?.photoURL ? (
                         <AvatarImage src={user.photoURL} alt="Avatar do usuário"/>
                     ) : user?.avatar ? (
@@ -32,7 +32,7 @@ export function DashboardHeader() {
                             <Icon className="h-6 w-6" />
                         </div>
                     ) : (
-                        <AvatarFallback className="bg-gradient-to-br from-slate-800 to-slate-900 text-slate-100 font-semibold">{user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
+                        <AvatarFallback>{user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
                     )}
                 </Avatar>
                 <div>

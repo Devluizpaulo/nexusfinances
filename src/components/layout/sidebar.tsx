@@ -120,7 +120,7 @@ export function AppSidebar() {
                                 className="text-sm text-slate-400 hover:text-slate-100 hover:bg-slate-900/70 data-[active=true]:bg-slate-900 data-[active=true]:text-slate-50 data-[active=true]:border-l-2 data-[active=true]:border-emerald-400"
                             >
                                 <Link href={section.href}>
-                                    <section.icon className="h-4 w-4" />
+                                    <section.icon className="h-4 w-4 shrink-0" />
                                     <span className="group-data-[state=expanded]:inline-flex hidden font-medium tracking-wide">
                                       {section.label}
                                     </span>
@@ -138,7 +138,7 @@ export function AppSidebar() {
                                           className="text-xs text-slate-500 hover:text-slate-100 hover:bg-slate-900/60 data-[active=true]:text-emerald-300 data-[active=true]:bg-slate-900/80"
                                         >
                                              <Link href={subItem.href}>
-                                                <subItem.icon className="h-3.5 w-3.5" />
+                                                <subItem.icon className="h-3.5 w-3.5 shrink-0" />
                                                 <span>{subItem.label}</span>
                                             </Link>
                                         </SidebarMenuSubButton>
@@ -161,7 +161,7 @@ export function AppSidebar() {
                           className="text-sm text-slate-400 hover:text-slate-100 hover:bg-slate-900/70 data-[active=true]:bg-slate-900 data-[active=true]:text-slate-50 data-[active=true]:border-l-2 data-[active=true]:border-rose-500"
                         >
                             <Link href="/admin/dashboard">
-                                <ShieldCheck className="text-destructive" />
+                                <ShieldCheck className="text-destructive shrink-0" />
                                 <span className="group-data-[state=expanded]:inline-flex hidden font-medium tracking-wide">Painel Admin</span>
                             </Link>
                         </SidebarMenuButton>
@@ -183,7 +183,7 @@ export function AppSidebar() {
                           className="text-sm text-slate-500 hover:text-slate-100 hover:bg-slate-900/70 data-[active=true]:bg-slate-900 data-[active=true]:text-slate-50"
                         >
                             <Link href={item.href}>
-                                <item.icon className="h-4 w-4" />
+                                <item.icon className="h-4 w-4 shrink-0" />
                                 <span className="group-data-[state=expanded]:inline-flex hidden font-medium tracking-wide">{item.label}</span>
                             </Link>
                         </SidebarMenuButton>
