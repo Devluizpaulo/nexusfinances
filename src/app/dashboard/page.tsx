@@ -183,14 +183,17 @@ function DashboardSkeleton() {
   return (
     <div className="space-y-6 animate-pulse">
       <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <Skeleton className="h-7 w-48 bg-slate-800/60" />
-            <Skeleton className="h-4 w-32 bg-slate-800/60" />
+          <div className="flex items-center gap-4">
+             <Skeleton className="h-12 w-12 rounded-full bg-slate-800/60" />
+            <div className="space-y-2">
+                <Skeleton className="h-7 w-48 bg-slate-800/60" />
+                <Skeleton className="h-4 w-32 bg-slate-800/60" />
+            </div>
           </div>
         <Skeleton className="h-10 w-36 rounded-full bg-slate-800/60" />
       </div>
 
-      <Skeleton className="h-40 w-full rounded-2xl bg-slate-800/60" />
+      <Skeleton className="h-44 w-full rounded-2xl bg-slate-800/60" />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <div className="lg:col-span-3">

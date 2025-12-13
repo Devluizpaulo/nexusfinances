@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useCallback, useState } from 'react';
@@ -135,9 +134,6 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
               onMonthChange={setSelectedDate}
               onDayClick={handleDayClick}
               className="w-full"
-              captionLayout="dropdown-buttons"
-              fromYear={new Date().getFullYear() - 5}
-              toYear={new Date().getFullYear() + 5}
               classNames={{
                 day_today: "ring-2 ring-slate-500 ring-offset-2 ring-offset-background",
                 day: "h-8 w-8 rounded-md"

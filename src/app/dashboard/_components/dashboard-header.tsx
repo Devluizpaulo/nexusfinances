@@ -41,7 +41,7 @@ export function DashboardHeader() {
                 </div>
             </div>
             
-            <div className="flex items-center gap-2 rounded-full border border-slate-700/60 bg-slate-950/80 p-1 shadow-inner">
+            <div className="flex items-center gap-2 rounded-full border border-slate-800/60 bg-slate-950/80 p-1 shadow-inner">
                 <Button 
                     size="icon" 
                     variant="ghost" 
