@@ -261,6 +261,10 @@
           "type": "string",
           "description": "Reference to Debt. (Relationship: Debt 1:N Installment)"
         },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Denormalized for security rules)"
+        },
         "dueDate": {
           "type": "string",
           "description": "Due date for the installment.",
@@ -283,6 +287,7 @@
       "required": [
         "id",
         "debtId",
+        "userId",
         "dueDate",
         "amount",
         "paymentStatus"
@@ -617,6 +622,30 @@
           ]
         }
       },
+       {
+        "path": "/users/{userId}/creditCards/{cardId}",
+        "definition": {
+          "entityName": "CreditCard",
+          "schema": { "$ref": "#/backend/entities/CreditCard" },
+          "description": "Stores the user's registered credit cards.",
+          "params": [
+            { "name": "userId", "description": "The user's unique ID." },
+            { "name": "cardId", "description": "The credit card's unique ID." }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/rentalContracts/{contractId}",
+        "definition": {
+          "entityName": "RentalContract",
+          "schema": { "$ref": "#/backend/entities/RentalContract" },
+          "description": "Stores the user's rental contract details.",
+          "params": [
+            { "name": "userId", "description": "The user's unique ID." },
+            { "name": "contractId", "description": "The rental contract's unique ID." }
+          ]
+        }
+      },
       {
         "path": "/users/{userId}/healthProviders/{providerId}",
         "definition": {
@@ -650,30 +679,6 @@
           "params": [
             { "name": "userId", "description": "The user's unique ID." },
             { "name": "insuranceId", "description": "The health insurance's unique ID." }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/rentalContracts/{contractId}",
-        "definition": {
-          "entityName": "RentalContract",
-          "schema": { "$ref": "#/backend/entities/RentalContract" },
-          "description": "Stores the user's rental contract details.",
-          "params": [
-            { "name": "userId", "description": "The user's unique ID." },
-            { "name": "contractId", "description": "The rental contract's unique ID." }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/creditCards/{cardId}",
-        "definition": {
-          "entityName": "CreditCard",
-          "schema": { "$ref": "#/backend/entities/CreditCard" },
-          "description": "Stores the user's registered credit cards.",
-          "params": [
-            { "name": "userId", "description": "The user's unique ID." },
-            { "name": "cardId", "description": "The credit card's unique ID." }
           ]
         }
       },
