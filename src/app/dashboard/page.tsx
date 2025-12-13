@@ -5,7 +5,7 @@ import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebas
 import { collection, query, where, orderBy } from 'firebase/firestore';
 import type { Transaction, Debt, Goal } from '@/lib/types';
 import { startOfMonth, endOfMonth, format } from 'date-fns';
-import { QuickActions } from './_components/quick-actions';
+import { QuickActions } from '@/components/dashboard/quick-actions';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { AddDebtSheet } from '@/components/debts/add-debt-sheet';
 import { AddGoalSheet } from '@/components/goals/add-goal-sheet';
@@ -127,16 +127,18 @@ export default function DashboardPage() {
         onClose={handleCloseSheet}
       />
     
-      <div className="space-y-6">
+      <div className="relative space-y-6">
         <DashboardHeader />
-        
-        <QuickActions
-          onAddIncome={() => handleOpenSheet('income')}
-          onAddExpense={() => handleOpenSheet('expense')}
-          onAddDebt={() => handleOpenSheet('debt')}
-          onAddGoal={() => handleOpenSheet('goal')}
-        />
 
+        <div className="fixed bottom-6 right-6 z-40">
+           <QuickActions
+            onAddIncome={() => handleOpenSheet('income')}
+            onAddExpense={() => handleOpenSheet('expense')}
+            onAddDebt={() => handleOpenSheet('debt')}
+            onAddGoal={() => handleOpenSheet('goal')}
+          />
+        </div>
+        
         <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
         
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
