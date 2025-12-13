@@ -10,15 +10,11 @@ import type { AppUser } from '@/firebase';
  */
 type Actions = 'manage' | 'create' | 'read' | 'update' | 'delete';
 
-// Adiciona o subjectType diretamente ao tipo AppUser para que o CASL o reconheça.
-// Isso simplifica a verificação de permissões nos componentes.
-type UserSubject = AppUser & { subjectType: 'User' };
-
 /**
  * Define os "assuntos" (subjects) sobre os quais as ações podem ser realizadas.
  * Pode ser uma string (como 'all' ou o nome de uma entidade) ou um objeto (a própria instância do dado).
  */
-type Subjects = 'all' | UserSubject | 'User';
+type Subjects = 'all' | AppUser | 'User';
 
 /**
  * Define o tipo da habilidade do aplicativo, combinando Ações e Assuntos.
@@ -58,7 +54,7 @@ export function defineAbilitiesFor(user: AppUser | null) {
       can('manage', 'User', { uid: user.uid });
       
       // Especifica que eles não podem alterar a própria 'role' ou 'status'
-      cannot('update', 'User', ['role', 'status']);
+      cannot('update', 'User', ['role', 'status'], { uid: user.uid });
       
       // Eles não podem, por exemplo, excluir outros usuários
       cannot('delete', 'User');
