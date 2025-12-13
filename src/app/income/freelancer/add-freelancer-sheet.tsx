@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect } from 'react';
@@ -6,8 +7,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { formatISO, format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { collection, doc } from 'firebase/firestore';
-import { useFirestore, useUser, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
+import { collection, doc, setDoc, addDoc } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
 import { cn } from '@/lib/utils';
 import {
   Dialog,
@@ -97,7 +98,7 @@ export function AddFreelancerSheet({
     }
   }, [isOpen, transaction, form]);
   
-  const onSubmit = (values: FreelancerFormValues) => {
+  const onSubmit = async (values: FreelancerFormValues) => {
     if (!user) {
       toast({
         variant: 'destructive',
@@ -116,33 +117,41 @@ export function AddFreelancerSheet({
       type: 'income',
     };
 
-    if (transaction) {
-      const docRef = doc(firestore, collectionPath, transaction.id);
-      setDocumentNonBlocking(docRef, dataToSave, { merge: true });
+    try {
+      if (transaction) {
+        const docRef = doc(firestore, collectionPath, transaction.id);
+        await setDoc(docRef, dataToSave, { merge: true });
+        toast({
+          title: 'Renda atualizada',
+          description: 'Seu painel já foi atualizado.',
+        });
+      } else {
+        await addDoc(collection(firestore, collectionPath), dataToSave);
+        toast({
+          title: 'Renda salva',
+          description: `Sua renda de freelancer já entrou no painel.`,
+        });
+      }
+      onClose();
+    } catch (error) {
+      console.error("Error saving freelancer income:", error);
       toast({
-        title: 'Renda atualizada',
-        description: 'Seu painel já foi atualizado.',
-      });
-    } else {
-      addDocumentNonBlocking(collection(firestore, collectionPath), dataToSave);
-      toast({
-        title: 'Renda salva',
-        description: `Sua renda de freelancer já entrou no painel.`,
+        variant: "destructive",
+        title: "Erro ao salvar",
+        description: "Não foi possível salvar a renda. Tente novamente."
       });
     }
-    
-    onClose();
   };
 
   const title = transaction ? `Editar Renda Freelancer` : `Adicionar Renda Freelancer`;
-  const description = transaction ? 'Modifique os detalhes da sua renda.' : 'Adicione um novo recebimento de um projeto ou serviço.';
+  const descriptionText = transaction ? 'Modifique os detalhes da sua renda.' : 'Adicione um novo recebimento de um projeto ou serviço.';
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
          <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+          <DialogDescription>{descriptionText}</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -195,6 +204,9 @@ export function AddFreelancerSheet({
                         onSelect={field.onChange}
                         initialFocus
                         locale={ptBR}
+                        captionLayout="dropdown"
+                        fromYear={new Date().getFullYear() - 10}
+                        toYear={new Date().getFullYear() + 10}
                       />
                     </PopoverContent>
                   </Popover>

@@ -1,9 +1,10 @@
+
 'use client';
 import { Button } from '@/components/ui/button';
 import { Bell, UserCircle, LogOut, Menu } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { useSidebar } from '../ui/sidebar';
-import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
+import { useUser, useAuth, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import Link from 'next/link';
 import {
@@ -16,7 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { cn } from '@/lib/utils';
-import { collection, query, orderBy, limit, doc } from 'firebase/firestore';
+import { collection, query, orderBy, limit, doc, updateDoc } from 'firebase/firestore';
 import type { Notification } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -101,10 +102,10 @@ function NotificationsMenu() {
     
     const unreadCount = notifications?.filter(n => !n.isRead).length || 0;
 
-    const handleMarkAsRead = (notificationId: string) => {
+    const handleMarkAsRead = async (notificationId: string) => {
         if (!user) return;
         const notificationRef = doc(firestore, `users/${user.uid}/notifications`, notificationId);
-        updateDocumentNonBlocking(notificationRef, { isRead: true });
+        await updateDoc(notificationRef, { isRead: true });
     };
 
     return (

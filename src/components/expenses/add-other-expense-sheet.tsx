@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -6,8 +7,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { formatISO, format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { collection, doc, arrayUnion, updateDoc } from 'firebase/firestore';
-import { useFirestore, useUser, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
+import { collection, doc, arrayUnion, updateDoc, addDoc, setDoc } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
 import { cn } from '@/lib/utils';
 import {
   Dialog,
@@ -120,7 +121,7 @@ export function AddOtherExpenseSheet({
     }
   }, [isOpen, transaction, form]);
   
-  const onSubmit = (values: OtherExpenseFormValues) => {
+  const onSubmit = async (values: OtherExpenseFormValues) => {
     if (!user) {
       toast({ variant: 'destructive', title: 'Faça login para continuar' });
       return;
@@ -137,10 +138,10 @@ export function AddOtherExpenseSheet({
 
     if (transaction) {
       const docRef = doc(firestore, collectionPath, transaction.id);
-      setDocumentNonBlocking(docRef, dataToSave, { merge: true });
+      await setDoc(docRef, dataToSave, { merge: true });
       toast({ title: 'Despesa atualizada' });
     } else {
-      addDocumentNonBlocking(collection(firestore, collectionPath), dataToSave);
+      await addDoc(collection(firestore, collectionPath), dataToSave);
       toast({ title: 'Despesa salva' });
     }
     

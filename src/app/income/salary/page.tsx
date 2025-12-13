@@ -5,8 +5,8 @@ import { useMemo, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { collection, setDoc, updateDoc, getDocs, query, where, doc, deleteDoc } from 'firebase/firestore';
-import { useUser, useFirestore, useCollection, useMemoFirebase, deleteDocumentNonBlocking } from '@/firebase';
+import { collection, setDoc, updateDoc, getDocs, query, where, doc, deleteDoc, orderBy } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Transaction } from '@/lib/types';
 import { Loader2, Briefcase, PlusCircle, TrendingUp, TrendingDown, Edit, Star, Trash2, MoreVertical, Upload } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,8 +23,11 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Badge } from '@/components/ui/badge';
 import { ImportPayslipSheet } from '@/components/income/import-payslip-sheet';
 import { useToast } from '@/hooks/use-toast';
+import { formatCurrency } from '@/lib/utils';
+import { differenceInMonths, parseISO } from 'date-fns';
 
-const formatCurrency = (value: number) =>
+
+const formatDisplayCurrency = (value: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 
 type SalaryContract = {
@@ -165,12 +168,12 @@ export default function SalaryPage() {
   };
 
   // Deletar contrato
-  const handleDeleteContract = (contractId: string | undefined) => {
+  const handleDeleteContract = async (contractId: string | undefined) => {
     if (!user || !contractId) return;
 
     const contractsCollection = collection(firestore, `users/${user.uid}/salaryContracts`);
     const contractDocRef = doc(contractsCollection, contractId);
-    deleteDocumentNonBlocking(contractDocRef);
+    await deleteDoc(contractDocRef);
 
     setContracts((prev) => prev.filter((c) => c.id !== contractId));
 
@@ -247,19 +250,22 @@ export default function SalaryPage() {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleDeleteTransaction = () => {
+  const handleDeleteTransaction = async () => {
     if (!user || !firestore || !transactionToDelete) return;
 
     const docRef = doc(firestore, `users/${user.uid}/incomes`, transactionToDelete.id);
-    deleteDocumentNonBlocking(docRef);
-
-    toast({
-      title: "Salário excluído",
-      description: `O registro de salário de ${formatCurrency(transactionToDelete.amount)} foi removido.`,
-    });
-    
-    setIsDeleteDialogOpen(false);
-    setTransactionToDelete(null);
+    try {
+        await deleteDoc(docRef);
+        toast({
+            title: "Salário excluído",
+            description: `O registro de salário de ${formatDisplayCurrency(transactionToDelete.amount)} foi removido.`,
+        });
+    } catch(e) {
+        toast({ variant: 'destructive', title: "Erro ao excluir", description: "Não foi possível remover o registro."})
+    } finally {
+        setIsDeleteDialogOpen(false);
+        setTransactionToDelete(null);
+    }
   }
 
   const isLoading = isUserLoading || isIncomesLoading || isLoadingConfig;
@@ -330,19 +336,19 @@ export default function SalaryPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <KpiCard
             title="Média Bruta"
-            value={formatCurrency(avgGross)}
+            value={formatDisplayCurrency(avgGross)}
             icon={TrendingUp}
             description="Valor médio bruto dos últimos salários detalhados"
           />
           <KpiCard
             title="Média Líquida"
-            value={formatCurrency(avgNet)}
+            value={formatDisplayCurrency(avgNet)}
             icon={TrendingDown}
             description="Valor médio líquido recebido"
           />
           <KpiCard
             title="Descontos Médios"
-            value={formatCurrency(avgDeductions)}
+            value={formatDisplayCurrency(avgDeductions)}
             icon={TrendingDown}
             description="Média dos descontos (INSS, IRRF, etc.)"
           />
@@ -363,7 +369,7 @@ export default function SalaryPage() {
                   <div key={item.id} className="group flex items-start justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50">
                     <div className="flex-1">
                       <p className="font-semibold">
-                        {formatCurrency(item.amount)} 
+                        {formatDisplayCurrency(item.amount)} 
                         <span className="text-xs text-muted-foreground"> (Líquido)</span>
                       </p>
                       <p className="text-sm text-muted-foreground">{item.description}</p>
@@ -374,8 +380,8 @@ export default function SalaryPage() {
                     <div className="flex items-center gap-4">
                       {item.grossAmount && item.grossAmount > 0 ? (
                         <div className="text-right text-xs">
-                          <p>Bruto: {formatCurrency(item.grossAmount || 0)}</p>
-                          <p className="text-red-500">Descontos: {formatCurrency(item.totalDeductions || 0)}</p>
+                          <p>Bruto: {formatDisplayCurrency(item.grossAmount || 0)}</p>
+                          <p className="text-red-500">Descontos: {formatDisplayCurrency(item.totalDeductions || 0)}</p>
                         </div>
                       ) : (
                         <div className="text-right text-xs text-muted-foreground">
@@ -527,7 +533,7 @@ export default function SalaryPage() {
                         )}
                       </div>
                       <div className="space-y-1 text-muted-foreground">
-                        <p>Base: {formatCurrency(contract.baseAmount)}</p>
+                        <p>Base: {formatDisplayCurrency(contract.baseAmount)}</p>
                         {contract.contractType && (
                           <p>Tipo: {contract.contractType}</p>
                         )}

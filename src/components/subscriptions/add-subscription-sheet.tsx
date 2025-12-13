@@ -6,8 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { format, formatISO, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { collection, setDoc, doc } from 'firebase/firestore';
-import { useFirestore, useUser, addDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase';
+import { collection, setDoc, doc, addDoc } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
 import { cn } from '@/lib/utils';
 import {
   Dialog,
@@ -180,13 +180,13 @@ export function AddSubscriptionSheet({ isOpen, onClose, transaction }: AddSubscr
 
       if (isEditing) {
         const docRef = doc(expensesColRef, transaction.id);
-        setDocumentNonBlocking(docRef, expenseData, { merge: true });
+        await setDoc(docRef, expenseData, { merge: true });
         toast({
           title: 'Assinatura Atualizada!',
           description: `${values.serviceName} foi atualizada com sucesso.`,
         });
       } else {
-        addDocumentNonBlocking(expensesColRef, expenseData);
+        await addDoc(expensesColRef, expenseData);
         toast({
           title: 'Assinatura Adicionada!',
           description: `${values.serviceName} foi cadastrada com sucesso.`,
