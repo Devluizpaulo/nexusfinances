@@ -92,14 +92,14 @@ export function TransactionList({
                             <p
                               className={cn(
                                 'font-semibold',
-                                transactionType === 'income' ? 'text-emerald-300' : 'text-rose-300',
+                                t.type === 'income' ? 'text-emerald-300' : 'text-rose-300',
                               )}
                             >
-                              {transactionType === 'income' ? '+' : '-'} {formatCurrency(t.amount)}
+                              {t.type === 'income' ? '+' : '-'} {formatCurrency(t.amount)}
                             </p>
                             <StatusBadge
                               status={t.status}
-                              type={transactionType}
+                              type={t.type}
                               onClick={() => onStatusChange(t)}
                             />
                           </div>
@@ -113,7 +113,7 @@ export function TransactionList({
                               <DropdownMenuItem onClick={() => onEdit(t)}>Editar</DropdownMenuItem>
                               {t.status === 'pending' && (
                                 <DropdownMenuItem onClick={() => onStatusChange(t)}>
-                                  Marcar como {transactionType === 'income' ? 'Recebido' : 'Pago'}
+                                  Marcar como {t.type === 'income' ? 'Recebido' : 'Pago'}
                                 </DropdownMenuItem>
                               )}
                             </DropdownMenuContent>

@@ -21,7 +21,8 @@ import { expenseCategories } from '@/lib/types';
 import { TransactionList } from '@/components/transactions/transaction-list';
 
 export default function HousingPage() {
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isContractSheetOpen, setIsContractSheetOpen] = useState(false);
+  const [isTransactionSheetOpen, setIsTransactionSheetOpen] = useState(false);
   const [isManageDialogOpen, setIsManageDialogOpen] = useState(false);
   const [editingContract, setEditingContract] = useState<RentalContract | null>(null);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
@@ -74,18 +75,19 @@ export default function HousingPage() {
     } else {
       setEditingContract(contract);
     }
-    setIsSheetOpen(true);
+    setIsContractSheetOpen(true);
   };
   
   const handleEditTransaction = (transaction: Transaction) => {
     setEditingTransaction(transaction);
-    setIsSheetOpen(true);
+    setIsTransactionSheetOpen(true);
   }
 
-  const handleCloseSheet = () => {
+  const handleCloseSheets = () => {
     setEditingContract(null);
     setEditingTransaction(null);
-    setIsSheetOpen(false);
+    setIsContractSheetOpen(false);
+    setIsTransactionSheetOpen(false);
   };
   
   const handleStatusChange = async (transaction: Transaction) => {
@@ -120,13 +122,13 @@ export default function HousingPage() {
   return (
     <>
       <AddRentalContractSheet
-        isOpen={isSheetOpen && !editingTransaction}
-        onClose={handleCloseSheet}
+        isOpen={isContractSheetOpen}
+        onClose={handleCloseSheets}
         contract={editingContract}
       />
       <AddTransactionSheet
-        isOpen={isSheetOpen && !!editingTransaction}
-        onClose={handleCloseSheet}
+        isOpen={isTransactionSheetOpen}
+        onClose={handleCloseSheets}
         transactionType="expense"
         categories={expenseCategories}
         transaction={editingTransaction}
@@ -156,7 +158,7 @@ export default function HousingPage() {
           <Button
             onClick={() => {
               setEditingContract(null);
-              setIsSheetOpen(true);
+              setIsContractSheetOpen(true);
             }}
             disabled={!user}
           >
