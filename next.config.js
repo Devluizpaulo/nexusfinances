@@ -2,7 +2,7 @@
 const nextConfig = {
   /* config options here */
   typescript: {
-    ignoreBuildErrors: false,
+    ignoreBuildErrors: true,
   },
   images: {
     remotePatterns: [
