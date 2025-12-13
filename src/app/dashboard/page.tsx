@@ -164,11 +164,15 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 gap-6">
            <OverdueDebtsCard debts={debtData || []} />
         </div>
-
-        <div className="grid grid-cols-1 gap-6">
-            <RecentTransactionsList transactions={allTransactions} />
+        
+         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          <div className="lg:col-span-3">
+             <RecentTransactionsList transactions={allTransactions} />
+          </div>
+          <div className="lg:col-span-2">
+            <ExpenseCalendar expenses={expenseData || []} />
+          </div>
         </div>
-
       </div>
     </>
   );
@@ -184,13 +188,6 @@ function DashboardSkeleton() {
             <Skeleton className="h-4 w-32 bg-slate-800/60" />
           </div>
         <Skeleton className="h-10 w-36 rounded-full bg-slate-800/60" />
-      </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Skeleton className="h-24 rounded-xl bg-slate-800/60" />
-        <Skeleton className="h-24 rounded-xl bg-slate-800/60" />
-        <Skeleton className="h-24 rounded-xl bg-slate-800/60" />
-        <Skeleton className="h-24 rounded-xl bg-slate-800/60" />
       </div>
 
       <Skeleton className="h-40 w-full rounded-2xl bg-slate-800/60" />
