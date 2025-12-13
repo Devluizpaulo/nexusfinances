@@ -49,7 +49,7 @@ export function DataTableRowActions({
   const newRole = userToModify.role === 'superadmin' ? 'user' : 'superadmin';
 
   const resolveUserId = () => {
-    return userToModify.uid;
+    return userToModify.id;
   };
 
   const handleDelete = async () => {
