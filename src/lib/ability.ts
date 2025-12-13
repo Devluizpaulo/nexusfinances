@@ -1,3 +1,4 @@
+
 'use client';
 
 import { AbilityBuilder, createMongoAbility, MongoAbility } from '@casl/ability';
@@ -42,15 +43,15 @@ export function defineAbilitiesFor(user: AppUser | null) {
       // Super administradores podem gerenciar (fazer qualquer coisa) em todos os "assuntos".
       can('manage', 'all');
       
-       // Mas não podem excluir a si mesmos.
-      cannot('delete', 'User', { id: user.uid });
-      cannot('update', 'User', { id: user.uid }, 'role');
-      cannot('update', 'User', { id: user.uid }, 'status');
+      // Mas não podem excluir a si mesmos.
+      cannot('delete', 'User', { uid: user.uid });
+      // Nem alterar a própria role ou status
+      cannot('update', 'User', ['role', 'status'], { uid: user.uid });
 
     } else {
       // Usuários comuns podem gerenciar seu próprio perfil.
-      // A condição `{ id: user.uid }` garante que eles só possam gerenciar o objeto de usuário que tenha o mesmo ID que o deles.
-      can('manage', 'User', { id: user.uid });
+      // A condição `{ uid: user.uid }` garante que eles só possam gerenciar o objeto de usuário que tenha o mesmo ID que o deles.
+      can('manage', 'User', { uid: user.uid });
       
       // Especifica que eles não podem alterar a própria 'role' ou 'status'
       cannot('update', 'User', ['role', 'status']);
