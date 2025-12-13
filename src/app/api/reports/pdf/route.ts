@@ -347,3 +347,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Erro ao gerar PDF" }, { status: 500 });
   }
 }
+
+    
