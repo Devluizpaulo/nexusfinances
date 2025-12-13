@@ -31,100 +31,24 @@ service cloud.firestore {
     }
     
     // ==============================================================
-    // Regras Explícitas para Subcoleções do Usuário
+    // Regras para Subcoleções do Usuário
     // Este padrão garante que apenas o dono possa acessar seus próprios dados aninhados.
     // ==============================================================
 
-    match /users/{userId}/incomes/{docId} {
+    match /users/{userId}/{subcollection}/{docId} {
       allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/incomes {
-      allow list: if isOwner(userId);
-    }
-    
-    match /users/{userId}/expenses/{docId} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/expenses {
-       allow list: if isOwner(userId);
-    }
-    
-    match /users/{userId}/debts/{docId} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/debts {
-      allow list: if isOwner(userId);
     }
 
-    match /users/{userId}/debts/{debtId}/installments/{installmentId} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/debts/{debtId}/installments {
-      allow list: if isOwner(userId);
-    }
-
-    match /users/{userId}/goals/{docId} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/goals {
-       allow list: if isOwner(userId);
-    }
-    
-    match /users/{userId}/budgets/{docId} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/budgets {
-      allow list: if isOwner(userId);
-    }
-
-    match /users/{userId}/notifications/{docId} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/notifications {
-      allow list: if isOwner(userId);
-    }
-
-    match /users/{userId}/creditCards/{docId} {
-       allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/creditCards {
-      allow list: if isOwner(userId);
-    }
-
-    match /users/{userId}/rentalContracts/{docId} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/rentalContracts {
-      allow list: if isOwner(userId);
-    }
-
-    match /users/{userId}/healthProviders/{docId} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/healthProviders {
-       allow list: if isOwner(userId);
-    }
-
-    match /users/{userId}/healthProfessionals/{docId} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/healthProfessionals {
-      allow list: if isOwner(userId);
-    }
-    
-    match /users/{userId}/healthInsurances/{docId} {
-       allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/healthInsurances {
-       allow list: if isOwner(userId);
-    }
-    
-    // Regra para consulta de grupo (Collection Group Query)
-    match /{path=**}/installments/{installmentId} {
-      // CORREÇÃO CRÍTICA DE SEGURANÇA:
-      // A regra agora valida o 'userId' a partir dos dados do próprio recurso (`resource.data`),
-      // que é a forma correta de proteger collection group queries.
-      // Isso impede que um usuário liste parcelas de outros usuários.
+    // ==============================================================
+    // Regra de Grupo de Coleções (Collection Group Query Rule)
+    // Permite que um usuário consulte uma coleção em todos os documentos de usuário
+    // (ex: buscar todas as parcelas "installments" vencidas de um usuário específico).
+    // Esta regra de segurança é CRUCIAL.
+    // ==============================================================
+    match /{path=**}/{subcollection}/{docId} {
+      // Permite a leitura em uma consulta de grupo SE E SOMENTE SE o documento
+      // na subcoleção tiver um campo `userId` que corresponda ao usuário autenticado.
+      // Isso impede que um usuário liste dados de outros usuários.
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
     }
 
