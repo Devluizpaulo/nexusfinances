@@ -223,9 +223,10 @@ export function AddUtilityBillSheet({ isOpen, onClose }: AddUtilityBillSheetProp
                             onSelect={field.onChange} 
                             initialFocus 
                             locale={ptBR} 
-                            captionLayout="dropdown"
+                            captionLayout="dropdown-buttons"
                             fromYear={new Date().getFullYear() - 10}
                             toYear={new Date().getFullYear() + 10}
+                            defaultMonth={field.value || new Date()}
                         />
                         </PopoverContent>
                     </Popover>
