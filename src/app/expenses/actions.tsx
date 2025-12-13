@@ -25,6 +25,7 @@ import { useState, useCallback } from "react"
 import { doc, updateDoc, deleteDoc } from "firebase/firestore"
 import { useFirestore, useUser } from "@/firebase"
 import { useToast } from "@/hooks/use-toast"
+import { useRouter } from "next/navigation"
 import type { Transaction } from "@/lib/types"
 
 interface DataTableRowActionsProps {
@@ -34,9 +35,11 @@ interface DataTableRowActionsProps {
 
 export function DataTableRowActions({ row, onEdit }: DataTableRowActionsProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
+  const router = useRouter();
 
   const transaction = row.original;
   const collectionName = 'expenses';
@@ -65,6 +68,7 @@ export function DataTableRowActions({ row, onEdit }: DataTableRowActionsProps) {
       return;
     }
 
+    setIsDeleting(true);
     const docRef = doc(firestore, `users/${user.uid}/${collectionName}`, transaction.id);
     try {
         await deleteDoc(docRef);
@@ -72,6 +76,8 @@ export function DataTableRowActions({ row, onEdit }: DataTableRowActionsProps) {
             title: "Transação excluída",
             description: `A transação "${transaction.description}" foi removida.`,
         });
+        // Force page refresh to prevent freezing
+        router.refresh();
     } catch (error) {
         console.error("Error deleting transaction:", error);
         toast({
@@ -80,16 +86,17 @@ export function DataTableRowActions({ row, onEdit }: DataTableRowActionsProps) {
             description: "Não foi possível remover a transação.",
         });
     } finally {
+        setIsDeleting(false);
         setIsDeleteDialogOpen(false);
     }
-  }, [user, firestore, collectionName, transaction.id, transaction.description, toast]);
+  }, [user, firestore, collectionName, transaction.id, transaction.description, toast, router]);
 
   return (
     <>
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+            <AlertDialogTitle>Tem certeza que deseja excluir?</AlertDialogTitle>
             <AlertDialogDescription>
               Esta ação não pode ser desfeita. Isso excluirá permanentemente a transação
               e removerá os dados de nossos servidores.
@@ -97,8 +104,12 @@ export function DataTableRowActions({ row, onEdit }: DataTableRowActionsProps) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
-              Excluir
+            <AlertDialogAction 
+              onClick={handleDelete} 
+              className="bg-destructive hover:bg-destructive/90"
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Excluindo..." : "Excluir"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
