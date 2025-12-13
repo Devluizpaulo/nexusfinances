@@ -1,14 +1,13 @@
 
-
 'use client';
 
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { collection, query, where, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, where, doc, orderBy, updateDoc } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import type { Recurrence, Transaction } from '@/lib/types';
+import type { Transaction } from '@/lib/types';
 import { Loader2, Zap, PlusCircle, Upload } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
 import { PageHeader } from '@/components/page-header';
 import { AddUtilityBillSheet } from '@/components/utilities/add-utility-bill-sheet';
@@ -16,10 +15,14 @@ import { DataTable } from '@/components/data-table/data-table';
 import { columns } from '../columns';
 import { useToast } from '@/hooks/use-toast';
 import { TransactionList } from '@/components/transactions/transaction-list';
+import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
+import { expenseCategories } from '@/lib/types';
+
 
 export default function UtilitiesPage() {
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [isImportSheetOpen, setIsImportSheetOpen] = useState(false);
+  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
   const firestore = useFirestore();
@@ -37,9 +40,9 @@ export default function UtilitiesPage() {
 
   const { data: expenseData, isLoading: isExpensesLoading } = useCollection<Transaction>(utilitiesExpensesQuery);
   
-  const handleOpenSheet = (transaction: Transaction | null = null) => {
+  const handleOpenEditSheet = (transaction: Transaction) => {
     setEditingTransaction(transaction);
-    setIsAddSheetOpen(true);
+    setIsEditSheetOpen(true);
   };
   
   const handleStatusChange = async (transaction: Transaction) => {
@@ -52,12 +55,12 @@ export default function UtilitiesPage() {
           description: `A despesa foi marcada como paga.`,
         });
     } catch (e) {
-        console.error("Error updating document: ", e);
-        toast({
-            variant: "destructive",
-            title: "Erro ao atualizar",
-            description: "Não foi possível marcar a despesa como paga."
-        });
+      console.error("Error updating document: ", e);
+      toast({
+          variant: "destructive",
+          title: "Erro ao atualizar",
+          description: "Não foi possível marcar a despesa como paga."
+      });
     }
   }
 
@@ -76,6 +79,13 @@ export default function UtilitiesPage() {
       <AddUtilityBillSheet
         isOpen={isAddSheetOpen}
         onClose={() => setIsAddSheetOpen(false)}
+      />
+      <AddTransactionSheet
+        isOpen={isEditSheetOpen}
+        onClose={() => setIsEditSheetOpen(false)}
+        transactionType="expense"
+        categories={expenseCategories}
+        transaction={editingTransaction}
       />
        <ImportTransactionsSheet 
         isOpen={isImportSheetOpen}
@@ -104,7 +114,7 @@ export default function UtilitiesPage() {
           <div className="md:hidden">
             <TransactionList 
               transactions={expenseData}
-              onEdit={handleOpenSheet}
+              onEdit={handleOpenEditSheet}
               onStatusChange={handleStatusChange}
               transactionType="expense"
             />
@@ -113,17 +123,27 @@ export default function UtilitiesPage() {
           {/* Desktop view */}
           <div className="hidden md:block">
             <DataTable
-                columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
+                columns={columns({ onEdit: handleOpenEditSheet, onStatusChange: handleStatusChange })}
                 data={expenseData}
             />
           </div>
         </>
       ) : (
-        <div className="mt-6 flex h-64 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
-          <Zap className="h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-xl font-semibold">Nenhuma conta de consumo encontrada</h3>
-          <p className="mt-2 text-sm text-muted-foreground">Clique em &quot;Adicionar Conta&quot; para começar a organizar seus gastos com utilidades.</p>
-        </div>
+        <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                <div className="rounded-full bg-muted p-4 mb-4">
+                    <Zap className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-semibold mb-2">Nenhuma conta de consumo encontrada</h3>
+                <p className="text-sm text-muted-foreground max-w-sm mb-6">
+                    Clique em &quot;Adicionar Conta&quot; para começar a organizar seus gastos com utilidades.
+                </p>
+                <Button onClick={() => setIsAddSheetOpen(true)} disabled={!user}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Adicionar Primeira Conta
+                </Button>
+            </CardContent>
+        </Card>
       )}
     </>
   );

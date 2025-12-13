@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { formatISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { collection, doc, addDoc } from 'firebase/firestore';
+import { collection, addDoc } from 'firebase/firestore';
 import { useFirestore, useUser } from '@/firebase';
 import { cn } from '@/lib/utils';
 import {
