@@ -1,11 +1,9 @@
 'use client';
 
-import { createContext, useMemo } from 'react';
+import { createContext, useMemo, type ReactNode } from 'react';
 import { useUser } from '@/firebase';
 import { defineAbilitiesFor } from './ability';
-import { AbilityContext } from '@casl/react';
 import type { AppAbility } from './ability';
-import type { ReactNode } from 'react';
 
 // Crie o contexto do CASL específico para o seu AppAbility
 export const AppAbilityContext = createContext<AppAbility>(undefined!);
@@ -21,8 +19,8 @@ export function AbilityProvider({ children }: AbilityProviderProps) {
   const ability = useMemo(() => defineAbilitiesFor(user), [user]);
 
   return (
-    <AbilityContext.Provider value={ability}>
+    <AppAbilityContext.Provider value={ability}>
       {children}
-    </AbilityContext.Provider>
+    </AppAbilityContext.Provider>
   );
 }
