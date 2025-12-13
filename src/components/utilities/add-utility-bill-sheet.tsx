@@ -199,37 +199,27 @@ export function AddUtilityBillSheet({ isOpen, onClose }: AddUtilityBillSheetProp
                 )}
                 />
                 <FormField
-                control={form.control}
-                name="dueDate"
-                render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                    <FormLabel>Data de Vencimento</FormLabel>
-                    <Popover>
-                        <PopoverTrigger asChild>
-                        <FormControl>
-                            <Button
-                            variant={'outline'}
-                            className={cn('pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}
-                            >
-                            {field.value ? format(field.value, 'PPP', { locale: ptBR }) : <span>Escolha uma data</span>}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                        </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar 
-                            mode="single" 
-                            selected={field.value} 
-                            onSelect={field.onChange} 
-                            initialFocus 
-                            locale={ptBR}
-                            defaultMonth={field.value}
+                  control={form.control}
+                  name="dueDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Data de Vencimento</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="date"
+                          value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
+                          onChange={(e) => {
+                            const date = new Date(e.target.value);
+                            // Adjust for timezone offset
+                            const timezoneOffset = date.getTimezoneOffset() * 60000;
+                            const adjustedDate = new Date(date.getTime() + timezoneOffset);
+                            field.onChange(adjustedDate);
+                          }}
                         />
-                        </PopoverContent>
-                    </Popover>
-                    <FormMessage />
+                      </FormControl>
+                      <FormMessage />
                     </FormItem>
-                )}
+                  )}
                 />
             </div>
              <FormField
