@@ -2,10 +2,10 @@
 
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { collection, query, where, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, where, updateDoc, doc, deleteDoc, addDoc } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Recurrence, Transaction } from '@/lib/types';
-import { Loader2, PlusCircle, Upload, CreditCard, Filter, ArrowUpDown } from 'lucide-react';
+import { Loader2, PlusCircle, Upload, CreditCard, Filter, ArrowUpDown, MoreHorizontal, Trash2, PauseCircle, RefreshCw } from 'lucide-react';
 import { AddSubscriptionSheet } from '@/components/subscriptions/add-subscription-sheet';
 import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
 import { PageHeader } from '@/components/page-header';
@@ -15,6 +15,9 @@ import { DataTable } from '@/components/data-table/data-table';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { subscriptionCategoriesConfig } from '@/lib/config';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 interface SubscriptionWithCategory extends Transaction {
   categoryType: 'media' | 'software' | 'services';
@@ -27,8 +30,11 @@ export default function SubscriptionsPage() {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('description');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [subscriptionToDelete, setSubscriptionToDelete] = useState<SubscriptionWithCategory | null>(null);
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
+  const { toast } = useToast();
 
   const recurringExpensesQuery = useMemoFirebase(() => {
     if (!user) return null;
@@ -128,6 +134,85 @@ export default function SubscriptionsPage() {
     setEditingTransaction(transaction);
     setIsAddSheetOpen(true);
   };
+
+  const handleDelete = (subscription: SubscriptionWithCategory) => {
+    setSubscriptionToDelete(subscription);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!subscriptionToDelete || !user) return;
+
+    try {
+      await deleteDoc(doc(firestore, `users/${user.uid}/expenses/${subscriptionToDelete.id}`));
+      toast({
+        title: "Assinatura excluída",
+        description: `${subscriptionToDelete.description} foi removida com sucesso.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao excluir",
+        description: "Não foi possível excluir a assinatura. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteDialogOpen(false);
+      setSubscriptionToDelete(null);
+    }
+  };
+
+  const handleSuspend = async (subscription: SubscriptionWithCategory) => {
+    if (!user) return;
+
+    try {
+      await updateDoc(doc(firestore, `users/${user.uid}/expenses/${subscription.id}`), {
+        status: 'suspended',
+        notes: `${subscription.notes || ''}\n[Assinatura suspensa em ${new Date().toLocaleDateString('pt-BR')}]`
+      });
+      toast({
+        title: "Assinatura suspensa",
+        description: `${subscription.description} foi suspensa. Você pode reativá-la quando quiser.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao suspender",
+        description: "Não foi possível suspender a assinatura. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRenewPayment = async (subscription: SubscriptionWithCategory) => {
+    if (!user) return;
+
+    try {
+      // Create a new transaction for the payment
+      const paymentData = {
+        userId: user.uid,
+        amount: subscription.amount,
+        category: subscription.category,
+        date: new Date().toISOString(),
+        description: `Pagamento: ${subscription.description}`,
+        isRecurring: false,
+        recurringSourceId: subscription.id,
+        status: 'paid',
+        type: 'expense',
+        notes: `Pagamento registrado em ${new Date().toLocaleDateString('pt-BR')}. OBS: Este é apenas um registro financeiro. O pagamento efetivo deve ser realizado no serviço contratado.`,
+      };
+
+      await addDoc(collection(firestore, `users/${user.uid}/expenses`), paymentData);
+      toast({
+        title: "Pagamento registrado",
+        description: `Pagamento de ${formatCurrency(subscription.amount)} registrado com sucesso.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao registrar pagamento",
+        description: "Não foi possível registrar o pagamento. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
   
   const handleCloseSheet = () => {
     setEditingTransaction(null);
@@ -192,13 +277,34 @@ export default function SubscriptionsPage() {
       header: 'Ações',
       accessorKey: 'actions',
       cell: ({ row }: { row: { original: SubscriptionWithCategory } }) => (
-        <Button 
-          variant="ghost" 
-          size="sm"
-          onClick={() => handleEdit(row.original)}
-        >
-          Editar
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => handleEdit(row.original)}>
+              Editar
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleRenewPayment(row.original)}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Registrar Pagamento
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleSuspend(row.original)}>
+              <PauseCircle className="mr-2 h-4 w-4" />
+              Suspender
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              onClick={() => handleDelete(row.original)}
+              className="text-red-600"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Excluir
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       ),
     },
   ];
@@ -332,6 +438,24 @@ export default function SubscriptionsPage() {
           </div>
         </div>
       )}
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir "{subscriptionToDelete?.description}"? 
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

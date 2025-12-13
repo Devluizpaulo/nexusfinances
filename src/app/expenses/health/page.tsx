@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { collection, query, where, doc, orderBy, updateDoc } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Transaction } from '@/lib/types';
-import { Loader2, HeartPulse, PlusCircle, Upload } from 'lucide-react';
+import { Loader2, HeartPulse, PlusCircle, Upload, Users, Building } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
@@ -14,11 +14,14 @@ import { DataTable } from '@/components/data-table/data-table';
 import { columns } from '../columns';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
+import { ProfessionalsManager } from '@/components/health/professionals-manager';
+import { formatCurrency } from '@/lib/utils';
 
 export default function HealthExpensesPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isImportSheetOpen, setIsImportSheetOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [isProfessionalsManagerOpen, setIsProfessionalsManagerOpen] = useState(false);
 
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
@@ -34,6 +37,11 @@ export default function HealthExpensesPage() {
   }, [user, firestore]);
 
   const { data: healthExpenses, isLoading: isExpensesLoading } = useCollection<Transaction>(healthExpensesQuery);
+
+  // Calculate health expenses total
+  const healthTotal = useMemo(() => {
+    return healthExpenses?.reduce((total, expense) => total + (expense.amount || 0), 0) || 0;
+  }, [healthExpenses]);
 
   const handleOpenSheet = (transaction: Transaction | null = null) => {
     setEditingTransaction(transaction);
@@ -93,6 +101,10 @@ export default function HealthExpensesPage() {
         description="Gerencie todos os seus gastos com saúde, desde consultas a medicamentos e planos."
       >
         <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setIsProfessionalsManagerOpen(true)} disabled={!user}>
+                <Users className="mr-2 h-4 w-4" />
+                Profissionais
+            </Button>
             <Button variant="outline" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>
                 <Upload className="mr-2 h-4 w-4" />
                 Importar Extrato
@@ -103,6 +115,24 @@ export default function HealthExpensesPage() {
             </Button>
         </div>
       </PageHeader>
+
+      {/* Health Summary Card */}
+      {healthExpenses && healthExpenses.length > 0 && (
+        <Card className="mb-6">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold">Resumo de Gastos</h3>
+                <p className="text-sm text-muted-foreground">Total em despesas de saúde</p>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold">{formatCurrency(healthTotal)}</div>
+                <p className="text-sm text-muted-foreground">{healthExpenses.length} transações</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {healthExpenses && healthExpenses.length > 0 ? (
         <DataTable
@@ -126,6 +156,12 @@ export default function HealthExpensesPage() {
             </CardContent>
         </Card>
       )}
+
+      {/* Professionals Manager */}
+      <ProfessionalsManager 
+        isOpen={isProfessionalsManagerOpen} 
+        onClose={() => setIsProfessionalsManagerOpen(false)} 
+      />
     </>
   );
 }
