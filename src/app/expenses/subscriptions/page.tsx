@@ -444,7 +444,7 @@ export default function SubscriptionsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir "{subscriptionToDelete?.description}"? 
+              Tem certeza que deseja excluir &quot;{subscriptionToDelete?.description}&quot;? 
               Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
