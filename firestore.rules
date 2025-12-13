@@ -33,23 +33,11 @@ service cloud.firestore {
     // ==============================================================
     // Regras para Subcoleções do Usuário
     // Este padrão garante que apenas o dono possa acessar seus próprios dados aninhados.
+    // E permite consultas de grupo seguras em qualquer subcoleção.
     // ==============================================================
 
     match /users/{userId}/{subcollection}/{docId} {
-      allow read, write: if isOwner(userId);
-    }
-
-    // ==============================================================
-    // Regra de Grupo de Coleções (Collection Group Query Rule)
-    // Permite que um usuário consulte uma coleção em todos os documentos de usuário
-    // (ex: buscar todas as parcelas "installments" vencidas de um usuário específico).
-    // Esta regra de segurança é CRUCIAL.
-    // ==============================================================
-    match /{path=**}/{subcollection}/{docId} {
-      // Permite a leitura em uma consulta de grupo SE E SOMENTE SE o documento
-      // na subcoleção tiver um campo `userId` que corresponda ao usuário autenticado.
-      // Isso impede que um usuário liste dados de outros usuários.
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read, write: if isOwner(userId) || (request.auth != null && resource.data.userId == request.auth.uid);
     }
 
     // =================================
