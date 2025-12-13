@@ -5,20 +5,28 @@ import { Button } from '@/components/ui/button';
 import { collection, query, where, updateDoc, doc } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Recurrence, Transaction } from '@/lib/types';
-import { Loader2, Film, Cpu, Repeat, PlusCircle, Upload, LayoutGrid, List, TrendingUp, CreditCard } from 'lucide-react';
+import { Loader2, PlusCircle, Upload, CreditCard, Filter, ArrowUpDown } from 'lucide-react';
 import { AddSubscriptionSheet } from '@/components/subscriptions/add-subscription-sheet';
 import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
 import { PageHeader } from '@/components/page-header';
-import { SubscriptionColumn } from '@/components/subscriptions/subscription-column';
-import { subscriptionCategoriesConfig } from '@/lib/config';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils';
+import { DataTable } from '@/components/data-table/data-table';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { subscriptionCategoriesConfig } from '@/lib/config';
+
+interface SubscriptionWithCategory extends Transaction {
+  categoryType: 'media' | 'software' | 'services';
+  categoryLabel: string;
+}
 
 export default function SubscriptionsPage() {
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [isImportSheetOpen, setIsImportSheetOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
-  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('description');
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
 
@@ -33,39 +41,65 @@ export default function SubscriptionsPage() {
 
   const { data: expenseData, isLoading: isExpensesLoading } = useCollection<Transaction>(recurringExpensesQuery);
 
-  const groupedExpenses = useMemo(() => {
-    const grouped: Record<string, Recurrence[]> = {
-      media: [],
-      software: [],
-      services: [],
-    };
-    
-    (expenseData || []).forEach(expense => {
+  const processedSubscriptions = useMemo(() => {
+    if (!expenseData) return [];
+
+    return expenseData.map(expense => {
       // Use a metadata se existir, senão, use a lógica de keywords
       const subCategory = (expense as any).metadata?.subscriptionType;
-      if (subCategory && grouped[subCategory]) {
-        grouped[subCategory].push(expense);
-        return;
-      }
-      
-      const expenseDescription = expense.description.toLowerCase();
-      let assigned = false;
-      for (const cat of subscriptionCategoriesConfig) {
-        if (cat.id !== 'services' && cat.keywords.some(keyword => expenseDescription.includes(keyword))) {
-          grouped[cat.id].push(expense);
-          assigned = true;
-          break;
+      let categoryType: 'media' | 'software' | 'services' = 'services';
+      let categoryLabel = 'Outros Serviços';
+
+      if (subCategory && ['media', 'software', 'services'].includes(subCategory)) {
+        categoryType = subCategory;
+        categoryLabel = subscriptionCategoriesConfig.find(cat => cat.id === subCategory)?.title || 'Outros Serviços';
+      } else {
+        const expenseDescription = expense.description.toLowerCase();
+        for (const cat of subscriptionCategoriesConfig) {
+          if (cat.id !== 'services' && cat.keywords.some(keyword => expenseDescription.includes(keyword))) {
+            categoryType = cat.id;
+            categoryLabel = cat.title;
+            break;
+          }
         }
       }
-      if (!assigned) {
-        grouped['services'].push(expense);
+
+      return {
+        ...expense,
+        categoryType,
+        categoryLabel,
+      } as SubscriptionWithCategory;
+    });
+  }, [expenseData]);
+
+  const filteredAndSortedSubscriptions = useMemo(() => {
+    let filtered = processedSubscriptions;
+
+    // Filter by category
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(sub => sub.categoryType === selectedCategory);
+    }
+
+    // Sort
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'description':
+          return a.description.localeCompare(b.description);
+        case 'amount':
+          return b.amount - a.amount;
+        case 'category':
+          return a.categoryLabel.localeCompare(b.categoryLabel);
+        case 'date':
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        default:
+          return 0;
       }
     });
 
-    return grouped;
-  }, [expenseData]);
+    return filtered;
+  }, [processedSubscriptions, selectedCategory, sortBy]);
 
-  // Calculate totals for summary cards
+  // Calculate totals
   const subscriptionTotals = useMemo(() => {
     const totals = {
       total: 0,
@@ -73,17 +107,22 @@ export default function SubscriptionsPage() {
         media: 0,
         software: 0,
         services: 0,
+      },
+      count: {
+        media: 0,
+        software: 0,
+        services: 0,
       }
     };
 
-    Object.entries(groupedExpenses).forEach(([category, expenses]) => {
-      const categoryTotal = expenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
-      totals.byCategory[category as keyof typeof totals.byCategory] = categoryTotal;
-      totals.total += categoryTotal;
+    processedSubscriptions.forEach(sub => {
+      totals.total += sub.amount || 0;
+      totals.byCategory[sub.categoryType] += sub.amount || 0;
+      totals.count[sub.categoryType]++;
     });
 
     return totals;
-  }, [groupedExpenses]);
+  }, [processedSubscriptions]);
 
   const handleEdit = (transaction: Transaction) => {
     setEditingTransaction(transaction);
@@ -105,23 +144,72 @@ export default function SubscriptionsPage() {
     );
   }
 
-  const hasAnySubscription = Object.values(groupedExpenses).some(arr => arr.length > 0);
+  const hasAnySubscription = processedSubscriptions.length > 0;
+
+  // Table columns
+  const columns = [
+    {
+      header: 'Serviço',
+      accessorKey: 'description',
+      cell: (row: SubscriptionWithCategory) => (
+        <div>
+          <div className="font-medium">{row.description}</div>
+          <div className="text-sm text-muted-foreground">{row.categoryLabel}</div>
+        </div>
+      ),
+    },
+    {
+      header: 'Valor',
+      accessorKey: 'amount',
+      cell: (row: SubscriptionWithCategory) => (
+        <div className="font-medium">{formatCurrency(row.amount)}</div>
+      ),
+    },
+    {
+      header: 'Próximo Pagamento',
+      accessorKey: 'date',
+      cell: (row: SubscriptionWithCategory) => (
+        <div className="text-sm">
+          {new Date(row.date).toLocaleDateString('pt-BR')}
+        </div>
+      ),
+    },
+    {
+      header: 'Categoria',
+      accessorKey: 'categoryType',
+      cell: (row: SubscriptionWithCategory) => {
+        const categoryConfig = subscriptionCategoriesConfig.find(cat => cat.id === row.categoryType);
+        const Icon = categoryConfig?.icon;
+        return (
+          <Badge variant="secondary" className="flex items-center gap-1 w-fit">
+            {Icon && <Icon className="h-3 w-3" />}
+            {row.categoryLabel}
+          </Badge>
+        );
+      },
+    },
+    {
+      header: 'Ações',
+      accessorKey: 'actions',
+      cell: (row: SubscriptionWithCategory) => (
+        <Button 
+          variant="ghost" 
+          size="sm"
+          onClick={() => handleEdit(row)}
+        >
+          Editar
+        </Button>
+      ),
+    },
+  ];
 
   return (
     <>
       <AddSubscriptionSheet isOpen={isAddSheetOpen} onClose={handleCloseSheet} transaction={editingTransaction} />
       <ImportTransactionsSheet isOpen={isImportSheetOpen} onClose={() => setIsImportSheetOpen(false)} />
 
-      <PageHeader title="Streams & Assinaturas" description="Gerencie seus serviços recorrentes de streaming, software e outros.">
+      <PageHeader title="Assinaturas & Serviços" description="Gerencie todas suas assinaturas em um único lugar.">
         <div className="flex items-center gap-2">
-           <div className="hidden sm:flex items-center gap-1 rounded-lg border bg-muted p-1">
-             <Button variant={viewMode === 'card' ? 'secondary' : 'ghost'} size="icon" className="h-7 w-7" onClick={() => setViewMode('card')}>
-               <LayoutGrid className="h-4 w-4" />
-             </Button>
-             <Button variant={viewMode === 'list' ? 'secondary' : 'ghost'} size="icon" className="h-7 w-7" onClick={() => setViewMode('list')}>
-               <List className="h-4 w-4" />
-             </Button>
-           </div>
           <Button onClick={() => setIsAddSheetOpen(true)} disabled={!user}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Nova Assinatura
@@ -143,12 +231,13 @@ export default function SubscriptionsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{formatCurrency(subscriptionTotals.total)}</div>
-              <p className="text-xs text-muted-foreground">Total de todas as assinaturas</p>
+              <p className="text-xs text-muted-foreground">{processedSubscriptions.length} assinaturas ativas</p>
             </CardContent>
           </Card>
           
           {subscriptionCategoriesConfig.map(categoryConfig => {
             const categoryTotal = subscriptionTotals.byCategory[categoryConfig.id];
+            const categoryCount = subscriptionTotals.count[categoryConfig.id];
             const Icon = categoryConfig.icon;
             return (
               <Card key={categoryConfig.id}>
@@ -158,7 +247,7 @@ export default function SubscriptionsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{formatCurrency(categoryTotal)}</div>
-                  <p className="text-xs text-muted-foreground">{groupedExpenses[categoryConfig.id].length} assinaturas</p>
+                  <p className="text-xs text-muted-foreground">{categoryCount} assinaturas</p>
                 </CardContent>
               </Card>
             );
@@ -166,18 +255,62 @@ export default function SubscriptionsPage() {
         </div>
       )}
 
-      {hasAnySubscription ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
-          {subscriptionCategoriesConfig.map(categoryConfig => (
-            <SubscriptionColumn
-              key={categoryConfig.id}
-              categoryConfig={categoryConfig}
-              subscriptions={groupedExpenses[categoryConfig.id] || []}
-              viewMode={viewMode}
-              onEdit={handleEdit}
-            />
-          ))}
+      {/* Filters and Controls */}
+      {hasAnySubscription && (
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Filtrar:</span>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Todas categorias" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as categorias</SelectItem>
+                {subscriptionCategoriesConfig.map(cat => (
+                  <SelectItem key={cat.id} value={cat.id}>
+                    {cat.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Ordenar:</span>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Ordenar por" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="description">Nome</SelectItem>
+                <SelectItem value="amount">Valor</SelectItem>
+                <SelectItem value="category">Categoria</SelectItem>
+                <SelectItem value="date">Data</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
+      )}
+
+      {/* Main Content */}
+      {hasAnySubscription ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Minhas Assinaturas</CardTitle>
+            <CardDescription>
+              {filteredAndSortedSubscriptions.length} assinatura{filteredAndSortedSubscriptions.length !== 1 ? 's' : ''} 
+              {selectedCategory !== 'all' && ` em ${subscriptionCategoriesConfig.find(cat => cat.id === selectedCategory)?.title}`}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DataTable 
+              columns={columns} 
+              data={filteredAndSortedSubscriptions}
+            />
+          </CardContent>
+        </Card>
       ) : (
         <div className="mt-6 flex h-64 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
           <div className="flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
