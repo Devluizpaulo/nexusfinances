@@ -43,14 +43,14 @@ export function defineAbilitiesFor(user: AppUser | null) {
       can('manage', 'all');
       
        // Mas não podem excluir a si mesmos.
-      cannot('delete', 'User', { id: user.id });
-      cannot('update', 'User', { id: user.id }, 'role');
-      cannot('update', 'User', { id: user.id }, 'status');
+      cannot('delete', 'User', { id: user.uid });
+      cannot('update', 'User', { id: user.uid }, 'role');
+      cannot('update', 'User', { id: user.uid }, 'status');
 
     } else {
       // Usuários comuns podem gerenciar seu próprio perfil.
-      // A condição `{ id: user.id }` garante que eles só possam gerenciar o objeto de usuário que tenha o mesmo ID que o deles.
-      can('manage', 'User', { id: user.id });
+      // A condição `{ id: user.uid }` garante que eles só possam gerenciar o objeto de usuário que tenha o mesmo ID que o deles.
+      can('manage', 'User', { id: user.uid });
       
       // Especifica que eles não podem alterar a própria 'role' ou 'status'
       cannot('update', 'User', ['role', 'status']);
