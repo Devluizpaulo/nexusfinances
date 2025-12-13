@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Row } from "@tanstack/react-table"
@@ -20,27 +21,33 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { doc, updateDoc, deleteDoc } from "firebase/firestore"
 import { useFirestore, useUser } from "@/firebase"
 import { useToast } from "@/hooks/use-toast"
 import type { Transaction } from "@/lib/types"
 
-interface DataTableRowActionsProps {
-  row: Row<Transaction>
-  onEdit: (transaction: Transaction) => void;
+interface DataTableRowActionsProps<TData> {
+  row: Row<TData>
+  transactionType: "income" | "expense"
+  onEdit: (transaction: TData) => void;
 }
 
-export function DataTableRowActions({ row, onEdit }: DataTableRowActionsProps) {
+export function DataTableRowActions<TData>({
+  row,
+  transactionType,
+  onEdit
+}: DataTableRowActionsProps<TData>) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
 
-  const transaction = row.original;
-  const collectionName = 'incomes';
+  const transaction = row.original as Transaction;
+  
+  const collectionName = transactionType === 'income' ? 'incomes' : 'expenses';
 
-  const handleUpdateStatus = async () => {
+  const handleUpdateStatus = useCallback(async () => {
     if (!user) {
       toast({ variant: "destructive", title: "Erro", description: "Você não está autenticado." });
       return;
@@ -50,34 +57,40 @@ export function DataTableRowActions({ row, onEdit }: DataTableRowActionsProps) {
         await updateDoc(docRef, { status: "paid" });
         toast({
           title: "Transação atualizada!",
-          description: `A transação foi marcada como recebida.`,
+          description: `A transação "${transaction.description}" foi marcada como ${transactionType === 'income' ? 'recebida' : 'paga'}.`,
         });
-    } catch(e) {
-        console.error(e);
-        toast({ variant: "destructive", title: "Erro ao atualizar", description: "Não foi possível atualizar o status." });
+    } catch (e) {
+        console.error("Error updating status:", e);
+        toast({ variant: 'destructive', title: 'Erro ao atualizar', description: 'Não foi possível atualizar o status da transação.' });
     }
-  }
+  }, [user, firestore, collectionName, transaction.id, transaction.description, transactionType, toast]);
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     if (!user) {
       toast({ variant: "destructive", title: "Erro", description: "Você não está autenticado." });
       return;
     }
 
+    setIsDeleteDialogOpen(false);
+
     const docRef = doc(firestore, `users/${user.uid}/${collectionName}`, transaction.id);
+    
     try {
         await deleteDoc(docRef);
         toast({
           title: "Transação excluída",
           description: `A transação "${transaction.description}" foi removida.`,
         });
-    } catch (e) {
-        console.error("Error deleting transaction:", e);
-        toast({ variant: 'destructive', title: 'Erro ao excluir', description: 'Não foi possível remover a transação.' });
-    } finally {
-        setIsDeleteDialogOpen(false)
+    } catch (error) {
+        console.error("Error deleting transaction:", error);
+        toast({
+            variant: "destructive",
+            title: "Erro ao excluir",
+            description: "Não foi possível remover a transação.",
+        });
     }
-  }
+    
+  }, [user, firestore, collectionName, transaction.id, transaction.description, toast]);
 
   return (
     <>
@@ -114,7 +127,7 @@ export function DataTableRowActions({ row, onEdit }: DataTableRowActionsProps) {
             <>
               <DropdownMenuItem onClick={handleUpdateStatus}>
                 <CheckCircle className="mr-2 h-3.5 w-3.5" />
-                Marcar como Recebida
+                Marcar como {transactionType === 'income' ? 'Recebida' : 'Paga'}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
             </>

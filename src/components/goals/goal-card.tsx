@@ -22,7 +22,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Progress } from '@/components/ui/progress';
-import { useFirestore, useUser, deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { useFirestore, useUser } from '@/firebase';
 
 import type { Goal, GoalCategory } from '@/lib/types';
 import {
@@ -37,7 +37,7 @@ import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { PlusCircle, Trash2, Calendar, History, MoreVertical, Pencil, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { doc } from 'firebase/firestore';
+import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 import { format, parseISO, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -97,7 +97,7 @@ export function GoalCard({ goal, onAddContribution, onEdit }: GoalCardProps) {
     [contributions],
   );
 
-  const handleDeleteContribution = useCallback((contributionId: string) => {
+  const handleDeleteContribution = useCallback(async (contributionId: string) => {
     if (!user || !firestore) return;
 
     const goalRef = doc(firestore, `users/${user.uid}/goals`, goal.id);
@@ -105,27 +105,35 @@ export function GoalCard({ goal, onAddContribution, onEdit }: GoalCardProps) {
     const newCurrentAmount = remaining.reduce((sum, c) => sum + c.amount, 0);
 
     toast({ title: 'Removendo aporte...' });
-    updateDocumentNonBlocking(goalRef, {
-      contributions: remaining,
-      currentAmount: newCurrentAmount,
-    });
-    toast({ title: 'Aporte removido!', description: 'O histórico da sua reserva foi atualizado.' });
+    try {
+        await updateDoc(goalRef, {
+            contributions: remaining,
+            currentAmount: newCurrentAmount,
+        });
+        toast({ title: 'Aporte removido!', description: 'O histórico da sua reserva foi atualizado.' });
+    } catch (error) {
+        console.error("Error removing contribution:", error);
+        toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível remover o aporte.' });
+    }
 
   }, [user, firestore, goal, contributions, toast]);
 
-  const handleDeleteGoal = useCallback(() => {
+  const handleDeleteGoal = useCallback(async () => {
     if (!user || !firestore) {
       toast({ variant: "destructive", title: "Erro", description: "Você não está autenticado." });
       return;
     }
     
     setIsDeleteDialogOpen(false);
-    toast({ title: 'Excluindo item...', description: `"${goal.name}" será removido.` });
     
     const goalRef = doc(firestore, `users/${user.uid}/goals`, goal.id);
-    deleteDocumentNonBlocking(goalRef);
-    
-    toast({ title: 'Item Excluído', description: `O item "${goal.name}" foi removido.` });
+    try {
+        await deleteDoc(goalRef);
+        toast({ title: 'Item Excluído', description: `O item "${goal.name}" foi removido.` });
+    } catch (error) {
+        console.error("Error deleting goal:", error);
+        toast({ variant: "destructive", title: "Erro ao excluir", description: "Não foi possível remover a meta."});
+    }
     
   }, [user, firestore, goal.id, goal.name, toast]);
 
