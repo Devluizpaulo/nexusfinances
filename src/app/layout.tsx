@@ -8,7 +8,7 @@ import { LgpdBanner } from "@/components/lgpd-banner";
 import { cn } from "@/lib/utils";
 
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: "Xô Planilhas | Controle Financeiro, Orçamento e Metas",
@@ -25,7 +25,7 @@ export default function RootLayout({
       <head>
         <meta name="google-adsense-account" content="ca-pub-5750464088623363" />
       </head>
-      <body className={cn("font-sans antialiased bg-slate-950 text-slate-100", inter.variable)}>
+      <body className={cn("font-sans antialiased bg-slate-950 text-slate-100", inter.className)}>
         <ThemeProvider>
           <FirebaseClientProvider>
             {children}
