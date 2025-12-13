@@ -115,7 +115,9 @@ export function RegisterHousingPaymentDialog({ isOpen, onClose, contract }: Regi
         const additionalItemsDescriptions = (values.additionalItems || []).map(i => i.description);
 
         const allDescriptions = [...mainItemsDescriptions, ...additionalItemsDescriptions];
-        const description = allDescriptions.length > 0 ? allDescriptions.join(' + ') : `${contract.type} - ${contract.landlordName}`;
+        const description = allDescriptions.length > 0 
+            ? `${allDescriptions.join(' + ')} - ${contract.landlordName}`
+            : `${contract.type} - ${contract.landlordName}`;
         
         const expenseData = {
             userId: user.uid,
@@ -123,8 +125,8 @@ export function RegisterHousingPaymentDialog({ isOpen, onClose, contract }: Regi
             category: 'Moradia' as const,
             date: formatISO(values.paymentDate),
             description,
-            isRecurring: false,
-            recurringSourceId: contract.id,
+            isRecurring: false, // O pagamento em si não é recorrente, o contrato é.
+            recurringSourceId: contract.id, // Vincula ao contrato
             status: 'paid' as const,
             type: 'expense' as const,
             notes: `Pagamento referente ao contrato com ${contract.landlordName}. Itens: ${JSON.stringify({contract: mainItemsDescriptions, additional: values.additionalItems})}`,
