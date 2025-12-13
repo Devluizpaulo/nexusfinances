@@ -2,8 +2,8 @@
 'use client';
 
 import { useEffect, useCallback } from 'react';
-import { collection, query, where, getDocs, collectionGroup } from 'firebase/firestore';
-import { useFirestore, useUser, addDocumentNonBlocking } from '@/firebase';
+import { collection, query, where, getDocs, collectionGroup, addDoc } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
 import { startOfDay, isPast, parseISO, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { Debt, Installment } from '@/lib/types';
@@ -73,7 +73,7 @@ export function useNotificationGenerator() {
             entityId: installment.id, // Liga a notificação à parcela específica
           };
           
-          addDocumentNonBlocking(notificationsColRef, newNotification);
+          addDoc(notificationsColRef, newNotification);
         }
       }
 
