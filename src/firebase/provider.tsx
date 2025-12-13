@@ -10,6 +10,7 @@ import type { SubscriptionPlan, UserSubscription } from '@/lib/types';
 
 // Extends the default Firebase User type to include our custom fields
 export interface AppUser extends Omit<User, 'metadata' | 'phoneNumber'> {
+  subjectType: 'User'; // Adiciona a propriedade subjectType para o CASL
   firstName?: string;
   lastName?: string;
   phoneNumber?: string | null;
@@ -101,6 +102,7 @@ async function createUserDocument(firestore: Firestore, firebaseUser: User): Pro
   const appUser: AppUser = {
       ...firebaseUser,
       ...newUserDoc,
+      subjectType: 'User', // Adiciona o subjectType aqui
       metadata: firebaseUser.metadata,
       registrationDate: new Date().toISOString(), // Use ISO string for consistency
       // Ensure phoneNumber is correctly typed
@@ -150,7 +152,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
           
           userDocUnsubscribe = onSnapshot(userDocRef, 
             async (userSnapshot) => {
-              let userProfileData: Omit<AppUser, keyof User>;
+              let userProfileData: Omit<AppUser, keyof User | 'subjectType'>;
   
               if (!userSnapshot.exists()) {
                 // If user doc doesn't exist, create it. This is a one-time operation.
@@ -164,13 +166,14 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
                   return;
                 }
               } else {
-                userProfileData = userSnapshot.data() as Omit<AppUser, keyof User>;
+                userProfileData = userSnapshot.data() as Omit<AppUser, keyof User | 'subjectType'>;
               }
               
               // Combine auth data with Firestore data
               const combinedUser: AppUser = {
                   ...firebaseUser,
                   ...userProfileData,
+                  subjectType: 'User', // Garante que o subjectType está sempre presente
                   metadata: firebaseUser.metadata,
               };
 

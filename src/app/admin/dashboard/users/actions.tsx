@@ -48,12 +48,8 @@ export function DataTableRowActions({
   const userToModify = row.original;
   const newRole = userToModify.role === 'superadmin' ? 'user' : 'superadmin';
 
-  // Adicionamos um "subject type" ao objeto para o CASL saber qual entidade estamos verificando
-  const userToModifyWithSubject = { ...userToModify, subjectType: 'User' };
-
-
   const resolveUserId = () => {
-    return (userToModify as any).uid || (userToModify as any).id;
+    return userToModify.uid;
   };
 
   const handleDelete = async () => {
@@ -62,7 +58,7 @@ export function DataTableRowActions({
       return;
     }
     
-    if (!ability.can('delete', userToModifyWithSubject)) {
+    if (!ability.can('delete', userToModify)) {
       toast({ variant: "destructive", title: "Ação não permitida", description: "Você não pode excluir sua própria conta." });
       setIsDeleteDialogOpen(false);
       return;
@@ -108,13 +104,13 @@ export function DataTableRowActions({
       return;
     }
     
-    if (!ability.can('update', userToModifyWithSubject, 'role')) {
+    if (!ability.can('update', userToModify, 'role')) {
       toast({ variant: "destructive", title: "Ação não permitida", description: "Você não pode alterar sua própria função." });
       setIsRoleDialogOpen(false);
       return;
     }
     
-    const userId = (userToModify as any).uid || (userToModify as any).id;
+    const userId = resolveUserId();
     if (!userId) {
       toast({ variant: "destructive", title: "Erro ao alterar função", description: "ID do usuário não encontrado." });
       setIsRoleDialogOpen(false);
@@ -148,7 +144,7 @@ export function DataTableRowActions({
       return;
     }
 
-    if (!ability.can('update', userToModifyWithSubject, 'status')) {
+    if (!ability.can('update', userToModify, 'status')) {
       toast({ variant: "destructive", title: "Ação não permitida", description: "Você não pode alterar o seu próprio status." });
       return;
     }
@@ -230,7 +226,7 @@ export function DataTableRowActions({
             <Pen className="mr-2 h-3.5 w-3.5" />
             Editar Perfil
           </DropdownMenuItem>
-          {ability.can('update', userToModifyWithSubject, 'role') && (
+          {ability.can('update', userToModify, 'role') && (
             <DropdownMenuItem onClick={() => setIsRoleDialogOpen(true)}>
               {newRole === 'superadmin' ? (
                   <ShieldCheck className="mr-2 h-3.5 w-3.5" />
@@ -241,7 +237,7 @@ export function DataTableRowActions({
             </DropdownMenuItem>
           )}
           <DropdownMenuSeparator />
-          {ability.can('update', userToModifyWithSubject, 'status') && (
+          {ability.can('update', userToModify, 'status') && (
             <>
               <DropdownMenuItem onClick={() => handleSetStatus('active')}>
                 Ativar usuário
@@ -255,7 +251,7 @@ export function DataTableRowActions({
               <DropdownMenuSeparator />
             </>
           )}
-          {ability.can('delete', userToModifyWithSubject) && (
+          {ability.can('delete', userToModify) && (
             <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-red-600">
               <Trash2 className="mr-2 h-3.5 w-3.5" />
               Excluir Usuário
