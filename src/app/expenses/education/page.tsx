@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -10,7 +11,7 @@ import { PageHeader } from '@/components/page-header';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
 import { DataTable } from '@/components/data-table/data-table';
-import { columns } from '../columns';
+import { useExpenseColumns } from '../columns';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -32,7 +33,7 @@ export default function EducationExpensesPage() {
     );
   }, [user, firestore]);
 
-  const { data: educationExpenses, isLoading: isExpensesLoading } = useCollection<Transaction>(educationExpensesQuery);
+  const { data: educationExpenses, isLoading: isExpensesLoading, optimisticDelete } = useCollection<Transaction>(educationExpensesQuery);
 
   const handleOpenSheet = (transaction: Transaction | null = null) => {
     setEditingTransaction(transaction);
@@ -62,6 +63,8 @@ export default function EducationExpensesPage() {
       });
     }
   }
+  
+  const columns = useExpenseColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange, optimisticDelete });
 
   const isLoading = isUserLoading || isExpensesLoading;
 
@@ -105,7 +108,7 @@ export default function EducationExpensesPage() {
 
       {educationExpenses && educationExpenses.length > 0 ? (
         <DataTable
-            columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
+            columns={columns}
             data={educationExpenses}
         />
       ) : (

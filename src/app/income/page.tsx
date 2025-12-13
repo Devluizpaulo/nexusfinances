@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import { collection, query, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { DataTable } from '@/components/data-table/data-table';
-import { columns } from './columns';
+import { useIncomeColumns } from './columns';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { PlusCircle, Loader2, Upload, TrendingUp, BarChart3, PieChart } from 'lucide-react';
@@ -44,7 +44,7 @@ export default function IncomePage() {
     );
   }, [firestore, user]);
 
-  const { data: incomeData, isLoading: isIncomeLoading } = useCollection<Transaction>(incomeQuery);
+  const { data: incomeData, isLoading: isIncomeLoading, optimisticDelete } = useCollection<Transaction>(incomeQuery);
 
   const filteredIncomeData = useMemo(() => {
     if (!incomeData) return [];
@@ -133,6 +133,7 @@ export default function IncomePage() {
     }
   }
 
+  const columns = useIncomeColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange, optimisticDelete });
   const isLoading = isUserLoading || isIncomeLoading;
 
   if (isLoading) {
@@ -240,7 +241,7 @@ export default function IncomePage() {
                 {/* Desktop view */}
                 <div className="hidden md:block">
                     <DataTable
-                        columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
+                        columns={columns}
                         data={filteredIncomeData}
                     />
                 </div>

@@ -23,7 +23,7 @@ import { ImportPayslipSheet } from '@/components/income/import-payslip-sheet';
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/lib/utils';
 import { DataTable } from '@/components/data-table/data-table';
-import { columns } from './columns';
+import { useFreelancerColumns } from './columns';
 import { differenceInMonths, parseISO } from 'date-fns';
 
 
@@ -36,7 +36,6 @@ export default function FreelancerPage() {
   const { user, isUserLoading } = useUser();
   const { toast } = useToast();
 
-  // 1. Fetch all incomes, ordered by date. This query is simple and does not require a custom index.
   const allIncomesQuery = useMemoFirebase(() => {
     if (!user) return null;
     return query(
@@ -45,9 +44,8 @@ export default function FreelancerPage() {
     );
   }, [user, firestore]);
   
-  const { data: allIncomes, isLoading: isIncomesLoading } = useCollection<Transaction>(allIncomesQuery);
+  const { data: allIncomes, isLoading: isIncomesLoading, optimisticDelete } = useCollection<Transaction>(allIncomesQuery);
 
-  // 2. Filter for "Freelance" incomes on the client-side.
   const freelancerIncomes = useMemo(() => {
     if (!allIncomes) return [];
     return allIncomes.filter(income => income.category === 'Freelance');
@@ -105,6 +103,7 @@ export default function FreelancerPage() {
     }
   }
 
+  const columns = useFreelancerColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange, optimisticDelete });
   const isLoading = isUserLoading || isIncomesLoading;
 
   if (isLoading) {
@@ -190,7 +189,7 @@ export default function FreelancerPage() {
 
       {freelancerIncomes && freelancerIncomes.length > 0 ? (
           <DataTable
-            columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
+            columns={columns}
             data={freelancerIncomes}
         />
       ) : (

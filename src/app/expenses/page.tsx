@@ -5,7 +5,7 @@ import { useState, useMemo } from 'react';
 import { collection, query, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { DataTable } from '@/components/data-table/data-table';
-import { columns } from './columns';
+import { useExpenseColumns } from './columns';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Loader2, Upload, TrendingDown, BarChart3, PieChart } from 'lucide-react';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
@@ -44,7 +44,7 @@ export default function ExpensesPage() {
     );
   }, [firestore, user]);
 
-  const { data: expenseData, isLoading: isExpensesLoading } = useCollection<Transaction>(expensesQuery);
+  const { data: expenseData, isLoading: isExpensesLoading, optimisticDelete } = useCollection<Transaction>(expensesQuery);
 
   const filteredExpenseData = useMemo(() => {
     if (!expenseData) return [];
@@ -132,6 +132,8 @@ export default function ExpensesPage() {
       });
     }
   }
+  
+  const columns = useExpenseColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange, optimisticDelete });
   
   const isLoading = isUserLoading || isExpensesLoading;
 
@@ -241,7 +243,7 @@ export default function ExpensesPage() {
                 {/* Desktop view */}
                 <div className="hidden md:block">
                     <DataTable
-                        columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
+                        columns={columns}
                         data={filteredExpenseData}
                     />
                 </div>

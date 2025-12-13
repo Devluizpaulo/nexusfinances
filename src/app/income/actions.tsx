@@ -1,6 +1,7 @@
 
 "use client"
 
+import * as React from "react"
 import { Row } from "@tanstack/react-table"
 import { MoreHorizontal, Pen, Trash2, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -26,33 +27,39 @@ import { doc, updateDoc, deleteDoc } from "firebase/firestore"
 import { useFirestore, useUser } from "@/firebase"
 import { useToast } from "@/hooks/use-toast"
 import type { Transaction } from "@/lib/types"
+import { useRouter } from "next/navigation"
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
   transactionType: "income" | "expense"
   onEdit: (transaction: TData) => void;
+  optimisticDelete: (id: string, collectionPath: string) => Promise<void>;
 }
 
-export function DataTableRowActions<TData>({
+const DataTableRowActionsComponent = <TData,>({
   row,
   transactionType,
-  onEdit
-}: DataTableRowActionsProps<TData>) {
+  onEdit,
+  optimisticDelete,
+}: DataTableRowActionsProps<TData>) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false);
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
+  const router = useRouter();
 
   const transaction = row.original as Transaction;
   
   const collectionName = transactionType === 'income' ? 'incomes' : 'expenses';
+  const collectionPath = `users/${user?.uid}/${collectionName}`;
 
   const handleUpdateStatus = useCallback(async () => {
     if (!user) {
       toast({ variant: "destructive", title: "Erro", description: "Você não está autenticado." });
       return;
     }
-    const docRef = doc(firestore, `users/${user.uid}/${collectionName}`, transaction.id);
+    const docRef = doc(firestore, collectionPath, transaction.id);
     try {
         await updateDoc(docRef, { status: "paid" });
         toast({
@@ -63,7 +70,7 @@ export function DataTableRowActions<TData>({
         console.error("Error updating status:", e);
         toast({ variant: 'destructive', title: 'Erro ao atualizar', description: 'Não foi possível atualizar o status da transação.' });
     }
-  }, [user, firestore, collectionName, transaction.id, transaction.description, transactionType, toast]);
+  }, [user, firestore, collectionPath, transaction.id, transaction.description, transactionType, toast]);
 
   const handleDelete = useCallback(async () => {
     if (!user) {
@@ -71,26 +78,19 @@ export function DataTableRowActions<TData>({
       return;
     }
 
-    setIsDeleteDialogOpen(false);
+    setIsDeleting(true);
+    await optimisticDelete(transaction.id, collectionPath);
+    
+    toast({
+      title: "Transação excluída",
+      description: `A transação "${transaction.description}" foi removida.`,
+    });
+    
+    router.refresh();
 
-    const docRef = doc(firestore, `users/${user.uid}/${collectionName}`, transaction.id);
-    
-    try {
-        await deleteDoc(docRef);
-        toast({
-          title: "Transação excluída",
-          description: `A transação "${transaction.description}" foi removida.`,
-        });
-    } catch (error) {
-        console.error("Error deleting transaction:", error);
-        toast({
-            variant: "destructive",
-            title: "Erro ao excluir",
-            description: "Não foi possível remover a transação.",
-        });
-    }
-    
-  }, [user, firestore, collectionName, transaction.id, transaction.description, toast]);
+    setIsDeleting(false);
+    setIsDeleteDialogOpen(false);
+  }, [user, optimisticDelete, transaction.id, collectionPath, transaction.description, toast, router]);
 
   return (
     <>
@@ -105,8 +105,8 @@ export function DataTableRowActions<TData>({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
-              Excluir
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90" disabled={isDeleting}>
+              {isDeleting ? "Excluindo..." : "Excluir"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -146,3 +146,5 @@ export function DataTableRowActions<TData>({
     </>
   )
 }
+
+export const DataTableRowActions = React.memo(DataTableRowActionsComponent) as typeof DataTableRowActionsComponent;

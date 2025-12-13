@@ -11,7 +11,7 @@ import { PageHeader } from '@/components/page-header';
 import { AddOtherIncomeSheet } from '@/components/income/add-other-income-sheet';
 import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
 import { DataTable } from '@/components/data-table/data-table';
-import { columns } from '../columns';
+import { useIncomeColumns } from '../columns';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { PenSquare } from 'lucide-react';
@@ -36,7 +36,7 @@ export default function OthersIncomePage() {
     );
   }, [user, firestore]);
   
-  const { data: allIncomes, isLoading: isIncomesLoading } = useCollection<Transaction>(allIncomesQuery);
+  const { data: allIncomes, isLoading: isIncomesLoading, optimisticDelete } = useCollection<Transaction>(allIncomesQuery);
 
   const otherIncomes = useMemo(() => {
     if (!allIncomes) return [];
@@ -76,6 +76,7 @@ export default function OthersIncomePage() {
     }
   }
 
+  const columns = useIncomeColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange, optimisticDelete });
   const isLoading = isUserLoading || isIncomesLoading;
 
   if (isLoading) {
@@ -116,7 +117,7 @@ export default function OthersIncomePage() {
       
       {otherIncomes.length > 0 ? (
           <DataTable
-            columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
+            columns={columns}
             data={otherIncomes}
         />
       ) : (

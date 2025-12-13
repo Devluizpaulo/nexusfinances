@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -10,7 +11,7 @@ import { PageHeader } from '@/components/page-header';
 import { AddOtherExpenseSheet } from '@/components/expenses/add-other-expense-sheet';
 import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
 import { DataTable } from '@/components/data-table/data-table';
-import { columns } from '../columns';
+import { useExpenseColumns } from '../columns';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { PenSquare } from 'lucide-react';
@@ -36,7 +37,7 @@ export default function OthersExpensesPage() {
     );
   }, [user, firestore]);
   
-  const { data: otherExpenses, isLoading: isExpensesLoading } = useCollection<Transaction>(otherExpensesQuery);
+  const { data: otherExpenses, isLoading: isExpensesLoading, optimisticDelete } = useCollection<Transaction>(otherExpensesQuery);
 
   const handleOpenSheet = (transaction: Transaction | null = null) => {
     setEditingTransaction(transaction);
@@ -66,6 +67,8 @@ export default function OthersExpensesPage() {
         });
     }
   }
+  
+  const columns = useExpenseColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange, optimisticDelete });
 
   const isLoading = isUserLoading || isExpensesLoading;
 
@@ -107,7 +110,7 @@ export default function OthersExpensesPage() {
       
       {otherExpenses && otherExpenses.length > 0 ? (
           <DataTable
-            columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
+            columns={columns}
             data={otherExpenses}
         />
       ) : (

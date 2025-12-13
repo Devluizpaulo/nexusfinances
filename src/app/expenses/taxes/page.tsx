@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -12,7 +11,7 @@ import { PageHeader } from '@/components/page-header';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
 import { DataTable } from '@/components/data-table/data-table';
-import { columns } from '../columns';
+import { useExpenseColumns } from '../columns';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -40,7 +39,7 @@ export default function TaxesPage() {
     );
   }, [user, firestore]);
 
-  const { data: taxesExpenses, isLoading: isExpensesLoading } = useCollection<Transaction>(taxesExpensesQuery);
+  const { data: taxesExpenses, isLoading: isExpensesLoading, optimisticDelete } = useCollection<Transaction>(taxesExpensesQuery);
   
   const { upcoming, overdue, paid } = useMemo(() => {
     const data = {
@@ -116,6 +115,7 @@ export default function TaxesPage() {
     }
   }
 
+  const columns = useExpenseColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange, optimisticDelete });
   const isLoading = isUserLoading || isExpensesLoading;
 
   if (isLoading) {
@@ -179,7 +179,7 @@ export default function TaxesPage() {
               {/* Desktop view */}
               <div className="hidden md:block">
                 <DataTable
-                  columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
+                  columns={columns}
                   data={tableData}
                 />
               </div>

@@ -12,7 +12,7 @@ import { ImportTransactionsSheet } from '@/components/transactions/import-transa
 import { PageHeader } from '@/components/page-header';
 import { AddUtilityBillSheet } from '@/components/utilities/add-utility-bill-sheet';
 import { DataTable } from '@/components/data-table/data-table';
-import { columns } from '../columns';
+import { useExpenseColumns } from '../columns';
 import { useToast } from '@/hooks/use-toast';
 import { TransactionList } from '@/components/transactions/transaction-list';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
@@ -41,23 +41,7 @@ export default function UtilitiesPage() {
     );
   }, [firestore, user]);
 
-  const { data: expenseData, isLoading: isExpensesLoading } = useCollection<Transaction>(utilitiesExpensesQuery);
-  
-  // Group expenses by subcategory
-  const expensesBySubcategory = useMemo(() => {
-    if (!expenseData) return {};
-    
-    const grouped = expenseData.reduce((acc, expense) => {
-      const subcategory = expense.subcategory || 'Outro';
-      if (!acc[subcategory]) {
-        acc[subcategory] = [];
-      }
-      acc[subcategory].push(expense);
-      return acc;
-    }, {} as Record<string, Transaction[]>);
-    
-    return grouped;
-  }, [expenseData]);
+  const { data: expenseData, isLoading: isExpensesLoading, optimisticDelete } = useCollection<Transaction>(utilitiesExpensesQuery);
   
   // Filter expenses by selected subcategory
   const filteredExpenses = useMemo(() => {
@@ -123,6 +107,7 @@ export default function UtilitiesPage() {
     }
   }
 
+  const columns = useExpenseColumns({ onEdit: handleOpenEditSheet, onStatusChange: handleStatusChange, optimisticDelete });
   const isLoading = isUserLoading || isExpensesLoading;
 
   if (isLoading) {
@@ -167,7 +152,6 @@ export default function UtilitiesPage() {
         </div>
       </PageHeader>
       
-      {/* Subcategory Filters and Overview */}
       {expenseData && expenseData.length > 0 && (
         <div className="space-y-4">
           {/* Filter Tabs */}
@@ -191,36 +175,6 @@ export default function UtilitiesPage() {
               ))}
             </TabsList>
           </Tabs>
-          
-          {/* Subcategory Overview Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {subcategoryStats.map(({ subcategory, count, total, pendingCount }) => (
-              <Card key={subcategory} className="cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => setSelectedSubcategory(subcategory)}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      {getSubcategoryIcon(subcategory)}
-                      <h3 className="font-semibold">{subcategory}</h3>
-                    </div>
-                    {pendingCount > 0 && (
-                      <Badge variant="destructive" className="text-xs">
-                        {pendingCount} pendentes
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-muted-foreground">
-                      {count} conta{count !== 1 ? 's' : ''}
-                    </p>
-                    <p className="text-lg font-bold text-primary">
-                      R$ {total.toFixed(2)}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
         </div>
       )}
       
@@ -239,7 +193,7 @@ export default function UtilitiesPage() {
           {/* Desktop view */}
           <div className="hidden md:block">
             <DataTable
-                columns={columns({ onEdit: handleOpenEditSheet, onStatusChange: handleStatusChange })}
+                columns={columns}
                 data={filteredExpenses}
             />
           </div>
