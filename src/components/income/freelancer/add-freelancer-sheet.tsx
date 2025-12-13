@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect } from 'react';
@@ -204,9 +205,6 @@ export function AddFreelancerSheet({
                         onSelect={field.onChange}
                         initialFocus
                         locale={ptBR}
-                        captionLayout="dropdown"
-                        fromYear={new Date().getFullYear() - 10}
-                        toYear={new Date().getFullYear() + 10}
                       />
                     </PopoverContent>
                   </Popover>

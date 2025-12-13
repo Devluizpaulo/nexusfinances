@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -169,9 +170,6 @@ export function AddTransactionSheet({
                           onSelect={field.onChange}
                           initialFocus
                           locale={ptBR}
-                          captionLayout="dropdown-buttons"
-                          fromYear={new Date().getFullYear() - 10}
-                          toYear={new Date().getFullYear() + 10}
                         />
                       </PopoverContent>
                     </Popover>

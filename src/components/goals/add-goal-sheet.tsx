@@ -378,9 +378,6 @@ export function AddGoalSheet({ isOpen, onClose, goal }: AddGoalSheetProps) {
                         onSelect={field.onChange}
                         initialFocus
                         locale={ptBR}
-                        captionLayout="dropdown-buttons"
-                        fromYear={new Date().getFullYear() - 10}
-                        toYear={new Date().getFullYear() + 10}
                       />
                     </PopoverContent>
                   </Popover>

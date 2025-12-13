@@ -229,10 +229,7 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
                             selected={field.value} 
                             onSelect={field.onChange} 
                             initialFocus 
-                            locale={ptBR} 
-                            captionLayout="dropdown-buttons"
-                            fromYear={new Date().getFullYear() - 10}
-                            toYear={new Date().getFullYear() + 10}
+                            locale={ptBR}
                         />
                       </PopoverContent>
                     </Popover>
@@ -264,9 +261,6 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
                             selected={field.value} 
                             onSelect={field.onChange} 
                             locale={ptBR}
-                            captionLayout="dropdown-buttons"
-                            fromYear={new Date().getFullYear() - 10}
-                            toYear={new Date().getFullYear() + 10}
                         />
                       </PopoverContent>
                     </Popover>
