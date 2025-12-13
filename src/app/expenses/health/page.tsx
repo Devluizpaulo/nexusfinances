@@ -11,7 +11,7 @@ import { PageHeader } from '@/components/page-header';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
 import { DataTable } from '@/components/data-table/data-table';
-import { columns } from '../columns';
+import { useExpenseColumns } from '../columns';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { ProfessionalsManager } from '@/components/health/professionals-manager';
@@ -36,7 +36,7 @@ export default function HealthExpensesPage() {
     );
   }, [user, firestore]);
 
-  const { data: healthExpenses, isLoading: isExpensesLoading } = useCollection<Transaction>(healthExpensesQuery);
+  const { data: healthExpenses, isLoading: isExpensesLoading, optimisticDelete } = useCollection<Transaction>(healthExpensesQuery);
 
   // Calculate health expenses total
   const healthTotal = useMemo(() => {
@@ -72,6 +72,7 @@ export default function HealthExpensesPage() {
     }
   }
 
+  const columns = useExpenseColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange, optimisticDelete });
   const isLoading = isUserLoading || isExpensesLoading;
 
   if (isLoading) {
@@ -136,7 +137,7 @@ export default function HealthExpensesPage() {
 
       {healthExpenses && healthExpenses.length > 0 ? (
         <DataTable
-            columns={columns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange })}
+            columns={columns}
             data={healthExpenses}
         />
       ) : (

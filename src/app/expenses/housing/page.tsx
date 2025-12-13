@@ -14,7 +14,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { ManageContractsDialog } from '@/components/housing/manage-contracts-dialog';
 import { addYears, parseISO } from 'date-fns';
 import { DataTable } from '@/components/data-table/data-table';
-import { columns } from '../columns';
+import { useExpenseColumns } from '../columns';
 import { useToast } from '@/hooks/use-toast';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { expenseCategories } from '@/lib/types';
@@ -50,7 +50,7 @@ export default function HousingPage() {
   }, [firestore, user]);
 
   const { data: contractsData, isLoading: isContractsLoading } = useCollection<RentalContract>(contractsQuery);
-  const { data: housingExpenses, isLoading: isExpensesLoading } = useCollection<Transaction>(housingExpensesQuery);
+  const { data: housingExpenses, isLoading: isExpensesLoading, optimisticDelete } = useCollection<Transaction>(housingExpensesQuery);
   
   console.log('Housing expenses data:', housingExpenses);
   console.log('Is expenses loading:', isExpensesLoading);
@@ -113,6 +113,7 @@ export default function HousingPage() {
     }
   }
 
+  const columns = useExpenseColumns({ onEdit: handleEditTransaction, onStatusChange: handleStatusChange, optimisticDelete });
   const isLoading = isUserLoading || isContractsLoading || isExpensesLoading;
 
   if (isLoading) {
@@ -193,7 +194,7 @@ export default function HousingPage() {
                   {/* Desktop view */}
                   <div className="hidden md:block">
                     <DataTable
-                      columns={columns({ onEdit: handleEditTransaction, onStatusChange: handleStatusChange })}
+                      columns={columns}
                       data={housingExpenses ?? []}
                     />
                   </div>
