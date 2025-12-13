@@ -151,39 +151,39 @@ export default function SubscriptionsPage() {
     {
       header: 'Serviço',
       accessorKey: 'description',
-      cell: (row: SubscriptionWithCategory) => (
+      cell: ({ row }: { row: { original: SubscriptionWithCategory } }) => (
         <div>
-          <div className="font-medium">{row.description}</div>
-          <div className="text-sm text-muted-foreground">{row.categoryLabel}</div>
+          <div className="font-medium">{row.original.description}</div>
+          <div className="text-sm text-muted-foreground">{row.original.categoryLabel}</div>
         </div>
       ),
     },
     {
       header: 'Valor',
       accessorKey: 'amount',
-      cell: (row: SubscriptionWithCategory) => (
-        <div className="font-medium">{formatCurrency(row.amount)}</div>
+      cell: ({ row }: { row: { original: SubscriptionWithCategory } }) => (
+        <div className="font-medium">{formatCurrency(row.original.amount)}</div>
       ),
     },
     {
       header: 'Próximo Pagamento',
       accessorKey: 'date',
-      cell: (row: SubscriptionWithCategory) => (
+      cell: ({ row }: { row: { original: SubscriptionWithCategory } }) => (
         <div className="text-sm">
-          {new Date(row.date).toLocaleDateString('pt-BR')}
+          {new Date(row.original.date).toLocaleDateString('pt-BR')}
         </div>
       ),
     },
     {
       header: 'Categoria',
       accessorKey: 'categoryType',
-      cell: (row: SubscriptionWithCategory) => {
-        const categoryConfig = subscriptionCategoriesConfig.find(cat => cat.id === row.categoryType);
+      cell: ({ row }: { row: { original: SubscriptionWithCategory } }) => {
+        const categoryConfig = subscriptionCategoriesConfig.find(cat => cat.id === row.original.categoryType);
         const Icon = categoryConfig?.icon;
         return (
           <Badge variant="secondary" className="flex items-center gap-1 w-fit">
             {Icon && <Icon className="h-3 w-3" />}
-            {row.categoryLabel}
+            {row.original.categoryLabel}
           </Badge>
         );
       },
@@ -191,11 +191,11 @@ export default function SubscriptionsPage() {
     {
       header: 'Ações',
       accessorKey: 'actions',
-      cell: (row: SubscriptionWithCategory) => (
+      cell: ({ row }: { row: { original: SubscriptionWithCategory } }) => (
         <Button 
           variant="ghost" 
           size="sm"
-          onClick={() => handleEdit(row)}
+          onClick={() => handleEdit(row.original)}
         >
           Editar
         </Button>
