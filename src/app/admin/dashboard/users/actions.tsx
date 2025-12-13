@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { Row } from "@tanstack/react-table"
@@ -27,6 +28,8 @@ import { useFirestore, useUser } from "@/firebase"
 import { useToast } from "@/hooks/use-toast"
 import type { AppUser } from "@/firebase"
 import { logEvent } from "@/lib/logger"
+import { useAbility } from "@casl/react"
+import { AppAbilityContext } from "@/lib/ability-provider"
 
 interface DataTableRowActionsProps {
   row: Row<AppUser>
@@ -40,9 +43,14 @@ export function DataTableRowActions({
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
+  const ability = useAbility(AppAbilityContext);
 
   const userToModify = row.original;
   const newRole = userToModify.role === 'superadmin' ? 'user' : 'superadmin';
+
+  // Adicionamos um "subject type" ao objeto para o CASL saber qual entidade estamos verificando
+  const userToModifyWithSubject = { ...userToModify, subjectType: 'User' };
+
 
   const resolveUserId = () => {
     return (userToModify as any).uid || (userToModify as any).id;
@@ -54,16 +62,15 @@ export function DataTableRowActions({
       return;
     }
     
-    const userId = resolveUserId();
-
-    if (!userId) {
-      toast({ variant: "destructive", title: "Erro ao excluir", description: "ID do usuário não encontrado." });
+    if (!ability.can('delete', userToModifyWithSubject)) {
+      toast({ variant: "destructive", title: "Ação não permitida", description: "Você não pode excluir sua própria conta." });
       setIsDeleteDialogOpen(false);
       return;
     }
 
-    if (user.uid === userId) {
-      toast({ variant: "destructive", title: "Ação não permitida", description: "Você não pode excluir sua própria conta." });
+    const userId = resolveUserId();
+    if (!userId) {
+      toast({ variant: "destructive", title: "Erro ao excluir", description: "ID do usuário não encontrado." });
       setIsDeleteDialogOpen(false);
       return;
     }
@@ -101,16 +108,15 @@ export function DataTableRowActions({
       return;
     }
     
-    const userId = (userToModify as any).uid || (userToModify as any).id;
-
-    if (!userId) {
-      toast({ variant: "destructive", title: "Erro ao alterar função", description: "ID do usuário não encontrado." });
+    if (!ability.can('update', userToModifyWithSubject, 'role')) {
+      toast({ variant: "destructive", title: "Ação não permitida", description: "Você não pode alterar sua própria função." });
       setIsRoleDialogOpen(false);
       return;
     }
-
-    if (user.uid === userId) {
-      toast({ variant: "destructive", title: "Ação não permitida", description: "Você não pode alterar sua própria função." });
+    
+    const userId = (userToModify as any).uid || (userToModify as any).id;
+    if (!userId) {
+      toast({ variant: "destructive", title: "Erro ao alterar função", description: "ID do usuário não encontrado." });
       setIsRoleDialogOpen(false);
       return;
     }
@@ -142,18 +148,17 @@ export function DataTableRowActions({
       return;
     }
 
-    const userId = resolveUserId();
-
-    if (!userId) {
-      toast({ variant: "destructive", title: "Erro ao atualizar status", description: "ID do usuário não encontrado." });
-      return;
-    }
-
-    if (user.uid === userId) {
+    if (!ability.can('update', userToModifyWithSubject, 'status')) {
       toast({ variant: "destructive", title: "Ação não permitida", description: "Você não pode alterar o seu próprio status." });
       return;
     }
 
+    const userId = resolveUserId();
+    if (!userId) {
+      toast({ variant: "destructive", title: "Erro ao atualizar status", description: "ID do usuário não encontrado." });
+      return;
+    }
+    
     const docRef = doc(firestore, `users`, userId);
     try {
         await updateDoc(docRef, { status: newStatus });
@@ -225,29 +230,37 @@ export function DataTableRowActions({
             <Pen className="mr-2 h-3.5 w-3.5" />
             Editar Perfil
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setIsRoleDialogOpen(true)}>
-            {newRole === 'superadmin' ? (
-                <ShieldCheck className="mr-2 h-3.5 w-3.5" />
-            ) : (
-                <User className="mr-2 h-3.5 w-3.5" />
-            )}
-            Alterar para {newRole}
-          </DropdownMenuItem>
+          {ability.can('update', userToModifyWithSubject, 'role') && (
+            <DropdownMenuItem onClick={() => setIsRoleDialogOpen(true)}>
+              {newRole === 'superadmin' ? (
+                  <ShieldCheck className="mr-2 h-3.5 w-3.5" />
+              ) : (
+                  <User className="mr-2 h-3.5 w-3.5" />
+              )}
+              Alterar para {newRole}
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => handleSetStatus('active')}>
-            Ativar usuário
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleSetStatus('inactive')}>
-            Desativar usuário
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleSetStatus('blocked')}>
-            Bloquear usuário
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-red-600">
-            <Trash2 className="mr-2 h-3.5 w-3.5" />
-            Excluir Usuário
-          </DropdownMenuItem>
+          {ability.can('update', userToModifyWithSubject, 'status') && (
+            <>
+              <DropdownMenuItem onClick={() => handleSetStatus('active')}>
+                Ativar usuário
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleSetStatus('inactive')}>
+                Desativar usuário
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleSetStatus('blocked')}>
+                Bloquear usuário
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
+          {ability.can('delete', userToModifyWithSubject) && (
+            <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-red-600">
+              <Trash2 className="mr-2 h-3.5 w-3.5" />
+              Excluir Usuário
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </>

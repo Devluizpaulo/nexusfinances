@@ -17,6 +17,7 @@ O projeto é construído sobre uma base de tecnologias modernas e robustas, foca
 - **Estilização e UI:**
     - **Tailwind CSS:** Framework CSS utility-first para estilização rápida e consistente.
     - **ShadCN/UI:** Coleção de componentes de UI reusáveis, acessíveis e customizáveis, construídos sobre Radix UI e Tailwind CSS.
+- **Controle de Acesso no Frontend:** **CASL (Component-Driven Access Control)** para gerenciar permissões da interface do usuário de forma declarativa e desacoplada.
 - **Inteligência Artificial:** **Genkit (Google AI)** para funcionalidades generativas, como análise de extratos em PDF e geração de insights financeiros.
 - **Gerenciamento de Formulários:** **React Hook Form** com **Zod** para validação de schemas, garantindo a integridade dos dados inseridos pelos usuários.
 - **Visualização de Dados:** **Recharts** para a criação de gráficos interativos no dashboard.
@@ -44,6 +45,7 @@ A organização dos diretórios segue as convenções do Next.js e foi estrutura
 │   ├── ai/                     # Lógica de Inteligência Artificial
 │   │   └── flows/              # Fluxos do Genkit para interagir com a IA
 │   ├── lib/                    # Funções utilitárias, tipos e constantes
+│   │   └── ability.ts          # Definições de permissões do CASL
 │   ├── hooks/                  # Hooks customizados da aplicação
 │   └── context/                # Contextos React globais
 ├── docs/
@@ -120,7 +122,7 @@ A organização dos diretórios segue as convenções do Next.js e foi estrutura
 
 -   **Lógica de Acesso:** O layout (`AuthenticatedLayout`) e a própria página verificam se `user.role === 'superadmin'`.
 -   **Funcionalidades:**
-    -   **Gerenciamento de Usuários:** Lista todos os usuários do sistema, permitindo que o admin altere a `role` (de `user` para `superadmin` e vice-versa) ou exclua um usuário.
+    -   **Gerenciamento de Usuários:** Lista todos os usuários do sistema. Usa o `CASL` para controlar as ações (ex: um admin não pode excluir a si mesmo).
     -   **Visualização de Logs:** Exibe logs de eventos importantes do sistema, que são registrados na coleção `/logs`.
     -   **Gerenciamento de Conteúdo:** Permite criar e editar as trilhas de educação (`EducationTrack`).
 
