@@ -48,7 +48,9 @@ import { format } from 'date-fns';
 import { CurrencyInput } from '../ui/currency-input';
 import { Textarea } from '../ui/textarea';
 
-const utilityTypes = ['Luz', 'Água', 'Gás', 'Internet', 'Celular', 'Outro'];
+import { utilitySubcategories, type UtilitySubcategory } from '@/lib/types';
+
+const utilityTypes = utilitySubcategories;
 
 const formSchema = z.object({
   utilityType: z.string().min(1, "Selecione o tipo de conta."),
@@ -100,6 +102,7 @@ export function AddUtilityBillSheet({ isOpen, onClose }: AddUtilityBillSheetProp
       const expenseData = {
         amount: values.amount,
         category: 'Contas de Consumo',
+        subcategory: values.utilityType,
         date: formatISO(values.dueDate),
         description: `${values.utilityType} - ${values.provider}`,
         consumption: values.consumption,

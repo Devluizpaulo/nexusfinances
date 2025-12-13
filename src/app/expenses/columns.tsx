@@ -2,7 +2,7 @@
 
 import { ColumnDef } from "@tanstack/react-table"
 import { Transaction } from "@/lib/types"
-import { ArrowUpDown } from "lucide-react"
+import { ArrowUpDown, Lightbulb, Droplet, Flame, Wifi, Phone, Tv, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { format, parseISO } from "date-fns"
 import { ptBR } from "date-fns/locale"
@@ -14,6 +14,20 @@ type ColumnsProps = {
   onEdit: (transaction: Transaction) => void;
   onStatusChange: (transaction: Transaction) => Promise<void>;
 }
+
+// Get icon for subcategory
+const getSubcategoryIcon = (subcategory?: string) => {
+  switch (subcategory) {
+    case 'Luz': return <Lightbulb className="h-3 w-3" />;
+    case 'Água': return <Droplet className="h-3 w-3" />;
+    case 'Gás': return <Flame className="h-3 w-3" />;
+    case 'Internet': return <Wifi className="h-3 w-3" />;
+    case 'Celular':
+    case 'Telefone Fixo': return <Phone className="h-3 w-3" />;
+    case 'TV por Assinatura': return <Tv className="h-3 w-3" />;
+    default: return <Zap className="h-3 w-3" />;
+  }
+};
 
 export const columns = ({ onEdit, onStatusChange }: ColumnsProps): ColumnDef<Transaction>[] => [
   {
@@ -37,11 +51,31 @@ export const columns = ({ onEdit, onStatusChange }: ColumnsProps): ColumnDef<Tra
   {
     accessorKey: "description",
     header: "Descrição",
+    cell: ({ row }) => {
+      const transaction = row.original;
+      return (
+        <div className="flex items-center gap-2">
+          {transaction.category === 'Contas de Consumo' && getSubcategoryIcon(transaction.subcategory)}
+          <span>{row.getValue("description")}</span>
+        </div>
+      );
+    }
   },
   {
     accessorKey: "category",
     header: "Categoria",
     cell: ({ row }) => {
+      const transaction = row.original;
+      if (transaction.category === 'Contas de Consumo' && transaction.subcategory) {
+        return (
+          <div className="flex items-center gap-1">
+            <Badge variant="outline" className="flex items-center gap-1">
+              {getSubcategoryIcon(transaction.subcategory)}
+              {transaction.subcategory}
+            </Badge>
+          </div>
+        );
+      }
       return <Badge variant="outline">{row.getValue("category")}</Badge>
     }
   },

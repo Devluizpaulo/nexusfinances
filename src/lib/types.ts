@@ -9,6 +9,7 @@ export type Transaction = {
   date: string; // ISO string
   description: string;
   category: string; // e.g., 'Salary', 'Groceries'
+  subcategory?: string; // e.g., 'Electricity', 'Water', 'Internet'
   isRecurring: boolean;
   recurrenceSchedule?: 'monthly' | 'quarterly' | 'semiannual' | 'annual';
   userId?: string;
@@ -154,6 +155,19 @@ export type Notification = {
 export const specificExpenseCategories = [
     'Moradia', 'Contas de Consumo', 'Impostos & Taxas', 'Assinaturas & Serviços', 'Saúde', 'Educação'
 ] as const;
+
+export const utilitySubcategories = [
+  'Luz',
+  'Água',
+  'Gás',
+  'Internet',
+  'Celular',
+  'Telefone Fixo',
+  'TV por Assinatura',
+  'Outro'
+] as const;
+
+export type UtilitySubcategory = typeof utilitySubcategories[number];
 
 export const expenseCategories = [
     ...specificExpenseCategories,

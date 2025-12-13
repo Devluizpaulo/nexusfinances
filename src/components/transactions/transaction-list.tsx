@@ -4,7 +4,7 @@ import { Transaction } from '@/lib/types';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn, formatCurrency } from '@/lib/utils';
-import { MoreVertical } from 'lucide-react';
+import { MoreVertical, Lightbulb, Droplet, Flame, Wifi, Phone, Tv, Zap } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   DropdownMenu,
@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/transactions/status-badge';
+import { Badge } from '@/components/ui/badge';
 import { AnimatePresence, motion } from 'framer-motion';
 
 interface TransactionListProps {
@@ -22,6 +23,20 @@ interface TransactionListProps {
   onStatusChange: (transaction: Transaction) => Promise<void>;
   transactionType: 'income' | 'expense';
 }
+
+// Get icon for subcategory
+const getSubcategoryIcon = (subcategory?: string) => {
+  switch (subcategory) {
+    case 'Luz': return <Lightbulb className="h-3 w-3" />;
+    case 'Água': return <Droplet className="h-3 w-3" />;
+    case 'Gás': return <Flame className="h-3 w-3" />;
+    case 'Internet': return <Wifi className="h-3 w-3" />;
+    case 'Celular':
+    case 'Telefone Fixo': return <Phone className="h-3 w-3" />;
+    case 'TV por Assinatura': return <Tv className="h-3 w-3" />;
+    default: return <Zap className="h-3 w-3" />;
+  }
+};
 
 export function TransactionList({
   transactions,
@@ -80,11 +95,21 @@ export function TransactionList({
                         className="flex items-center p-3 border-b border-slate-800/60 last:border-b-0"
                       >
                         <div className="flex-1 space-y-1">
-                          <p className="font-medium text-slate-100">{t.description}</p>
+                          <div className="flex items-center gap-2">
+                            {t.category === 'Contas de Consumo' && getSubcategoryIcon(t.subcategory)}
+                            <p className="font-medium text-slate-100">{t.description}</p>
+                          </div>
                           <div className="flex items-center gap-2 text-xs text-slate-400">
                             <span>{format(parseISO(t.date), 'dd/MM')}</span>
                             <span>•</span>
-                            <span>{t.category}</span>
+                            {t.category === 'Contas de Consumo' && t.subcategory ? (
+                              <Badge variant="outline" className="flex items-center gap-1 text-xs">
+                                {getSubcategoryIcon(t.subcategory)}
+                                {t.subcategory}
+                              </Badge>
+                            ) : (
+                              <span>{t.category}</span>
+                            )}
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
