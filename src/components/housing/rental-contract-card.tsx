@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+import { memo } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -281,3 +282,5 @@ export function RentalContractCard({ contract, onEdit }: RentalContractCardProps
     </>
   );
 }
+
+export const RentalContractCardMemo = memo(RentalContractCard);

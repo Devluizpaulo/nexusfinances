@@ -9,7 +9,7 @@ import type { RentalContract, Transaction } from '@/lib/types';
 import { Loader2, Home, PlusCircle, Settings } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { AddRentalContractSheet } from '@/components/housing/add-rental-contract-sheet';
-import { RentalContractCard } from '@/components/housing/rental-contract-card';
+import { RentalContractCardMemo } from '@/components/housing/rental-contract-card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { ManageContractsDialog } from '@/components/housing/manage-contracts-dialog';
 import { addYears, parseISO } from 'date-fns';
@@ -41,6 +41,7 @@ export default function HousingPage() {
   
   const housingExpensesQuery = useMemoFirebase(() => {
     if (!user) return null;
+    console.log('Building housing expenses query for user:', user.uid);
     return query(
       collection(firestore, `users/${user.uid}/expenses`),
       where('category', '==', 'Moradia'),
@@ -50,6 +51,9 @@ export default function HousingPage() {
 
   const { data: contractsData, isLoading: isContractsLoading } = useCollection<RentalContract>(contractsQuery);
   const { data: housingExpenses, isLoading: isExpensesLoading } = useCollection<Transaction>(housingExpensesQuery);
+  
+  console.log('Housing expenses data:', housingExpenses);
+  console.log('Is expenses loading:', isExpensesLoading);
   
   const { activeContracts, inactiveContracts } = useMemo(() => {
     const active: RentalContract[] = [];
@@ -213,7 +217,7 @@ export default function HousingPage() {
                 <h2 className="text-lg font-semibold">Contratos Ativos</h2>
                 <div className="space-y-4">
                   {activeContracts.map(contract => (
-                    <RentalContractCard
+                    <RentalContractCardMemo
                       key={contract.id}
                       contract={contract}
                       onEdit={handleEditContract}
@@ -234,7 +238,7 @@ export default function HousingPage() {
 
                   <AccordionContent className="pt-4 space-y-4">
                     {inactiveContracts.map(contract => (
-                      <RentalContractCard
+                      <RentalContractCardMemo
                         key={contract.id}
                         contract={contract}
                         onEdit={handleEditContract}
