@@ -5,12 +5,14 @@ import { Button } from '@/components/ui/button';
 import { collection, query, where, updateDoc, doc } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Recurrence, Transaction } from '@/lib/types';
-import { Loader2, Film, Cpu, Repeat, PlusCircle, Upload, LayoutGrid, List } from 'lucide-react';
+import { Loader2, Film, Cpu, Repeat, PlusCircle, Upload, LayoutGrid, List, TrendingUp, CreditCard } from 'lucide-react';
 import { AddSubscriptionSheet } from '@/components/subscriptions/add-subscription-sheet';
 import { ImportTransactionsSheet } from '@/components/transactions/import-transactions-sheet';
 import { PageHeader } from '@/components/page-header';
 import { SubscriptionColumn } from '@/components/subscriptions/subscription-column';
 import { subscriptionCategoriesConfig } from '@/lib/config';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatCurrency } from '@/lib/utils';
 
 export default function SubscriptionsPage() {
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
@@ -63,6 +65,26 @@ export default function SubscriptionsPage() {
     return grouped;
   }, [expenseData]);
 
+  // Calculate totals for summary cards
+  const subscriptionTotals = useMemo(() => {
+    const totals = {
+      total: 0,
+      byCategory: {
+        media: 0,
+        software: 0,
+        services: 0,
+      }
+    };
+
+    Object.entries(groupedExpenses).forEach(([category, expenses]) => {
+      const categoryTotal = expenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
+      totals.byCategory[category as keyof typeof totals.byCategory] = categoryTotal;
+      totals.total += categoryTotal;
+    });
+
+    return totals;
+  }, [groupedExpenses]);
+
   const handleEdit = (transaction: Transaction) => {
     setEditingTransaction(transaction);
     setIsAddSheetOpen(true);
@@ -111,6 +133,39 @@ export default function SubscriptionsPage() {
         </div>
       </PageHeader>
 
+      {/* Summary Cards */}
+      {hasAnySubscription && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Mensal</CardTitle>
+              <CreditCard className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatCurrency(subscriptionTotals.total)}</div>
+              <p className="text-xs text-muted-foreground">Total de todas as assinaturas</p>
+            </CardContent>
+          </Card>
+          
+          {subscriptionCategoriesConfig.map(categoryConfig => {
+            const categoryTotal = subscriptionTotals.byCategory[categoryConfig.id];
+            const Icon = categoryConfig.icon;
+            return (
+              <Card key={categoryConfig.id}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">{categoryConfig.title}</CardTitle>
+                  <Icon className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{formatCurrency(categoryTotal)}</div>
+                  <p className="text-xs text-muted-foreground">{groupedExpenses[categoryConfig.id].length} assinaturas</p>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
       {hasAnySubscription ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
           {subscriptionCategoriesConfig.map(categoryConfig => (
@@ -125,8 +180,23 @@ export default function SubscriptionsPage() {
         </div>
       ) : (
         <div className="mt-6 flex h-64 flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center">
-          <h3 className="text-xl font-semibold">Nenhuma assinatura encontrada</h3>
-          <p className="mt-2 text-sm text-muted-foreground">Clique em &quot;Nova Assinatura&quot; para começar a organizar seus serviços.</p>
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
+            <CreditCard className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-xl font-semibold mb-2">Nenhuma assinatura encontrada</h3>
+          <p className="text-sm text-muted-foreground mb-4 max-w-md">
+            Comece a organizar seus serviços recorrentes como Netflix, Spotify, software e outros.
+          </p>
+          <div className="flex gap-2">
+            <Button onClick={() => setIsAddSheetOpen(true)} disabled={!user}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Adicionar Primeira Assinatura
+            </Button>
+            <Button variant="outline" onClick={() => setIsImportSheetOpen(true)} disabled={!user}>
+              <Upload className="mr-2 h-4 w-4" />
+              Importar com IA
+            </Button>
+          </div>
         </div>
       )}
     </>
