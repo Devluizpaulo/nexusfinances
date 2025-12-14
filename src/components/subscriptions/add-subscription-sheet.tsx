@@ -9,7 +9,6 @@ import { format, formatISO, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { collection, setDoc, doc, addDoc } from 'firebase/firestore';
 import { useFirestore, useUser } from '@/firebase';
-import { cn } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -36,13 +35,7 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { CalendarIcon, Loader2, Film, Music, Gamepad2, Cloud, Cpu, BookOpen, Dumbbell, CreditCard, Wallet } from 'lucide-react';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
+import { Loader2, Film, CreditCard, Wallet } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import { Separator } from '@/components/ui/separator';
@@ -52,6 +45,7 @@ import { Label } from '@/components/ui/label';
 import type { Transaction } from '@/lib/types';
 import { subscriptionCategoriesConfig } from '@/lib/config';
 import { useEffect } from 'react';
+import { DatePicker } from '../ui/date-picker';
 
 
 const billingCycles = [
@@ -338,24 +332,11 @@ export function AddSubscriptionSheet({ isOpen, onClose, transaction }: AddSubscr
                 control={form.control}
                 name="startDate"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
+                  <FormItem>
                     <FormLabel>Início da Assinatura</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={'outline'}
-                            className={cn('pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}
-                          >
-                            {field.value ? format(field.value, 'dd/MM/yyyy', { locale: ptBR }) : <span>Selecione</span>}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus locale={ptBR} />
-                      </PopoverContent>
-                    </Popover>
+                    <FormControl>
+                      <DatePicker value={field.value} onChange={field.onChange} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
