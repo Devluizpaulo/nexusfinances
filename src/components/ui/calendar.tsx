@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker, DropdownProps } from "react-day-picker"
+import { DayPicker, CaptionProps, useNavigation } from "react-day-picker"
 import { ptBR } from 'date-fns/locale';
 
 import { cn } from "@/lib/utils"
@@ -12,9 +12,9 @@ import { ScrollArea } from "./scroll-area";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
-function CustomCaption(props: DropdownProps) {
-  const { fromYear, toYear, displayMonth } = props;
-  const { goToMonth, nextMonth, previousMonth } = props;
+function CustomCaption(props: CaptionProps) {
+  const { displayMonth } = props;
+  const { goToMonth, nextMonth, previousMonth } = useNavigation();
 
   const handleYearChange = (value: string) => {
     const year = Number(value);
@@ -32,7 +32,7 @@ function CustomCaption(props: DropdownProps) {
 
   const years = [];
   const currentYear = new Date().getFullYear();
-  for (let i = fromYear || currentYear - 80; i <= (toYear || currentYear + 10); i++) {
+  for (let i = currentYear - 80; i <= currentYear + 10; i++) {
     years.push(i);
   }
   const months = Array.from({ length: 12 }, (_, i) => i);
@@ -50,7 +50,7 @@ function CustomCaption(props: DropdownProps) {
           <SelectContent>
             {months.map(month => (
               <SelectItem key={month} value={String(month)}>
-                {ptBR.localize?.month(month)}
+                {new Date(0, month).toLocaleString('pt-BR', { month: 'long' })}
               </SelectItem>
             ))}
           </SelectContent>
