@@ -24,7 +24,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Badge } from '@/components/ui/badge';
 import { ImportPayslipSheet } from '@/components/income/import-payslip-sheet';
 import { useToast } from '@/hooks/use-toast';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, cn } from '@/lib/utils';
 import { differenceInMonths, parseISO } from 'date-fns';
 
 
@@ -444,7 +444,8 @@ export default function SalaryPage() {
           </DialogHeader>
 
           <div className="space-y-6">
-            <form onSubmit={handleSaveSalaryConfig} className="space-y-4">
+            <form onSubmit={handleSaveSalaryConfig} className="space-y-4 rounded-lg border p-4 bg-muted/20">
+              <h4 className="font-semibold text-foreground">{editingContractId ? 'Editando Contrato' : 'Adicionar Novo Contrato'}</h4>
               <div className="grid gap-3">
                 <Label htmlFor="companyName">Empresa *</Label>
                 <Input
@@ -490,7 +491,7 @@ export default function SalaryPage() {
                 </div>
               </div>
 
-              <div className="flex gap-2 justify-end">
+              <div className="flex gap-2 justify-end pt-2">
                 {editingContractId && (
                   <Button type="button" variant="outline" onClick={resetForm}>
                     Cancelar
@@ -498,7 +499,7 @@ export default function SalaryPage() {
                 )}
                 <Button type="submit" disabled={isSavingConfig}>
                   {isSavingConfig && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {editingContractId ? 'Atualizar' : 'Adicionar'} Contrato
+                  {editingContractId ? 'Atualizar Contrato' : 'Adicionar Contrato'}
                 </Button>
               </div>
             </form>
@@ -526,61 +527,67 @@ export default function SalaryPage() {
                 contracts.map((contract) => (
                   <div
                     key={contract.id}
-                    className={`flex items-center justify-between rounded-lg border p-4 text-sm transition-colors ${
-                      contract.isPrimary ? 'border-primary bg-primary/5' : ''
-                    }`}
+                    className={cn(
+                        "group relative rounded-lg border p-4 text-sm transition-all duration-200 hover:border-primary/50",
+                        contract.isPrimary ? 'border-primary bg-primary/5' : ''
+                    )}
                   >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <p className="font-medium">{contract.companyName}</p>
-                        {contract.isPrimary && (
-                          <Badge variant="default" className="text-xs">
-                            <Star className="h-3 w-3 mr-1 fill-current" />
-                            Principal
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="space-y-1 text-muted-foreground">
-                        <p>Base: {formatCurrency(contract.baseAmount)}</p>
-                        {contract.contractType && (
-                          <p>Tipo: {contract.contractType}</p>
-                        )}
-                        {contract.startDate && (
-                          <p className="text-xs">
-                            Início:{' '}
-                            {(() => {
-                              const [year, month, day] = contract.startDate!.split('-');
-                              return `${day}/${month}/${year}`;
-                            })()}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEditContract(contract)}
-                        title="Editar contrato"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant={contract.isPrimary ? "default" : "ghost"}
-                        size="icon"
-                        onClick={() => handleSetPrimaryContract(contract.id)}
-                        title="Definir como principal"
-                      >
-                        <Star className={`h-4 w-4 ${contract.isPrimary ? 'fill-current' : ''}`} />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDeleteContract(contract.id)}
-                        title="Excluir contrato"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                    <div className="flex items-start justify-between">
+                        <div className="flex-1 space-y-1">
+                            <div className="flex items-center gap-2">
+                                <p className="font-semibold text-base">{contract.companyName}</p>
+                                {contract.isPrimary && (
+                                <Badge variant="default" className="text-xs h-5">
+                                    <Star className="h-3 w-3 mr-1 fill-current" />
+                                    Principal
+                                </Badge>
+                                )}
+                            </div>
+                            <div className="space-y-0.5 text-xs text-muted-foreground">
+                                <p>Salário Base: <span className="font-medium text-foreground">{formatCurrency(contract.baseAmount)}</span></p>
+                                {contract.contractType && (
+                                <p>Tipo: <span className="font-medium text-foreground">{contract.contractType}</span></p>
+                                )}
+                                {contract.startDate && (
+                                <p>
+                                    Início:{' '}
+                                    <span className="font-medium text-foreground">
+                                    {(() => {
+                                    const [year, month, day] = contract.startDate!.split('-');
+                                    return `${day}/${month}/${year}`;
+                                    })()}
+                                    </span>
+                                </p>
+                                )}
+                            </div>
+                        </div>
+                        
+                         <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                 <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                    <MoreVertical className="h-4 w-4" />
+                                    <span className="sr-only">Opções do contrato</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleEditContract(contract)}>
+                                    <Edit className="mr-2 h-4 w-4" /> Editar
+                                </DropdownMenuItem>
+                                {!contract.isPrimary && (
+                                    <DropdownMenuItem onClick={() => handleSetPrimaryContract(contract.id)}>
+                                        <Star className="mr-2 h-4 w-4" /> Definir como principal
+                                    </DropdownMenuItem>
+                                )}
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => handleDeleteContract(contract.id)} className="text-destructive">
+                                    <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                   </div>
                 ))
