@@ -11,7 +11,7 @@ import { collection, query, orderBy, doc, updateDoc, writeBatch, increment } fro
 import type { Challenge52Weeks, Challenge52WeeksDeposit } from '@/lib/types';
 import { format, parseISO, isPast } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Check, Loader2, Trophy, AlertCircle, Sparkles } from 'lucide-react';
+import { Check, Loader2, Trophy, AlertCircle, Sparkles, Undo2 } from 'lucide-react';
 import { formatCurrency, cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -43,6 +43,7 @@ export function ChallengeProgress({ challenge }: ChallengeProgressProps) {
   const { toast } = useToast();
   const [isUpdating, setIsUpdating] = useState(false);
   const [isCancelConfirmationOpen, setIsCancelConfirmationOpen] = useState(false);
+  const [depositToConfirm, setDepositToConfirm] = useState<Challenge52WeeksDeposit | null>(null);
 
   const depositsQuery = useMemoFirebase(() => {
     if (!user) return null;
@@ -70,28 +71,55 @@ export function ChallengeProgress({ challenge }: ChallengeProgressProps) {
   const firstHalf = processedDeposits.slice(0, 26);
   const secondHalf = processedDeposits.slice(26);
 
-  const handleDeposit = async (deposit: Challenge52WeeksDeposit) => {
-    if (!user || !firestore || deposit.status === 'deposited') return;
+  const handleConfirmDeposit = async () => {
+    if (!user || !firestore || !depositToConfirm) return;
     setIsUpdating(true);
     
-    const depositRef = doc(firestore, `users/${user.uid}/challenges52weeks/${challenge.id}/deposits`, deposit.id);
+    const depositRef = doc(firestore, `users/${user.uid}/challenges52weeks/${challenge.id}/deposits`, depositToConfirm.id);
     const challengeRef = doc(firestore, `users/${user.uid}/challenges52weeks`, challenge.id);
 
     try {
         const batch = writeBatch(firestore);
         batch.update(depositRef, { status: 'deposited', depositDate: new Date().toISOString() });
-        batch.update(challengeRef, { totalDeposited: increment(deposit.expectedAmount) });
+        batch.update(challengeRef, { totalDeposited: increment(depositToConfirm.expectedAmount) });
         await batch.commit();
         
         const randomToast = successToasts[Math.floor(Math.random() * successToasts.length)];
         toast({
             title: randomToast.title,
-            description: randomToast.description(deposit.weekNumber),
+            description: randomToast.description(depositToConfirm.weekNumber),
         });
 
     } catch (error) {
         console.error("Error saving deposit:", error);
         toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível registrar o depósito.' });
+    } finally {
+        setIsUpdating(false);
+        setDepositToConfirm(null);
+    }
+  };
+
+  const handleUndoDeposit = async (deposit: Challenge52WeeksDeposit) => {
+    if (!user || !firestore || deposit.status !== 'deposited') return;
+    setIsUpdating(true);
+
+    const depositRef = doc(firestore, `users/${user.uid}/challenges52weeks/${challenge.id}/deposits`, deposit.id);
+    const challengeRef = doc(firestore, `users/${user.uid}/challenges52weeks`, challenge.id);
+
+    try {
+      const batch = writeBatch(firestore);
+      batch.update(depositRef, { status: 'pending', depositDate: null });
+      batch.update(challengeRef, { totalDeposited: increment(-deposit.expectedAmount) });
+      await batch.commit();
+      
+      toast({
+        title: 'Depósito desfeito',
+        description: `O registro da semana ${deposit.weekNumber} foi revertido.`,
+      });
+
+    } catch (error) {
+        console.error("Error undoing deposit:", error);
+        toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível desfazer o depósito.' });
     } finally {
         setIsUpdating(false);
     }
@@ -129,10 +157,11 @@ export function ChallengeProgress({ challenge }: ChallengeProgressProps) {
      <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="w-12">Sem.</TableHead>
+          <TableHead className="w-12 text-center">Sem.</TableHead>
           <TableHead>Vencimento</TableHead>
           <TableHead>Valor</TableHead>
-          <TableHead>Saldo</TableHead>
+          <TableHead>Acumulado</TableHead>
+          <TableHead>Data Depósito</TableHead>
           <TableHead className="text-center">Status</TableHead>
           <TableHead className="text-right">Ação</TableHead>
         </TableRow>
@@ -152,21 +181,24 @@ export function ChallengeProgress({ challenge }: ChallengeProgressProps) {
           }
 
           return (
-            <TableRow key={deposit.id} className={cn(deposit.status === 'deposited' && 'bg-green-500/5')}>
-              <TableCell className="font-medium">{deposit.weekNumber}</TableCell>
+            <TableRow key={deposit.id} className={cn(deposit.status === 'deposited' ? 'bg-green-500/5' : isOverdue ? 'bg-yellow-500/5' : '')}>
+              <TableCell className="font-medium text-center">{deposit.weekNumber}</TableCell>
               <TableCell>{format(dueDate, 'dd/MM/yy')}</TableCell>
               <TableCell>{formatCurrency(deposit.expectedAmount)}</TableCell>
               <TableCell>{formatCurrency(deposit.accumulatedAmount)}</TableCell>
+              <TableCell>
+                {deposit.depositDate ? format(parseISO(deposit.depositDate), 'dd/MM/yy HH:mm') : '—'}
+              </TableCell>
               <TableCell className="text-center">{statusBadge}</TableCell>
               <TableCell className="text-right">
                 {deposit.status === 'pending' ? (
-                  <Button size="sm" onClick={() => handleDeposit(deposit)} disabled={isUpdating}>
+                  <Button size="sm" onClick={() => setDepositToConfirm(deposit)} disabled={isUpdating}>
                     <Check className="h-4 w-4" />
                   </Button>
                 ) : (
-                  <div className="flex items-center justify-end text-xs text-green-600 font-semibold gap-1">
-                    <Check className="h-4 w-4" />
-                  </div>
+                  <Button size="sm" variant="outline" onClick={() => handleUndoDeposit(deposit)} disabled={isUpdating}>
+                    <Undo2 className="h-4 w-4" />
+                  </Button>
                 )}
               </TableCell>
             </TableRow>
@@ -178,6 +210,23 @@ export function ChallengeProgress({ challenge }: ChallengeProgressProps) {
 
   return (
     <>
+      <AlertDialog open={!!depositToConfirm} onOpenChange={() => setDepositToConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Depósito</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você confirma o depósito de <strong className="text-foreground">{formatCurrency(depositToConfirm?.expectedAmount || 0)}</strong> para a <strong className="text-foreground">semana {depositToConfirm?.weekNumber}</strong>?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDeposit} disabled={isUpdating}>
+              {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirmar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AlertDialog open={isCancelConfirmationOpen} onOpenChange={setIsCancelConfirmationOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -209,9 +258,6 @@ export function ChallengeProgress({ challenge }: ChallengeProgressProps) {
                 </CardDescription>
               </div>
             </div>
-            <Button variant="destructive" size="sm" onClick={() => setIsCancelConfirmationOpen(true)} disabled={isUpdating}>
-              Cancelar Desafio
-            </Button>
           </div>
            <div className="mt-6 rounded-lg border bg-muted/30 p-4 space-y-2">
             <div className="flex justify-between items-baseline">
@@ -226,13 +272,18 @@ export function ChallengeProgress({ challenge }: ChallengeProgressProps) {
           </div>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
-           <div className="max-h-96 overflow-y-auto pr-2">
+           <div className="max-h-96 overflow-y-auto pr-2 border rounded-md">
               {renderTable(firstHalf)}
            </div>
-            <div className="max-h-96 overflow-y-auto pr-2">
+            <div className="max-h-96 overflow-y-auto pr-2 border rounded-md">
               {renderTable(secondHalf)}
            </div>
         </CardContent>
+         <CardFooter className="justify-end">
+            <Button variant="destructive" size="sm" onClick={() => setIsCancelConfirmationOpen(true)} disabled={isUpdating}>
+              Cancelar Desafio
+            </Button>
+        </CardFooter>
       </Card>
     </>
   );
