@@ -31,12 +31,12 @@ export function QuickActions({
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
-        <Button size="lg" className="h-16 w-16 rounded-full shadow-lg bg-primary hover:bg-primary/90 border border-primary/20">
-           <Plus className={cn("h-7 w-7 transition-transform duration-300 text-primary-foreground", isOpen && "rotate-45 scale-75")} />
+        <Button size="icon" className="h-10 w-10 rounded-full shadow-lg bg-primary hover:bg-primary/90 border border-primary/20">
+           <Plus className={cn("h-5 w-5 transition-transform duration-300 text-primary-foreground", isOpen && "rotate-45 scale-75")} />
           <span className="sr-only">Adicionar</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" side="top" className="w-64 mb-2 border border-slate-700/60 bg-slate-950/90 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
+      <DropdownMenuContent align="end" side="bottom" className="w-64 mt-2 border border-slate-700/60 bg-slate-950/90 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
         <DropdownMenuLabel className="text-slate-100">Criar novo...</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onAddIncome} className="flex items-center gap-3 py-2 hover:bg-slate-800/60">

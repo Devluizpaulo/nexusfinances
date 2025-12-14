@@ -22,6 +22,7 @@ import { FinancialHealthScore } from '@/components/dashboard/financial-health-sc
 import { OverdueDebtsCard } from '@/components/dashboard/overdue-debts-card';
 import { ExpenseCalendar } from './_components/expense-calendar';
 import { FinancialInsightsCard } from './_components/FinancialInsightsCard';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function DashboardPage() {
   const { selectedDate } = useDashboardDate();
@@ -128,51 +129,57 @@ export default function DashboardPage() {
       />
     
       <div className="relative space-y-6">
-        <DashboardHeader />
-
-        <div className="fixed bottom-6 right-6 z-40">
-           <QuickActions
-            onAddIncome={() => handleOpenSheet('income')}
-            onAddExpense={() => handleOpenSheet('expense')}
-            onAddDebt={() => handleOpenSheet('debt')}
-            onAddGoal={() => handleOpenSheet('goal')}
-          />
-        </div>
+        <DashboardHeader 
+          onAddIncome={() => handleOpenSheet('income')}
+          onAddExpense={() => handleOpenSheet('expense')}
+          onAddDebt={() => handleOpenSheet('debt')}
+          onAddGoal={() => handleOpenSheet('goal')}
+        />
         
         <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
         
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-          <div className="lg:col-span-3">
-             <IncomeExpenseChart transactions={allTransactions} />
-          </div>
-          <div className="lg:col-span-2">
-            <ExpenseCategoryChart transactions={expenseData || []} />
-          </div>
-        </div>
+        <OverdueDebtsCard debts={debtData || []} />
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <FinancialInsightsCard financialData={financialDataForAI} />
-            <FinancialHealthScore
-              income={totalIncome}
-              expenses={totalExpenses}
-              debts={debtData || []}
-              goals={goalData || []}
-              transactions={allTransactions}
-            />
-        </div>
-        
-        <div className="grid grid-cols-1 gap-6">
-           <OverdueDebtsCard debts={debtData || []} />
-        </div>
-        
-         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          <div className="lg:col-span-3">
-             <RecentTransactionsList transactions={allTransactions} />
-          </div>
-          <div className="lg:col-span-2">
-            <ExpenseCalendar expenses={expenseData || []} />
-          </div>
-        </div>
+        <Tabs defaultValue="overview">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+            <TabsTrigger value="planning">Análise e Planejamento</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="overview" className="mt-6 space-y-6">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+              <div className="lg:col-span-3">
+                <IncomeExpenseChart transactions={allTransactions} />
+              </div>
+              <div className="lg:col-span-2">
+                <ExpenseCategoryChart transactions={expenseData || []} />
+              </div>
+            </div>
+             <div className="grid grid-cols-1 gap-6">
+                <FinancialHealthScore
+                  income={totalIncome}
+                  expenses={totalExpenses}
+                  debts={debtData || []}
+                  goals={goalData || []}
+                  transactions={allTransactions}
+                />
+            </div>
+             <div className="grid grid-cols-1 gap-6">
+               <RecentTransactionsList transactions={allTransactions} />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="planning" className="mt-6 space-y-6">
+             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+              <div className="lg:col-span-3">
+                 <FinancialInsightsCard financialData={financialDataForAI} />
+              </div>
+              <div className="lg:col-span-2">
+                <ExpenseCalendar expenses={expenseData || []} />
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </>
   );

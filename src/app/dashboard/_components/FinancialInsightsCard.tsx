@@ -50,12 +50,12 @@ export function FinancialInsightsCard({ financialData }: FinancialInsightsCardPr
   };
 
   return (
-    <Card className="flex flex-col h-full">
+    <Card className="flex flex-col h-full rounded-2xl border border-slate-900/60 bg-slate-950/70 p-1 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
       <CardHeader>
         <div className="flex items-center gap-3">
           <Sparkles className="h-5 w-5 text-primary" />
           <div>
-            <CardTitle className="text-base">Análise com IA</CardTitle>
+            <CardTitle className="text-base text-slate-200">Análise com IA</CardTitle>
             <CardDescription className="text-xs">
               Receba um resumo inteligente e dicas para o seu mês.
             </CardDescription>

@@ -9,8 +9,17 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import * as LucideIcons from 'lucide-react';
+import { QuickActions } from "./quick-actions";
 
-export function DashboardHeader() {
+type DashboardHeaderProps = {
+  onAddIncome: () => void;
+  onAddExpense: () => void;
+  onAddDebt: () => void;
+  onAddGoal: () => void;
+};
+
+
+export function DashboardHeader({ onAddIncome, onAddExpense, onAddDebt, onAddGoal }: DashboardHeaderProps) {
     const { user } = useUser();
     const { selectedDate, setSelectedDate } = useDashboardDate();
 
@@ -41,33 +50,41 @@ export function DashboardHeader() {
                 </div>
             </div>
             
-            <div className="flex items-center gap-2 rounded-full border border-slate-800/60 bg-slate-950/80 p-1 shadow-inner">
-                <Button 
-                    size="icon" 
-                    variant="ghost" 
-                    className="h-8 w-8 rounded-full text-slate-400 hover:text-slate-100 transition-all duration-200" 
-                    onClick={() => setSelectedDate(subMonths(selectedDate, 1))}
-                    title="Mês anterior"
-                >
-                    <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <div className="min-w-[120px] text-center">
-                    <span className="text-sm font-semibold text-slate-100 capitalize">
-                        {format(selectedDate, "MMMM", { locale: ptBR })}
-                    </span>
-                    <div className="text-xs text-slate-500">
-                        {format(selectedDate, "yyyy", { locale: ptBR })}
+            <div className="flex items-center gap-2">
+                 <div className="flex items-center gap-1 rounded-full border border-slate-800/60 bg-slate-950/80 p-1 shadow-inner">
+                    <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        className="h-8 w-8 rounded-full text-slate-400 hover:text-slate-100 transition-all duration-200" 
+                        onClick={() => setSelectedDate(subMonths(selectedDate, 1))}
+                        title="Mês anterior"
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <div className="min-w-[120px] text-center">
+                        <span className="text-sm font-semibold text-slate-100 capitalize">
+                            {format(selectedDate, "MMMM", { locale: ptBR })}
+                        </span>
+                        <div className="text-xs text-slate-500">
+                            {format(selectedDate, "yyyy", { locale: ptBR })}
+                        </div>
                     </div>
+                    <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        className="h-8 w-8 rounded-full text-slate-400 hover:text-slate-100 transition-all duration-200" 
+                        onClick={() => setSelectedDate(addMonths(selectedDate, 1))}
+                        title="Próximo mês"
+                    >
+                        <ChevronRight className="h-4 w-4" />
+                    </Button>
                 </div>
-                <Button 
-                    size="icon" 
-                    variant="ghost" 
-                    className="h-8 w-8 rounded-full text-slate-400 hover:text-slate-100 transition-all duration-200" 
-                    onClick={() => setSelectedDate(addMonths(selectedDate, 1))}
-                    title="Próximo mês"
-                >
-                    <ChevronRight className="h-4 w-4" />
-                </Button>
+                 <QuickActions
+                    onAddIncome={onAddIncome}
+                    onAddExpense={onAddExpense}
+                    onAddDebt={onAddDebt}
+                    onAddGoal={onAddGoal}
+                 />
             </div>
         </div>
     );
