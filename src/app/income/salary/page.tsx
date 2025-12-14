@@ -210,21 +210,25 @@ export default function SalaryPage() {
 
   // Cálculos dos salários
   const { avgGross, avgNet, avgDeductions, salaryHistory } = useMemo(() => {
-    if (!sortedSalaryData) return { 
-      avgGross: 0, 
-      avgNet: 0, 
-      avgDeductions: 0, 
-      salaryHistory: [] 
-    };
+    if (!sortedSalaryData || sortedSalaryData.length === 0) {
+      return { 
+        avgGross: 0, 
+        avgNet: 0, 
+        avgDeductions: 0, 
+        salaryHistory: [] 
+      };
+    }
 
     const salaries = sortedSalaryData.filter(t => t.grossAmount !== undefined && t.grossAmount > 0);
     
-    if (salaries.length === 0) return { 
-      avgGross: 0, 
-      avgNet: 0, 
-      avgDeductions: 0, 
-      salaryHistory: sortedSalaryData.slice(0, 6) 
-    };
+    if (salaries.length === 0) {
+      return { 
+        avgGross: 0, 
+        avgNet: 0, 
+        avgDeductions: 0, 
+        salaryHistory: sortedSalaryData.slice(0, 6) 
+      };
+    }
 
     const totalNet = salaries.reduce((sum, s) => sum + s.amount, 0);
     const totalGross = salaries.reduce((sum, s) => sum + (s.grossAmount || 0), 0);
