@@ -33,7 +33,7 @@ export default function HealthExpensesPage() {
     );
   }, [user, firestore]);
 
-  const { data: healthExpenses, isLoading: isExpensesLoading, optimisticDelete } = useCollection<Transaction>(healthExpensesQuery);
+  const { data: healthExpenses, isLoading: isExpensesLoading } = useCollection<Transaction>(healthExpensesQuery);
 
   const handleOpenSheet = (transaction: Transaction | null = null) => {
     setEditingTransaction(transaction);
@@ -64,7 +64,7 @@ export default function HealthExpensesPage() {
     }
   }
   
-  const columns = useExpenseColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange, optimisticDelete });
+  const columns = useExpenseColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange });
 
   const isLoading = isUserLoading || isExpensesLoading;
 

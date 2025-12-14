@@ -41,7 +41,7 @@ export default function UtilitiesPage() {
     );
   }, [firestore, user]);
 
-  const { data: expenseData, isLoading: isExpensesLoading, optimisticDelete } = useCollection<Transaction>(utilitiesExpensesQuery);
+  const { data: expenseData, isLoading: isExpensesLoading } = useCollection<Transaction>(utilitiesExpensesQuery);
   
   // Filter expenses by selected subcategory
   const filteredExpenses = useMemo(() => {
@@ -107,7 +107,7 @@ export default function UtilitiesPage() {
     }
   }
 
-  const columns = useExpenseColumns({ onEdit: handleOpenEditSheet, onStatusChange: handleStatusChange, optimisticDelete });
+  const columns = useExpenseColumns({ onEdit: handleOpenEditSheet, onStatusChange: handleStatusChange });
   const isLoading = isUserLoading || isExpensesLoading;
 
   if (isLoading) {

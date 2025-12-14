@@ -15,7 +15,6 @@ import { StatusBadge } from "@/components/transactions/status-badge"
 type ColumnsProps = {
   onEdit: (transaction: Transaction) => void;
   onStatusChange: (transaction: Transaction) => Promise<void>;
-  optimisticDelete: (id: string, collectionPath: string) => Promise<void>;
 }
 
 // Get icon for subcategory
@@ -32,7 +31,7 @@ const getSubcategoryIcon = (subcategory?: string) => {
   }
 };
 
-export const useExpenseColumns = ({ onEdit, onStatusChange, optimisticDelete }: ColumnsProps) => {
+export const useExpenseColumns = ({ onEdit, onStatusChange }: ColumnsProps) => {
     const columns = useMemo((): ColumnDef<Transaction>[] => [
       {
         accessorKey: "date",
@@ -106,9 +105,9 @@ export const useExpenseColumns = ({ onEdit, onStatusChange, optimisticDelete }: 
       },
       {
         id: "actions",
-        cell: ({ row }) => <DataTableRowActions row={row} onEdit={onEdit} optimisticDelete={optimisticDelete} />,
+        cell: ({ row }) => <DataTableRowActions row={row} onEdit={onEdit} />,
       },
-    ], [onEdit, onStatusChange, optimisticDelete]);
+    ], [onEdit, onStatusChange]);
 
     return columns;
 };

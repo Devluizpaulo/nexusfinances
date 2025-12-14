@@ -37,7 +37,7 @@ export default function OthersExpensesPage() {
     );
   }, [user, firestore]);
   
-  const { data: otherExpenses, isLoading: isExpensesLoading, optimisticDelete } = useCollection<Transaction>(otherExpensesQuery);
+  const { data: otherExpenses, isLoading: isExpensesLoading } = useCollection<Transaction>(otherExpensesQuery);
 
   const handleOpenSheet = (transaction: Transaction | null = null) => {
     setEditingTransaction(transaction);
@@ -68,7 +68,7 @@ export default function OthersExpensesPage() {
     }
   }
   
-  const columns = useExpenseColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange, optimisticDelete });
+  const columns = useExpenseColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange });
 
   const isLoading = isUserLoading || isExpensesLoading;
 

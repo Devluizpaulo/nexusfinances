@@ -32,10 +32,9 @@ import type { Transaction } from "@/lib/types"
 interface DataTableRowActionsProps {
   row: Row<Transaction>
   onEdit: (transaction: Transaction) => void;
-  optimisticDelete: (id: string, collectionPath: string) => Promise<void>;
 }
 
-const DataTableRowActionsComponent: React.FC<DataTableRowActionsProps> = ({ row, onEdit, optimisticDelete }) => {
+export function DataTableRowActions({ row, onEdit }: DataTableRowActionsProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const firestore = useFirestore();
@@ -45,14 +44,13 @@ const DataTableRowActionsComponent: React.FC<DataTableRowActionsProps> = ({ row,
 
   const transaction = row.original;
   const collectionName = 'expenses';
-  const collectionPath = `users/${user?.uid}/${collectionName}`;
 
   const handleUpdateStatus = useCallback(async () => {
     if (!user) {
       toast({ variant: "destructive", title: "Erro", description: "Você não está autenticado." });
       return;
     }
-    const docRef = doc(firestore, collectionPath, transaction.id);
+    const docRef = doc(firestore, `users/${user.uid}/${collectionName}`, transaction.id);
     try {
         await updateDoc(docRef, { status: "paid" });
         toast({
@@ -63,7 +61,7 @@ const DataTableRowActionsComponent: React.FC<DataTableRowActionsProps> = ({ row,
         console.error("Error updating transaction status:", e);
         toast({ variant: "destructive", title: "Erro ao atualizar", description: "Não foi possível marcar a despesa como paga." });
     }
-  }, [user, firestore, collectionPath, transaction.id, transaction.description, toast]);
+  }, [user, firestore, collectionName, transaction.id, transaction.description, toast]);
 
   const handleDelete = useCallback(async () => {
     if (!user) {
@@ -72,21 +70,25 @@ const DataTableRowActionsComponent: React.FC<DataTableRowActionsProps> = ({ row,
     }
 
     setIsDeleting(true);
-    await optimisticDelete(transaction.id, collectionPath);
-    
-    toast({
-        title: "Transação excluída",
-        description: `A transação "${transaction.description}" foi removida.`,
-    });
-    
-    // Safely refresh server-side data without a full page reload.
-    // This is a good fallback to ensure data consistency across the app after a deletion.
-    router.refresh();
-
-    setIsDeleting(false);
-    setIsDeleteDialogOpen(false);
-
-  }, [user, optimisticDelete, transaction.id, collectionPath, transaction.description, toast, router]);
+    const docRef = doc(firestore, `users/${user.uid}/${collectionName}`, transaction.id);
+    try {
+        await deleteDoc(docRef);
+        toast({
+            title: "Transação excluída",
+            description: `A transação "${transaction.description}" foi removida.`,
+        });
+    } catch (error) {
+        console.error("Error deleting transaction:", error);
+        toast({
+            variant: "destructive",
+            title: "Erro ao excluir",
+            description: "Não foi possível remover a transação.",
+        });
+    } finally {
+        setIsDeleting(false);
+        setIsDeleteDialogOpen(false);
+    }
+  }, [user, firestore, collectionName, transaction.id, transaction.description, toast]);
 
   return (
     <>
@@ -146,5 +148,3 @@ const DataTableRowActionsComponent: React.FC<DataTableRowActionsProps> = ({ row,
     </>
   )
 }
-
-export const DataTableRowActions = React.memo(DataTableRowActionsComponent);

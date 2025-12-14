@@ -7,6 +7,7 @@ import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebas
 import { DataTable } from '@/components/data-table/data-table';
 import { useExpenseColumns } from './columns';
 import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { PlusCircle, Loader2, Upload, TrendingDown, BarChart3, PieChart } from 'lucide-react';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { expenseCategories, type Transaction } from '@/lib/types';
@@ -16,7 +17,6 @@ import { ImportTransactionsSheet } from '@/components/transactions/import-transa
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { startOfMonth, endOfMonth, startOfYear, endOfYear, parseISO, isWithinInterval, differenceInMonths } from 'date-fns';
 import { TransactionList } from '@/components/transactions/transaction-list';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { KpiCard } from '@/components/dashboard/kpi-card';
 import { formatCurrency } from '@/lib/utils';
 import { IncomeExpenseChart } from '@/components/dashboard/income-expense-chart';
@@ -44,7 +44,7 @@ export default function ExpensesPage() {
     );
   }, [firestore, user]);
 
-  const { data: expenseData, isLoading: isExpensesLoading, optimisticDelete } = useCollection<Transaction>(expensesQuery);
+  const { data: expenseData, isLoading: isExpensesLoading } = useCollection<Transaction>(expensesQuery);
 
   const filteredExpenseData = useMemo(() => {
     if (!expenseData) return [];
@@ -133,7 +133,7 @@ export default function ExpensesPage() {
     }
   }
   
-  const columns = useExpenseColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange, optimisticDelete });
+  const columns = useExpenseColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange });
   
   const isLoading = isUserLoading || isExpensesLoading;
 

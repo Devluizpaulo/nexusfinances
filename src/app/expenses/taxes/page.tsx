@@ -39,7 +39,7 @@ export default function TaxesPage() {
     );
   }, [user, firestore]);
 
-  const { data: taxesExpenses, isLoading: isExpensesLoading, optimisticDelete } = useCollection<Transaction>(taxesExpensesQuery);
+  const { data: taxesExpenses, isLoading: isExpensesLoading } = useCollection<Transaction>(taxesExpensesQuery);
   
   const { upcoming, overdue, paid } = useMemo(() => {
     const data = {
@@ -115,7 +115,7 @@ export default function TaxesPage() {
     }
   }
 
-  const columns = useExpenseColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange, optimisticDelete });
+  const columns = useExpenseColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange });
   const isLoading = isUserLoading || isExpensesLoading;
 
   if (isLoading) {

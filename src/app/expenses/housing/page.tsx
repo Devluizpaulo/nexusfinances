@@ -41,7 +41,6 @@ export default function HousingPage() {
   
   const housingExpensesQuery = useMemoFirebase(() => {
     if (!user) return null;
-    console.log('Building housing expenses query for user:', user.uid);
     return query(
       collection(firestore, `users/${user.uid}/expenses`),
       where('category', '==', 'Moradia'),
@@ -50,10 +49,8 @@ export default function HousingPage() {
   }, [firestore, user]);
 
   const { data: contractsData, isLoading: isContractsLoading } = useCollection<RentalContract>(contractsQuery);
-  const { data: housingExpenses, isLoading: isExpensesLoading, optimisticDelete } = useCollection<Transaction>(housingExpensesQuery);
+  const { data: housingExpenses, isLoading: isExpensesLoading } = useCollection<Transaction>(housingExpensesQuery);
   
-  console.log('Housing expenses data:', housingExpenses);
-  console.log('Is expenses loading:', isExpensesLoading);
   
   const { activeContracts, inactiveContracts } = useMemo(() => {
     const active: RentalContract[] = [];
@@ -113,7 +110,7 @@ export default function HousingPage() {
     }
   }
 
-  const columns = useExpenseColumns({ onEdit: handleEditTransaction, onStatusChange: handleStatusChange, optimisticDelete });
+  const columns = useExpenseColumns({ onEdit: handleEditTransaction, onStatusChange: handleStatusChange });
   const isLoading = isUserLoading || isContractsLoading || isExpensesLoading;
 
   if (isLoading) {

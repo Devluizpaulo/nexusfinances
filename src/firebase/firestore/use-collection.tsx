@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useCallback, useTransition } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import {
   Query,
   onSnapshot,
@@ -9,13 +9,9 @@ import {
   FirestoreError,
   QuerySnapshot,
   CollectionReference,
-  deleteDoc,
-  doc,
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { useFirestore } from '@/firebase/provider';
-import { useToast } from '@/hooks/use-toast';
 
 /** Utility type to add an 'id' field to a given type T. */
 export type WithId<T> = T & { id: string };
@@ -28,7 +24,6 @@ export interface UseCollectionResult<T> {
   data: WithId<T>[] | null;
   isLoading: boolean;
   error: FirestoreError | Error | null;
-  optimisticDelete: (id: string, collectionPath: string) => Promise<void>;
 }
 
 export interface InternalQuery extends Query<DocumentData> {
@@ -50,8 +45,6 @@ export function useCollection<T = any>(
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
   const [isPending, startTransition] = useTransition();
-  const firestore = useFirestore();
-  const { toast } = useToast();
 
   useEffect(() => {
     if (!memoizedTargetRefOrQuery) {
@@ -99,37 +92,9 @@ export function useCollection<T = any>(
     return () => unsubscribe();
   }, [memoizedTargetRefOrQuery]);
   
-  const optimisticDelete = useCallback(async (id: string, collectionPath: string) => {
-    if (!data) return;
-
-    const originalData = [...data];
-    const itemToDelete = data.find(item => item.id === id);
-
-    // Optimistic UI update
-    const updatedData = data.filter(item => item.id !== id);
-    setData(updatedData);
-
-    try {
-        const docRef = doc(firestore, collectionPath, id);
-        await deleteDoc(docRef);
-        // On successful deletion, the `onSnapshot` listener will automatically provide the source of truth.
-        // We don't need to manually set the state again.
-    } catch (err) {
-        console.error("Failed to delete document:", err);
-        // Rollback on error
-        setData(originalData);
-        toast({
-            variant: "destructive",
-            title: "Erro ao excluir",
-            description: `Não foi possível remover o item. O estado foi restaurado.`,
-        });
-    }
-  }, [data, firestore, toast]);
-
-  
   if (process.env.NODE_ENV === 'development' && memoizedTargetRefOrQuery && !(memoizedTargetRefOrQuery as any).__memo) {
     console.warn('useCollection was called with a query or reference that was not created with useMemoFirebase. This can lead to performance issues and bugs.', memoizedTargetRefOrQuery);
   }
   
-  return { data, isLoading: isLoading || isPending, error, optimisticDelete };
+  return { data, isLoading: isLoading || isPending, error };
 }
