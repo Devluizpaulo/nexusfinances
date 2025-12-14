@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 
 export interface DatePickerProps {
-  value?: Date
+  value?: Date | string
   onChange?: (date: Date | undefined) => void
   placeholder?: string
   disabled?: boolean
@@ -35,8 +35,22 @@ export function DatePicker({
     }
   }
 
-  const formattedValue = value ? format(value, "yyyy-MM-dd") : ""
-
+  // Garantir que o valor é um objeto Date válido antes de formatar
+  let formattedValue = "";
+  if (value instanceof Date && !isNaN(value.getTime())) {
+    formattedValue = format(value, "yyyy-MM-dd");
+  } else if (typeof value === 'string') {
+    // Tenta converter a string para data e então formata. Se falhar, continua vazio.
+    try {
+      const parsedDate = new Date(value);
+      if (!isNaN(parsedDate.getTime())) {
+        formattedValue = format(parsedDate, "yyyy-MM-dd");
+      }
+    } catch (e) {
+      // ignora o erro e mantém o valor vazio
+    }
+  }
+  
   return (
     <div className="relative w-full">
       <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
