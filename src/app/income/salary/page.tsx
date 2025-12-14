@@ -470,7 +470,7 @@ export default function SalaryPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="startDate">Data de Início</Label>
                   <Input
@@ -494,7 +494,7 @@ export default function SalaryPage() {
               <div className="flex gap-2 justify-end pt-2">
                 {editingContractId && (
                   <Button type="button" variant="outline" onClick={resetForm}>
-                    Cancelar
+                    Cancelar Edição
                   </Button>
                 )}
                 <Button type="submit" disabled={isSavingConfig}>
@@ -524,73 +524,75 @@ export default function SalaryPage() {
                   </p>
                 </div>
               ) : (
-                contracts.map((contract) => (
-                  <div
-                    key={contract.id}
-                    className={cn(
-                        "group relative rounded-lg border p-4 text-sm transition-all duration-200 hover:border-primary/50",
-                        contract.isPrimary ? 'border-primary bg-primary/5' : ''
-                    )}
-                  >
-                    <div className="flex items-start justify-between">
-                        <div className="flex-1 space-y-1">
-                            <div className="flex items-center gap-2">
-                                <p className="font-semibold text-base">{contract.companyName}</p>
-                                {contract.isPrimary && (
-                                <Badge variant="default" className="text-xs h-5">
-                                    <Star className="h-3 w-3 mr-1 fill-current" />
-                                    Principal
-                                </Badge>
-                                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {contracts.map((contract) => (
+                    <div
+                        key={contract.id}
+                        className={cn(
+                            "group relative rounded-lg border p-4 text-sm transition-all duration-200 hover:border-primary/50",
+                            contract.isPrimary ? 'border-primary bg-primary/5' : ''
+                        )}
+                    >
+                        <div className="flex items-start justify-between">
+                            <div className="flex-1 space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <p className="font-semibold text-base">{contract.companyName}</p>
+                                    {contract.isPrimary && (
+                                    <Badge variant="default" className="text-xs h-5">
+                                        <Star className="h-3 w-3 mr-1 fill-current" />
+                                        Principal
+                                    </Badge>
+                                    )}
+                                </div>
+                                <div className="space-y-0.5 text-xs text-muted-foreground">
+                                    <p>Salário Base: <span className="font-medium text-foreground">{formatCurrency(contract.baseAmount)}</span></p>
+                                    {contract.contractType && (
+                                    <p>Tipo: <span className="font-medium text-foreground">{contract.contractType}</span></p>
+                                    )}
+                                    {contract.startDate && (
+                                    <p>
+                                        Início:{' '}
+                                        <span className="font-medium text-foreground">
+                                        {(() => {
+                                        const [year, month, day] = contract.startDate!.split('-');
+                                        return `${day}/${month}/${year}`;
+                                        })()}
+                                        </span>
+                                    </p>
+                                    )}
+                                </div>
                             </div>
-                            <div className="space-y-0.5 text-xs text-muted-foreground">
-                                <p>Salário Base: <span className="font-medium text-foreground">{formatCurrency(contract.baseAmount)}</span></p>
-                                {contract.contractType && (
-                                <p>Tipo: <span className="font-medium text-foreground">{contract.contractType}</span></p>
-                                )}
-                                {contract.startDate && (
-                                <p>
-                                    Início:{' '}
-                                    <span className="font-medium text-foreground">
-                                    {(() => {
-                                    const [year, month, day] = contract.startDate!.split('-');
-                                    return `${day}/${month}/${year}`;
-                                    })()}
-                                    </span>
-                                </p>
-                                )}
-                            </div>
-                        </div>
-                        
-                         <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                 <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                                >
-                                    <MoreVertical className="h-4 w-4" />
-                                    <span className="sr-only">Opções do contrato</span>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => handleEditContract(contract)}>
-                                    <Edit className="mr-2 h-4 w-4" /> Editar
-                                </DropdownMenuItem>
-                                {!contract.isPrimary && (
-                                    <DropdownMenuItem onClick={() => handleSetPrimaryContract(contract.id)}>
-                                        <Star className="mr-2 h-4 w-4" /> Definir como principal
+                            
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                        <MoreVertical className="h-4 w-4" />
+                                        <span className="sr-only">Opções do contrato</span>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => handleEditContract(contract)}>
+                                        <Edit className="mr-2 h-4 w-4" /> Editar
                                     </DropdownMenuItem>
-                                )}
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => handleDeleteContract(contract.id)} className="text-destructive">
-                                    <Trash2 className="mr-2 h-4 w-4" /> Excluir
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                                    {!contract.isPrimary && (
+                                        <DropdownMenuItem onClick={() => handleSetPrimaryContract(contract.id)}>
+                                            <Star className="mr-2 h-4 w-4" /> Definir como principal
+                                        </DropdownMenuItem>
+                                    )}
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={() => handleDeleteContract(contract.id)} className="text-destructive">
+                                        <Trash2 className="mr-2 h-4 w-4" /> Excluir
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
                     </div>
-                  </div>
-                ))
+                    ))}
+                </div>
               )}
             </div>
           </div>
