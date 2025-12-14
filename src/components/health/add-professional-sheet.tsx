@@ -158,14 +158,17 @@ export function AddProfessionalSheet({ isOpen, onClose, professional, providers 
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Empresa (Opcional)</FormLabel>
-                   <Select onValueChange={field.onChange} value={field.value || ''}>
+                   <Select
+                    onValueChange={(value) => field.onChange(value === 'none' ? '' : value)}
+                    value={field.value || 'none'}
+                   >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Vincule a uma clínica ou academia" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Nenhuma</SelectItem>
+                      <SelectItem value="none">Nenhuma</SelectItem>
                       {providers.map(provider => (
                         <SelectItem key={provider.id} value={provider.id}>{provider.name}</SelectItem>
                       ))}
