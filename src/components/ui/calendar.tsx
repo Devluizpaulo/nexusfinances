@@ -2,10 +2,19 @@
 
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker } from "react-day-picker"
+import { DayPicker, CaptionProps } from "react-day-picker"
+import { format } from "date-fns"
+import { ptBR } from "date-fns/locale"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
@@ -15,6 +24,85 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
+  
+  const handleYearChange = (year: string, month: Date) => {
+    const newDate = new Date(month);
+    newDate.setFullYear(parseInt(year, 10));
+    props.onMonthChange?.(newDate);
+  };
+  
+  const handleMonthChange = (monthIndex: string, month: Date) => {
+      const newDate = new Date(month);
+      newDate.setMonth(parseInt(monthIndex, 10));
+      props.onMonthChange?.(newDate);
+  };
+
+
+  function CustomCaption({ displayMonth }: CaptionProps) {
+    const currentYear = new Date().getFullYear();
+    const years = Array.from({ length: 20 }, (_, i) => currentYear - 10 + i);
+    const months = Array.from({ length: 12 }, (_, i) => i);
+    
+    return (
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center gap-2">
+           <Select
+              onValueChange={(value) => handleMonthChange(value, displayMonth)}
+              value={String(displayMonth.getMonth())}
+            >
+              <SelectTrigger className="w-[120px]">
+                <SelectValue placeholder="Mês" />
+              </SelectTrigger>
+              <SelectContent>
+                {months.map(month => (
+                  <SelectItem key={month} value={String(month)}>
+                    {format(new Date(0, month), 'MMMM', { locale: ptBR })}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              onValueChange={(value) => handleYearChange(value, displayMonth)}
+              value={String(displayMonth.getFullYear())}
+            >
+              <SelectTrigger className="w-[80px]">
+                <SelectValue placeholder="Ano" />
+              </SelectTrigger>
+              <SelectContent>
+                {years.map(year => (
+                  <SelectItem key={year} value={String(year)}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-7 w-7"
+            disabled={!props.previousMonth}
+            onClick={() => props.onMonthChange?.(props.previousMonth!)}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-7 w-7"
+            disabled={!props.nextMonth}
+            onClick={() => props.onMonthChange?.(props.nextMonth!)}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
@@ -23,7 +111,8 @@ function Calendar({
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
         caption: "flex justify-center pt-1 relative items-center",
-        caption_label: "text-sm font-medium",
+        caption_label: "text-sm font-medium hidden",
+        caption_dropdowns: "flex justify-center gap-1",
         nav: "space-x-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
@@ -54,6 +143,7 @@ function Calendar({
         ...classNames,
       }}
       components={{
+        Caption: props.captionLayout === "dropdown-buttons" ? CustomCaption : undefined,
         IconLeft: ({ ...props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ...props }) => <ChevronRight className="h-4 w-4" />,
       }}

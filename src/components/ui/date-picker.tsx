@@ -62,6 +62,7 @@ export function DatePicker({
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar
           mode="single"
+          captionLayout="dropdown-buttons"
           selected={value}
           onSelect={(date) => {
             onChange?.(date);
@@ -69,6 +70,7 @@ export function DatePicker({
           }}
           initialFocus
           locale={ptBR}
+          defaultMonth={value}
         />
       </PopoverContent>
     </Popover>
