@@ -16,6 +16,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { expenseCategories } from '@/lib/types';
+import { Calendar } from '@/components/ui/calendar';
 
 interface ExpenseCalendarProps {
   expenses: Transaction[];
@@ -93,6 +94,61 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
     return intensityLevels[1].class;
   };
 
+  const DayComponent = ({ date, ...props }: { date: Date } & any) => {
+    const formattedDate = format(date, 'yyyy-MM-dd');
+    const dayData = expensesByDay[formattedDate];
+    const total = dayData?.total || 0;
+    const intensityClass = getIntensityClass(total);
+
+    const dayContent = (
+      <div
+        {...props}
+        onClick={() => handleDayClick(date)}
+        className={cn(
+          'relative flex h-full w-full items-center justify-center rounded-md transition-all duration-150',
+          props.className,
+          isSameMonth(date, selectedDate) && total > 0 && 'cursor-pointer hover:ring-2 hover:ring-primary',
+          isToday(date) && 'ring-1 ring-primary/80',
+          intensityClass,
+          !isSameMonth(date, selectedDate) && 'bg-transparent text-slate-600'
+        )}
+      >
+        {format(date, 'd')}
+      </div>
+    );
+
+    if (dayData) {
+      const topCategories = Object.entries(dayData.categories)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 2);
+
+      return (
+        <TooltipProvider delayDuration={100}>
+          <Tooltip>
+            <TooltipTrigger asChild>{dayContent}</TooltipTrigger>
+            <TooltipContent className="pointer-events-none">
+              <p className="font-bold">{formatCurrency(total)}</p>
+              <p className="text-xs text-muted-foreground">{dayData.count} transação(ões)</p>
+              {topCategories.length > 0 && (
+                 <div className="mt-2 space-y-1">
+                   {topCategories.map(([category, amount]) => (
+                     <div key={category} className="flex justify-between gap-2 text-xs">
+                        <span className="text-muted-foreground">{category}</span>
+                        <span className="font-medium">{formatCurrency(amount)}</span>
+                     </div>
+                   ))}
+                 </div>
+              )}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    }
+
+    return dayContent;
+  };
+
+
   return (
     <Card className="h-full rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
       <CardHeader className="p-0">
@@ -125,8 +181,19 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
             <p className="text-xs text-slate-500 text-right mt-0.5">{monthlySummary.count} transação(ões)</p>
         </div>
       </CardHeader>
-      <CardContent className="p-0 mt-2">
-        <p className="text-sm text-muted-foreground p-4 text-center">O componente de calendário está temporariamente desativado para manutenção.</p>
+      <CardContent className="p-0 mt-4">
+        <Calendar
+            month={selectedDate}
+            onMonthChange={setSelectedDate}
+            components={{ Day: DayComponent }}
+            className="w-full"
+            classNames={{
+              table: 'w-full border-separate space-y-1',
+              head_cell: 'w-full text-xs text-muted-foreground',
+              row: 'flex w-full mt-1',
+              cell: 'flex-1 p-0 m-px h-12',
+            }}
+        />
       </CardContent>
     </Card>
   );
