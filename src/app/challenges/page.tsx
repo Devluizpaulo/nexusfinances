@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit } from 'firebase/firestore';
 import type { Challenge52Weeks } from '@/lib/types';
 import { PageHeader } from '@/components/page-header';
 import { SetupChallenge } from '@/components/challenges/setup-challenge';
