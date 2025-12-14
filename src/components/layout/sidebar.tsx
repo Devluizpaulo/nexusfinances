@@ -1,6 +1,7 @@
+
 'use client';
 import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator, SidebarGroup, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton } from '@/components/ui/sidebar';
-import { LayoutDashboard, Landmark, CreditCard, Banknote, PiggyBank, BarChart3, GraduationCap, ShieldCheck, LifeBuoy, Home, Zap, FileText, HeartPulse, Repeat, WalletCards, History, List, LineChart, PieChart, Briefcase, PenSquare, BookOpen, Target } from 'lucide-react';
+import { LayoutDashboard, Landmark, CreditCard, Banknote, PiggyBank, BarChart3, GraduationCap, ShieldCheck, LifeBuoy, Home, Zap, FileText, HeartPulse, Repeat, WalletCards, History, List, LineChart, PieChart, Briefcase, PenSquare, BookOpen, Target, Trophy } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '../ui/button';
@@ -67,6 +68,12 @@ const navSections = [
         icon: PiggyBank,
         href: '/goals',
         subItems: []
+    },
+    {
+        label: 'Desafios',
+        icon: Trophy,
+        href: '/challenges',
+        subItems: [],
     },
     {
         label: 'Jornada',

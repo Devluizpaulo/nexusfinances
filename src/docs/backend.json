@@ -596,6 +596,38 @@
         }
       },
       "required": ["slug", "title", "description", "icon", "color", "bgColor", "borderColor", "order", "content"]
+    },
+    "Challenge52Weeks": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "52-Week Challenge",
+      "type": "object",
+      "description": "Represents an instance of the 52-week savings challenge for a user.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique ID for the challenge." },
+        "userId": { "type": "string", "description": "The ID of the user this challenge belongs to." },
+        "startDate": { "type": "string", "format": "date-time", "description": "The start date of the challenge." },
+        "initialAmount": { "type": "number", "description": "The amount to be deposited in the first week." },
+        "incrementAmount": { "type": "number", "description": "The amount to increment by each week." },
+        "totalDeposited": { "type": "number", "description": "The total amount deposited so far." },
+        "status": { "type": "string", "enum": ["active", "completed", "cancelled"], "description": "The current status of the challenge." }
+      },
+      "required": ["userId", "startDate", "initialAmount", "incrementAmount", "totalDeposited", "status"]
+    },
+    "Challenge52WeeksDeposit": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "52-Week Challenge Deposit",
+      "type": "object",
+      "description": "Represents a single weekly deposit for the 52-week challenge.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique ID for the deposit entry." },
+        "challengeId": { "type": "string", "description": "The ID of the parent challenge." },
+        "weekNumber": { "type": "number", "description": "The week number (1-52)." },
+        "expectedAmount": { "type": "number", "description": "The amount that is expected to be deposited for this week." },
+        "dueDate": { "type": "string", "format": "date-time", "description": "The date this deposit is due." },
+        "status": { "type": "string", "enum": ["pending", "deposited", "skipped"], "description": "The status of this weekly deposit." },
+        "depositDate": { "type": "string", "format": "date-time", "description": "The actual date the deposit was made." }
+      },
+      "required": ["challengeId", "weekNumber", "expectedAmount", "dueDate", "status"]
     }
   },
   "auth": {
@@ -807,6 +839,31 @@
           "params": [
             { "name": "userId", "description": "The unique identifier of the user." },
             { "name": "budgetId", "description": "The unique identifier of the budget." }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/challenges52weeks/{challengeId}",
+        "definition": {
+          "entityName": "Challenge52Weeks",
+          "schema": { "$ref": "#/backend/entities/Challenge52Weeks" },
+          "description": "Stores instances of the 52-week savings challenge for a user.",
+          "params": [
+            { "name": "userId", "description": "The user's unique ID." },
+            { "name": "challengeId", "description": "The challenge's unique ID." }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/challenges52weeks/{challengeId}/deposits/{depositId}",
+        "definition": {
+          "entityName": "Challenge52WeeksDeposit",
+          "schema": { "$ref": "#/backend/entities/Challenge52WeeksDeposit" },
+          "description": "Stores the weekly deposits for a specific 52-week challenge.",
+          "params": [
+            { "name": "userId", "description": "The user's unique ID." },
+            { "name": "challengeId", "description": "The challenge's unique ID." },
+            { "name": "depositId", "description": "The deposit's unique ID." }
           ]
         }
       },
