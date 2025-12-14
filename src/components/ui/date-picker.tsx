@@ -69,9 +69,6 @@ export function DatePicker({
           }}
           initialFocus
           locale={ptBR}
-          captionLayout="dropdown-buttons"
-          fromYear={new Date().getFullYear() - 50}
-          toYear={new Date().getFullYear() + 10}
         />
       </PopoverContent>
     </Popover>
