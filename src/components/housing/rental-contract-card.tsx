@@ -91,6 +91,12 @@ function RentalContractCardComponent({ contract, onEdit }: RentalContractCardPro
     return null;
   }, [contract.endDate, isInactive]);
 
+  const cardBorderClass = useMemo(() => {
+    if (contractStatus?.variant === 'destructive') return 'border-destructive/50';
+    if (contractStatus?.variant === 'secondary') return 'border-secondary';
+    return '';
+  }, [contractStatus]);
+
   const handleDeleteContract = async () => {
     if (!user || !firestore) return;
     try {
