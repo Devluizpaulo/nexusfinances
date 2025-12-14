@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
   } from "@/components/ui/alert-dialog"
+import { Badge } from '../ui/badge';
 
 interface ChallengeProgressProps {
   challenge: Challenge52Weeks;
@@ -52,6 +53,16 @@ export function ChallengeProgress({ challenge }: ChallengeProgressProps) {
   }, [user, firestore, challenge.id]);
 
   const { data: deposits, isLoading: isDepositsLoading } = useCollection<Challenge52WeeksDeposit>(depositsQuery);
+
+  const processedDeposits = useMemo(() => {
+    let accumulated = 0;
+    return (deposits || []).map(d => {
+      if (d.status === 'deposited') {
+        accumulated += d.expectedAmount;
+      }
+      return { ...d, accumulatedAmount: accumulated };
+    });
+  }, [deposits]);
 
   const totalExpected = (deposits || []).reduce((sum, d) => sum + d.expectedAmount, 0);
   const progress = totalExpected > 0 ? (challenge.totalDeposited / totalExpected) * 100 : 0;
@@ -156,28 +167,45 @@ export function ChallengeProgress({ challenge }: ChallengeProgressProps) {
             </div>
             <Progress value={progress} className="h-3" />
           </div>
-          <div className="max-h-80 overflow-y-auto pr-2">
+          <div className="max-h-96 overflow-y-auto pr-2">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Semana</TableHead>
-                  <TableHead>Data</TableHead>
+                  <TableHead>Vencimento</TableHead>
                   <TableHead>Valor</TableHead>
+                  <TableHead>Acumulado</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Data do Depósito</TableHead>
                   <TableHead className="text-right">Ação</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(deposits || []).map(deposit => {
+                {processedDeposits.map(deposit => {
                   const dueDate = parseISO(deposit.dueDate);
                   const isOverdue = isPast(dueDate) && deposit.status === 'pending';
+                  
+                  let statusBadge;
+                  if (deposit.status === 'deposited') {
+                    statusBadge = <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">Depositado</Badge>;
+                  } else if (isOverdue) {
+                    statusBadge = <Badge variant="destructive">Vencido</Badge>;
+                  } else {
+                    statusBadge = <Badge variant="outline">Pendente</Badge>;
+                  }
+
                   return (
                     <TableRow key={deposit.id} className={cn(
-                        deposit.status === 'deposited' && 'bg-green-500/10 hover:bg-green-500/15',
-                        isOverdue && 'bg-yellow-500/10 hover:bg-yellow-500/15'
+                        deposit.status === 'deposited' && 'bg-green-500/5'
                     )}>
                       <TableCell className="font-medium">{deposit.weekNumber}</TableCell>
                       <TableCell>{format(dueDate, 'dd/MM/yyyy')}</TableCell>
                       <TableCell>{formatCurrency(deposit.expectedAmount)}</TableCell>
+                      <TableCell>{formatCurrency(deposit.accumulatedAmount)}</TableCell>
+                      <TableCell>{statusBadge}</TableCell>
+                       <TableCell>
+                        {deposit.depositDate ? format(parseISO(deposit.depositDate), 'dd/MM/yyyy') : '-'}
+                      </TableCell>
                       <TableCell className="text-right">
                         {deposit.status === 'pending' ? (
                           <Button size="sm" onClick={() => handleDeposit(deposit)} disabled={isUpdating}>
@@ -186,7 +214,7 @@ export function ChallengeProgress({ challenge }: ChallengeProgressProps) {
                           </Button>
                         ) : (
                           <span className="text-xs text-green-600 font-semibold flex items-center justify-end gap-1">
-                            <Check className="h-4 w-4" /> Depositado
+                            <Check className="h-4 w-4" /> Realizado
                           </span>
                         )}
                       </TableCell>
