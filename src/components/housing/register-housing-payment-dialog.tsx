@@ -22,6 +22,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
 import { Checkbox } from '../ui/checkbox';
 import { Separator } from '../ui/separator';
+import { DatePicker } from '../ui/date-picker';
 
 const additionalItemSchema = z.object({
   description: z.string().min(1, 'A descrição é obrigatória.'),
@@ -167,22 +168,12 @@ export function RegisterHousingPaymentDialog({ isOpen, onClose, contract }: Regi
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Data do Pagamento</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={'outline'}
-                          className={cn('pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}
-                        >
-                          {field.value ? format(field.value, 'PPP', { locale: ptBR }) : <span>Escolha a data</span>}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus locale={ptBR} />
-                    </PopoverContent>
-                  </Popover>
+                   <FormControl>
+                      <DatePicker
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
