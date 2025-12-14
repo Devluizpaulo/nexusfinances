@@ -2,16 +2,9 @@
 
 import * as React from "react"
 import { format } from "date-fns"
-import { ptBR } from "date-fns/locale"
 import { Calendar as CalendarIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
+import { Input } from "@/components/ui/input"
 
 export interface DatePickerProps {
   value?: Date
@@ -30,51 +23,33 @@ export function DatePicker({
   className,
   id,
 }: DatePickerProps) {
-  const [isOpen, setIsOpen] = React.useState(false)
-
-  const formatDateDisplay = React.useCallback((date: Date | undefined) => {
-    if (!date) return placeholder
-    try {
-        return format(date, "PPP", { locale: ptBR })
-    } catch(e) {
-        return placeholder;
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const dateString = event.target.value
+    if (dateString && onChange) {
+      // O input date retorna "YYYY-MM-DD". O construtor new Date() pode ter problemas com fuso horário.
+      // Adicionar a hora ao meio-dia local evita que a data mude por questões de UTC.
+      const date = new Date(`${dateString}T12:00:00`);
+      onChange(date)
+    } else if (onChange) {
+      onChange(undefined)
     }
-  }, [placeholder])
+  }
+
+  const formattedValue = value ? format(value, "yyyy-MM-dd") : ""
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className={cn(
-            "w-full justify-start text-left font-normal",
-            !value && "text-muted-foreground",
-            className
-          )}
-          disabled={disabled}
-          id={id}
-        >
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {formatDateDisplay(value)}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
-        <Calendar
-          mode="single"
-          captionLayout="dropdown-buttons"
-          fromYear={new Date().getFullYear() - 100}
-          toYear={new Date().getFullYear() + 5}
-          selected={value}
-          onSelect={(date) => {
-            onChange?.(date);
-            setIsOpen(false);
-          }}
-          initialFocus
-          locale={ptBR}
-          defaultMonth={value}
-        />
-      </PopoverContent>
-    </Popover>
+    <div className="relative w-full">
+      <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+      <Input
+        type="date"
+        value={formattedValue}
+        onChange={handleChange}
+        disabled={disabled}
+        id={id}
+        className={cn("pl-10", className)}
+        placeholder={placeholder}
+      />
+    </div>
   )
 }
 

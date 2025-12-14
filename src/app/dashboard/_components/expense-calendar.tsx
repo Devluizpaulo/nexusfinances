@@ -2,7 +2,6 @@
 
 import { useMemo, useCallback, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Calendar } from '@/components/ui/calendar';
 import { format, isSameMonth, isToday } from 'date-fns';
 import type { Transaction } from '@/lib/types';
 import { formatCurrency, cn } from '@/lib/utils';
@@ -127,77 +126,7 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
         </div>
       </CardHeader>
       <CardContent className="p-0 mt-2">
-        <TooltipProvider delayDuration={100}>
-            <Calendar
-              mode="single"
-              month={selectedDate}
-              onMonthChange={setSelectedDate}
-              onDayClick={handleDayClick}
-              className="w-full"
-              classNames={{
-                day_today: "ring-2 ring-slate-500 ring-offset-2 ring-offset-background",
-                day: "h-8 w-8 rounded-md"
-              }}
-              components={{
-                DayContent: ({ date }) => {
-                  const dayStr = format(date, 'yyyy-MM-dd');
-                  const dayData = expensesByDay[dayStr];
-                  
-                  return (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div
-                          className={cn(
-                            "relative flex h-full w-full flex-col items-center justify-center rounded-md transition-transform duration-200 ease-out hover:scale-110",
-                            dayData && dayData.total > 0 ? getIntensityClass(dayData.total) : 'text-slate-400',
-                          )}
-                        >
-                          <span className="text-xs font-medium">{date.getDate()}</span>
-                           {dayData && dayData.count > 1 && (
-                            <Badge variant="secondary" className="absolute -top-1 -right-1 h-3.5 min-w-[0.875rem] p-0 text-[9px] flex items-center justify-center bg-slate-900 text-slate-300 border border-slate-700">
-                              {dayData.count}
-                            </Badge>
-                          )}
-                        </div>
-                      </TooltipTrigger>
-                      {dayData && dayData.total > 0 && (
-                        <TooltipContent>
-                          <div className="space-y-1">
-                            <p className="font-semibold text-rose-400">{formatCurrency(dayData.total)}</p>
-                            <div className="space-y-1">
-                              {Object.entries(dayData.categories).slice(0, 3).map(([cat, amount]) => (
-                                <div key={cat} className="flex justify-between text-xs gap-2">
-                                  <span className="text-slate-400">{cat}:</span>
-                                  <span className="font-medium">{formatCurrency(amount)}</span>
-                                </div>
-                              ))}
-                              {Object.keys(dayData.categories).length > 3 && (
-                                <p className="text-xs text-slate-500 italic">
-                                  +{Object.keys(dayData.categories).length - 3} outras...
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                  );
-                },
-              }}
-            />
-        </TooltipProvider>
-        
-        <div className="px-1 pb-1 mt-1">
-          <div className="flex items-center justify-center gap-x-2 text-[11px] text-slate-400">
-            <span className="font-medium">Intensidade:</span>
-              {intensityLevels.map((level, index) => (
-                <div key={index} className="flex items-center gap-1">
-                  <div className={cn("w-2.5 h-2.5 rounded-sm border", level.class.split(' ').filter(c => c.startsWith('bg-') || c.startsWith('border-')).join(' '))} />
-                  <span>{level.label}</span>
-                </div>
-              ))}
-          </div>
-        </div>
+        <p className="text-sm text-muted-foreground p-4 text-center">O componente de calendário está temporariamente desativado para manutenção.</p>
       </CardContent>
     </Card>
   );
