@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { collection, setDoc, updateDoc, getDocs, query, where, doc, deleteDoc, orderBy } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Transaction } from '@/lib/types';
-import { Loader2, Briefcase, PlusCircle, TrendingUp, TrendingDown, Edit, Star, Trash2, MoreVertical, Upload } from 'lucide-react';
+import { Loader2, Briefcase, PlusCircle, TrendingUp, TrendingDown, Edit, Star, Trash2, MoreVertical, Upload, PenSquare, List, Calendar, DollarSign } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { incomeCategories } from '@/lib/types';
@@ -19,13 +19,12 @@ import { ptBR } from 'date-fns/locale';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-
-
 import { Badge } from '@/components/ui/badge';
 import { ImportPayslipSheet } from '@/components/income/import-payslip-sheet';
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency, cn } from '@/lib/utils';
 import { differenceInMonths, parseISO } from 'date-fns';
+import { motion, AnimatePresence } from 'framer-motion';
 
 
 const formatDisplayCurrency = (value: number) =>
@@ -56,6 +55,7 @@ export default function SalaryPage() {
   const [editingContractId, setEditingContractId] = useState<string | null>(null);
   const [isSavingConfig, setIsSavingConfig] = useState(false);
   const [isLoadingConfig, setIsLoadingConfig] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
   const { toast } = useToast();
 
   const firestore = useFirestore();
@@ -115,6 +115,7 @@ export default function SalaryPage() {
     setStartDateInput('');
     setContractTypeInput('');
     setEditingContractId(null);
+    setShowAddForm(false);
   };
 
   // Salvar configuração do salário
@@ -161,6 +162,7 @@ export default function SalaryPage() {
 
   // Editar contrato
   const handleEditContract = (contract: SalaryContract) => {
+    setShowAddForm(true);
     setEditingContractId(contract.id ?? null);
     setBaseAmountInput(String(contract.baseAmount));
     setCompanyNameInput(contract.companyName ?? '');
@@ -444,73 +446,86 @@ export default function SalaryPage() {
           </DialogHeader>
 
           <div className="space-y-6">
-            <form onSubmit={handleSaveSalaryConfig} className="space-y-4 rounded-lg border p-4 bg-muted/20">
-              <h4 className="font-semibold text-foreground">{editingContractId ? 'Editando Contrato' : 'Adicionar Novo Contrato'}</h4>
-              <div className="grid gap-3">
-                <Label htmlFor="companyName">Empresa *</Label>
-                <Input
-                  id="companyName"
-                  value={companyNameInput}
-                  onChange={(e) => setCompanyNameInput(e.target.value)}
-                  placeholder="Nome da empresa"
-                  required
-                />
-              </div>
-
-              <div className="grid gap-3">
-                <Label htmlFor="baseAmount">Salário Base (R$) *</Label>
-                <Input
-                  id="baseAmount"
-                  type="number"
-                  step="0.01"
-                  value={baseAmountInput}
-                  onChange={(e) => setBaseAmountInput(e.target.value)}
-                  placeholder="0,00"
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="startDate">Data de Início</Label>
-                  <Input
-                    id="startDate"
-                    type="date"
-                    value={startDateInput}
-                    onChange={(e) => setStartDateInput(e.target.value)}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="contractType">Tipo de Contrato</Label>
-                  <Input
-                    id="contractType"
-                    value={contractTypeInput}
-                    onChange={(e) => setContractTypeInput(e.target.value)}
-                    placeholder="CLT, PJ, etc."
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-2 justify-end pt-2">
-                {editingContractId && (
-                  <Button type="button" variant="outline" onClick={resetForm}>
-                    Cancelar Edição
-                  </Button>
-                )}
-                <Button type="submit" disabled={isSavingConfig}>
-                  {isSavingConfig && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {editingContractId ? 'Atualizar Contrato' : 'Adicionar Contrato'}
-                </Button>
-              </div>
-            </form>
+             <AnimatePresence>
+              {showAddForm && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0, y: -20 }}
+                  animate={{ opacity: 1, height: 'auto', y: 0 }}
+                  exit={{ opacity: 0, height: 0, y: -20 }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                  className="overflow-hidden"
+                >
+                  <form onSubmit={handleSaveSalaryConfig} className="space-y-4 rounded-lg border p-4 bg-muted/20 mb-4">
+                    <h4 className="font-semibold text-foreground">{editingContractId ? 'Editando Contrato' : 'Adicionar Novo Contrato'}</h4>
+                    <div className="grid gap-3">
+                      <Label htmlFor="companyName">Empresa *</Label>
+                      <Input
+                        id="companyName"
+                        value={companyNameInput}
+                        onChange={(e) => setCompanyNameInput(e.target.value)}
+                        placeholder="Nome da empresa"
+                        required
+                      />
+                    </div>
+                    <div className="grid gap-3">
+                      <Label htmlFor="baseAmount">Salário Base (R$) *</Label>
+                      <Input
+                        id="baseAmount"
+                        type="number"
+                        step="0.01"
+                        value={baseAmountInput}
+                        onChange={(e) => setBaseAmountInput(e.target.value)}
+                        placeholder="0,00"
+                        required
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="startDate">Data de Início</Label>
+                        <Input
+                          id="startDate"
+                          type="date"
+                          value={startDateInput}
+                          onChange={(e) => setStartDateInput(e.target.value)}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="contractType">Tipo de Contrato</Label>
+                        <Input
+                          id="contractType"
+                          value={contractTypeInput}
+                          onChange={(e) => setContractTypeInput(e.target.value)}
+                          placeholder="CLT, PJ, etc."
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-2 justify-end pt-2">
+                      <Button type="button" variant="outline" onClick={resetForm}>
+                        Cancelar
+                      </Button>
+                      <Button type="submit" disabled={isSavingConfig}>
+                        {isSavingConfig && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {editingContractId ? 'Atualizar Contrato' : 'Adicionar Contrato'}
+                      </Button>
+                    </div>
+                  </form>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Lista de contratos */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h4 className="font-medium">Meus Contratos</h4>
-                <span className="text-sm text-muted-foreground">
-                  {contracts.length} contrato(s)
-                </span>
+                 <h4 className="font-medium">Meus Contratos ({contracts.length})</h4>
+                 {!showAddForm && (
+                  <Button size="sm" variant="outline" onClick={() => {
+                    resetForm();
+                    setShowAddForm(true);
+                  }}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Adicionar Novo Contrato
+                  </Button>
+                )}
               </div>
 
               {contracts.length === 0 ? (
@@ -520,7 +535,7 @@ export default function SalaryPage() {
                     Nenhum contrato cadastrado ainda.
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Adicione seu primeiro contrato acima.
+                    Adicione seu primeiro contrato para começar.
                   </p>
                 </div>
               ) : (
