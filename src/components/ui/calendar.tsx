@@ -20,19 +20,20 @@ function Calendar({
 }: CalendarProps) {
 
   // Custom Caption component to use ShadCN select
-  const CustomCaption = ({ displayMonth }: { displayMonth: Date }) => {
-    const { fromYear, toYear, fromMonth, toMonth } = (props as any);
+  const CustomCaption = (captionProps: DropdownProps) => {
+    const { fromYear, toYear, fromMonth, toMonth } = props;
+    const { displayMonth, goToMonth, previousMonth, nextMonth } = captionProps;
 
     const handleYearChange = (year: string) => {
       const newDate = new Date(displayMonth);
       newDate.setFullYear(parseInt(year, 10));
-      (props as any).goToMonth(newDate);
+      goToMonth(newDate);
     };
 
     const handleMonthChange = (month: string) => {
       const newDate = new Date(displayMonth);
       newDate.setMonth(parseInt(month, 10));
-      (props as any).goToMonth(newDate);
+      goToMonth(newDate);
     };
 
     const years = [];
@@ -87,16 +88,16 @@ function Calendar({
           <button
             type="button"
             className={cn(buttonVariants({ variant: 'outline', size: 'icon' }), 'h-8 w-8')}
-            onClick={() => (props as any).goToMonth((props as any).previousMonth)}
-            disabled={!(props as any).previousMonth}
+            onClick={() => goToMonth(previousMonth!)}
+            disabled={!previousMonth}
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
           <button
             type="button"
             className={cn(buttonVariants({ variant: 'outline', size: 'icon' }), 'h-8 w-8')}
-            onClick={() => (props as any).goToMonth((props as any).nextMonth)}
-            disabled={!(props as any).nextMonth}
+            onClick={() => goToMonth(nextMonth!)}
+            disabled={!nextMonth}
           >
             <ChevronRight className="h-4 w-4" />
           </button>
