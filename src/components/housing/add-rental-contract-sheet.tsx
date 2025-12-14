@@ -2,12 +2,7 @@
 
 'use client';
 
-import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { format, formatISO, parseISO } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { cn } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -34,19 +29,14 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { CalendarIcon, Loader2 } from 'lucide-react';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
+import { Loader2 } from 'lucide-react';
 import { CurrencyInput } from '../ui/currency-input';
 import { Separator } from '../ui/separator';
 import type { RentalContract } from '@/lib/types';
 import { Textarea } from '../ui/textarea';
 import { Switch } from '../ui/switch';
 import { useRentalContractForm, type RentalFormValues } from '@/hooks/use-rental-contract-form';
+import { DatePicker } from '../ui/date-picker';
 
 type AddRentalContractSheetProps = {
   isOpen: boolean;
@@ -211,28 +201,12 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Início do Contrato</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={'outline'}
-                            className={cn('pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}
-                          >
-                            {field.value ? format(field.value, 'PPP', { locale: ptBR }) : <span>Escolha uma data</span>}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar 
-                            mode="single" 
-                            selected={field.value} 
-                            onSelect={field.onChange} 
-                            initialFocus 
-                            locale={ptBR}
+                     <FormControl>
+                        <DatePicker
+                            value={field.value}
+                            onChange={field.onChange}
                         />
-                      </PopoverContent>
-                    </Popover>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -243,27 +217,13 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Fim do Contrato (Opcional)</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={'outline'}
-                            className={cn('pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}
-                          >
-                            {field.value ? format(field.value, 'PPP', { locale: ptBR }) : <span>Sem data final</span>}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar 
-                            mode="single" 
-                            selected={field.value} 
-                            onSelect={field.onChange} 
-                            locale={ptBR}
+                    <FormControl>
+                        <DatePicker
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder="Sem data final"
                         />
-                      </PopoverContent>
-                    </Popover>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}

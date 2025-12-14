@@ -6,10 +6,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { formatISO } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { collection, addDoc } from 'firebase/firestore';
 import { useFirestore, useUser } from '@/firebase';
-import { cn } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -35,20 +33,14 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { CalendarIcon, Loader2 } from 'lucide-react';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
+import { Loader2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
 import { CurrencyInput } from '../ui/currency-input';
 import { Textarea } from '../ui/textarea';
+import { DatePicker } from '../ui/date-picker';
 
-import { utilitySubcategories, type UtilitySubcategory } from '@/lib/types';
+import { utilitySubcategories } from '@/lib/types';
 
 const utilityTypes = utilitySubcategories;
 
@@ -205,16 +197,9 @@ export function AddUtilityBillSheet({ isOpen, onClose }: AddUtilityBillSheetProp
                     <FormItem>
                       <FormLabel>Data de Vencimento</FormLabel>
                       <FormControl>
-                        <Input
-                          type="date"
-                          value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
-                          onChange={(e) => {
-                            const date = new Date(e.target.value);
-                            // Adjust for timezone offset
-                            const timezoneOffset = date.getTimezoneOffset() * 60000;
-                            const adjustedDate = new Date(date.getTime() + timezoneOffset);
-                            field.onChange(adjustedDate);
-                          }}
+                        <DatePicker
+                          value={field.value}
+                          onChange={field.onChange}
                         />
                       </FormControl>
                       <FormMessage />
