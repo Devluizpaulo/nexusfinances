@@ -1,32 +1,62 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import { memo } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { FileText, MoreVertical, Pencil, Trash2, History, AlertTriangle, CalendarClock } from 'lucide-react';
-import type { RentalContract, Transaction } from '@/lib/types';
+import { useState, useMemo, memo } from 'react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Button } from '../ui/button';
 import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
-import { doc, writeBatch, getDocs, collection, query, where, orderBy } from 'firebase/firestore';
+import type { RentalContract, Transaction } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { FileText, MoreVertical, Pencil, Trash2, History, AlertTriangle, CalendarClock, Info } from 'lucide-react';
+import { doc, writeBatch, getDocs, collection, query, where, orderBy, deleteDoc } from 'firebase/firestore';
 import { format, parseISO, differenceInDays, isPast } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { cn, formatCurrency } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { RegisterHousingPaymentDialog } from '@/components/housing/register-housing-payment-dialog';
+import { Separator } from '../ui/separator';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface RentalContractCardProps {
   contract: RentalContract;
   onEdit: (contract: RentalContract, isRenewal?: boolean) => void;
 }
 
-export function RentalContractCard({ contract, onEdit }: RentalContractCardProps) {
+function RentalContractCardComponent({ contract, onEdit }: RentalContractCardProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
@@ -61,12 +91,6 @@ export function RentalContractCard({ contract, onEdit }: RentalContractCardProps
     return null;
   }, [contract.endDate, isInactive]);
 
-  const cardBorderClass =
-    contractStatus?.variant === 'destructive' ? 'border-destructive/80'
-    : contractStatus?.variant === 'secondary' ? 'border-amber-500/80'
-    : isInactive ? 'border-dashed'
-    : 'border-border';
-
   const handleDeleteContract = async () => {
     if (!user || !firestore) return;
     try {
@@ -100,30 +124,6 @@ export function RentalContractCard({ contract, onEdit }: RentalContractCardProps
     }
   };
 
-  const handleCopy = async (text?: string) => {
-    if (!text) return;
-
-    try {
-      if (typeof navigator === 'undefined' || !navigator.clipboard) {
-        throw new Error('Clipboard API não disponível');
-      }
-
-      await navigator.clipboard.writeText(text);
-
-      toast({
-        title: "Copiado!",
-        description: "Informação copiada para a área de transferência.",
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Erro ao copiar",
-        description: "Não foi possível copiar para a área de transferência.",
-      });
-    }
-  };
-
-
   return (
     <>
       <RegisterHousingPaymentDialog
@@ -145,8 +145,111 @@ export function RentalContractCard({ contract, onEdit }: RentalContractCardProps
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl">
+               <FileText className="h-5 w-5" />
+              Detalhes do Contrato
+            </DialogTitle>
+            <DialogDescription>
+              Todas as informações sobre seu contrato com {contract.landlordName}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-4">
+             <div className="rounded-lg border p-4 space-y-2">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-muted-foreground text-xs">Proprietário/Imobiliária</p>
+                    <p className="font-semibold">{contract.landlordName}</p>
+                  </div>
+                   <div>
+                    <p className="text-muted-foreground text-xs">Tipo</p>
+                    <p className="font-semibold">{contract.type}</p>
+                  </div>
+                </div>
+                 {contract.propertyAddress && (
+                     <div>
+                        <p className="text-muted-foreground text-xs">Endereço do Imóvel</p>
+                        <p className="text-sm">{contract.propertyAddress}</p>
+                    </div>
+                )}
+            </div>
 
-      <Card className={cn("transition-all", isInactive && "bg-muted/50", cardBorderClass)}>
+            <div className="rounded-lg border p-4 space-y-4">
+                <p className="font-semibold text-sm">Valores</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                   <div>
+                        <p className="text-muted-foreground text-xs">Valor Total</p>
+                        <p className="font-semibold">{formatCurrency(contract.totalAmount || 0)}</p>
+                    </div>
+                    {contract.type && contract.type.includes('Aluguel') && contract.rentAmount ? (
+                        <div>
+                            <p className="text-muted-foreground text-xs">Aluguel</p>
+                            <p className="font-semibold">{formatCurrency(contract.rentAmount)}</p>
+                        </div>
+                    ) : null}
+                    {contract.type && contract.type.includes('Condomínio') && contract.condoFee ? (
+                        <div>
+                            <p className="text-muted-foreground text-xs">Condomínio</p>
+                            <p className="font-semibold">{formatCurrency(contract.condoFee)}</p>
+                        </div>
+                    ) : null}
+                     <div>
+                        <p className="text-muted-foreground text-xs">Vencimento</p>
+                        <p className="font-semibold">Todo dia {contract.dueDate}</p>
+                    </div>
+                </div>
+            </div>
+             <div className="rounded-lg border p-4 space-y-4">
+                <p className="font-semibold text-sm">Vigência</p>
+                 <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-muted-foreground text-xs">Início do Contrato</p>
+                        <p className="font-semibold">
+                          {contract.startDate ? format(parseISO(contract.startDate), 'dd/MM/yyyy') : 'N/A'}
+                        </p>
+                    </div>
+                    {contract.endDate && (
+                        <div>
+                            <p className="text-muted-foreground text-xs">Fim do Contrato</p>
+                            <p className="font-semibold">{format(parseISO(contract.endDate), 'dd/MM/yyyy')}</p>
+                        </div>
+                    )}
+                 </div>
+             </div>
+
+            {contract.paymentMethod?.method && (
+               <div className="rounded-lg border p-4 space-y-2">
+                    <p className="font-semibold text-sm">Detalhes do Pagamento</p>
+                    <p className="text-xs text-muted-foreground">Método: <Badge variant="secondary">{contract.paymentMethod.method}</Badge></p>
+                    {contract.paymentMethod.identifier && <p className="text-xs text-muted-foreground">Identificador: {contract.paymentMethod.identifier}</p>}
+                    {contract.paymentMethod.instructions && <p className="text-xs text-muted-foreground">Instruções: {contract.paymentMethod.instructions}</p>}
+               </div>
+            )}
+             
+            {paymentHistory && paymentHistory.length > 0 && (
+                 <div className="rounded-lg border p-4 space-y-2">
+                    <p className="font-semibold text-sm">Histórico de Pagamentos ({paymentHistory.length})</p>
+                    <Table>
+                        <TableHeader><TableRow><TableHead>Data</TableHead><TableHead className="text-right">Valor</TableHead></TableRow></TableHeader>
+                        <TableBody>
+                            {paymentHistory.map(p => (
+                                <TableRow key={p.id}>
+                                    <TableCell>{format(parseISO(p.date), 'dd/MM/yyyy')}</TableCell>
+                                    <TableCell className="text-right">{formatCurrency(p.amount)}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                 </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Card className={cn("transition-all flex flex-col h-full", isInactive && "bg-muted/50", cardBorderClass)}>
         <CardHeader>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
@@ -154,8 +257,8 @@ export function RentalContractCard({ contract, onEdit }: RentalContractCardProps
                 <FileText className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <CardTitle>{contract.landlordName}</CardTitle>
-                <CardDescription>{contract.type || 'Tipo de contrato não informado'}</CardDescription>
+                <CardTitle className="text-base">{contract.landlordName}</CardTitle>
+                <CardDescription>{contract.type || 'Contrato'}</CardDescription>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -187,83 +290,23 @@ export function RentalContractCard({ contract, onEdit }: RentalContractCardProps
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+        <CardContent className="flex-grow space-y-4">
+            <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                     <p className="text-muted-foreground text-xs">Valor Total</p>
-                    <p className="font-semibold">{formatCurrency(contract.totalAmount || 0)}</p>
+                    <p className="font-semibold text-lg">{formatCurrency(contract.totalAmount || 0)}</p>
                 </div>
-                {contract.type && contract.type.includes('Aluguel') && contract.rentAmount ? (
-                     <div>
-                        <p className="text-muted-foreground text-xs">Aluguel</p>
-                        <p className="font-semibold">{formatCurrency(contract.rentAmount)}</p>
-                    </div>
-                ) : null}
-                {contract.type && contract.type.includes('Condomínio') && contract.condoFee ? (
-                     <div>
-                        <p className="text-muted-foreground text-xs">Condomínio</p>
-                        <p className="font-semibold">{formatCurrency(contract.condoFee)}</p>
-                    </div>
-                ) : null}
                  <div>
                     <p className="text-muted-foreground text-xs">Vencimento</p>
-                    <p className="font-semibold">Todo dia {contract.dueDate}</p>
+                    <p className="font-semibold text-lg">Todo dia {contract.dueDate}</p>
                 </div>
-                <div>
-                    <p className="text-muted-foreground text-xs">Início do Contrato</p>
-                    <p className="font-semibold">
-                      {contract.startDate ? format(parseISO(contract.startDate), 'dd/MM/yyyy') : 'Data não informada'}
-                    </p>
-                </div>
-                {contract.endDate && (
-                    <div>
-                        <p className="text-muted-foreground text-xs">Fim do Contrato</p>
-                        <p className="font-semibold">{format(parseISO(contract.endDate), 'dd/MM/yyyy')}</p>
-                    </div>
-                )}
             </div>
-            {contract.propertyAddress && (
-                 <div>
-                    <p className="text-muted-foreground text-xs">Endereço do Imóvel</p>
-                    <p className="text-sm">{contract.propertyAddress}</p>
-                </div>
-            )}
         </CardContent>
         <CardFooter className="flex flex-col gap-3 items-stretch">
-          <Accordion type="single" collapsible className="w-full">
-            {contract.paymentMethod?.method && (
-              <AccordionItem value="payment" className={!paymentHistory || paymentHistory.length === 0 ? "border-b-0" : ""}>
-                <AccordionTrigger className="text-sm">Ver detalhes do pagamento</AccordionTrigger>
-                <AccordionContent className="space-y-2 text-sm pt-2">
-                    <div className="flex justify-between items-center rounded-md border p-2">
-                      <div>
-                        <p className="font-medium">{contract.paymentMethod.method}</p>
-                        {contract.paymentMethod.identifier && (
-                          <p className="text-muted-foreground break-all">{contract.paymentMethod.identifier}</p>
-                        )}
-                      </div>
-                    </div>
-                  {contract.paymentMethod.instructions && (
-                    <p className="text-xs text-muted-foreground px-1">{contract.paymentMethod.instructions}</p>
-                  )}
-                </AccordionContent>
-              </AccordionItem>
-            )}
-            {paymentHistory && paymentHistory.length > 0 && (
-                <AccordionItem value="history" className="border-b-0">
-                    <AccordionTrigger className="text-sm">Histórico de pagamentos ({paymentHistory.length})</AccordionTrigger>
-                    <AccordionContent className="space-y-2 text-sm pt-2 max-h-40 overflow-y-auto">
-                        {paymentHistory.map(payment => (
-                           <div key={payment.id} className="flex justify-between items-center text-xs">
-                               <span className="text-muted-foreground">{format(parseISO(payment.date), 'dd/MM/yyyy')}</span>
-                               <Badge variant="secondary" className="font-mono">{formatCurrency(payment.amount)}</Badge>
-                           </div>
-                        ))}
-                    </AccordionContent>
-                </AccordionItem>
-            )}
-          </Accordion>
-
+          <Button variant="outline" size="sm" onClick={() => setIsDetailsOpen(true)}>
+             <Info className="mr-2 h-4 w-4" />
+             Ver Detalhes
+          </Button>
           {!isInactive && (
             <Button
               type="button"
@@ -283,4 +326,4 @@ export function RentalContractCard({ contract, onEdit }: RentalContractCardProps
   );
 }
 
-export const RentalContractCardMemo = memo(RentalContractCard);
+export const RentalContractCardMemo = memo(RentalContractCardComponent);
