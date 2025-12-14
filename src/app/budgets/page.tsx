@@ -3,16 +3,17 @@
 
 import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Loader2, Target, PiggyBank } from 'lucide-react';
+import { PlusCircle, Loader2, Target, PiggyBank, Sparkles } from 'lucide-react';
 import { collection, query, where } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Budget, Transaction } from '@/lib/types';
 import { AddBudgetSheet } from '@/components/budgets/add-budget-sheet';
 import { BudgetCard } from '@/components/budgets/budget-card';
-import { startOfMonth, endOfMonth, parseISO, isWithinInterval } from 'date-fns';
+import { startOfMonth, endOfMonth, parseISO, isWithinInterval, subMonths } from 'date-fns';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
+import { BudgetAISuggestions } from '@/components/budgets/budget-ai-suggestions';
 
 export default function BudgetsPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -25,23 +26,30 @@ export default function BudgetsPage() {
     return query(collection(firestore, `users/${user.uid}/budgets`));
   }, [firestore, user]);
 
-  const expensesQuery = useMemoFirebase(() => {
+  // Query para buscar despesas dos últimos 3 meses para a IA
+  const expensesForAIQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
     const now = new Date();
-    const start = startOfMonth(now);
-    const end = endOfMonth(now);
+    const threeMonthsAgo = subMonths(now, 3);
     return query(
       collection(firestore, `users/${user.uid}/expenses`),
-      where('date', '>=', start.toISOString().split('T')[0]),
-      where('date', '<=', end.toISOString().split('T')[0])
+      where('date', '>=', threeMonthsAgo.toISOString().split('T')[0])
     );
   }, [firestore, user]);
 
   const { data: budgetsData, isLoading: isBudgetsLoading } = useCollection<Budget>(budgetsQuery);
-  const { data: expensesData, isLoading: isExpensesLoading } = useCollection<Transaction>(expensesQuery);
+  const { data: expensesForAI, isLoading: isExpensesForAILoading } = useCollection<Transaction>(expensesForAIQuery);
 
   const budgetsWithSpent = useMemo(() => {
     if (!budgetsData) return [];
+    
+    // Filtra apenas as despesas do mês corrente para o cálculo do gasto
+    const now = new Date();
+    const monthStart = startOfMonth(now);
+    const monthEnd = endOfMonth(now);
+    const currentMonthExpenses = (expensesForAI || []).filter(expense => 
+      isWithinInterval(parseISO(expense.date), { start: monthStart, end: monthEnd })
+    );
 
     return budgetsData.map(budget => {
       const budgetInterval = {
@@ -49,7 +57,7 @@ export default function BudgetsPage() {
         end: parseISO(budget.endDate),
       };
 
-      const spentAmount = (expensesData || [])
+      const spentAmount = currentMonthExpenses
         .filter(expense => 
             expense.category === budget.category &&
             isWithinInterval(parseISO(expense.date), budgetInterval)
@@ -59,7 +67,7 @@ export default function BudgetsPage() {
       return { ...budget, spentAmount };
     });
 
-  }, [budgetsData, expensesData]);
+  }, [budgetsData, expensesForAI]);
 
 
   const handleEditBudget = (budget: Budget) => {
@@ -72,7 +80,7 @@ export default function BudgetsPage() {
     setIsSheetOpen(false);
   }
 
-  const isLoading = isUserLoading || isBudgetsLoading || isExpensesLoading;
+  const isLoading = isUserLoading || isBudgetsLoading || isExpensesForAILoading;
 
   if (isLoading) {
     return (
@@ -137,21 +145,22 @@ export default function BudgetsPage() {
                 <CardTitle>Crie seu primeiro limite de gastos</CardTitle>
                 <CardDescription className="max-w-md">
                   Os limites ajudam você a não gastar mais do que o planejado em categorias específicas.
-                  Assim que criar o primeiro, ele aparecerá aqui.
+                  Use nossas sugestões com IA ou crie um manualmente.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="flex flex-col items-center">
-                  <div className="w-full max-w-sm rounded-lg border bg-background/50 p-4">
-                    <p className="mb-2 text-center text-sm font-medium text-muted-foreground">Exemplos de limites:</p>
-                    <ul className="space-y-1 text-center text-sm text-muted-foreground">
-                      <li>&quot;Limite de R$ 800 para Mercado&quot;</li>
-                      <li>&quot;Até R$ 300 para Lazer e Restaurantes&quot;</li>
-                      <li>&quot;Não ultrapassar R$ 150 em Compras&quot;</li>
-                    </ul>
-                  </div>
+              <CardContent className="flex flex-col items-center gap-6">
+                  
+                  <BudgetAISuggestions 
+                    transactions={expensesForAI || []}
+                    onCreateBudget={(category, amount) => {
+                       setEditingBudget({ name: `Limite para ${category}`, category, amount } as Budget);
+                       setIsSheetOpen(true);
+                    }}
+                  />
+
                    <Button className="mt-6" onClick={() => setIsSheetOpen(true)}>
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    Criar Primeiro Limite
+                    Criar Limite Manualmente
                   </Button>
               </CardContent>
             </Card>

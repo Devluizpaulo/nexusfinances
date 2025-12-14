@@ -391,3 +391,24 @@ export const ExtractPayslipOutputSchema = z.object({
   description: z.string().optional().describe("Uma breve descrição da origem do pagamento (ex: 'Salário referente a Abril/2024').")
 });
 export type ExtractPayslipOutput = z.infer<typeof ExtractPayslipOutputSchema>;
+
+
+// Schemas and types for Budget Suggestion Flow
+export const SuggestBudgetsInputSchema = z.object({
+  transactions: z.array(AITransactionSchema).describe('Lista de transações de despesa do usuário nos últimos 3 meses.'),
+});
+export type SuggestBudgetsInput = z.infer<typeof SuggestBudgetsInputSchema>;
+
+export const SuggestedBudgetSchema = z.object({
+  category: z.string().describe("A categoria de despesa para a qual o limite é sugerido (ex: 'Alimentação')."),
+  amount: z.number().describe("O valor do limite de gasto mensal sugerido, arredondado para um número razoável (ex: 50, 100, 500)."),
+  justification: z.string().describe("Uma frase curta explicando por que este limite foi sugerido, baseada nos gastos do usuário."),
+});
+export type SuggestedBudget = z.infer<typeof SuggestedBudgetSchema>;
+
+export const SuggestBudgetsOutputSchema = z.object({
+  suggestions: z
+    .array(SuggestedBudgetSchema)
+    .describe('Uma lista de 2 a 3 sugestões de limites de gastos.'),
+});
+export type SuggestBudgetsOutput = z.infer<typeof SuggestBudgetsOutputSchema>;
