@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useForm, useFieldArray } from 'react-hook-form';
@@ -172,7 +173,7 @@ export function AddInsuranceSheet({ isOpen, onClose, insurance }: AddInsuranceSh
       </AlertDialog>
 
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{isEditing ? 'Editar Convênio' : 'Adicionar Convênio'}</DialogTitle>
             <DialogDescription>

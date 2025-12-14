@@ -95,14 +95,14 @@ export function AddCreditCardSheet({ isOpen, onClose, card }: AddCreditCardSheet
 
     try {
       const dataToSave = { ...values, userId: user.uid };
+      const collectionRef = collection(firestore, `users/${user.uid}/creditCards`);
 
       if (isEditing) {
-        const cardRef = doc(firestore, `users/${user.uid}/creditCards`, card!.id);
+        const cardRef = doc(collectionRef, card!.id);
         await setDoc(cardRef, dataToSave, { merge: true });
         toast({ title: 'Cartão atualizado!', description: `O cartão "${values.name}" foi salvo.` });
       } else {
-        const cardsColRef = collection(firestore, `users/${user.uid}/creditCards`);
-        await addDoc(cardsColRef, dataToSave);
+        await addDoc(collectionRef, dataToSave);
         toast({ title: 'Cartão adicionado!', description: `O cartão "${values.name}" foi criado.` });
       }
       onClose();
