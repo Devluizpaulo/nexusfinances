@@ -2,13 +2,96 @@
 
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker } from "react-day-picker"
+import { DayPicker, DropdownProps } from "react-day-picker"
 import { ptBR } from 'date-fns/locale';
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
+import { ScrollArea } from "./scroll-area";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
+
+function CustomCaption(props: DropdownProps) {
+  const { fromYear, toYear } = props;
+  const { goToMonth, nextMonth, previousMonth } = props;
+
+  const handleYearChange = (value: string) => {
+    const year = Number(value);
+    const newDate = new Date(props.displayMonth);
+    newDate.setFullYear(year);
+    goToMonth(newDate);
+  };
+  
+  const handleMonthChange = (value: string) => {
+    const month = Number(value);
+    const newDate = new Date(props.displayMonth);
+    newDate.setMonth(month);
+    goToMonth(newDate);
+  };
+
+  const years = [];
+  for (let i = fromYear || new Date().getFullYear() - 100; i <= (toYear || new Date().getFullYear() + 10); i++) {
+    years.push(i);
+  }
+  const months = Array.from({ length: 12 }, (_, i) => i);
+  
+  return (
+    <div className="flex items-center justify-between px-2 py-1.5">
+      <div className="flex items-center gap-1">
+        <Select
+          onValueChange={handleMonthChange}
+          value={String(props.displayMonth.getMonth())}
+        >
+          <SelectTrigger className="h-8 w-[120px] text-xs font-semibold focus:ring-0 focus:ring-offset-0">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {months.map(month => (
+              <SelectItem key={month} value={String(month)}>
+                {ptBR.localize?.month(month)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          onValueChange={handleYearChange}
+          value={String(props.displayMonth.getFullYear())}
+        >
+          <SelectTrigger className="h-8 w-20 text-xs focus:ring-0 focus:ring-offset-0">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+             <ScrollArea className="h-72">
+              {years.map(year => (
+                <SelectItem key={year} value={String(year)}>
+                  {year}
+                </SelectItem>
+              ))}
+            </ScrollArea>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="flex items-center gap-1">
+        <button
+          onClick={() => previousMonth && goToMonth(previousMonth)}
+          disabled={!previousMonth}
+          className={cn(buttonVariants({ variant: "outline", size: "icon" }), "h-7 w-7")}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+        <button
+          onClick={() => nextMonth && goToMonth(nextMonth)}
+          disabled={!nextMonth}
+          className={cn(buttonVariants({ variant: "outline", size: "icon" }), "h-7 w-7")}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 
 function Calendar({
   className,
@@ -25,7 +108,7 @@ function Calendar({
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
         caption: "flex justify-center pt-1 relative items-center",
-        caption_label: "text-sm font-medium",
+        caption_label: "hidden", // Hide the default caption
         caption_dropdowns: "flex justify-center gap-1",
         nav: "space-x-1 flex items-center",
         nav_button: cn(
@@ -56,6 +139,7 @@ function Calendar({
         ...classNames,
       }}
       components={{
+        Caption: props.captionLayout === 'dropdown-buttons' ? CustomCaption : undefined,
         IconLeft: () => <ChevronLeft className="h-4 w-4" />,
         IconRight: () => <ChevronRight className="h-4 w-4" />,
       }}

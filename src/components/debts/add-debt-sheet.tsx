@@ -3,11 +3,9 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { formatISO, addMonths, format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { formatISO, addMonths } from 'date-fns';
 import { collection, doc, writeBatch } from 'firebase/firestore';
 import { useFirestore, useUser } from '@/firebase';
-import { cn } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -197,7 +195,7 @@ export function AddDebtSheet({ isOpen, onClose }: AddDebtSheetProps) {
               control={form.control}
               name="startDate"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="flex flex-col">
                   <FormLabel>Data da Primeira Parcela</FormLabel>
                    <FormControl>
                       <DatePicker

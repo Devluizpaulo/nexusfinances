@@ -247,7 +247,7 @@ export function AddOtherIncomeSheet({
                 control={form.control}
                 name="date"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col">
                     <FormLabel>Data</FormLabel>
                     <FormControl>
                       <DatePicker

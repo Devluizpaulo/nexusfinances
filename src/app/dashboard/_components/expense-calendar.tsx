@@ -13,7 +13,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { expenseCategories } from '@/lib/types';
 import { Calendar } from '@/components/ui/calendar';
@@ -94,7 +93,7 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
     return intensityLevels[1].class;
   };
 
-  const DayComponent = ({ date, ...props }: { date: Date } & any) => {
+  const DayComponent = React.memo(({ date, displayMonth }: { date: Date; displayMonth: Date }) => {
     const formattedDate = format(date, 'yyyy-MM-dd');
     const dayData = expensesByDay[formattedDate];
     const total = dayData?.total || 0;
@@ -102,11 +101,9 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
 
     const dayContent = (
       <div
-        {...props}
         onClick={() => handleDayClick(date)}
         className={cn(
           'relative flex h-full w-full items-center justify-center rounded-md transition-all duration-150',
-          props.className,
           isSameMonth(date, selectedDate) && total > 0 && 'cursor-pointer hover:ring-2 hover:ring-primary',
           isToday(date) && 'ring-1 ring-primary/80',
           intensityClass,
@@ -146,7 +143,8 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
     }
 
     return dayContent;
-  };
+  });
+  DayComponent.displayName = 'DayComponent';
 
 
   return (

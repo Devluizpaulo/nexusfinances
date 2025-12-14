@@ -31,9 +31,8 @@ export function DatePicker({
   const [isOpen, setIsOpen] = React.useState(false);
 
   // Garante que o valor passado para o `format` é um objeto Date válido.
-  const displayValue = value instanceof Date && !isNaN(value.getTime())
-    ? format(value, "PPP", { locale: ptBR })
-    : null;
+  const isValidDate = value instanceof Date && !isNaN(value.getTime());
+  const displayValue = isValidDate ? format(value, "PPP", { locale: ptBR }) : null;
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
