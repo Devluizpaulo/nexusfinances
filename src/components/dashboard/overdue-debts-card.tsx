@@ -50,6 +50,12 @@ export function OverdueDebtsCard({ debts }: OverdueDebtsCardProps) {
         setIsLoading(false);
         return;
     }
+    
+    // Adicionado para corrigir o erro quando 'debts' é undefined.
+    if (!debts) {
+        setIsLoading(false);
+        return;
+    }
 
     const fetchOverdueInstallments = async () => {
         setIsLoading(true);
