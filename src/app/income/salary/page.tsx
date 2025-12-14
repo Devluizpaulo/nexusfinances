@@ -258,7 +258,7 @@ export default function SalaryPage() {
         await deleteDoc(docRef);
         toast({
             title: "Salário excluído",
-            description: `O registro de salário de ${formatDisplayCurrency(transactionToDelete.amount)} foi removido.`,
+            description: `O registro de salário de ${formatCurrency(transactionToDelete.amount)} foi removido.`,
         });
     } catch(e) {
         toast({ variant: 'destructive', title: "Erro ao excluir", description: "Não foi possível remover o registro."})
@@ -327,6 +327,10 @@ export default function SalaryPage() {
             <Upload className="mr-2 h-4 w-4" />
             Importar PDF com IA
           </Button>
+           <Button onClick={() => handleOpenSheet()} disabled={!user}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Adicionar Salário
+          </Button>
         </div>
       </div>
 
@@ -336,19 +340,19 @@ export default function SalaryPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <KpiCard
             title="Média Bruta"
-            value={formatDisplayCurrency(avgGross)}
+            value={formatCurrency(avgGross)}
             icon={TrendingUp}
             description="Valor médio bruto dos últimos salários detalhados"
           />
           <KpiCard
             title="Média Líquida"
-            value={formatDisplayCurrency(avgNet)}
+            value={formatCurrency(avgNet)}
             icon={TrendingDown}
             description="Valor médio líquido recebido"
           />
           <KpiCard
             title="Descontos Médios"
-            value={formatDisplayCurrency(avgDeductions)}
+            value={formatCurrency(avgDeductions)}
             icon={TrendingDown}
             description="Média dos descontos (INSS, IRRF, etc.)"
           />
@@ -369,7 +373,7 @@ export default function SalaryPage() {
                   <div key={item.id} className="group flex items-start justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50">
                     <div className="flex-1">
                       <p className="font-semibold">
-                        {formatDisplayCurrency(item.amount)} 
+                        {formatCurrency(item.amount)} 
                         <span className="text-xs text-muted-foreground"> (Líquido)</span>
                       </p>
                       <p className="text-sm text-muted-foreground">{item.description}</p>
@@ -380,8 +384,8 @@ export default function SalaryPage() {
                     <div className="flex items-center gap-4">
                       {item.grossAmount && item.grossAmount > 0 ? (
                         <div className="text-right text-xs">
-                          <p>Bruto: {formatDisplayCurrency(item.grossAmount || 0)}</p>
-                          <p className="text-red-500">Descontos: {formatDisplayCurrency(item.totalDeductions || 0)}</p>
+                          <p>Bruto: {formatCurrency(item.grossAmount || 0)}</p>
+                          <p className="text-red-500">Descontos: {formatCurrency(item.totalDeductions || 0)}</p>
                         </div>
                       ) : (
                         <div className="text-right text-xs text-muted-foreground">
@@ -533,7 +537,7 @@ export default function SalaryPage() {
                         )}
                       </div>
                       <div className="space-y-1 text-muted-foreground">
-                        <p>Base: {formatDisplayCurrency(contract.baseAmount)}</p>
+                        <p>Base: {formatCurrency(contract.baseAmount)}</p>
                         {contract.contractType && (
                           <p>Tipo: {contract.contractType}</p>
                         )}
