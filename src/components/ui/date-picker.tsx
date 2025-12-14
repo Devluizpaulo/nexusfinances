@@ -1,17 +1,10 @@
+
 "use client"
 
 import * as React from "react"
-import { format } from "date-fns"
-import { ptBR } from 'date-fns/locale';
-import { Calendar as CalendarIcon } from "lucide-react"
+import { format, parseISO } from "date-fns"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
+import { Input } from "@/components/ui/input"
 
 export interface DatePickerProps {
   value?: Date
@@ -24,46 +17,37 @@ export interface DatePickerProps {
 export function DatePicker({
   value,
   onChange,
-  placeholder = "Selecione uma data",
   disabled = false,
-  className
+  className,
+  ...props
 }: DatePickerProps) {
-  const [isOpen, setIsOpen] = React.useState(false);
 
-  // Garante que o valor passado para o `format` é um objeto Date válido.
-  const isValidDate = value instanceof Date && !isNaN(value.getTime());
-  const displayValue = isValidDate ? format(value, "PPP", { locale: ptBR }) : null;
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (onChange) {
+      const dateString = event.target.value;
+      if (dateString) {
+        // O input type="date" retorna "YYYY-MM-DD". 
+        // O fuso horário é interpretado como UTC, então parseISO é mais seguro.
+        const date = parseISO(dateString);
+        onChange(date);
+      } else {
+        onChange(undefined);
+      }
+    }
+  };
+
+  const formattedValue = value instanceof Date && !isNaN(value.getTime())
+    ? format(value, "yyyy-MM-dd")
+    : "";
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant={"outline"}
-          disabled={disabled}
-          className={cn(
-            "w-full justify-start text-left font-normal",
-            !value && "text-muted-foreground",
-            className
-          )}
-        >
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {displayValue ? displayValue : <span>{placeholder}</span>}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0">
-        <Calendar
-          mode="single"
-          selected={value}
-          onSelect={(date) => {
-            if (onChange) onChange(date);
-            setIsOpen(false);
-          }}
-          initialFocus
-          captionLayout="dropdown-buttons"
-          fromYear={new Date().getFullYear() - 80}
-          toYear={new Date().getFullYear() + 10}
-        />
-      </PopoverContent>
-    </Popover>
+    <Input
+      type="date"
+      value={formattedValue}
+      onChange={handleInputChange}
+      disabled={disabled}
+      className={cn("w-full", className)}
+      {...props}
+    />
   )
 }
