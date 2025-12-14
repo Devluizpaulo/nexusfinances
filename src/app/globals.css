@@ -56,4 +56,8 @@
     @apply bg-background text-foreground;
     font-feature-settings: "cv03", "cv04", "cv11";
   }
+
+  .dark input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+  }
 }
