@@ -50,6 +50,12 @@ const navSections = [
         href: '/debts',
         subItems: []
     },
+     {
+        label: 'Saúde',
+        icon: HeartPulse,
+        href: '/health',
+        subItems: []
+    },
     {
         label: 'Metas',
         icon: PiggyBank,
