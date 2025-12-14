@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Loader2, PiggyBank } from 'lucide-react';
+import { PlusCircle, Loader2, PiggyBank, Trophy } from 'lucide-react';
 import { collection, query } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Goal } from '@/lib/types';
@@ -10,6 +11,7 @@ import { AddGoalSheet } from '@/components/goals/add-goal-sheet';
 import { GoalCard } from '@/components/goals/goal-card';
 import { AddContributionSheet } from '@/components/goals/add-contribution-sheet';
 import { PageHeader } from '@/components/page-header';
+import Link from 'next/link';
 
 export default function GoalsPage() {
   const [isAddGoalSheetOpen, setIsAddGoalSheetOpen] = useState(false);
@@ -98,10 +100,18 @@ export default function GoalsPage() {
         title="Metas e Reservas"
         description="Acompanhe o progresso dos seus sonhos e objetivos financeiros."
       >
-          <Button onClick={() => setIsAddGoalSheetOpen(true)} disabled={!user} className="bg-emerald-500/20 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/30 hover:border-emerald-500/50">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Adicionar Reserva/Investimento
-          </Button>
+        <div className="flex items-center gap-2">
+            <Button variant="outline" asChild>
+                <Link href="/challenges">
+                    <Trophy className="mr-2 h-4 w-4" />
+                    Ver Desafios de Poupança
+                </Link>
+            </Button>
+            <Button onClick={() => setIsAddGoalSheetOpen(true)} disabled={!user} className="bg-emerald-500/20 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/30 hover:border-emerald-500/50">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Adicionar Reserva/Investimento
+            </Button>
+        </div>
       </PageHeader>
       
       {(!goalData || goalData.length === 0) ? (

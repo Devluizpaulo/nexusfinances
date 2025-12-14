@@ -70,12 +70,6 @@ const navSections = [
         subItems: []
     },
     {
-        label: 'Desafios',
-        icon: Trophy,
-        href: '/challenges',
-        subItems: [],
-    },
-    {
         label: 'Jornada',
         icon: GraduationCap,
         href: '/education',
