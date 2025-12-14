@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -42,6 +43,7 @@ interface UseTransactionFormProps {
   categories: readonly string[];
   transaction?: Transaction | null;
   onClose: () => void;
+  vendors?: string[];
 }
 
 export function useTransactionForm({
@@ -49,6 +51,7 @@ export function useTransactionForm({
   categories,
   transaction,
   onClose,
+  vendors = [],
 }: UseTransactionFormProps) {
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(formSchema),
@@ -203,6 +206,7 @@ export function useTransactionForm({
     user,
     allCategories,
     creditCardsData,
+    vendors,
     isAddCategoryDialogOpen,
     setIsAddCategoryDialogOpen,
     newCategoryName,

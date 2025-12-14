@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
@@ -270,6 +271,8 @@ export default function SalaryPage() {
 
   const isLoading = isUserLoading || isIncomesLoading || isLoadingConfig;
 
+  const vendorList = useMemo(() => contracts.map(c => c.companyName), [contracts]);
+
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -285,7 +288,8 @@ export default function SalaryPage() {
         onClose={handleCloseSheet}
         transactionType="income"
         categories={incomeCategories}
-        transaction={editingTransaction} 
+        transaction={editingTransaction}
+        vendors={vendorList}
       />
        <ImportPayslipSheet 
         isOpen={isImportSheetOpen}

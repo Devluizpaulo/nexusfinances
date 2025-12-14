@@ -32,6 +32,7 @@ type AddTransactionSheetProps = {
   transactionType: 'income' | 'expense';
   categories: readonly string[];
   transaction?: Transaction | null;
+  vendors?: string[];
 };
 
 export function AddTransactionSheet({
@@ -40,6 +41,7 @@ export function AddTransactionSheet({
   transactionType,
   categories,
   transaction,
+  vendors,
 }: AddTransactionSheetProps) {
   const {
     form,
@@ -59,6 +61,7 @@ export function AddTransactionSheet({
     categories,
     transaction,
     onClose,
+    vendors
   });
 
   const paymentMethod = form.watch('paymentMethod');
@@ -153,25 +156,34 @@ export function AddTransactionSheet({
               />
               <FormField
                 control={form.control}
-                name="description"
+                name="vendor"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Descrição (Opcional)</FormLabel>
+                    <FormLabel>Estabelecimento (Opcional)</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Ex: Salário da empresa, compra do mês no mercado X..." {...field} />
+                      <Input 
+                        placeholder="Ex: Netflix, Padaria do Zé, Mercado X..." 
+                        {...field}
+                        list="vendor-suggestions" 
+                      />
                     </FormControl>
+                    {vendors && vendors.length > 0 && (
+                      <datalist id="vendor-suggestions">
+                        {vendors.map(vendor => <option key={vendor} value={vendor} />)}
+                      </datalist>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <FormField
                 control={form.control}
-                name="vendor"
+                name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Estabelecimento (Opcional)</FormLabel>
+                    <FormLabel>Descrição (Opcional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: Netflix, Padaria do Zé, Mercado X..." {...field} />
+                      <Textarea placeholder="Ex: Salário da empresa, compra do mês no mercado X..." {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
