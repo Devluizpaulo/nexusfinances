@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { Row } from "@tanstack/react-table"
 import { MoreHorizontal, Pen, Trash2, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -75,8 +76,6 @@ export function DataTableRowActions({ row, onEdit }: DataTableRowActionsProps) {
             title: "Transação excluída",
             description: `A transação "${transaction.description}" foi removida.`,
         });
-        // Force page refresh to prevent freezing
-        router.refresh();
     } catch (error) {
         console.error("Error deleting transaction:", error);
         toast({
@@ -88,7 +87,7 @@ export function DataTableRowActions({ row, onEdit }: DataTableRowActionsProps) {
         setIsDeleting(false);
         setIsDeleteDialogOpen(false);
     }
-  }, [user, firestore, collectionName, transaction.id, transaction.description, toast, router]);
+  }, [user, firestore, collectionName, transaction.id, transaction.description, toast]);
 
   return (
     <>
