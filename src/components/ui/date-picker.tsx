@@ -30,6 +30,11 @@ export function DatePicker({
 }: DatePickerProps) {
   const [isOpen, setIsOpen] = React.useState(false);
 
+  // Garante que o valor passado para o `format` é um objeto Date válido.
+  const displayValue = value instanceof Date && !isNaN(value.getTime())
+    ? format(value, "PPP", { locale: ptBR })
+    : null;
+
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
@@ -43,7 +48,7 @@ export function DatePicker({
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {value ? format(value, "PPP", { locale: ptBR }) : <span>{placeholder}</span>}
+          {displayValue ? displayValue : <span>{placeholder}</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0">
