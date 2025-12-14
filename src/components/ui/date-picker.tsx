@@ -32,7 +32,6 @@ export function DatePicker({
 }: DatePickerProps) {
   const [isOpen, setIsOpen] = React.useState(false)
 
-  // Função para formatar data
   const formatDateDisplay = React.useCallback((date: Date | undefined) => {
     if (!date) return placeholder
     try {
@@ -63,6 +62,8 @@ export function DatePicker({
         <Calendar
           mode="single"
           captionLayout="dropdown-buttons"
+          fromYear={new Date().getFullYear() - 100}
+          toYear={new Date().getFullYear() + 5}
           selected={value}
           onSelect={(date) => {
             onChange?.(date);
