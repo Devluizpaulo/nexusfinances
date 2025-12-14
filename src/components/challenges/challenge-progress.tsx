@@ -29,6 +29,13 @@ interface ChallengeProgressProps {
   challenge: Challenge52Weeks;
 }
 
+const successToasts = [
+  { title: "Mais um passo!", description: (week: number) => `Depósito da semana ${week} confirmado. Continue assim!` },
+  { title: "Incrível!", description: (week: number) => `Você está cada vez mais perto do seu objetivo. Semana ${week} concluída!` },
+  { title: "Mandou bem!", description: (week: number) => `Constância é a chave. Depósito da semana ${week} registrado.` },
+];
+
+
 export function ChallengeProgress({ challenge }: ChallengeProgressProps) {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
@@ -61,11 +68,13 @@ export function ChallengeProgress({ challenge }: ChallengeProgressProps) {
         batch.update(depositRef, { status: 'deposited', depositDate: formatISO(new Date()) });
         batch.update(challengeRef, { totalDeposited: challenge.totalDeposited + deposit.expectedAmount });
         await batch.commit();
-
+        
+        const randomToast = successToasts[Math.floor(Math.random() * successToasts.length)];
         toast({
-            title: 'Depósito Registrado!',
-            description: `Depósito da semana ${deposit.weekNumber} confirmado.`,
+            title: randomToast.title,
+            description: randomToast.description(deposit.weekNumber),
         });
+
     } catch (error) {
         toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível registrar o depósito.' });
     } finally {
@@ -161,7 +170,10 @@ export function ChallengeProgress({ challenge }: ChallengeProgressProps) {
                   const dueDate = parseISO(deposit.dueDate);
                   const isOverdue = isPast(dueDate) && deposit.status === 'pending';
                   return (
-                    <TableRow key={deposit.id} className={cn(deposit.status === 'deposited' && 'bg-green-500/10 hover:bg-green-500/15', isOverdue && 'bg-yellow-500/10 hover:bg-yellow-500/15')}>
+                    <TableRow key={deposit.id} className={cn(
+                        deposit.status === 'deposited' && 'bg-green-500/10 hover:bg-green-500/15',
+                        isOverdue && 'bg-yellow-500/10 hover:bg-yellow-500/15'
+                    )}>
                       <TableCell className="font-medium">{deposit.weekNumber}</TableCell>
                       <TableCell>{format(dueDate, 'dd/MM/yyyy')}</TableCell>
                       <TableCell>{formatCurrency(deposit.expectedAmount)}</TableCell>
