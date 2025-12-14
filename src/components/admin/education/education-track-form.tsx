@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { z } from "zod";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useForm, useFieldArray, Controller, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { collection, doc, setDoc } from "firebase/firestore";
 import { useFirestore } from "@/firebase";
@@ -14,9 +14,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { Loader2, PlusCircle, Trash2 } from "lucide-react";
+import { Loader2, PlusCircle, Trash2, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { generateEducationTrack, type GenerateTrackOutput } from "@/ai/flows/generate-education-track-flow";
 
 const pointSchema = z.object({
   title: z.string().min(1, "Título do ponto é obrigatório."),
@@ -78,6 +79,8 @@ interface EducationTrackFormProps {
 export function EducationTrackForm({ initialValues, onSaved, onCancel }: EducationTrackFormProps) {
   const firestore = useFirestore();
   const [isSaving, setIsSaving] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [aiTopic, setAiTopic] = useState("");
   const [jsonInput, setJsonInput] = useState("");
   const { toast } = useToast();
 
@@ -102,6 +105,33 @@ export function EducationTrackForm({ initialValues, onSaved, onCancel }: Educati
     name: "modules",
   });
 
+  const handleGenerateWithAI = async () => {
+    if (!aiTopic.trim()) {
+      toast({ variant: "destructive", title: "Tópico Vazio", description: "Por favor, insira um tema para a geração com IA." });
+      return;
+    }
+    setIsGenerating(true);
+    try {
+      const result = await generateEducationTrack({ topic: aiTopic });
+      if (result) {
+        // Mapeia o resultado da IA para o formato do formulário
+        const formValues: TrackFormValues = {
+          ...result,
+          order: form.getValues('order'), // Mantém a ordem atual
+          bgColor: "bg-slate-100 dark:bg-slate-800",
+          borderColor: "border-slate-200 dark:border-slate-700",
+          color: "text-slate-600 dark:text-slate-300",
+        };
+        form.reset(formValues);
+        toast({ title: "Conteúdo Gerado!", description: "O formulário foi preenchido com o conteúdo da IA. Revise e salve." });
+      }
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Erro na Geração", description: err.message || "Não foi possível gerar o conteúdo." });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const handleImportJson = () => {
     if (!jsonInput.trim()) return;
     try {
@@ -125,7 +155,6 @@ export function EducationTrackForm({ initialValues, onSaved, onCancel }: Educati
     }
   };
 
-
   const handleGenerateSlug = () => {
     const title = form.getValues("title");
     if (!title) return;
@@ -145,9 +174,14 @@ export function EducationTrackForm({ initialValues, onSaved, onCancel }: Educati
     setIsSaving(true);
     try {
       const payload = {
-        ...values,
-        introduction: undefined, // remove from top level
-        modules: undefined, // remove from top level
+        title: values.title,
+        slug: values.slug,
+        description: values.description,
+        icon: values.icon,
+        order: values.order,
+        color: values.color,
+        bgColor: values.bgColor,
+        borderColor: values.borderColor,
         content: {
           introduction: values.introduction,
           modules: values.modules,
@@ -178,7 +212,28 @@ export function EducationTrackForm({ initialValues, onSaved, onCancel }: Educati
           </CardHeader>
           
            <CardContent className="space-y-4">
-                <div className="space-y-2 rounded-md border border-dashed bg-muted/40 p-3">
+                <div className="space-y-2 rounded-md border border-dashed bg-muted/40 p-4">
+                    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
+                        <div className="space-y-1 flex-1">
+                            <h4 className="text-base font-semibold flex items-center gap-2 text-primary">
+                              <Sparkles className="h-4 w-4" />
+                              Geração de Conteúdo com IA
+                            </h4>
+                            <p className="text-xs text-muted-foreground">Insira um tema e deixe a IA criar uma proposta de curso completa para você.</p>
+                            <Input
+                                placeholder='Ex: "Como sair das dívidas" ou "Investindo para iniciantes"'
+                                value={aiTopic}
+                                onChange={e => setAiTopic(e.target.value)}
+                            />
+                        </div>
+                        <Button type="button" size="sm" onClick={handleGenerateWithAI} disabled={isGenerating}>
+                            {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                            Gerar com IA
+                        </Button>
+                    </div>
+                </div>
+
+                 <div className="space-y-2 rounded-md border border-dashed bg-muted/40 p-3">
                     <div className="flex items-center justify-between gap-2">
                         <div className="space-y-1">
                             <h4 className="text-sm font-semibold text-muted-foreground">Importar via JSON (Opcional)</h4>
@@ -290,7 +345,6 @@ export function EducationTrackForm({ initialValues, onSaved, onCancel }: Educati
               </Button>
             </CardContent>
 
-
           <CardFooter className="flex justify-end gap-3 border-t pt-6">
             {onCancel && <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>}
             <Button type="submit" disabled={isSaving}>
@@ -303,7 +357,6 @@ export function EducationTrackForm({ initialValues, onSaved, onCancel }: Educati
     </Card>
   );
 }
-
 
 function ModuleField({ moduleIndex, removeModule }: { moduleIndex: number; removeModule: (index: number) => void; }) {
   const { control, watch } = useFormContext<TrackFormValues>();
@@ -415,9 +468,8 @@ function ModuleField({ moduleIndex, removeModule }: { moduleIndex: number; remov
   )
 }
 
-
 function QuizQuestionField({ moduleIndex, questionIndex, removeQuestion }: { moduleIndex: number, questionIndex: number, removeQuestion: (index: number) => void }) {
-  const { control } = useFormContext<TrackFormValues>();
+  const { control, watch, formState } = useFormContext<TrackFormValues>();
   const { fields: optionFields, append: appendOption, remove: removeOption } = useFieldArray({ control, name: `modules.${moduleIndex}.questions.${questionIndex}.options` });
 
   return (
@@ -444,7 +496,7 @@ function QuizQuestionField({ moduleIndex, questionIndex, removeQuestion }: { mod
         />
 
         <Button type="button" size="xs" variant="ghost" onClick={() => appendOption('')}><PlusCircle className="mr-2 h-3 w-3"/>Adicionar Opção</Button>
-         <FormMessage>{(form.formState.errors.modules?.[moduleIndex]?.questions?.[questionIndex]?.correctAnswer as any)?.message}</FormMessage>
+         <FormMessage>{(formState.errors.modules?.[moduleIndex]?.questions?.[questionIndex]?.correctAnswer as any)?.message}</FormMessage>
       </div>
     </div>
   )
