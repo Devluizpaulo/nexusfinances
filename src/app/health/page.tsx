@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -255,6 +256,10 @@ export default function HealthPage() {
                         <p className="mt-2 max-w-sm text-sm text-muted-foreground">
                         Adicione seus médicos, dentistas, terapeutas e outros profissionais de saúde para ter os contatos sempre à mão.
                         </p>
+                        <Button className="mt-6" onClick={() => setIsProfessionalSheetOpen(true)}>
+                          <PlusCircle className="mr-2 h-4 w-4" />
+                          Adicionar Profissional
+                        </Button>
                     </CardContent>
                     </Card>
                 )}
@@ -284,6 +289,10 @@ export default function HealthPage() {
                         <p className="mt-2 max-w-sm text-sm text-muted-foreground">
                         Adicione clínicas, hospitais, academias e outros locais que você frequenta.
                         </p>
+                         <Button className="mt-6" onClick={() => setIsProviderSheetOpen(true)}>
+                          <PlusCircle className="mr-2 h-4 w-4" />
+                          Adicionar Empresa
+                        </Button>
                     </CardContent>
                     </Card>
                 )}
