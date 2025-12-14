@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Loader2, Target, PiggyBank, Sparkles } from 'lucide-react';
 import { collection, query, where } from 'firebase/firestore';
@@ -14,12 +14,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { formatCurrency } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { BudgetAISuggestions } from '@/components/budgets/budget-ai-suggestions';
+import { suggestBudgets, type SuggestedBudget } from '@/ai/flows/suggest-budgets-flow';
 
 export default function BudgetsPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
+  const [aiSuggestions, setAiSuggestions] = useState<SuggestedBudget[] | null>(null);
+  const [isAiLoading, setIsAiLoading] = useState(false);
 
   const budgetsQuery = useMemoFirebase(() => {
     if (!user || !firestore) return null;
@@ -39,6 +42,27 @@ export default function BudgetsPage() {
 
   const { data: budgetsData, isLoading: isBudgetsLoading } = useCollection<Budget>(budgetsQuery);
   const { data: expensesForAI, isLoading: isExpensesForAILoading } = useCollection<Transaction>(expensesForAIQuery);
+  
+  // Efeito para buscar sugestões da IA
+  useEffect(() => {
+    // Roda apenas se os dados carregaram, não há orçamentos e há despesas suficientes
+    if (!isBudgetsLoading && !isExpensesForAILoading && budgetsData?.length === 0 && expensesForAI && expensesForAI.length >= 5 && aiSuggestions === null) {
+      const getSuggestions = async () => {
+        setIsAiLoading(true);
+        try {
+          const result = await suggestBudgets({ transactions: expensesForAI });
+          setAiSuggestions(result?.suggestions || []);
+        } catch (error) {
+          console.error('Error getting budget suggestions:', error);
+          setAiSuggestions([]); // Evita tentar buscar de novo em caso de erro
+        } finally {
+          setIsAiLoading(false);
+        }
+      };
+      getSuggestions();
+    }
+  }, [isBudgetsLoading, isExpensesForAILoading, budgetsData, expensesForAI, aiSuggestions]);
+
 
   const budgetsWithSpent = useMemo(() => {
     if (!budgetsData) return [];
@@ -151,7 +175,8 @@ export default function BudgetsPage() {
               <CardContent className="flex flex-col items-center gap-6">
                   
                   <BudgetAISuggestions 
-                    transactions={expensesForAI || []}
+                    suggestions={aiSuggestions}
+                    isLoading={isAiLoading}
                     onCreateBudget={(category, amount) => {
                        setEditingBudget({ name: `Limite para ${category}`, category, amount } as Budget);
                        setIsSheetOpen(true);

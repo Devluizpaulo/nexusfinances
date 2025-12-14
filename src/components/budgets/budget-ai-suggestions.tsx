@@ -1,36 +1,21 @@
+
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Loader2, PlusCircle, Sparkles } from 'lucide-react';
-import { suggestBudgets, type SuggestedBudget } from '@/ai/flows/suggest-budgets-flow';
-import type { Transaction } from '@/lib/types';
+import { type SuggestedBudget } from '@/ai/flows/suggest-budgets-flow';
 import { formatCurrency } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 
 interface BudgetAISuggestionsProps {
-  transactions: Transaction[];
+  suggestions: SuggestedBudget[] | null;
+  isLoading: boolean;
   onCreateBudget: (category: string, amount: number) => void;
 }
 
-export function BudgetAISuggestions({ transactions, onCreateBudget }: BudgetAISuggestionsProps) {
-  const [suggestions, setSuggestions] = useState<SuggestedBudget[] | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleGetSuggestions = async () => {
-    setIsLoading(true);
-    try {
-      const result = await suggestBudgets({ transactions });
-      setSuggestions(result?.suggestions || []);
-    } catch (error) {
-      console.error('Error getting budget suggestions:', error);
-      setSuggestions([]); // Define como array vazio em caso de erro para não mostrar o botão de novo
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+export function BudgetAISuggestions({ suggestions, isLoading, onCreateBudget }: BudgetAISuggestionsProps) {
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center gap-2 rounded-lg border bg-background/50 p-6 text-center w-full max-w-md">
@@ -40,7 +25,7 @@ export function BudgetAISuggestions({ transactions, onCreateBudget }: BudgetAISu
     );
   }
 
-  if (suggestions) {
+  if (suggestions && suggestions.length > 0) {
     return (
       <Card className="w-full max-w-md bg-background/50">
         <CardHeader>
@@ -81,20 +66,19 @@ export function BudgetAISuggestions({ transactions, onCreateBudget }: BudgetAISu
               </motion.div>
             ))}
           </AnimatePresence>
-           {suggestions.length === 0 && (
-                <p className="text-center text-sm text-muted-foreground py-4">
-                    A IA não encontrou padrões suficientes para criar sugestões. Continue registrando suas despesas!
-                </p>
-           )}
         </CardContent>
       </Card>
     );
   }
 
-  return (
-    <Button variant="outline" size="lg" onClick={handleGetSuggestions} disabled={transactions.length < 5}>
-      <Sparkles className="mr-2 h-5 w-5" />
-      Gerar Sugestões com IA
-    </Button>
-  );
+  if (suggestions && suggestions.length === 0) {
+     return (
+        <p className="text-center text-sm text-muted-foreground py-4">
+            A IA não encontrou padrões suficientes para criar sugestões. Continue registrando suas despesas!
+        </p>
+     )
+  }
+
+  // Se suggestions for null, ainda não foi carregado. Não mostra nada.
+  return null;
 }
