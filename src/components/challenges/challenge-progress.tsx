@@ -66,6 +66,9 @@ export function ChallengeProgress({ challenge }: ChallengeProgressProps) {
 
   const totalExpected = (deposits || []).reduce((sum, d) => sum + d.expectedAmount, 0);
   const progress = totalExpected > 0 ? (challenge.totalDeposited / totalExpected) * 100 : 0;
+  
+  const firstHalf = processedDeposits.slice(0, 26);
+  const secondHalf = processedDeposits.slice(26);
 
   const handleDeposit = async (deposit: Challenge52WeeksDeposit) => {
     if (!user || !firestore || deposit.status === 'deposited') return;
@@ -121,6 +124,57 @@ export function ChallengeProgress({ challenge }: ChallengeProgressProps) {
       </div>
     );
   }
+  
+  const renderTable = (depositsData: (Challenge52WeeksDeposit & { accumulatedAmount: number; })[]) => (
+     <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-12">Sem.</TableHead>
+          <TableHead>Vencimento</TableHead>
+          <TableHead>Valor</TableHead>
+          <TableHead>Saldo</TableHead>
+          <TableHead className="text-center">Status</TableHead>
+          <TableHead className="text-right">Ação</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {depositsData.map(deposit => {
+          const dueDate = parseISO(deposit.dueDate);
+          const isOverdue = isPast(dueDate) && deposit.status === 'pending';
+          
+          let statusBadge;
+          if (deposit.status === 'deposited') {
+            statusBadge = <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300">Concluído</Badge>;
+          } else if (isOverdue) {
+            statusBadge = <Badge variant="destructive">Vencido</Badge>;
+          } else {
+            statusBadge = <Badge variant="outline">Pendente</Badge>;
+          }
+
+          return (
+            <TableRow key={deposit.id} className={cn(deposit.status === 'deposited' && 'bg-green-500/5')}>
+              <TableCell className="font-medium">{deposit.weekNumber}</TableCell>
+              <TableCell>{format(dueDate, 'dd/MM/yy')}</TableCell>
+              <TableCell>{formatCurrency(deposit.expectedAmount)}</TableCell>
+              <TableCell>{formatCurrency(deposit.accumulatedAmount)}</TableCell>
+              <TableCell className="text-center">{statusBadge}</TableCell>
+              <TableCell className="text-right">
+                {deposit.status === 'pending' ? (
+                  <Button size="sm" onClick={() => handleDeposit(deposit)} disabled={isUpdating}>
+                    <Check className="h-4 w-4" />
+                  </Button>
+                ) : (
+                  <div className="flex items-center justify-end text-xs text-green-600 font-semibold gap-1">
+                    <Check className="h-4 w-4" />
+                  </div>
+                )}
+              </TableCell>
+            </TableRow>
+          );
+        })}
+      </TableBody>
+    </Table>
+  );
 
   return (
     <>
@@ -143,20 +197,23 @@ export function ChallengeProgress({ challenge }: ChallengeProgressProps) {
 
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-              <Trophy className="h-7 w-7 text-primary" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                <Trophy className="h-7 w-7 text-primary" />
+              </div>
+              <div>
+                <CardTitle>Seu Progresso no Desafio</CardTitle>
+                <CardDescription>
+                  Parabéns por continuar! Veja seu progresso até agora.
+                </CardDescription>
+              </div>
             </div>
-            <div>
-              <CardTitle>Seu Progresso no Desafio</CardTitle>
-              <CardDescription>
-                Parabéns por continuar! Veja seu progresso até agora.
-              </CardDescription>
-            </div>
+            <Button variant="destructive" size="sm" onClick={() => setIsCancelConfirmationOpen(true)} disabled={isUpdating}>
+              Cancelar Desafio
+            </Button>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
+           <div className="mt-6 rounded-lg border bg-muted/30 p-4 space-y-2">
             <div className="flex justify-between items-baseline">
               <span className="text-sm text-muted-foreground">Total Poupado</span>
               <span className="text-sm text-muted-foreground">Objetivo Final</span>
@@ -167,69 +224,15 @@ export function ChallengeProgress({ challenge }: ChallengeProgressProps) {
             </div>
             <Progress value={progress} className="h-3" />
           </div>
-          <div className="max-h-96 overflow-y-auto pr-2">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Semana</TableHead>
-                  <TableHead>Vencimento</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead>Acumulado</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Data do Depósito</TableHead>
-                  <TableHead className="text-right">Ação</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {processedDeposits.map(deposit => {
-                  const dueDate = parseISO(deposit.dueDate);
-                  const isOverdue = isPast(dueDate) && deposit.status === 'pending';
-                  
-                  let statusBadge;
-                  if (deposit.status === 'deposited') {
-                    statusBadge = <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">Depositado</Badge>;
-                  } else if (isOverdue) {
-                    statusBadge = <Badge variant="destructive">Vencido</Badge>;
-                  } else {
-                    statusBadge = <Badge variant="outline">Pendente</Badge>;
-                  }
-
-                  return (
-                    <TableRow key={deposit.id} className={cn(
-                        deposit.status === 'deposited' && 'bg-green-500/5'
-                    )}>
-                      <TableCell className="font-medium">{deposit.weekNumber}</TableCell>
-                      <TableCell>{format(dueDate, 'dd/MM/yyyy')}</TableCell>
-                      <TableCell>{formatCurrency(deposit.expectedAmount)}</TableCell>
-                      <TableCell>{formatCurrency(deposit.accumulatedAmount)}</TableCell>
-                      <TableCell>{statusBadge}</TableCell>
-                       <TableCell>
-                        {deposit.depositDate ? format(parseISO(deposit.depositDate), 'dd/MM/yyyy') : '-'}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {deposit.status === 'pending' ? (
-                          <Button size="sm" onClick={() => handleDeposit(deposit)} disabled={isUpdating}>
-                            <Check className="h-4 w-4 mr-1" />
-                            Depositar
-                          </Button>
-                        ) : (
-                          <span className="text-xs text-green-600 font-semibold flex items-center justify-end gap-1">
-                            <Check className="h-4 w-4" /> Realizado
-                          </span>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+           <div className="max-h-96 overflow-y-auto pr-2">
+              {renderTable(firstHalf)}
+           </div>
+            <div className="max-h-96 overflow-y-auto pr-2">
+              {renderTable(secondHalf)}
+           </div>
         </CardContent>
-        <CardFooter>
-            <Button variant="destructive" onClick={() => setIsCancelConfirmationOpen(true)} disabled={isUpdating}>
-                Cancelar Desafio
-            </Button>
-        </CardFooter>
       </Card>
     </>
   );
