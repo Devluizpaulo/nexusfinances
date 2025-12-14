@@ -13,25 +13,26 @@ import { ScrollArea } from "./scroll-area";
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
 function CustomCaption(props: DropdownProps) {
-  const { fromYear, toYear } = props;
+  const { fromYear, toYear, displayMonth } = props;
   const { goToMonth, nextMonth, previousMonth } = props;
 
   const handleYearChange = (value: string) => {
     const year = Number(value);
-    const newDate = new Date(props.displayMonth);
+    const newDate = new Date(displayMonth);
     newDate.setFullYear(year);
     goToMonth(newDate);
   };
   
   const handleMonthChange = (value: string) => {
     const month = Number(value);
-    const newDate = new Date(props.displayMonth);
+    const newDate = new Date(displayMonth);
     newDate.setMonth(month);
     goToMonth(newDate);
   };
 
   const years = [];
-  for (let i = fromYear || new Date().getFullYear() - 100; i <= (toYear || new Date().getFullYear() + 10); i++) {
+  const currentYear = new Date().getFullYear();
+  for (let i = fromYear || currentYear - 80; i <= (toYear || currentYear + 10); i++) {
     years.push(i);
   }
   const months = Array.from({ length: 12 }, (_, i) => i);
@@ -41,7 +42,7 @@ function CustomCaption(props: DropdownProps) {
       <div className="flex items-center gap-1">
         <Select
           onValueChange={handleMonthChange}
-          value={String(props.displayMonth.getMonth())}
+          value={String(displayMonth.getMonth())}
         >
           <SelectTrigger className="h-8 w-[120px] text-xs font-semibold focus:ring-0 focus:ring-offset-0">
             <SelectValue />
@@ -56,7 +57,7 @@ function CustomCaption(props: DropdownProps) {
         </Select>
         <Select
           onValueChange={handleYearChange}
-          value={String(props.displayMonth.getFullYear())}
+          value={String(displayMonth.getFullYear())}
         >
           <SelectTrigger className="h-8 w-20 text-xs focus:ring-0 focus:ring-offset-0">
             <SelectValue />
@@ -103,11 +104,11 @@ function Calendar({
     <DayPicker
       locale={ptBR}
       showOutsideDays={showOutsideDays}
-      className={cn("p-3", className)}
+      className={cn("p-0", className)}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
-        caption: "flex justify-center pt-1 relative items-center",
+        caption: "relative flex justify-center items-center",
         caption_label: "hidden", // Hide the default caption
         caption_dropdowns: "flex justify-center gap-1",
         nav: "space-x-1 flex items-center",
@@ -120,7 +121,7 @@ function Calendar({
         table: "w-full border-collapse space-y-1",
         head_row: "flex",
         head_cell:
-          "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
+          "text-muted-foreground rounded-md w-full font-normal text-[0.8rem]",
         row: "flex w-full mt-2",
         cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
         day: cn(
@@ -139,7 +140,7 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        Caption: props.captionLayout === 'dropdown-buttons' ? CustomCaption : undefined,
+        Caption: CustomCaption,
         IconLeft: () => <ChevronLeft className="h-4 w-4" />,
         IconRight: () => <ChevronRight className="h-4 w-4" />,
       }}
