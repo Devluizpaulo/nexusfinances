@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, doc, updateDoc, writeBatch } from 'firebase/firestore';
+import { collection, query, orderBy, doc, updateDoc, writeBatch, increment } from 'firebase/firestore';
 import type { Challenge52Weeks, Challenge52WeeksDeposit } from '@/lib/types';
 import { format, parseISO, isPast } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -65,8 +65,8 @@ export function ChallengeProgress({ challenge }: ChallengeProgressProps) {
 
     try {
         const batch = writeBatch(firestore);
-        batch.update(depositRef, { status: 'deposited', depositDate: formatISO(new Date()) });
-        batch.update(challengeRef, { totalDeposited: challenge.totalDeposited + deposit.expectedAmount });
+        batch.update(depositRef, { status: 'deposited', depositDate: new Date().toISOString() });
+        batch.update(challengeRef, { totalDeposited: increment(deposit.expectedAmount) });
         await batch.commit();
         
         const randomToast = successToasts[Math.floor(Math.random() * successToasts.length)];
@@ -76,6 +76,7 @@ export function ChallengeProgress({ challenge }: ChallengeProgressProps) {
         });
 
     } catch (error) {
+        console.error("Error saving deposit:", error);
         toast({ variant: 'destructive', title: 'Erro', description: 'Não foi possível registrar o depósito.' });
     } finally {
         setIsUpdating(false);
