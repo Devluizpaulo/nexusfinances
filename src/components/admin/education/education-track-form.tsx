@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { z } from "zod";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { collection, doc, setDoc } from "firebase/firestore";
 import { useFirestore } from "@/firebase";
@@ -14,8 +14,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
+import { Loader2, PlusCircle, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const pointSchema = z.object({
   title: z.string().min(1, "Título do ponto é obrigatório."),
@@ -30,11 +31,8 @@ const experienceSchema = z.object({
 
 const questionSchema = z.object({
   question: z.string().min(1, "A pergunta é obrigatória."),
-  options: z.array(z.string()).min(2, "Mínimo de 2 opções.").refine(
-    (opts) => opts.every(opt => opt.trim() !== ''), 
-    { message: "Opções não podem estar vazias." }
-  ),
-  correctAnswer: z.string().min(1, "Resposta correta é obrigatória."),
+  options: z.array(z.string().min(1, "Opção não pode estar vazia.")).min(2, "Mínimo de 2 opções."),
+  correctAnswer: z.string().min(1, "Selecione a resposta correta."),
 });
 
 const moduleSchema = z.object({
@@ -51,9 +49,9 @@ const moduleSchema = z.object({
   description: z.string().optional(),
   points: z.array(pointSchema).optional(),
   experiences: z.array(experienceSchema).optional(),
-  habits: z.array(z.string()).optional(),
+  habits: z.array(z.string().min(1, "Hábito não pode estar vazio.")).optional(),
   questions: z.array(questionSchema).optional(),
-  component: z.string().optional(),
+  componentName: z.string().optional(),
 });
 
 const trackSchema = z.object({
@@ -148,7 +146,8 @@ export function EducationTrackForm({ initialValues, onSaved, onCancel }: Educati
     try {
       const payload = {
         ...values,
-        modules: undefined, // remove modules from top level
+        introduction: undefined, // remove from top level
+        modules: undefined, // remove from top level
         content: {
           introduction: values.introduction,
           modules: values.modules,
@@ -283,53 +282,10 @@ export function EducationTrackForm({ initialValues, onSaved, onCancel }: Educati
             
             <CardContent className="space-y-4">
               {moduleFields.map((field, index) => (
-                <Card key={field.id} className="border-dashed bg-muted/20">
-                  <CardHeader className="flex-row items-center justify-between">
-                     <CardTitle className="text-base">Módulo {index + 1}</CardTitle>
-                     <Button type="button" variant="ghost" size="sm" onClick={() => removeModule(index)}>Remover</Button>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {/* Common module fields */}
-                    <div className="grid gap-4 md:grid-cols-2">
-                        <FormField control={form.control} name={`modules.${index}.type`} render={({ field: typeField }) => (
-                            <FormItem><FormLabel>Tipo</FormLabel>
-                                <Select onValueChange={typeField.onChange} value={typeField.value}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder="Selecione um tipo" /></SelectTrigger></FormControl>
-                                    <SelectContent>
-                                        <SelectItem value="psychology">Psicologia (Pontos clicáveis)</SelectItem>
-                                        <SelectItem value="practicalExperiences">Experiências Práticas</SelectItem>
-                                        <SelectItem value="microHabits">Micro-Hábitos (Checklist)</SelectItem>
-                                        <SelectItem value="narrative">Narrativa</SelectItem>
-                                        <SelectItem value="finalQuiz">Quiz Final</SelectItem>
-                                        <SelectItem value="tool">Ferramenta</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            <FormMessage /></FormItem>
-                        )}/>
-                        <FormField control={form.control} name={`modules.${index}.title`} render={({ field }) => (
-                            <FormItem><FormLabel>Título</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                        )}/>
-                    </div>
-                     <FormField control={form.control} name={`modules.${index}.subtitle`} render={({ field }) => (
-                        <FormItem><FormLabel>Subtítulo</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                    )}/>
-                     <FormField control={form.control} name={`modules.${index}.description`} render={({ field }) => (
-                        <FormItem><FormLabel>Descrição/Narrativa</FormLabel><FormControl><Textarea {...field} /></FormControl><FormMessage /></FormItem>
-                    )}/>
-                    
-                    {/* Specific fields based on type */}
-                    {form.watch(`modules.${index}.type`) === 'psychology' && (
-                        <div>Psicologia specific fields</div>
-                    )}
-                     {form.watch(`modules.${index}.type`) === 'finalQuiz' && (
-                       <div>Quiz specific fields</div>
-                    )}
-                    
-                  </CardContent>
-                </Card>
+                <ModuleField key={field.id} moduleIndex={index} removeModule={removeModule} />
               ))}
               
-              <Button type="button" variant="outline" onClick={() => appendModule({ type: "narrative", title: "" })}>
+              <Button type="button" variant="outline" onClick={() => appendModule({ type: "narrative", title: "", subtitle: "", points: [], experiences: [], habits: [], questions: [] })}>
                 Adicionar Módulo
               </Button>
             </CardContent>
@@ -346,4 +302,150 @@ export function EducationTrackForm({ initialValues, onSaved, onCancel }: Educati
       </Form>
     </Card>
   );
+}
+
+
+function ModuleField({ moduleIndex, removeModule }: { moduleIndex: number; removeModule: (index: number) => void; }) {
+  const { control, watch } = useFormContext<TrackFormValues>();
+  const moduleType = watch(`modules.${moduleIndex}.type`);
+
+  const { fields: pointFields, append: appendPoint, remove: removePoint } = useFieldArray({ control, name: `modules.${moduleIndex}.points` });
+  const { fields: experienceFields, append: appendExperience, remove: removeExperience } = useFieldArray({ control, name: `modules.${moduleIndex}.experiences` });
+  const { fields: habitFields, append: appendHabit, remove: removeHabit } = useFieldArray({ control, name: `modules.${moduleIndex}.habits` });
+  const { fields: questionFields, append: appendQuestion, remove: removeQuestion } = useFieldArray({ control, name: `modules.${moduleIndex}.questions` });
+
+  return (
+     <Card className="border-dashed bg-muted/20">
+      <CardHeader className="flex-row items-center justify-between">
+        <CardTitle className="text-base">Módulo {moduleIndex + 1}</CardTitle>
+        <Button type="button" variant="ghost" size="sm" onClick={() => removeModule(moduleIndex)}>Remover</Button>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Common module fields */}
+        <div className="grid gap-4 md:grid-cols-2">
+            <FormField control={control} name={`modules.${moduleIndex}.type`} render={({ field: typeField }) => (
+                <FormItem><FormLabel>Tipo</FormLabel>
+                    <Select onValueChange={typeField.onChange} value={typeField.value}>
+                        <FormControl><SelectTrigger><SelectValue placeholder="Selecione um tipo" /></SelectTrigger></FormControl>
+                        <SelectContent>
+                            <SelectItem value="narrative">Narrativa (Texto)</SelectItem>
+                            <SelectItem value="psychology">Psicologia (Pontos clicáveis)</SelectItem>
+                            <SelectItem value="practicalExperiences">Experiências Práticas</SelectItem>
+                            <SelectItem value="microHabits">Micro-Hábitos (Checklist)</SelectItem>
+                            <SelectItem value="tool">Ferramenta Interativa</SelectItem>
+                            <SelectItem value="finalQuiz">Quiz Final</SelectItem>
+                        </SelectContent>
+                    </Select>
+                <FormMessage /></FormItem>
+            )}/>
+            <FormField control={control} name={`modules.${moduleIndex}.title`} render={({ field }) => (
+                <FormItem><FormLabel>Título</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+            )}/>
+        </div>
+        <FormField control={control} name={`modules.${moduleIndex}.subtitle`} render={({ field }) => (
+            <FormItem><FormLabel>Subtítulo</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+        )}/>
+        
+        {moduleType === 'narrative' && (
+          <FormField control={control} name={`modules.${moduleIndex}.description`} render={({ field }) => (
+              <FormItem><FormLabel>Descrição/Narrativa (Markdown)</FormLabel><FormControl><Textarea rows={5} {...field} /></FormControl><FormMessage /></FormItem>
+          )}/>
+        )}
+
+        {moduleType === 'psychology' && (
+          <div className="space-y-3 rounded-md border p-4">
+            <h4 className="text-sm font-medium">Pontos de Psicologia</h4>
+            {pointFields.map((field, index) => (
+              <div key={field.id} className="space-y-2 rounded-md border bg-background/50 p-3">
+                <div className="flex justify-between items-center"><span className="text-xs font-semibold">Ponto {index + 1}</span><Button type="button" size="icon" variant="ghost" className="h-6 w-6" onClick={() => removePoint(index)}><Trash2 className="h-3 w-3"/></Button></div>
+                <FormField control={control} name={`modules.${moduleIndex}.points.${index}.title`} render={({ field }) => (<FormItem><FormControl><Input placeholder="Título do ponto" {...field} /></FormControl><FormMessage /></FormItem>)}/>
+                <FormField control={control} name={`modules.${moduleIndex}.points.${index}.details`} render={({ field }) => (<FormItem><FormControl><Textarea placeholder="Detalhes do ponto (Markdown)" rows={3} {...field} /></FormControl><FormMessage /></FormItem>)}/>
+              </div>
+            ))}
+            <Button type="button" size="sm" variant="outline" onClick={() => appendPoint({ title: '', details: '' })}><PlusCircle className="mr-2 h-4 w-4"/>Adicionar Ponto</Button>
+          </div>
+        )}
+        
+         {moduleType === 'practicalExperiences' && (
+          <div className="space-y-3 rounded-md border p-4">
+            <h4 className="text-sm font-medium">Experiências Práticas</h4>
+            {experienceFields.map((field, index) => (
+              <div key={field.id} className="space-y-2 rounded-md border bg-background/50 p-3">
+                 <div className="flex justify-between items-center"><span className="text-xs font-semibold">Experiência {index + 1}</span><Button type="button" size="icon" variant="ghost" className="h-6 w-6" onClick={() => removeExperience(index)}><Trash2 className="h-3 w-3"/></Button></div>
+                <FormField control={control} name={`modules.${moduleIndex}.experiences.${index}.title`} render={({ field }) => (<FormItem><FormControl><Input placeholder="Título da experiência" {...field} /></FormControl><FormMessage /></FormItem>)}/>
+                <FormField control={control} name={`modules.${moduleIndex}.experiences.${index}.description`} render={({ field }) => (<FormItem><FormControl><Input placeholder="Descrição curta" {...field} /></FormControl><FormMessage /></FormItem>)}/>
+                <FormField control={control} name={`modules.${moduleIndex}.experiences.${index}.details`} render={({ field }) => (<FormItem><FormControl><Textarea placeholder="Detalhes da experiência (Markdown)" rows={3} {...field} /></FormControl><FormMessage /></FormItem>)}/>
+              </div>
+            ))}
+            <Button type="button" size="sm" variant="outline" onClick={() => appendExperience({ title: '', description: '', details: '' })}><PlusCircle className="mr-2 h-4 w-4"/>Adicionar Experiência</Button>
+          </div>
+        )}
+
+        {moduleType === 'microHabits' && (
+          <div className="space-y-3 rounded-md border p-4">
+            <h4 className="text-sm font-medium">Micro-Hábitos</h4>
+            {habitFields.map((field, index) => (
+              <div key={field.id} className="flex items-center gap-2">
+                <FormField control={control} name={`modules.${moduleIndex}.habits.${index}`} render={({ field }) => (<FormItem className="flex-1"><FormControl><Input placeholder={`Hábito ${index + 1}`} {...field} /></FormControl><FormMessage /></FormItem>)}/>
+                <Button type="button" size="icon" variant="ghost" onClick={() => removeHabit(index)}><Trash2 className="h-4 w-4"/></Button>
+              </div>
+            ))}
+            <Button type="button" size="sm" variant="outline" onClick={() => appendHabit('')}><PlusCircle className="mr-2 h-4 w-4"/>Adicionar Hábito</Button>
+          </div>
+        )}
+
+        {moduleType === 'tool' && (
+            <FormField control={control} name={`modules.${moduleIndex}.componentName`} render={({ field }) => (
+                <FormItem><FormLabel>Nome do Componente da Ferramenta</FormLabel><FormControl><Input placeholder="Ex: InterestCalculator" {...field} /></FormControl><FormMessage /></FormItem>
+            )}/>
+        )}
+
+        {moduleType === 'finalQuiz' && (
+          <div className="space-y-3 rounded-md border p-4">
+            <h4 className="text-sm font-medium">Quiz Final</h4>
+            {questionFields.map((field, index) => (
+               <QuizQuestionField key={field.id} moduleIndex={moduleIndex} questionIndex={index} removeQuestion={removeQuestion} />
+            ))}
+            <Button type="button" size="sm" variant="outline" onClick={() => appendQuestion({ question: '', options: ['', ''], correctAnswer: '' })}><PlusCircle className="mr-2 h-4 w-4"/>Adicionar Pergunta</Button>
+          </div>
+        )}
+
+      </CardContent>
+    </Card>
+  )
+}
+
+
+function QuizQuestionField({ moduleIndex, questionIndex, removeQuestion }: { moduleIndex: number, questionIndex: number, removeQuestion: (index: number) => void }) {
+  const { control } = useFormContext<TrackFormValues>();
+  const { fields: optionFields, append: appendOption, remove: removeOption } = useFieldArray({ control, name: `modules.${moduleIndex}.questions.${questionIndex}.options` });
+
+  return (
+     <div className="space-y-2 rounded-md border bg-background/50 p-3">
+      <div className="flex justify-between items-center"><span className="text-xs font-semibold">Pergunta {questionIndex + 1}</span><Button type="button" size="icon" variant="ghost" className="h-6 w-6" onClick={() => removeQuestion(questionIndex)}><Trash2 className="h-3 w-3"/></Button></div>
+      <FormField control={control} name={`modules.${moduleIndex}.questions.${questionIndex}.question`} render={({ field }) => (<FormItem><FormControl><Input placeholder="Qual é a pergunta?" {...field} /></FormControl><FormMessage /></FormItem>)}/>
+      
+      <div className="pl-4 space-y-2">
+        <FormLabel className="text-xs">Opções de Resposta</FormLabel>
+        <Controller
+          control={control}
+          name={`modules.${moduleIndex}.questions.${questionIndex}.correctAnswer`}
+          render={({ field: radioField }) => (
+            <RadioGroup onValueChange={radioField.onChange} value={radioField.value}>
+              {optionFields.map((field, index) => (
+                <div key={field.id} className="flex items-center gap-2">
+                  <RadioGroupItem value={watch(`modules.${moduleIndex}.questions.${questionIndex}.options.${index}`)} id={`q${questionIndex}o${index}`} />
+                  <FormField control={control} name={`modules.${moduleIndex}.questions.${questionIndex}.options.${index}`} render={({ field }) => (<FormItem className="flex-1"><FormControl><Input placeholder={`Opção ${index + 1}`} {...field} /></FormControl><FormMessage /></FormItem>)}/>
+                  <Button type="button" size="icon" variant="ghost" onClick={() => removeOption(index)}><Trash2 className="h-4 w-4"/></Button>
+                </div>
+              ))}
+            </RadioGroup>
+          )}
+        />
+
+        <Button type="button" size="xs" variant="ghost" onClick={() => appendOption('')}><PlusCircle className="mr-2 h-3 w-3"/>Adicionar Opção</Button>
+         <FormMessage>{(form.formState.errors.modules?.[moduleIndex]?.questions?.[questionIndex]?.correctAnswer as any)?.message}</FormMessage>
+      </div>
+    </div>
+  )
 }
