@@ -12,7 +12,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 interface BudgetAISuggestionsProps {
   suggestions: SuggestedBudget[] | null;
   isLoading: boolean;
-  onCreateBudget: (category: string, amount: number) => void;
+  onCreateBudget: (category: string) => void;
 }
 
 export function BudgetAISuggestions({ suggestions, isLoading, onCreateBudget }: BudgetAISuggestionsProps) {
@@ -56,7 +56,7 @@ export function BudgetAISuggestions({ suggestions, isLoading, onCreateBudget }: 
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => onCreateBudget(suggestion.category, suggestion.amount)}
+                      onClick={() => onCreateBudget(suggestion.category)}
                     >
                       <PlusCircle className="h-4 w-4 mr-1.5" />
                       Criar

@@ -99,6 +99,15 @@ export default function BudgetsPage() {
     setIsSheetOpen(true);
   };
   
+  const handleCreateFromSuggestion = (category: string) => {
+    setEditingBudget({
+      name: `Limite para ${category}`,
+      category,
+      amount: 0,
+    } as Budget);
+    setIsSheetOpen(true);
+  };
+  
   const handleCloseSheet = () => {
     setEditingBudget(null);
     setIsSheetOpen(false);
@@ -167,10 +176,7 @@ export default function BudgetsPage() {
                     <BudgetAISuggestions 
                         suggestions={aiSuggestions}
                         isLoading={isAiLoading}
-                        onCreateBudget={(category, amount) => {
-                           setEditingBudget({ name: `Limite para ${category}`, category, amount } as Budget);
-                           setIsSheetOpen(true);
-                        }}
+                        onCreateBudget={handleCreateFromSuggestion}
                     />
                  </div>
             </div>
@@ -191,10 +197,7 @@ export default function BudgetsPage() {
                   <BudgetAISuggestions 
                     suggestions={aiSuggestions}
                     isLoading={isAiLoading}
-                    onCreateBudget={(category, amount) => {
-                       setEditingBudget({ name: `Limite para ${category}`, category, amount } as Budget);
-                       setIsSheetOpen(true);
-                    }}
+                    onCreateBudget={handleCreateFromSuggestion}
                   />
 
                    <Button className="mt-6" onClick={() => setIsSheetOpen(true)}>

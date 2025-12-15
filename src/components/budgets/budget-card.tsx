@@ -59,7 +59,8 @@ export function BudgetCard({ budget, onEdit }: BudgetCardProps) {
   const isApproachingBudget = progress >= 80 && progress <= 100;
 
   useEffect(() => {
-    if (!user || !firestore) return;
+    // Only run notification logic if the budget has an ID (i.e., it's a saved budget, not a suggestion)
+    if (!user || !firestore || !budget.id) return;
 
     const checkAndSendNotification = async (threshold: 80 | 100, message: string) => {
       if (notificationSentRef.current[threshold]) return;
