@@ -194,10 +194,21 @@ export const foodSubcategories: SubcategoryOption[] = [
     { value: 'Outro', label: 'Outro', icon: 'UtensilsCrossed' },
 ];
 
+export const healthSubcategories: SubcategoryOption[] = [
+    { value: 'Farmácia', label: 'Farmácia', icon: 'Pill' },
+    { value: 'Consultas', label: 'Consultas', icon: 'Stethoscope' },
+    { value: 'Exames', label: 'Exames', icon: 'FlaskConical' },
+    { value: 'Plano de Saúde', label: 'Plano de Saúde', icon: 'Shield' },
+    { value: 'Academia', label: 'Academia', icon: 'Dumbbell' },
+    { value: 'Terapias', label: 'Terapias', icon: 'BrainCircuit' },
+    { value: 'Outro', label: 'Outro', icon: 'Activity' },
+];
+
 export const subcategoryMap = {
   'Contas de Consumo': utilitySubcategories,
   'Lazer': leisureSubcategories,
   'Alimentação': foodSubcategories,
+  'Saúde': healthSubcategories,
 } as const;
 
 
@@ -464,3 +475,5 @@ export type Challenge52WeeksDeposit = {
 };
 
   
+
+    
