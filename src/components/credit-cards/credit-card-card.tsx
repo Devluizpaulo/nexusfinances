@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import type { CreditCard, Transaction } from '@/lib/types';
 import { useFirestore, useUser } from '@/firebase';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -39,14 +38,7 @@ export function CreditCardCard({ card, expenses, onEdit }: CreditCardCardProps) 
   const { user } = useUser();
   const { toast } = useToast();
 
-  const {
-    currentBillAmount,
-    currentBillTransactions,
-    nextBillAmount,
-    nextBillTransactions,
-    dueDate,
-    closingDate
-  } = useMemo(() => {
+  const calculateBillDetails = useCallback((cardDetails: CreditCard, allExpenses: Transaction[]) => {
     const now = new Date();
     const currentDay = getDate(now);
     const currentMonth = getMonth(now);
@@ -56,21 +48,21 @@ export function CreditCardCard({ card, expenses, onEdit }: CreditCardCardProps) 
     let billClosingDate: Date;
     let billStartDate: Date;
 
-    if (currentDay > card.closingDate) {
+    if (currentDay > cardDetails.closingDate) {
       // Já passamos da data de fechamento deste mês. A fatura "atual" é a que fecha no próximo mês.
-      billClosingDate = set(now, { month: currentMonth + 1, date: card.closingDate });
-      billStartDate = set(now, { month: currentMonth, date: card.closingDate + 1 });
+      billClosingDate = set(now, { month: currentMonth + 1, date: cardDetails.closingDate });
+      billStartDate = set(now, { month: currentMonth, date: cardDetails.closingDate + 1 });
     } else {
       // A fatura "atual" é a que fecha neste mês.
-      billClosingDate = set(now, { month: currentMonth, date: card.closingDate });
-      billStartDate = set(now, { month: currentMonth - 1, date: card.closingDate + 1 });
+      billClosingDate = set(now, { month: currentMonth, date: cardDetails.closingDate });
+      billStartDate = set(now, { month: currentMonth - 1, date: cardDetails.closingDate + 1 });
     }
     
     // Período da próxima fatura (a que abre após o fechamento da atual)
     const nextBillStartDate = addMonths(billStartDate, 1);
     const nextBillClosingDate = addMonths(billClosingDate, 1);
 
-    const cardExpenses = expenses.filter(expense => expense.creditCardId === card.id);
+    const cardExpenses = allExpenses.filter(expense => expense.creditCardId === cardDetails.id);
 
     const currentBillTransactions = cardExpenses.filter(expense => {
       const expenseDate = parseISO(expense.date);
@@ -86,14 +78,13 @@ export function CreditCardCard({ card, expenses, onEdit }: CreditCardCardProps) 
     const nextBillAmount = nextBillTransactions.reduce((sum, exp) => sum + exp.amount, 0);
     
     // A data de vencimento é sempre após a data de fechamento
-    const aDueDate = set(now, { date: card.dueDate });
-    const aClosingDate = set(now, { date: card.closingDate });
+    const aDueDate = set(now, { date: cardDetails.dueDate });
+    const aClosingDate = set(now, { date: cardDetails.closingDate });
     let finalDueDate = aDueDate;
     if(isAfter(aClosingDate, aDueDate)) {
       finalDueDate = addMonths(aDueDate, 1);
     }
     
-
     return {
       currentBillAmount,
       currentBillTransactions,
@@ -102,7 +93,16 @@ export function CreditCardCard({ card, expenses, onEdit }: CreditCardCardProps) 
       dueDate: finalDueDate,
       closingDate: aClosingDate
     };
-  }, [card, expenses]);
+  }, []);
+
+  const {
+    currentBillAmount,
+    currentBillTransactions,
+    nextBillAmount,
+    nextBillTransactions,
+    dueDate,
+    closingDate
+  } = useMemo(() => calculateBillDetails(card, expenses), [card, expenses, calculateBillDetails]);
 
   const progress = card.limit > 0 ? (currentBillAmount / card.limit) * 100 : 0;
   const remainingLimit = card.limit - currentBillAmount;
