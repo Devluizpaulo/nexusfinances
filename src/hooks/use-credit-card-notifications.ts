@@ -4,7 +4,7 @@
 import { useEffect, useCallback } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, writeBatch, doc, addDoc, getDocs, where } from 'firebase/firestore';
-import { startOfDay, addDays, differenceInDays, set, getMonth } from 'date-fns';
+import { startOfDay, addDays, differenceInDays, set, getMonth, addMonths } from 'date-fns';
 import type { CreditCard } from '@/lib/types';
 
 const LAST_CHECKED_KEY = 'creditCardNotificationsLastChecked';
