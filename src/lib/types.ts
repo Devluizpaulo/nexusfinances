@@ -204,11 +204,22 @@ export const healthSubcategories: SubcategoryOption[] = [
     { value: 'Outro', label: 'Outro', icon: 'Activity' },
 ];
 
+export const educationSubcategories: SubcategoryOption[] = [
+    { value: 'Cursos Online', label: 'Cursos Online', icon: 'PlaySquare' },
+    { value: 'Livros e Materiais', label: 'Livros e Materiais', icon: 'Book' },
+    { value: 'Mensalidade Escolar/Faculdade', label: 'Mensalidade Escolar/Faculdade', icon: 'GraduationCap' },
+    { value: 'Eventos & Workshops', label: 'Eventos & Workshops', icon: 'Ticket' },
+    { value: 'Certificações', label: 'Certificações', icon: 'Award' },
+    { value: 'Outro', label: 'Outro', icon: 'MoreHorizontal' },
+];
+
+
 export const subcategoryMap = {
   'Contas de Consumo': utilitySubcategories,
   'Lazer': leisureSubcategories,
   'Alimentação': foodSubcategories,
   'Saúde': healthSubcategories,
+  'Educação': educationSubcategories,
 } as const;
 
 
