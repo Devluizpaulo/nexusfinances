@@ -412,3 +412,24 @@ export const SuggestBudgetsOutputSchema = z.object({
     .describe('Uma lista de 2 a 3 sugestões de limites de gastos.'),
 });
 export type SuggestBudgetsOutput = z.infer<typeof SuggestBudgetsOutputSchema>;
+
+// 52-Week Challenge Types
+export type Challenge52Weeks = {
+  id: string;
+  userId: string;
+  startDate: string; // ISO string
+  initialAmount: number;
+  incrementAmount: number;
+  totalDeposited: number;
+  status: 'active' | 'completed' | 'cancelled';
+};
+
+export type Challenge52WeeksDeposit = {
+  id: string;
+  challengeId: string;
+  weekNumber: number;
+  expectedAmount: number;
+  dueDate: string; // ISO string
+  status: 'pending' | 'deposited' | 'skipped';
+  depositDate?: string | null; // ISO string
+};
