@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
@@ -103,7 +104,13 @@ export default function FreelancerPage() {
     }
   }
 
-  const columns = useFreelancerColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange });
+  const handleDelete = async (id: string, collectionName: string) => {
+    if (!user || !firestore) return;
+    const docRef = doc(firestore, `users/${user.uid}/${collectionName}`, id);
+    await deleteDoc(docRef);
+  };
+
+  const columns = useFreelancerColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange, optimisticDelete: handleDelete });
   const isLoading = isUserLoading || isIncomesLoading;
 
   if (isLoading) {

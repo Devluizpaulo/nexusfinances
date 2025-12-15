@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -439,7 +440,18 @@ function ModuleField({ moduleIndex, removeModule }: { moduleIndex: number; remov
             <h4 className="text-sm font-medium">Micro-Hábitos</h4>
             {habitFields.map((field, index) => (
               <div key={field.id} className="flex items-center gap-2">
-                <FormField control={control} name={`modules.${moduleIndex}.habits.${index}`} render={({ field }) => (<FormItem className="flex-1"><FormControl><Input placeholder={`Hábito ${index + 1}`} {...field} /></FormControl><FormMessage /></FormItem>)}/>
+                <Controller
+                  control={control}
+                  name={`modules.${moduleIndex}.habits.${index}`}
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <FormControl>
+                        <Input placeholder={`Hábito ${index + 1}`} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <Button type="button" size="icon" variant="ghost" onClick={() => removeHabit(index)}><Trash2 className="h-4 w-4"/></Button>
               </div>
             ))}
@@ -487,7 +499,18 @@ function QuizQuestionField({ moduleIndex, questionIndex, removeQuestion }: { mod
               {optionFields.map((field, index) => (
                 <div key={field.id} className="flex items-center gap-2">
                   <RadioGroupItem value={watch(`modules.${moduleIndex}.questions.${questionIndex}.options.${index}`)} id={`q${questionIndex}o${index}`} />
-                  <FormField control={control} name={`modules.${moduleIndex}.questions.${questionIndex}.options.${index}`} render={({ field }) => (<FormItem className="flex-1"><FormControl><Input placeholder={`Opção ${index + 1}`} {...field} /></FormControl><FormMessage /></FormItem>)}/>
+                  <Controller
+                    control={control}
+                    name={`modules.${moduleIndex}.questions.${questionIndex}.options.${index}`}
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormControl>
+                          <Input placeholder={`Opção ${index + 1}`} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   <Button type="button" size="icon" variant="ghost" onClick={() => removeOption(index)}><Trash2 className="h-4 w-4"/></Button>
                 </div>
               ))}

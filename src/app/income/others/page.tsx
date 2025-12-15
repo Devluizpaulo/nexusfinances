@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -76,7 +77,13 @@ export default function OthersIncomePage() {
     }
   }
 
-  const columns = useIncomeColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange });
+  const handleDelete = async (id: string, collectionName: string) => {
+    if (!user || !firestore) return;
+    const docRef = doc(firestore, `users/${user.uid}/${collectionName}`, id);
+    await deleteDoc(docRef);
+  };
+
+  const columns = useIncomeColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange, optimisticDelete: handleDelete });
 
   const isLoading = isUserLoading || isIncomesLoading;
 
