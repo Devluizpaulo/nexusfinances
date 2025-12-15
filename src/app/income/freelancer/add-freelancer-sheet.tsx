@@ -147,7 +147,7 @@ export function AddFreelancerSheet({
   const descriptionText = transaction ? 'Modifique os detalhes da sua renda.' : 'Adicione um novo recebimento de um projeto ou serviço.';
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent>
          <DialogHeader>
           <DialogTitle>{title}</DialogTitle>

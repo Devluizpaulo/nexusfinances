@@ -172,7 +172,7 @@ export function AddOtherExpenseSheet({
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
+      <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
         <DialogContent>
            <DialogHeader>
             <DialogTitle>{title}</DialogTitle>

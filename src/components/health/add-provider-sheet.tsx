@@ -120,7 +120,7 @@ export function AddProviderSheet({ isOpen, onClose, provider }: AddProviderSheet
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Editar Empresa' : 'Adicionar Empresa de Saúde'}</DialogTitle>

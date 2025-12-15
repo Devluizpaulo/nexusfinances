@@ -70,7 +70,7 @@ export function ManageContractsDialog({ isOpen, onClose, contracts, onEditContra
         </AlertDialogContent>
       </AlertDialog>
 
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>Gerenciador de Contratos</DialogTitle>

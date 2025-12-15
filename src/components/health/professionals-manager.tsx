@@ -175,7 +175,7 @@ export function ProfessionalsManager({ isOpen, onClose }: ProfessionalsManagerPr
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
+    <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <SheetContent className="w-[800px] overflow-y-auto">
         <SheetHeader>
           <SheetTitle>Profissionais & Estabelecimentos de Saúde</SheetTitle>

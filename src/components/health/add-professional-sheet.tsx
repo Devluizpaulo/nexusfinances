@@ -120,7 +120,7 @@ export function AddProfessionalSheet({ isOpen, onClose, professional, providers 
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Editar Profissional' : 'Adicionar Profissional'}</DialogTitle>

@@ -172,7 +172,7 @@ export function AddInsuranceSheet({ isOpen, onClose, insurance }: AddInsuranceSh
         </AlertDialogContent>
       </AlertDialog>
 
-      <Dialog open={isOpen} onOpenChange={onClose}>
+      <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{isEditing ? 'Editar Convênio' : 'Adicionar Convênio'}</DialogTitle>

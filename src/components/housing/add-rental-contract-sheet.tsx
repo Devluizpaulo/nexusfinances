@@ -57,7 +57,7 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
   const isEditing = !!contract;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Editar Contrato de Moradia' : 'Cadastrar Contrato de Moradia'}</DialogTitle>

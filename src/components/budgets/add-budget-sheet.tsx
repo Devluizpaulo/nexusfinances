@@ -167,7 +167,7 @@ export function AddBudgetSheet({ isOpen, onClose, budget }: AddBudgetSheetProps)
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
+      <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{isEditing ? 'Editar Limite de Gasto' : 'Criar Novo Limite de Gasto'}</DialogTitle>

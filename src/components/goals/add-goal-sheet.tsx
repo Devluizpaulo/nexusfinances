@@ -194,7 +194,7 @@ export function AddGoalSheet({ isOpen, onClose, goal }: AddGoalSheetProps) {
   const isEditing = !!goal;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Editar Objetivo' : 'Adicionar Nova Reserva/Investimento'}</DialogTitle>

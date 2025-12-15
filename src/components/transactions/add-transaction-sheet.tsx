@@ -82,7 +82,7 @@ export function AddTransactionSheet({
         onClose={() => setIsAddCardSheetOpen(false)}
       />
 
-      <Dialog open={isOpen} onOpenChange={onClose}>
+      <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>

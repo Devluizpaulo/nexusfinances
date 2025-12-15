@@ -41,6 +41,7 @@ import { Textarea } from '../ui/textarea';
 import { DatePicker } from '../ui/date-picker';
 
 import { utilitySubcategories } from '@/lib/types';
+import * as LucideIcons from 'lucide-react';
 
 const utilityTypes = utilitySubcategories;
 
@@ -126,7 +127,7 @@ export function AddUtilityBillSheet({ isOpen, onClose }: AddUtilityBillSheetProp
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Adicionar Conta de Consumo</DialogTitle>
@@ -150,9 +151,17 @@ export function AddUtilityBillSheet({ isOpen, onClose }: AddUtilityBillSheetProp
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {utilityTypes.map(type => (
-                            <SelectItem key={type} value={type}>{type}</SelectItem>
-                          ))}
+                          {utilityTypes.map(type => {
+                            const Icon = (LucideIcons as any)[type.icon] || LucideIcons.File;
+                            return (
+                              <SelectItem key={type.value} value={type.value}>
+                                <div className="flex items-center gap-2">
+                                  <Icon className="h-4 w-4 text-muted-foreground" />
+                                  <span>{type.label}</span>
+                                </div>
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                     <FormMessage />
