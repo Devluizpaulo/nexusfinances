@@ -117,7 +117,7 @@ export function AddCreditCardSheet({ isOpen, onClose, card }: AddCreditCardSheet
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Editar Cartão de Crédito' : 'Adicionar Novo Cartão'}</DialogTitle>
