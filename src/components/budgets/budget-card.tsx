@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { useFirestore, useUser } from '@/firebase';
@@ -18,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { doc, deleteDoc } from 'firebase/firestore';
+import { doc, deleteDoc, collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -41,12 +41,56 @@ export function BudgetCard({ budget, onEdit }: BudgetCardProps) {
   const { user } = useUser();
   const { toast } = useToast();
 
+  const notificationSentRef = useRef<{ '80': boolean; '100': boolean }>({ '80': false, '100': false });
+
+
   const spent = budget.spentAmount || 0;
   const total = budget.amount;
   const remaining = total - spent;
   const progress = total > 0 ? (spent / total) * 100 : 0;
   const isOverBudget = progress > 100;
   const isApproachingBudget = progress >= 80 && progress <= 100;
+
+  useEffect(() => {
+    if (!user || !firestore) return;
+
+    const checkAndSendNotification = async (threshold: 80 | 100, message: string) => {
+      if (notificationSentRef.current[threshold]) return;
+
+      const notificationsColRef = collection(firestore, `users/${user.uid}/notifications`);
+      const notificationQuery = query(
+        notificationsColRef,
+        where('entityId', '==', budget.id),
+        where('message', '==', message)
+      );
+
+      const existingNotifications = await getDocs(notificationQuery);
+      if (existingNotifications.empty) {
+        const newNotification = {
+          userId: user.uid,
+          type: 'budget_warning' as const,
+          message,
+          isRead: false,
+          link: '/budgets',
+          timestamp: new Date().toISOString(),
+          entityId: budget.id,
+        };
+        await addDoc(notificationsColRef, newNotification);
+        notificationSentRef.current[threshold] = true;
+      } else {
+        notificationSentRef.current[threshold] = true;
+      }
+    };
+
+    if (progress >= 80 && progress < 100) {
+      const message = `Atenção: Você já utilizou ${progress.toFixed(0)}% do seu limite de gastos para "${budget.category}".`;
+      checkAndSendNotification(80, message);
+    }
+    if (progress >= 100) {
+      const message = `Alerta: Você atingiu 100% do seu limite de gastos para "${budget.category}".`;
+      checkAndSendNotification(100, message);
+    }
+  }, [progress, budget, user, firestore]);
 
   const handleDelete = async () => {
     if (!user) return;

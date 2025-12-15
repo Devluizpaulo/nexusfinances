@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -18,7 +19,7 @@ import {
 } from '@/components/ui/table';
 import { AlertTriangle, Info, Loader2 } from 'lucide-react';
 import { useFirestore, useUser } from '@/firebase';
-import { collection, query, where, getDocs, collectionGroup } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 import type { Debt, Installment } from '@/lib/types';
 import { format, isPast, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -46,22 +47,19 @@ export function OverdueDebtsCard({ debts }: OverdueDebtsCardProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!user || !firestore) {
+    if (!user || !firestore || !debts) {
         setIsLoading(false);
         return;
     }
     
-    // Adicionado para corrigir o erro quando 'debts' é undefined.
-    if (!debts) {
-        setIsLoading(false);
-        return;
-    }
-
     const fetchOverdueInstallments = async () => {
         setIsLoading(true);
         const allOverdue: OverdueInstallment[] = [];
+        let createdNotificationsFor: string[] = [];
 
         try {
+            const notificationsColRef = collection(firestore, `users/${user.uid}/notifications`);
+
             for (const debt of debts) {
                 const installmentsQuery = query(
                     collection(firestore, `users/${user.uid}/debts/${debt.id}/installments`),
@@ -69,12 +67,30 @@ export function OverdueDebtsCard({ debts }: OverdueDebtsCardProps) {
                 );
                 
                 const querySnapshot = await getDocs(installmentsQuery);
-                querySnapshot.forEach(doc => {
+                for (const doc of querySnapshot.docs) {
                     const installment = doc.data() as Installment;
                     if (isPast(parseISO(installment.dueDate))) {
                         allOverdue.push({ ...installment, debtName: debt.name });
+
+                        // Check if a notification for this installment already exists
+                        const notificationQuery = query(notificationsColRef, where('entityId', '==', installment.id));
+                        const existingNotifications = await getDocs(notificationQuery);
+
+                        if (existingNotifications.empty && !createdNotificationsFor.includes(installment.id)) {
+                           const newNotification = {
+                              userId: user.uid,
+                              type: 'debt_due' as const,
+                              message: `A parcela ${installment.installmentNumber} da dívida "${debt.name}" está vencida.`,
+                              isRead: false,
+                              link: `/debts?dueDate=${installment.dueDate}`,
+                              timestamp: new Date().toISOString(),
+                              entityId: installment.id,
+                           };
+                           await addDoc(notificationsColRef, newNotification);
+                           createdNotificationsFor.push(installment.id);
+                        }
                     }
-                });
+                }
             }
 
             allOverdue.sort((a, b) => parseISO(a.dueDate).getTime() - parseISO(b.dueDate).getTime());
