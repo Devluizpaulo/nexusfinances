@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -24,10 +25,14 @@ function resolveChallengeStatus(
   const prev = order[index - 1];
 
   if (prev && !completedChallenges.includes(prev)) return 'locked';
+  
+  if (currentChallenge && !completedChallenges.includes(currentChallenge)) return 'locked';
+  
   return 'available';
 }
 
-interface ChallengeType {
+
+type ChallengeType = {
   id: string;
   name: string;
   description: string;
@@ -36,9 +41,8 @@ interface ChallengeType {
   difficulty: 'easy' | 'medium' | 'expert';
   icon: React.ReactNode;
   color: string;
-  locked?: boolean;
-  completed?: boolean;
-}
+  cta: string;
+};
 
 interface ChallengeSelectorProps {
   onChallengeSelect: (challengeType: ChallengeType) => void;
@@ -49,65 +53,55 @@ interface ChallengeSelectorProps {
 const challengeTypes: ChallengeType[] = [
   {
     id: 'easy',
-    name: 'Seu Primeiro Passo para a Liberdade Financeira',
-    description: 'Perfeito para quem está começando! Com apenas R$1 por semana, você dará o primeiro passo para construir um futuro financeiro sólido. Sinta a satisfação de ver seu dinheiro crescer semana após semana. Este é o seu momento de provar para si mesmo que você consegue!',
+    name: 'Seu Primeiro Passo',
+    description: 'Perfeito para quem está começando! Com R$1 por semana, você construirá o hábito de poupar e verá seu dinheiro crescer. Este é o seu momento de provar para si mesmo que você consegue!',
     initialAmount: 1,
     totalAmount: 1378,
     difficulty: 'easy',
-    icon: <Star className="h-6 w-6" />,
+    icon: <Star className="h-6 w-6" aria-hidden="true" />,
     color: 'from-green-500 to-green-600',
+    cta: 'Começar agora',
   },
   {
     id: 'medium',
-    name: 'Acelere Sua Jornada Financeira',
-    description: 'Pronto para um desafio maior? Comece com R$5 e veja sua poupança decolar! Este desafio intermediário foi criado para quem já deu o primeiro passo e agora busca resultados mais expressivos. Transforme sua disciplina em um patrimônio impressionante!',
+    name: 'Acelere Sua Jornada',
+    description: 'Pronto para um desafio maior? Comece com R$5 e veja sua poupança decolar! Este desafio é para quem já deu o primeiro passo e busca resultados mais expressivos.',
     initialAmount: 5,
     totalAmount: 6890,
     difficulty: 'medium',
-    icon: <Target className="h-6 w-6" />,
+    icon: <Target className="h-6 w-6" aria-hidden="true" />,
     color: 'from-blue-500 to-blue-600',
+    cta: 'Quero ir além',
   },
   {
     id: 'expert',
-    name: 'Maestria Financeira em 52 Semanas',
-    description: 'Você está pronto para se tornar um mestre da poupança? Com R$10 iniciais, este desafio expert foi projetado para os mais determinados. Ao final, você não apenas terá acumulado R$13.780, mas terá construído o hábito financeiro que mudará sua vida para sempre!',
+    name: 'Maestria Financeira',
+    description: 'Para os mais determinados. Começando com R$10, você não apenas acumulará um valor substancial, mas consolidará o hábito da poupança que mudará sua vida financeira para sempre.',
     initialAmount: 10,
     totalAmount: 13780,
     difficulty: 'expert',
-    icon: <Trophy className="h-6 w-6" />,
+    icon: <Trophy className="h-6 w-6" aria-hidden="true" />,
     color: 'from-purple-500 to-purple-600',
+    cta: 'Aceitar o desafio',
   },
 ];
 
 export function ChallengeSelector({ onChallengeSelect, currentChallenge, completedChallenges = [] }: ChallengeSelectorProps) {
-  const getChallengeStatus = (challengeId: string) => {
-    if (completedChallenges.includes(challengeId)) return 'completed';
-    if (currentChallenge === challengeId) return 'active';
-    
-    // Bloquear desafios seguintes se o primeiro não foi concluído
-    if (challengeId === 'easy') {
-      return currentChallenge && !completedChallenges.includes(currentChallenge) ? 'locked' : 'available';
-    }
-    if (challengeId === 'medium') {
-      return (!completedChallenges.includes('easy') && currentChallenge !== 'medium') ? 'locked' : 'available';
-    }
-    if (challengeId === 'expert') {
-      return (!completedChallenges.includes('medium') && currentChallenge !== 'expert') ? 'locked' : 'available';
-    }
-    
-    return 'available';
-  };
-
-  const canSelectChallenge = (challengeId: string) => {
-    const status = getChallengeStatus(challengeId);
-    return status === 'available';
-  };
+  const { toast } = useToast();
+  
+  const handleSelect = (challenge: ChallengeType) => {
+    toast({
+        title: "Desafio selecionado!",
+        description: `Prepare-se para começar o desafio "${challenge.name}". Vamos nessa! 🚀`
+    });
+    onChallengeSelect(challenge);
+  }
 
   return (
     <div className="space-y-6">
       <div className="text-center space-y-6">
         <h2 className="text-4xl font-bold flex items-center justify-center gap-3 bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent">
-          <Sparkles className="h-8 w-8 text-primary" />
+          <Sparkles className="h-8 w-8 text-primary" aria-hidden="true" />
           Desafio das 52 Semanas
         </h2>
         <p className="text-xl text-muted-foreground max-w-4xl mx-auto leading-relaxed px-4">
@@ -115,17 +109,17 @@ export function ChallengeSelector({ onChallengeSelect, currentChallenge, complet
         </p>
         <div className="flex items-center justify-center gap-4 text-lg text-primary font-semibold px-4">
           <div className="flex items-center gap-2">
-            <Target className="h-5 w-5" />
+            <Target className="h-5 w-5" aria-hidden="true" />
             Disciplina
           </div>
           <div className="w-1 h-5 bg-primary rounded-full"></div>
           <div className="flex items-center gap-2">
-            <Trophy className="h-5 w-5" />
+            <Trophy className="h-5 w-5" aria-hidden="true" />
             Consistência
           </div>
           <div className="w-1 h-5 bg-primary rounded-full"></div>
           <div className="flex items-center gap-2">
-            <Star className="h-5 w-5" />
+            <Star className="h-5 w-5" aria-hidden="true" />
             Liberdade Financeira
           </div>
         </div>
@@ -133,11 +127,15 @@ export function ChallengeSelector({ onChallengeSelect, currentChallenge, complet
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 px-4">
         {challengeTypes.map((challenge, index) => {
-          const status = getChallengeStatus(challenge.id);
+          const status = useMemo(
+            () => resolveChallengeStatus(challenge.id, currentChallenge, completedChallenges),
+            [challenge.id, currentChallenge, completedChallenges]
+          );
+
           const isLocked = status === 'locked';
           const isCompleted = status === 'completed';
           const isActive = status === 'active';
-          const canSelect = canSelectChallenge(challenge.id);
+          const canSelect = status === 'available';
 
           return (
             <motion.div
@@ -147,31 +145,22 @@ export function ChallengeSelector({ onChallengeSelect, currentChallenge, complet
               transition={{ delay: index * 0.1 }}
               className="relative"
             >
-              <Card className={`h-full transition-all duration-200 ${
-                isActive ? 'ring-2 ring-primary shadow-lg' : 
-                isLocked ? 'opacity-60 backdrop-blur-sm' : 
-                isCompleted ? 'border-green-500 bg-green-50/50 dark:bg-green-950/20' : 
-                'hover:shadow-lg hover:scale-[1.02]'
-              }`}>
+              <Card
+                tabIndex={0}
+                role="region"
+                aria-label={`Desafio ${challenge.name}`}
+                className={`h-full transition-all duration-200 ${
+                  isActive ? 'ring-2 ring-primary shadow-lg' : 
+                  isLocked ? 'opacity-60 backdrop-blur-sm' : 
+                  isCompleted ? 'border-green-500 bg-green-50/50 dark:bg-green-950/20' : 
+                  'hover:shadow-lg'
+                }`}
+              >
                 {/* Status Badge */}
                 <div className="absolute top-3 right-3 z-10">
-                  {isActive && (
-                    <Badge className="bg-primary text-primary-foreground">
-                      Ativo
-                    </Badge>
-                  )}
-                  {isCompleted && (
-                    <Badge className="bg-green-500 text-white">
-                      <CheckCircle2 className="h-3 w-3 mr-1" />
-                      Concluído
-                    </Badge>
-                  )}
-                  {isLocked && (
-                    <Badge variant="secondary">
-                      <Lock className="h-3 w-3 mr-1" />
-                      Bloqueado
-                    </Badge>
-                  )}
+                  {isActive && <Badge className="bg-primary text-primary-foreground">Ativo</Badge>}
+                  {isCompleted && <Badge className="bg-green-500 text-white"><CheckCircle2 className="h-3 w-3 mr-1" aria-hidden="true"/>Concluído</Badge>}
+                  {isLocked && <Badge variant="secondary"><Lock className="h-3 w-3 mr-1" aria-hidden="true"/>Bloqueado</Badge>}
                 </div>
 
                 <CardHeader className="text-center pb-4 space-y-4">
@@ -198,15 +187,15 @@ export function ChallengeSelector({ onChallengeSelect, currentChallenge, complet
 
                   {isCompleted && (
                     <div className="text-center py-2">
-                      <CheckCircle2 className="h-8 w-8 text-green-500 mx-auto mb-1" />
+                      <CheckCircle2 className="h-8 w-8 text-green-500 mx-auto mb-1" aria-hidden="true" />
                       <p className="text-sm text-green-600 font-medium">Desafio Concluído!</p>
                     </div>
                   )}
 
                   {isLocked && (
                     <div className="text-center py-2">
-                      <Lock className="h-6 w-6 text-muted-foreground mx-auto mb-1" />
-                      <p className="text-sm text-muted-foreground">Conclua o desafio atual primeiro</p>
+                      <Lock className="h-6 w-6 text-muted-foreground mx-auto mb-1" aria-hidden="true" />
+                      <p className="text-sm text-muted-foreground">Conclua o desafio anterior para desbloquear</p>
                     </div>
                   )}
                 </CardContent>
@@ -215,13 +204,17 @@ export function ChallengeSelector({ onChallengeSelect, currentChallenge, complet
                   <Button 
                     className="w-full py-3 text-base font-semibold" 
                     disabled={!canSelect}
-                    onClick={() => onChallengeSelect(challenge)}
+                    onClick={() => handleSelect(challenge)}
+                    aria-disabled={!canSelect}
+                    aria-label={
+                      isLocked ? 'Desafio bloqueado' :
+                      isActive ? 'Continuar desafio atual' :
+                      isCompleted ? 'Desafio já concluído' :
+                      `Iniciar desafio ${challenge.name}`
+                    }
                     variant={isActive ? "default" : isCompleted ? "outline" : "default"}
                   >
-                    {isActive ? 'Continuar Desafio' : 
-                     isCompleted ? 'Ver Progresso' : 
-                     isLocked ? 'Indisponível' : 
-                     'Iniciar Desafio'}
+                    {isLocked ? 'Bloqueado' : isCompleted ? 'Concluído' : isActive ? 'Em Andamento' : challenge.cta}
                   </Button>
                 </CardFooter>
               </Card>
@@ -232,7 +225,7 @@ export function ChallengeSelector({ onChallengeSelect, currentChallenge, complet
 
       <div className="text-center space-y-6 mt-8">
         <div className="flex items-center justify-center gap-3 text-xl font-bold text-primary">
-          <Trophy className="h-6 w-6" />
+          <Trophy className="h-6 w-6" aria-hidden="true" />
           Sua jornada financeira começa agora!
         </div>
         <p className="text-base text-muted-foreground max-w-2xl mx-auto text-justify px-4 leading-relaxed">
@@ -240,15 +233,15 @@ export function ChallengeSelector({ onChallengeSelect, currentChallenge, complet
         </p>
         <div className="flex items-center justify-center gap-8 text-sm text-muted-foreground mt-6">
           <span className="flex items-center gap-2 font-medium">
-            <Star className="h-4 w-4 text-yellow-500" />
+            <Star className="h-4 w-4 text-yellow-500" aria-hidden="true" />
             Disciplina
           </span>
           <span className="flex items-center gap-2 font-medium">
-            <Target className="h-4 w-4 text-blue-500" />
+            <Target className="h-4 w-4 text-blue-500" aria-hidden="true" />
             Consistência
           </span>
           <span className="flex items-center gap-2 font-medium">
-            <Trophy className="h-4 w-4 text-purple-500" />
+            <Trophy className="h-4 w-4 text-purple-500" aria-hidden="true" />
             Sucesso
           </span>
         </div>
