@@ -135,31 +135,45 @@ export default function BudgetsPage() {
       
       <div className="space-y-8">
         {budgetsWithSpent.length > 0 ? (
-            <Card>
-                <CardHeader>
-                    <div className="flex items-center gap-3">
-                        <PiggyBank className="h-6 w-6 text-primary" />
-                        <div>
-                            <CardTitle>Seus Limites de Gasto</CardTitle>
-                            <CardDescription>Acompanhe o quanto você já gastou em relação ao que planejou para o mês.</CardDescription>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                     <div className="space-y-2">
-                        <div className="flex justify-between text-sm font-medium">
-                            <span>Gasto Total</span>
-                            <span>{formatCurrency(totalSpent)} / {formatCurrency(totalAmount)}</span>
-                        </div>
-                        <Progress value={totalProgress} className="h-3" />
-                    </div>
-                    <div className="grid gap-4 md:grid-cols-2">
-                        {budgetsWithSpent.map((budget) => (
-                            <BudgetCard key={budget.id} budget={budget} onEdit={handleEditBudget} />
-                        ))}
-                    </div>
-                </CardContent>
-            </Card>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 space-y-6">
+                     <Card>
+                        <CardHeader>
+                            <div className="flex items-center gap-3">
+                                <PiggyBank className="h-6 w-6 text-primary" />
+                                <div>
+                                    <CardTitle>Seus Limites de Gasto</CardTitle>
+                                    <CardDescription>Acompanhe o quanto você já gastou em relação ao que planejou para o mês.</CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <div className="flex justify-between text-sm font-medium">
+                                    <span>Gasto Total</span>
+                                    <span>{formatCurrency(totalSpent)} / {formatCurrency(totalAmount)}</span>
+                                </div>
+                                <Progress value={totalProgress} className="h-3" />
+                            </div>
+                            <div className="grid gap-4 md:grid-cols-2">
+                                {budgetsWithSpent.map((budget) => (
+                                    <BudgetCard key={budget.id} budget={budget} onEdit={handleEditBudget} />
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+                 <div className="lg:col-span-1 space-y-6">
+                    <BudgetAISuggestions 
+                        suggestions={aiSuggestions}
+                        isLoading={isAiLoading}
+                        onCreateBudget={(category, amount) => {
+                           setEditingBudget({ name: `Limite para ${category}`, category, amount } as Budget);
+                           setIsSheetOpen(true);
+                        }}
+                    />
+                 </div>
+            </div>
         ) : (
             <Card className="bg-muted/30">
               <CardHeader className="items-center text-center">

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useFirestore, useUser } from '@/firebase';
 import type { Budget } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, MoreVertical } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +22,13 @@ import { doc, deleteDoc, collection, addDoc, query, where, getDocs } from 'fireb
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('pt-BR', {
@@ -114,6 +121,12 @@ export function BudgetCard({ budget, onEdit }: BudgetCardProps) {
   };
   const icon = iconMap[budget.category] || '💰';
 
+  const progressColor = useMemo(() => {
+    if (progress >= 90) return 'bg-destructive';
+    if (progress >= 70) return 'bg-amber-500';
+    return 'bg-primary';
+  }, [progress]);
+
   return (
     <>
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
@@ -146,23 +159,31 @@ export function BudgetCard({ budget, onEdit }: BudgetCardProps) {
                     </p>
                 </div>
             </div>
-            <div className={cn(
-              "text-right text-sm font-medium",
-              isOverBudget && "text-destructive",
-              isApproachingBudget && "text-amber-600"
-            )}>
-                {progress.toFixed(0)}%
-            </div>
+             <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onEdit(budget)}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Editar
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-destructive">
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Excluir
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
         </div>
         
         <div>
             <Progress 
                 value={Math.min(100, progress)} 
                 className="h-2"
-                indicatorClassName={cn(
-                    isOverBudget && "bg-destructive",
-                    isApproachingBudget && "bg-amber-500"
-                )}
+                indicatorClassName={progressColor}
             />
             <div className="mt-1 flex justify-between text-xs text-muted-foreground">
                 <span>{formatCurrency(spent)}</span>
@@ -176,13 +197,14 @@ export function BudgetCard({ budget, onEdit }: BudgetCardProps) {
                     {isOverBudget ? 'Estourado:' : 'Restante:'} <span className="font-medium text-foreground">{formatCurrency(remaining)}</span>
                 </p>
             </div>
-            <div className="flex gap-1">
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(budget)}>
-                    <Pencil className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive" onClick={() => setIsDeleteDialogOpen(true)}>
-                    <Trash2 className="h-4 w-4" />
-                </Button>
+             <div
+              className={cn(
+                "text-right text-sm font-medium",
+                progress >= 90 && 'text-destructive',
+                progress >= 70 && progress < 90 && 'text-amber-500'
+              )}
+            >
+              {progress.toFixed(0)}%
             </div>
         </div>
 
