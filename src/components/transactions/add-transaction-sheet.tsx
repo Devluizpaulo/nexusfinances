@@ -26,6 +26,7 @@ import { AddCreditCardSheet } from '../credit-cards/add-credit-card-sheet';
 import { useTransactionForm } from '@/hooks/use-transaction-form';
 import { DatePicker } from '../ui/date-picker';
 import { subcategoryMap } from '@/lib/types';
+import * as LucideIcons from 'lucide-react';
 
 
 type AddTransactionSheetProps = {
@@ -142,9 +143,17 @@ export function AddTransactionSheet({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {subcategoriesForSelectedCategory.map((sub) => (
-                              <SelectItem key={sub} value={sub}>{sub}</SelectItem>
-                            ))}
+                            {subcategoriesForSelectedCategory.map((sub) => {
+                              const Icon = (LucideIcons as any)[sub.icon] || LucideIcons.File;
+                              return (
+                                <SelectItem key={sub.value} value={sub.value}>
+                                  <div className="flex items-center gap-2">
+                                    <Icon className="h-4 w-4 text-muted-foreground" />
+                                    <span>{sub.label}</span>
+                                  </div>
+                                </SelectItem>
+                              );
+                            })}
                           </SelectContent>
                         </Select>
                         <FormMessage />

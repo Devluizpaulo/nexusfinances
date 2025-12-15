@@ -1,6 +1,7 @@
 
 import { z } from 'zod';
 import type { ElementType } from 'react';
+import type { LucideIcon } from 'lucide-react';
 
 
 export type Transaction = {
@@ -157,30 +158,32 @@ export const specificExpenseCategories = [
     'Moradia', 'Contas de Consumo', 'Impostos & Taxas', 'Assinaturas & Serviços', 'Saúde', 'Educação', 'Lazer', 'Alimentação', 'Transporte'
 ] as const;
 
-export const utilitySubcategories = [
-  'Luz',
-  'Água',
-  'Gás',
-  'Internet',
-  'Celular',
-  'Telefone Fixo',
-  'TV por Assinatura',
-  'Outro'
-] as const;
+type SubcategoryOption = {
+  value: string;
+  label: string;
+  icon: keyof typeof import('lucide-react');
+};
 
-export type UtilitySubcategory = typeof utilitySubcategories[number];
+export const utilitySubcategories: SubcategoryOption[] = [
+  { value: 'Luz', label: 'Luz', icon: 'Lightbulb' },
+  { value: 'Água', label: 'Água', icon: 'Droplet' },
+  { value: 'Gás', label: 'Gás', icon: 'Flame' },
+  { value: 'Internet', label: 'Internet', icon: 'Wifi' },
+  { value: 'Celular', label: 'Celular', icon: 'Smartphone' },
+  { value: 'Telefone Fixo', label: 'Telefone Fixo', icon: 'Phone' },
+  { value: 'TV por Assinatura', label: 'TV por Assinatura', icon: 'Tv' },
+  { value: 'Outro', label: 'Outro', icon: 'Zap' },
+];
 
-export const leisureSubcategories = [
-    'Restaurantes & Bares',
-    'Viagens',
-    'Cinema & Teatro',
-    'Eventos & Shows',
-    'Hobbies',
-    'Esportes',
-    'Outro',
-] as const;
-
-export type LeisureSubcategory = typeof leisureSubcategories[number];
+export const leisureSubcategories: SubcategoryOption[] = [
+    { value: 'Restaurantes & Bares', label: 'Restaurantes & Bares', icon: 'UtensilsCrossed' },
+    { value: 'Viagens', label: 'Viagens', icon: 'Plane' },
+    { value: 'Cinema & Teatro', label: 'Cinema & Teatro', icon: 'Clapperboard' },
+    { value: 'Eventos & Shows', label: 'Eventos & Shows', icon: 'Ticket' },
+    { value: 'Hobbies', label: 'Hobbies', icon: 'Paintbrush' },
+    { value: 'Esportes', label: 'Esportes', icon: 'Dumbbell' },
+    { value: 'Outro', label: 'Outro', icon: 'PartyPopper' },
+];
 
 export const subcategoryMap = {
   'Contas de Consumo': utilitySubcategories,
@@ -345,7 +348,7 @@ export type EducationTrack = {
   slug: string;
   title: string;
   description: string;
-  icon: ElementType;
+  icon: ElementType | string;
   color: string;
   bgColor: string;
   borderColor: string;
