@@ -3,11 +3,9 @@
 
 import { useEffect, useCallback } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, collectionGroup, query, where, writeBatch, doc, addDoc, getDocs } from 'firebase/firestore';
-import { startOfDay, addDays, differenceInDays, parseISO } from 'date-fns';
+import { collection, query, where, writeBatch, doc, addDoc, getDocs } from 'firebase/firestore';
+import { startOfDay, addDays, differenceInDays, parseISO, format } from 'date-fns';
 import type { Transaction, Debt, Installment } from '@/lib/types';
-import { ptBR } from 'date-fns/locale';
-import { format } from 'date-fns';
 
 const LAST_CHECKED_KEY = 'upcomingNotificationsLastChecked';
 const NOTIFICATION_WINDOW_DAYS = 3;
@@ -20,8 +18,15 @@ export function useUpcomingNotifications() {
   const { user } = useUser();
   const firestore = useFirestore();
 
+  // Query to get all active debts for the user
+  const debtsQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(collection(firestore, `users/${user.uid}/debts`));
+  }, [user, firestore]);
+  const { data: debts } = useCollection<Debt>(debtsQuery);
+
   const checkUpcomingDues = useCallback(async () => {
-    if (!user || !firestore) return;
+    if (!user || !firestore || !debts) return;
 
     const today = startOfDay(new Date());
     const todayStr = format(today, 'yyyy-MM-dd');
@@ -83,38 +88,39 @@ export function useUpcomingNotifications() {
       }
     }
     
-    // 2. Check for upcoming debt installments
-    const installmentsQuery = query(
-      collectionGroup(firestore, 'installments'),
-      where('userId', '==', user.uid),
-      where('status', '==', 'unpaid'),
-      where('dueDate', '>=', today.toISOString()),
-      where('dueDate', '<=', upcomingEndDate.toISOString())
-    );
+    // 2. Check for upcoming debt installments for each debt
+    for (const debt of debts) {
+        const installmentsQuery = query(
+            collection(firestore, `users/${user.uid}/debts/${debt.id}/installments`),
+            where('status', '==', 'unpaid'),
+            where('dueDate', '>=', today.toISOString()),
+            where('dueDate', '<=', upcomingEndDate.toISOString())
+        );
 
-    const installmentsSnapshot = await getDocs(installmentsQuery);
+        const installmentsSnapshot = await getDocs(installmentsQuery);
 
-    for (const installmentDoc of installmentsSnapshot.docs) {
-      const installment = installmentDoc.data() as Installment;
-      const entityId = `installment-${installment.id}`;
-      const existingNotifQuery = query(notificationsColRef, where('entityId', '==', entityId));
-      const existingNotifs = await getDocs(existingNotifQuery);
+        for (const installmentDoc of installmentsSnapshot.docs) {
+            const installment = installmentDoc.data() as Installment;
+            const entityId = `installment-${installment.id}`;
+            const existingNotifQuery = query(notificationsColRef, where('entityId', '==', entityId));
+            const existingNotifs = await getDocs(existingNotifQuery);
 
-      if (existingNotifs.empty) {
-        const daysUntilDue = differenceInDays(parseISO(installment.dueDate), today);
-        const message = `Lembrete: A parcela ${installment.installmentNumber} de sua dívida vence ${daysUntilDue === 0 ? 'hoje' : `em ${daysUntilDue} dia(s)`}.`;
-        const newNotification = {
-          userId: user.uid,
-          type: 'upcoming_due' as const,
-          message,
-          isRead: false,
-          link: `/debts?dueDate=${installment.dueDate}`,
-          timestamp: new Date().toISOString(),
-          entityId,
-        };
-        batch.set(doc(notificationsColRef), newNotification);
-        notificationCount++;
-      }
+            if (existingNotifs.empty) {
+                const daysUntilDue = differenceInDays(parseISO(installment.dueDate), today);
+                const message = `Lembrete: A parcela ${installment.installmentNumber} da dívida "${debt.name}" vence ${daysUntilDue === 0 ? 'hoje' : `em ${daysUntilDue} dia(s)`}.`;
+                const newNotification = {
+                userId: user.uid,
+                type: 'upcoming_due' as const,
+                message,
+                isRead: false,
+                link: `/debts?dueDate=${installment.dueDate}`,
+                timestamp: new Date().toISOString(),
+                entityId,
+                };
+                batch.set(doc(notificationsColRef), newNotification);
+                notificationCount++;
+            }
+        }
     }
     
     if (notificationCount > 0) {
@@ -123,14 +129,12 @@ export function useUpcomingNotifications() {
     }
 
     localStorage.setItem(LAST_CHECKED_KEY, todayStr);
-  }, [user, firestore]);
+  }, [user, firestore, debts]);
 
   useEffect(() => {
-    if (user && firestore) {
+    if (user && firestore && debts) {
       // Check immediately on load, then rely on daily check
       checkUpcomingDues();
     }
-  }, [user, firestore, checkUpcomingDues]);
+  }, [user, firestore, debts, checkUpcomingDues]);
 }
-
-  
