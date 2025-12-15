@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser } from '@/firebase';
@@ -7,6 +8,8 @@ import { AppSidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { DashboardDateProvider } from '@/context/dashboard-date-context';
+import { useManageRecurrences } from '@/hooks/use-manage-recurrences';
+import { useUpcomingNotifications } from '@/hooks/use-upcoming-notifications';
 
 export function AuthenticatedLayout({
   children,
@@ -14,6 +17,10 @@ export function AuthenticatedLayout({
   children: React.ReactNode;
 }) {
   const { user, isUserLoading } = useUser();
+  
+  // Custom hooks for background tasks
+  useManageRecurrences();
+  useUpcomingNotifications();
 
   if (isUserLoading) {
     return (
@@ -43,3 +50,5 @@ export function AuthenticatedLayout({
     </DashboardDateProvider>
   );
 }
+
+  

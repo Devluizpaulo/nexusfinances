@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 import type { ElementType } from 'react';
 
@@ -143,7 +144,7 @@ export type Log = {
 export type Notification = {
   id: string;
   userId: string;
-  type: 'debt_due' | 'goal_reached' | 'budget_warning';
+  type: 'debt_due' | 'goal_reached' | 'budget_warning' | 'upcoming_due' | 'recurrence_created';
   message: string;
   isRead: boolean;
   link?: string;
@@ -433,3 +434,5 @@ export type Challenge52WeeksDeposit = {
   status: 'pending' | 'deposited' | 'skipped';
   depositDate?: string | null; // ISO string
 };
+
+  

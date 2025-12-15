@@ -99,7 +99,7 @@
       "properties": {
         "id": { "type": "string", "description": "Unique ID for the notification." },
         "userId": { "type": "string", "description": "The ID of the user this notification belongs to." },
-        "type": { "type": "string", "enum": ["debt_due", "goal_reached", "budget_warning"], "description": "The type of notification." },
+        "type": { "type": "string", "enum": ["debt_due", "goal_reached", "budget_warning", "upcoming_due", "recurrence_created"], "description": "The type of notification." },
         "message": { "type": "string", "description": "The content of the notification message." },
         "isRead": { "type": "boolean", "description": "Indicates if the user has read the notification." },
         "link": { "type": "string", "description": "A URL path to navigate to when the notification is clicked." },
@@ -912,3 +912,5 @@
     "reasoning": "The Firestore data structure is designed to support the xô planilhas application, focusing on secure and efficient data management for user finances.  The design follows the core principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), QAPs (Queries are not Filters), and Invariants.\n\n**Authorization Independence:** Achieved through denormalization of the `userId` field in the `incomes`, `expenses`, `debts`, `installments` and `goals` collections. This eliminates the need for `get()` calls to parent documents (users) in security rules, enabling atomic operations (transactions/batches) and simplifying debugging.\n\n**Structural Segregation:**  Employed by storing all `incomes`, `expenses`, `debts`, and `installments` for a given user under the `/users/{userId}` path. This ensures that all documents within these subcollections share the same security requirements, simplifying rules and improving maintainability. All private user data is segregated under the user's document.\n\n**Access Modeling:** Path-based ownership is consistently used for all user-owned data (incomes, expenses, debts, installments, goals). This makes security rules simple and efficient.\n\n**QAPs (Rules Are Not Filters):** The structure enables secure list operations. Because all documents within a collection share the same security requirements and authorization information (`userId`), it's possible to write rules that allow listing only the documents that the user has access to, without having to filter based on document content.\n\n**Invariants:** Enforced through clear ownership (`userId` in child collections) and consistent naming conventions. Timestamps can be added to each entity to track creation and modification times, if required.\n\n**Logging:** A top-level `/logs` collection is added to store system-wide events. Access is restricted to superadmins for reading, while creation is allowed for any authenticated user to enable client-side event logging."
   }
 }
+
+  
