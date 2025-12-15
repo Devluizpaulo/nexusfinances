@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
@@ -39,7 +38,7 @@ import { Badge } from '@/components/ui/badge';
 import { format, isPast, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, orderBy, doc, writeBatch, getDocs, deleteDoc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, writeBatch, getDocs, deleteDoc, addDoc } from 'firebase/firestore';
 import { motion } from 'framer-motion';
 import type { Debt, Installment } from '@/lib/types';
 import { Button } from '../ui/button';
@@ -93,6 +92,22 @@ export function DebtCard({ debt, selectedDueDate }: DebtCardProps) {
       batch.update(debtRef, { paidAmount: newPaidAmount });
       await batch.commit();
 
+      const wasFullyPaid = newPaidAmount >= debt.totalAmount;
+      if (wasFullyPaid) {
+          const notificationsColRef = collection(firestore, `users/${user.uid}/notifications`);
+          const newNotification = {
+              userId: user.uid,
+              type: 'goal_reached' as const, // Reusing 'goal_reached' for a positive outcome
+              message: `Parabéns! Você quitou a dívida "${debt.name}".`,
+              isRead: false,
+              link: `/debts`,
+              timestamp: new Date().toISOString(),
+              entityId: debt.id,
+          };
+          addDoc(notificationsColRef, newNotification);
+      }
+
+
       toast({
         title: 'Parcela Paga!',
         description: `A parcela ${installment.installmentNumber} da dívida "${debt.name}" foi marcada como paga.`,
@@ -105,7 +120,7 @@ export function DebtCard({ debt, selectedDueDate }: DebtCardProps) {
         description: 'Não foi possível atualizar o status da parcela.',
       });
     }
-  }, [user, firestore, debt.id, debt.name, debt.paidAmount, toast]);
+  }, [user, firestore, debt, toast]);
 
   const handleDeleteDebt = useCallback(async () => {
     if (!user || !firestore) {

@@ -1,4 +1,3 @@
-
 'use client';
 import { Button } from '@/components/ui/button';
 import { Bell, UserCircle, LogOut, Menu } from 'lucide-react';
@@ -22,6 +21,7 @@ import type { Notification } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseISO } from 'date-fns';
+import { Badge } from '../ui/badge';
 
 function UserMenu() {
     const { user } = useUser();
@@ -104,8 +104,12 @@ function NotificationsMenu() {
 
     const handleMarkAsRead = async (notificationId: string) => {
         if (!user) return;
-        const notificationRef = doc(firestore, `users/${user.uid}/notifications`, notificationId);
-        await updateDoc(notificationRef, { isRead: true });
+        const notification = notifications?.find(n => n.id === notificationId);
+        // Only update if it's not already read to avoid unnecessary writes
+        if (notification && !notification.isRead) {
+            const notificationRef = doc(firestore, `users/${user.uid}/notifications`, notificationId);
+            await updateDoc(notificationRef, { isRead: true });
+        }
     };
 
     return (
@@ -114,10 +118,9 @@ function NotificationsMenu() {
                 <Button variant="ghost" size="icon" className="relative h-10 w-10">
                     <Bell className="h-5 w-5" />
                     {unreadCount > 0 && (
-                        <span className="absolute top-2 right-2 flex h-2.5 w-2.5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary"></span>
-                        </span>
+                        <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
+                          {unreadCount}
+                        </Badge>
                     )}
                     <span className="sr-only">Notificações</span>
                 </Button>
@@ -125,12 +128,13 @@ function NotificationsMenu() {
             <DropdownMenuContent align="end" className="w-80">
                 <DropdownMenuLabel>Notificações</DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <div className="max-h-80 overflow-y-auto">
                 {isLoading ? (
                     <div className="p-4 text-center text-sm text-muted-foreground">Carregando...</div>
                 ) : notifications && notifications.length > 0 ? (
                     notifications.map(notification => (
-                        <DropdownMenuItem key={notification.id} asChild className="cursor-pointer">
-                            <Link href={notification.link || '#'} className="items-start">
+                        <DropdownMenuItem key={notification.id} asChild className="cursor-pointer data-[highlighted]:bg-slate-800">
+                            <Link href={notification.link || '#'} className="items-start" onClick={() => handleMarkAsRead(notification.id)}>
                                 <div className="flex items-start gap-3 py-2">
                                      {!notification.isRead && (
                                         <div className="h-2 w-2 rounded-full bg-primary mt-1.5 shrink-0" />
@@ -151,6 +155,7 @@ function NotificationsMenu() {
                         <p>Tudo em dia!</p>
                     </div>
                 )}
+                </div>
             </DropdownMenuContent>
         </DropdownMenu>
     )

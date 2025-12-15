@@ -1,10 +1,9 @@
-
 'use client';
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, addDoc, collection } from 'firebase/firestore';
 import { useFirestore, useUser } from '@/firebase';
 import type { Goal } from '@/lib/types';
 import {
@@ -85,6 +84,22 @@ export function AddContributionSheet({ isOpen, onClose, goal }: AddContributionS
         currentAmount: newCurrentAmount,
         contributions: [newContribution, ...existingContributions],
       });
+      
+      const wasCompleted = goal.currentAmount < goal.targetAmount && newCurrentAmount >= goal.targetAmount;
+      if (wasCompleted) {
+        const notificationsColRef = collection(firestore, `users/${user.uid}/notifications`);
+        const newNotification = {
+            userId: user.uid,
+            type: 'goal_reached' as const,
+            message: `Parabéns! Você alcançou sua meta "${goal.name}".`,
+            isRead: false,
+            link: `/goals`,
+            timestamp: new Date().toISOString(),
+            entityId: goal.id,
+        };
+        await addDoc(notificationsColRef, newNotification);
+      }
+
 
       toast({
         title: 'Aporte adicionado!',
