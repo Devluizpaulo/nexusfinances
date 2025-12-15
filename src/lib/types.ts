@@ -185,9 +185,19 @@ export const leisureSubcategories: SubcategoryOption[] = [
     { value: 'Outro', label: 'Outro', icon: 'PartyPopper' },
 ];
 
+export const foodSubcategories: SubcategoryOption[] = [
+    { value: 'Supermercado', label: 'Supermercado', icon: 'ShoppingCart' },
+    { value: 'Restaurantes', label: 'Restaurantes', icon: 'Utensils' },
+    { value: 'Delivery', label: 'Delivery', icon: 'Bike' },
+    { value: 'Feira & Sacolão', label: 'Feira & Sacolão', icon: 'Grape' },
+    { value: 'Padaria & Lanches', label: 'Padaria & Lanches', icon: 'Cake' },
+    { value: 'Outro', label: 'Outro', icon: 'UtensilsCrossed' },
+];
+
 export const subcategoryMap = {
   'Contas de Consumo': utilitySubcategories,
   'Lazer': leisureSubcategories,
+  'Alimentação': foodSubcategories,
 } as const;
 
 
