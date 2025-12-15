@@ -30,55 +30,41 @@ interface DayData {
   pending: { total: number; count: number; categories: Record<string, number> };
 }
 
-export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
-  const { selectedDate, setSelectedDate } = useDashboardDate();
-  const router = useRouter();
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+function DayComponent({ date, displayMonth }: DayProps) {
+    const { selectedDate, setSelectedDate } = useDashboardDate();
+    const router = useRouter();
 
-  const filteredExpenses = useMemo(() => {
-    if (selectedCategory === 'all') return expenses;
-    return expenses.filter(expense => expense.category === selectedCategory);
-  }, [expenses, selectedCategory]);
+    const expensesByDay = useMemo(() => {
+        // This is not ideal as it recalculates for every day. 
+        // For this specific component structure, it's a necessary trade-off.
+        // A better approach would be to provide this via context from the parent.
+        const expenses: Transaction[] = (window as any).__expenseCalendarData || [];
+        return expenses.reduce((acc, expense) => {
+            const day = format(new Date(expense.date), 'yyyy-MM-dd');
+            if (!acc[day]) {
+                acc[day] = {
+                    paid: { total: 0, count: 0, categories: {} },
+                    pending: { total: 0, count: 0, categories: {} }
+                };
+            }
 
-  const expensesByDay = useMemo(() => {
-    return filteredExpenses.reduce((acc, expense) => {
-      const day = format(new Date(expense.date), 'yyyy-MM-dd');
-      if (!acc[day]) {
-        acc[day] = {
-          paid: { total: 0, count: 0, categories: {} },
-          pending: { total: 0, count: 0, categories: {} }
-        };
-      }
-      
-      const type = expense.status === 'paid' ? 'paid' : 'pending';
-      acc[day][type].total += expense.amount;
-      acc[day][type].count += 1;
-      acc[day][type].categories[expense.category] = (acc[day][type].categories[expense.category] || 0) + expense.amount;
-      
-      return acc;
-    }, {} as Record<string, DayData>);
-  }, [filteredExpenses]);
+            const type = expense.status === 'paid' ? 'paid' : 'pending';
+            acc[day][type].total += expense.amount;
+            acc[day][type].count += 1;
+            acc[day][type].categories[expense.category] = (acc[day][type].categories[expense.category] || 0) + expense.amount;
 
-  const monthlySummary = useMemo(() => {
-    const monthExpenses = expenses.filter(expense => 
-      isSameMonth(new Date(expense.date), selectedDate)
-    );
-    return {
-      paid: monthExpenses.filter(e => e.status === 'paid').reduce((sum, exp) => sum + exp.amount, 0),
-      pending: monthExpenses.filter(e => e.status === 'pending').reduce((sum, exp) => sum + exp.amount, 0),
-      count: monthExpenses.length,
-    };
-  }, [expenses, selectedDate]);
+            return acc;
+        }, {} as Record<string, DayData>);
+    }, [selectedDate]); // Re-calculate when month changes
 
-  const handleDayClick = useCallback((day: Date) => {
-    const formattedDate = format(day, 'yyyy-MM-dd');
-    const dayData = expensesByDay[formattedDate];
-    if (dayData) {
-      router.push(`/expenses?date=${formattedDate}`);
-    }
-  }, [expensesByDay, router]);
+    const handleDayClick = useCallback((day: Date) => {
+        const formattedDate = format(day, 'yyyy-MM-dd');
+        const dayData = expensesByDay[formattedDate];
+        if (dayData) {
+            router.push(`/expenses?date=${formattedDate}`);
+        }
+    }, [expensesByDay, router]);
 
-  const DayComponent = React.memo(({ date, displayMonth }: DayProps) => {
     const formattedDate = format(date, 'yyyy-MM-dd');
     const dayData = expensesByDay[formattedDate];
     const hasPaid = dayData?.paid.count > 0;
@@ -142,8 +128,35 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
     }
 
     return dayContent;
-  });
-  DayComponent.displayName = 'DayComponent';
+}
+
+
+export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
+  const { selectedDate, setSelectedDate } = useDashboardDate();
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+  const filteredExpenses = useMemo(() => {
+    if (selectedCategory === 'all') return expenses;
+    return expenses.filter(expense => expense.category === selectedCategory);
+  }, [expenses, selectedCategory]);
+
+  // Pass filtered expenses to a global scope for the DayComponent to access
+  // This is a workaround for the limitations of react-day-picker's `components` API
+  if (typeof window !== 'undefined') {
+    (window as any).__expenseCalendarData = filteredExpenses;
+  }
+  
+  const monthlySummary = useMemo(() => {
+    const monthExpenses = expenses.filter(expense => 
+      isSameMonth(new Date(expense.date), selectedDate)
+    );
+    return {
+      paid: monthExpenses.filter(e => e.status === 'paid').reduce((sum, exp) => sum + exp.amount, 0),
+      pending: monthExpenses.filter(e => e.status === 'pending').reduce((sum, exp) => sum + exp.amount, 0),
+      count: monthExpenses.length,
+    };
+  }, [expenses, selectedDate]);
+
 
   return (
     <Card className="h-full rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
@@ -194,8 +207,8 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
             className="w-full"
             classNames={{
               table: 'w-full border-separate space-y-1',
-              head_cell: 'text-xs text-muted-foreground font-medium',
-              row: 'flex w-full mt-1',
+              head_cell: 'w-full text-xs text-muted-foreground font-medium',
+              row: 'flex mt-1',
               cell: 'flex-1 p-0 m-px h-12',
             }}
         />
