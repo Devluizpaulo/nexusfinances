@@ -6,14 +6,12 @@ import { useFirestore, useUser } from '@/firebase';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { doc, deleteDoc } from 'firebase/firestore';
 import { MoreVertical, Pencil, Trash2, ArrowRight } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { getMonth, getDate, set, isAfter, isBefore, addMonths, subMonths, startOfDay, endOfDay, parseISO, format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { getMonth, set, isBefore, addMonths, subMonths, parseISO, format } from 'date-fns';
 import { Separator } from '../ui/separator';
 import {
   Accordion,
@@ -21,10 +19,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(amount);
-};
+import { cn, formatCurrency } from '@/lib/utils';
 
 interface CreditCardCardProps {
   card: CreditCard;
@@ -40,45 +35,35 @@ export function CreditCardCard({ card, expenses, onEdit }: CreditCardCardProps) 
 
   const calculateBillDetails = useCallback((cardDetails: CreditCard, allExpenses: Transaction[]) => {
     const now = new Date();
-    const currentDay = getDate(now);
     const currentMonth = getMonth(now);
     const currentYear = now.getFullYear();
 
-    // Determine the closing date for the CURRENT bill cycle.
-    let currentBillClosingDate: Date;
-    if (currentDay > cardDetails.closingDate) {
-      // We've passed this month's closing date, so the current bill is the one that closes NEXT month.
-      currentBillClosingDate = set(now, { month: currentMonth + 1, date: cardDetails.closingDate });
-    } else {
-      // The current bill is the one closing THIS month.
-      currentBillClosingDate = set(now, { month: currentMonth, date: cardDetails.closingDate });
+    // The closing date for the current cycle is this month
+    const closingDate = set(now, { month: currentMonth, date: cardDetails.closingDate });
+    // The start date is the day after last month's closing date
+    const startDate = set(now, { month: currentMonth - 1, date: cardDetails.closingDate + 1 });
+    
+    // The due date is after the closing date
+    let dueDate = set(closingDate, { date: cardDetails.dueDate });
+    if (isBefore(dueDate, closingDate)) {
+      dueDate = addMonths(dueDate, 1);
     }
     
-    // The start date of the current bill is the day after the PREVIOUS closing date.
-    const previousBillClosingDate = subMonths(currentBillClosingDate, 1);
-    const currentBillStartDate = addDays(previousBillClosingDate, 1);
-    
+    // Expenses for the current bill cycle
     const cardExpenses = allExpenses.filter(expense => expense.creditCardId === cardDetails.id);
 
     const currentBillTransactions = cardExpenses.filter(expense => {
       const expenseDate = parseISO(expense.date);
-      return isAfter(expenseDate, startOfDay(currentBillStartDate)) && isBefore(expenseDate, endOfDay(currentBillClosingDate));
+      return expenseDate > startDate && expenseDate <= closingDate;
     });
 
     const currentBillAmount = currentBillTransactions.reduce((sum, exp) => sum + exp.amount, 0);
 
-    // The due date is always after the closing date.
-    let dueDate = set(currentBillClosingDate, { date: cardDetails.dueDate });
-    if (isBefore(dueDate, currentBillClosingDate)) {
-        dueDate = addMonths(dueDate, 1);
-    }
-    
     return {
       currentBillAmount,
       currentBillTransactions,
       dueDate,
-      closingDate: currentBillClosingDate,
-      // Placeholder for next bill logic if needed later
+      closingDate,
       nextBillAmount: 0,
       nextBillTransactions: [],
     };
@@ -110,6 +95,13 @@ export function CreditCardCard({ card, expenses, onEdit }: CreditCardCardProps) 
         setIsDeleteDialogOpen(false);
     }
   };
+  
+  const progressColor = useMemo(() => {
+    if (progress > 90) return 'bg-destructive';
+    if (progress > 50) return 'bg-warning';
+    return 'bg-primary';
+  }, [progress]);
+
 
   return (
     <>
@@ -161,7 +153,7 @@ export function CreditCardCard({ card, expenses, onEdit }: CreditCardCardProps) 
               <span>Limite Utilizado</span>
               <span>{formatCurrency(card.limit)}</span>
             </div>
-            <Progress value={progress} className="h-2" />
+            <Progress value={progress} className="h-2" indicatorClassName={progressColor} />
             <p className="text-right text-xs text-muted-foreground">
               Disponível: {formatCurrency(remainingLimit)}
             </p>
@@ -204,9 +196,3 @@ export function CreditCardCard({ card, expenses, onEdit }: CreditCardCardProps) 
     </>
   );
 }
-
-const addDays = (date: Date, days: number): Date => {
-  const result = new Date(date);
-  result.setDate(result.getDate() + days);
-  return result;
-};

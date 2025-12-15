@@ -10,6 +10,7 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { DashboardDateProvider } from '@/context/dashboard-date-context';
 import { useManageRecurrences } from '@/hooks/use-manage-recurrences';
 import { useUpcomingNotifications } from '@/hooks/use-upcoming-notifications';
+import { useCreditCardNotifications } from '@/hooks/use-credit-card-notifications';
 
 export function AuthenticatedLayout({
   children,
@@ -21,6 +22,7 @@ export function AuthenticatedLayout({
   // Custom hooks for background tasks
   useManageRecurrences();
   useUpcomingNotifications();
+  useCreditCardNotifications();
 
   if (isUserLoading) {
     return (

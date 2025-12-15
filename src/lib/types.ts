@@ -145,7 +145,7 @@ export type Log = {
 export type Notification = {
   id: string;
   userId: string;
-  type: 'debt_due' | 'goal_reached' | 'budget_warning' | 'upcoming_due' | 'recurrence_created';
+  type: 'debt_due' | 'goal_reached' | 'budget_warning' | 'upcoming_due' | 'recurrence_created' | 'credit_card_notification';
   message: string;
   isRead: boolean;
   link?: string;
