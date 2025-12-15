@@ -33,7 +33,7 @@ const experienceSchema = z.object({
 
 const questionSchema = z.object({
   question: z.string().min(1, "A pergunta é obrigatória."),
-  options: z.array(z.string().min(1, "Opção não pode estar vazia.")).min(2, "Mínimo de 2 opções."),
+  options: z.array(z.object({ text: z.string().min(1, "Opção não pode estar vazia.") })).min(2, "Mínimo de 2 opções."),
   correctAnswer: z.string().min(1, "Selecione a resposta correta."),
 });
 
@@ -51,7 +51,7 @@ const moduleSchema = z.object({
   description: z.string().optional(),
   points: z.array(pointSchema).optional(),
   experiences: z.array(experienceSchema).optional(),
-  habits: z.array(z.string().min(1, "Hábito não pode estar vazio.")).optional(),
+  habits: z.array(z.object({ text: z.string().min(1, "Hábito não pode estar vazio.") })).optional(),
   questions: z.array(questionSchema).optional(),
   componentName: z.string().optional(),
 });
@@ -118,6 +118,14 @@ export function EducationTrackForm({ initialValues, onSaved, onCancel }: Educati
         // Mapeia o resultado da IA para o formato do formulário
         const formValues: TrackFormValues = {
           ...result,
+          modules: result.modules.map(m => ({
+            ...m,
+            habits: m.habits?.map(h => ({ text: h })) ?? [],
+            questions: m.questions?.map(q => ({
+              ...q,
+              options: q.options.map(o => ({ text: o }))
+            })) ?? []
+          })),
           order: form.getValues('order'), // Mantém a ordem atual
           bgColor: "bg-slate-100 dark:bg-slate-800",
           borderColor: "border-slate-200 dark:border-slate-700",
@@ -147,7 +155,14 @@ export function EducationTrackForm({ initialValues, onSaved, onCancel }: Educati
         color: parsed.color ?? "text-slate-600",
         order: parsed.order ?? 0,
         introduction: parsed.content?.introduction ?? "",
-        modules: parsed.content?.modules ?? [],
+        modules: parsed.content?.modules.map((m: any) => ({
+            ...m,
+            habits: m.habits?.map((h: string) => ({ text: h })) ?? [],
+            questions: m.questions?.map((q: any) => ({
+              ...q,
+              options: q.options.map((o: string) => ({ text: o }))
+            })) ?? []
+          })) || [],
       };
       form.reset(values);
       toast({ title: "JSON Importado", description: "O formulário foi preenchido com os dados do JSON." });
@@ -174,6 +189,16 @@ export function EducationTrackForm({ initialValues, onSaved, onCancel }: Educati
     if (!firestore) return;
     setIsSaving(true);
     try {
+      // Transformar de volta para o formato de banco de dados
+      const dbModules = values.modules.map(m => ({
+        ...m,
+        habits: m.habits?.map(h => h.text),
+        questions: m.questions?.map(q => ({
+          ...q,
+          options: q.options.map(o => o.text)
+        }))
+      }));
+
       const payload = {
         title: values.title,
         slug: values.slug,
@@ -185,7 +210,7 @@ export function EducationTrackForm({ initialValues, onSaved, onCancel }: Educati
         borderColor: values.borderColor,
         content: {
           introduction: values.introduction,
-          modules: values.modules,
+          modules: dbModules,
         },
       };
 
@@ -442,7 +467,7 @@ function ModuleField({ moduleIndex, removeModule }: { moduleIndex: number; remov
               <div key={field.id} className="flex items-center gap-2">
                 <Controller
                   control={control}
-                  name={`modules.${moduleIndex}.habits.${index}`}
+                  name={`modules.${moduleIndex}.habits.${index}.text`}
                   render={({ field }) => (
                     <FormItem className="flex-1">
                       <FormControl>
@@ -455,7 +480,7 @@ function ModuleField({ moduleIndex, removeModule }: { moduleIndex: number; remov
                 <Button type="button" size="icon" variant="ghost" onClick={() => removeHabit(index)}><Trash2 className="h-4 w-4"/></Button>
               </div>
             ))}
-            <Button type="button" size="sm" variant="outline" onClick={() => appendHabit('')}><PlusCircle className="mr-2 h-4 w-4"/>Adicionar Hábito</Button>
+            <Button type="button" size="sm" variant="outline" onClick={() => appendHabit({ text: '' })}><PlusCircle className="mr-2 h-4 w-4"/>Adicionar Hábito</Button>
           </div>
         )}
 
@@ -471,7 +496,7 @@ function ModuleField({ moduleIndex, removeModule }: { moduleIndex: number; remov
             {questionFields.map((field, index) => (
                <QuizQuestionField key={field.id} moduleIndex={moduleIndex} questionIndex={index} removeQuestion={removeQuestion} />
             ))}
-            <Button type="button" size="sm" variant="outline" onClick={() => appendQuestion({ question: '', options: ['', ''], correctAnswer: '' })}><PlusCircle className="mr-2 h-4 w-4"/>Adicionar Pergunta</Button>
+            <Button type="button" size="sm" variant="outline" onClick={() => appendQuestion({ question: '', options: [{ text: '' }, { text: '' }], correctAnswer: '' })}><PlusCircle className="mr-2 h-4 w-4"/>Adicionar Pergunta</Button>
           </div>
         )}
 
@@ -498,10 +523,10 @@ function QuizQuestionField({ moduleIndex, questionIndex, removeQuestion }: { mod
             <RadioGroup onValueChange={radioField.onChange} value={radioField.value}>
               {optionFields.map((field, index) => (
                 <div key={field.id} className="flex items-center gap-2">
-                  <RadioGroupItem value={watch(`modules.${moduleIndex}.questions.${questionIndex}.options.${index}`)} id={`q${questionIndex}o${index}`} />
+                  <RadioGroupItem value={watch(`modules.${moduleIndex}.questions.${questionIndex}.options.${index}.text`)} id={`q${questionIndex}o${index}`} />
                   <Controller
                     control={control}
-                    name={`modules.${moduleIndex}.questions.${questionIndex}.options.${index}`}
+                    name={`modules.${moduleIndex}.questions.${questionIndex}.options.${index}.text`}
                     render={({ field }) => (
                       <FormItem className="flex-1">
                         <FormControl>
@@ -518,7 +543,7 @@ function QuizQuestionField({ moduleIndex, questionIndex, removeQuestion }: { mod
           )}
         />
 
-        <Button type="button" size="sm" variant="ghost" onClick={() => appendOption('')}><PlusCircle className="mr-2 h-3 w-3"/>Adicionar Opção</Button>
+        <Button type="button" size="sm" variant="ghost" onClick={() => appendOption({ text: '' })}><PlusCircle className="mr-2 h-3 w-3"/>Adicionar Opção</Button>
          <FormMessage>{(formState.errors.modules?.[moduleIndex]?.questions?.[questionIndex]?.correctAnswer as any)?.message}</FormMessage>
       </div>
     </div>
