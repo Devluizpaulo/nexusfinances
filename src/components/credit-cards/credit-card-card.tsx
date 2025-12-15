@@ -44,64 +44,51 @@ export function CreditCardCard({ card, expenses, onEdit }: CreditCardCardProps) 
     const currentMonth = getMonth(now);
     const currentYear = now.getFullYear();
 
-    // Determina o período da fatura atual
-    let billClosingDate: Date;
-    let billStartDate: Date;
-
+    // Determine the closing date for the CURRENT bill cycle.
+    let currentBillClosingDate: Date;
     if (currentDay > cardDetails.closingDate) {
-      // Já passamos da data de fechamento deste mês. A fatura "atual" é a que fecha no próximo mês.
-      billClosingDate = set(now, { month: currentMonth + 1, date: cardDetails.closingDate });
-      billStartDate = set(now, { month: currentMonth, date: cardDetails.closingDate + 1 });
+      // We've passed this month's closing date, so the current bill is the one that closes NEXT month.
+      currentBillClosingDate = set(now, { month: currentMonth + 1, date: cardDetails.closingDate });
     } else {
-      // A fatura "atual" é a que fecha neste mês.
-      billClosingDate = set(now, { month: currentMonth, date: cardDetails.closingDate });
-      billStartDate = set(now, { month: currentMonth - 1, date: cardDetails.closingDate + 1 });
+      // The current bill is the one closing THIS month.
+      currentBillClosingDate = set(now, { month: currentMonth, date: cardDetails.closingDate });
     }
     
-    // Período da próxima fatura (a que abre após o fechamento da atual)
-    const nextBillStartDate = addMonths(billStartDate, 1);
-    const nextBillClosingDate = addMonths(billClosingDate, 1);
-
+    // The start date of the current bill is the day after the PREVIOUS closing date.
+    const previousBillClosingDate = subMonths(currentBillClosingDate, 1);
+    const currentBillStartDate = addDays(previousBillClosingDate, 1);
+    
     const cardExpenses = allExpenses.filter(expense => expense.creditCardId === cardDetails.id);
 
     const currentBillTransactions = cardExpenses.filter(expense => {
       const expenseDate = parseISO(expense.date);
-      return isAfter(expenseDate, startOfDay(billStartDate)) && isBefore(expenseDate, endOfDay(billClosingDate));
-    });
-    
-    const nextBillTransactions = cardExpenses.filter(expense => {
-      const expenseDate = parseISO(expense.date);
-      return isAfter(expenseDate, startOfDay(nextBillStartDate)) && isBefore(expenseDate, endOfDay(nextBillClosingDate));
+      return isAfter(expenseDate, startOfDay(currentBillStartDate)) && isBefore(expenseDate, endOfDay(currentBillClosingDate));
     });
 
     const currentBillAmount = currentBillTransactions.reduce((sum, exp) => sum + exp.amount, 0);
-    const nextBillAmount = nextBillTransactions.reduce((sum, exp) => sum + exp.amount, 0);
-    
-    // A data de vencimento é sempre após a data de fechamento
-    const aDueDate = set(now, { date: cardDetails.dueDate });
-    const aClosingDate = set(now, { date: cardDetails.closingDate });
-    let finalDueDate = aDueDate;
-    if(isAfter(aClosingDate, aDueDate)) {
-      finalDueDate = addMonths(aDueDate, 1);
+
+    // The due date is always after the closing date.
+    let dueDate = set(currentBillClosingDate, { date: cardDetails.dueDate });
+    if (isBefore(dueDate, currentBillClosingDate)) {
+        dueDate = addMonths(dueDate, 1);
     }
     
     return {
       currentBillAmount,
       currentBillTransactions,
-      nextBillAmount,
-      nextBillTransactions,
-      dueDate: finalDueDate,
-      closingDate: aClosingDate
+      dueDate,
+      closingDate: currentBillClosingDate,
+      // Placeholder for next bill logic if needed later
+      nextBillAmount: 0,
+      nextBillTransactions: [],
     };
   }, []);
 
   const {
     currentBillAmount,
     currentBillTransactions,
-    nextBillAmount,
-    nextBillTransactions,
     dueDate,
-    closingDate
+    closingDate,
   } = useMemo(() => calculateBillDetails(card, expenses), [card, expenses, calculateBillDetails]);
 
   const progress = card.limit > 0 ? (currentBillAmount / card.limit) * 100 : 0;
@@ -185,13 +172,9 @@ export function CreditCardCard({ card, expenses, onEdit }: CreditCardCardProps) 
                 <p className="text-sm font-medium text-primary">Fatura Atual</p>
                 <p className="text-2xl font-bold">{formatCurrency(currentBillAmount)}</p>
                  <div className="flex justify-between text-xs text-muted-foreground">
-                   <span>Fecha em: {format(closingDate, 'dd/MM')}</span>
-                   <span>Vence em: {format(dueDate, 'dd/MM')}</span>
+                   <span>Fecha em: {format(closingDate, 'dd/MM/yy')}</span>
+                   <span>Vence em: {format(dueDate, 'dd/MM/yy')}</span>
                  </div>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium">Próxima Fatura (parcial)</p>
-                <p className="text-lg font-bold text-muted-foreground">{formatCurrency(nextBillAmount)}</p>
               </div>
           </div>
         </CardContent>
@@ -221,3 +204,9 @@ export function CreditCardCard({ card, expenses, onEdit }: CreditCardCardProps) 
     </>
   );
 }
+
+const addDays = (date: Date, days: number): Date => {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+};
