@@ -37,7 +37,7 @@ export function useManageRecurrences() {
     );
   }, [user, firestore]);
 
-  const { data: incomeTemplates } = useCollection<Transaction>(incomeTemplatesQuery);
+  const { data: incomeTemplates } = useCollection<Transaction>(recurrencesIncomeQuery);
 
   const createRecurringTransactions = useCallback(async () => {
     if (!user || !firestore) return;
@@ -126,6 +126,3 @@ export function useManageRecurrences() {
     }
   }, [expenseTemplates, incomeTemplates, createRecurringTransactions]);
 }
-
-
-  
