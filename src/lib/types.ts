@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 import type { ElementType } from 'react';
 
@@ -153,7 +154,7 @@ export type Notification = {
 
 // Categorias que possuem páginas/lógicas específicas
 export const specificExpenseCategories = [
-    'Moradia', 'Contas de Consumo', 'Impostos & Taxas', 'Assinaturas & Serviços', 'Saúde', 'Educação', 'Lazer'
+    'Moradia', 'Contas de Consumo', 'Impostos & Taxas', 'Assinaturas & Serviços', 'Saúde', 'Educação', 'Lazer', 'Alimentação', 'Transporte'
 ] as const;
 
 export const utilitySubcategories = [
@@ -184,8 +185,6 @@ export type LeisureSubcategory = typeof leisureSubcategories[number];
 
 export const expenseCategories = [
     ...specificExpenseCategories,
-    'Alimentação',
-    'Transporte',
     'Compras',
     'Investimentos',
     'Outros',

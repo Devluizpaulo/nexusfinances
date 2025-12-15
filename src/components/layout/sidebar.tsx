@@ -1,6 +1,7 @@
+
 'use client';
 import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator, SidebarGroup, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton } from '@/components/ui/sidebar';
-import { LayoutDashboard, Landmark, CreditCard, Banknote, PiggyBank, BarChart3, GraduationCap, ShieldCheck, LifeBuoy, Home, Zap, FileText, HeartPulse, Repeat, WalletCards, History, List, LineChart, PieChart, Briefcase, PenSquare, BookOpen, Target, Trophy, Clapperboard } from 'lucide-react';
+import { LayoutDashboard, Landmark, CreditCard, Banknote, PiggyBank, GraduationCap, ShieldCheck, LifeBuoy, Home, Zap, FileText, HeartPulse, Repeat, WalletCards, List, LineChart, PieChart, Briefcase, PenSquare, BookOpen, Target, Trophy, Clapperboard, Car, Utensils } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '../ui/button';
@@ -38,6 +39,8 @@ const navSections = [
             { href: '/expenses', label: 'Visão Geral', icon: List },
             { href: '/expenses/housing', label: 'Moradia', icon: Home },
             { href: '/expenses/utilities', label: 'Contas', icon: Zap },
+            { href: '/expenses/food', label: 'Alimentação', icon: Utensils },
+            { href: '/expenses/transport', label: 'Transporte', icon: Car },
             { href: '/expenses/taxes', label: 'Impostos', icon: FileText },
             { href: '/expenses/health', label: 'Saúde', icon: HeartPulse },
             { href: '/expenses/education', label: 'Educação', icon: BookOpen },
