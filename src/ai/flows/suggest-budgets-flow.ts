@@ -36,7 +36,7 @@ const prompt = ai.definePrompt({
     Sua tarefa é analisar a lista de despesas de um usuário dos últimos 3 meses e sugerir 2 ou 3 limites de gastos (orçamentos) mensais realistas.
 
     Dados de despesas do usuário (em formato JSON):
-    {{transactions}}
+    {{{json transactions}}}
 
     Seu objetivo é:
     1.  Identificar as 2 ou 3 categorias com os maiores gastos médios mensais, que sejam adequadas para um orçamento (ex: "Alimentação", "Lazer", "Transporte"). Ignore categorias como "Moradia" ou "Educação" se parecerem aluguéis ou mensalidades fixas.
@@ -55,10 +55,7 @@ const suggestBudgetsFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      const { output } = await prompt({
-        ...input,
-        transactions: JSON.stringify(input.transactions),
-      });
+      const { output } = await prompt(input);
 
       if (!output || !output.suggestions || output.suggestions.length === 0) {
         return null;

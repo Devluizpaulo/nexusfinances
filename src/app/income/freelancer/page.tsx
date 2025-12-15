@@ -44,7 +44,7 @@ export default function FreelancerPage() {
     );
   }, [user, firestore]);
   
-  const { data: allIncomes, isLoading: isIncomesLoading, optimisticDelete } = useCollection<Transaction>(allIncomesQuery);
+  const { data: allIncomes, isLoading: isIncomesLoading } = useCollection<Transaction>(allIncomesQuery);
 
   const freelancerIncomes = useMemo(() => {
     if (!allIncomes) return [];
@@ -103,7 +103,7 @@ export default function FreelancerPage() {
     }
   }
 
-  const columns = useFreelancerColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange, optimisticDelete });
+  const columns = useFreelancerColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange });
   const isLoading = isUserLoading || isIncomesLoading;
 
   if (isLoading) {

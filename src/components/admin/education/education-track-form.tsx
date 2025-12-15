@@ -495,7 +495,7 @@ function QuizQuestionField({ moduleIndex, questionIndex, removeQuestion }: { mod
           )}
         />
 
-        <Button type="button" size="xs" variant="ghost" onClick={() => appendOption('')}><PlusCircle className="mr-2 h-3 w-3"/>Adicionar Opção</Button>
+        <Button type="button" size="sm" variant="ghost" onClick={() => appendOption('')}><PlusCircle className="mr-2 h-3 w-3"/>Adicionar Opção</Button>
          <FormMessage>{(formState.errors.modules?.[moduleIndex]?.questions?.[questionIndex]?.correctAnswer as any)?.message}</FormMessage>
       </div>
     </div>

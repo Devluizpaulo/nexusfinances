@@ -33,14 +33,12 @@ interface DataTableRowActionsProps<TData> {
   row: Row<TData>
   transactionType: "income" | "expense"
   onEdit: (transaction: TData) => void;
-  optimisticDelete: (id: string, collectionPath: string) => Promise<void>;
 }
 
 const DataTableRowActionsComponent = <TData,>({
   row,
   transactionType,
   onEdit,
-  optimisticDelete,
 }: DataTableRowActionsProps<TData>) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false);
@@ -79,18 +77,23 @@ const DataTableRowActionsComponent = <TData,>({
     }
 
     setIsDeleting(true);
-    await optimisticDelete(transaction.id, collectionPath);
-    
-    toast({
-      title: "Transação excluída",
-      description: `A transação "${transaction.description}" foi removida.`,
-    });
-    
-    router.refresh();
+    const docRef = doc(firestore, collectionPath, transaction.id);
 
-    setIsDeleting(false);
-    setIsDeleteDialogOpen(false);
-  }, [user, optimisticDelete, transaction.id, collectionPath, transaction.description, toast, router]);
+    try {
+        await deleteDoc(docRef);
+        toast({
+            title: "Transação excluída",
+            description: `A transação "${transaction.description}" foi removida.`,
+        });
+        
+        router.refresh();
+    } catch (error) {
+         toast({ variant: "destructive", title: "Erro ao excluir", description: "Não foi possível remover a transação." });
+    } finally {
+        setIsDeleting(false);
+        setIsDeleteDialogOpen(false);
+    }
+  }, [user, firestore, collectionPath, transaction.id, transaction.description, toast, router]);
 
   return (
     <>

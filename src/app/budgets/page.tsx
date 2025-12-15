@@ -14,14 +14,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { formatCurrency } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { BudgetAISuggestions } from '@/components/budgets/budget-ai-suggestions';
-import { suggestBudgets, type SuggestedBudget } from '@/ai/flows/suggest-budgets-flow';
+import { suggestBudgets } from '@/ai/flows/suggest-budgets-flow';
+import type { SuggestBudgetsOutput } from '@/lib/types';
+
 
 export default function BudgetsPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
-  const [aiSuggestions, setAiSuggestions] = useState<SuggestedBudget[] | null>(null);
+  const [aiSuggestions, setAiSuggestions] = useState<SuggestBudgetsOutput['suggestions'] | null>(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
 
   const budgetsQuery = useMemoFirebase(() => {
@@ -103,7 +105,7 @@ export default function BudgetsPage() {
     setEditingBudget({
       name: `Limite para ${category}`,
       category,
-      amount: 0,
+      amount: 0, // Inicia zerado para o usuário definir
     } as Budget);
     setIsSheetOpen(true);
   };

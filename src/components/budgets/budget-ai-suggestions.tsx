@@ -5,12 +5,12 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Loader2, PlusCircle, Sparkles } from 'lucide-react';
-import { type SuggestedBudget } from '@/ai/flows/suggest-budgets-flow';
+import type { SuggestBudgetsOutput } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 
 interface BudgetAISuggestionsProps {
-  suggestions: SuggestedBudget[] | null;
+  suggestions: SuggestBudgetsOutput['suggestions'] | null;
   isLoading: boolean;
   onCreateBudget: (category: string) => void;
 }

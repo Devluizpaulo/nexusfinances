@@ -3,7 +3,7 @@
 
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { collection, query, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Transaction } from '@/lib/types';
 import { Loader2, WalletCards, PlusCircle, Upload } from 'lucide-react';
@@ -36,7 +36,7 @@ export default function OthersIncomePage() {
     );
   }, [user, firestore]);
   
-  const { data: allIncomes, isLoading: isIncomesLoading, optimisticDelete } = useCollection<Transaction>(allIncomesQuery);
+  const { data: allIncomes, isLoading: isIncomesLoading } = useCollection<Transaction>(allIncomesQuery);
 
   const otherIncomes = useMemo(() => {
     if (!allIncomes) return [];
@@ -76,7 +76,8 @@ export default function OthersIncomePage() {
     }
   }
 
-  const columns = useIncomeColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange, optimisticDelete });
+  const columns = useIncomeColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange });
+
   const isLoading = isUserLoading || isIncomesLoading;
 
   if (isLoading) {

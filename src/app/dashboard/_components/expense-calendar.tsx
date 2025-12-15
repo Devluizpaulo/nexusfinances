@@ -5,6 +5,7 @@ import * as React from 'react';
 import { useMemo, useCallback, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { format, isSameDay, isSameMonth, isToday } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import type { Transaction } from '@/lib/types';
 import { formatCurrency, cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
@@ -18,6 +19,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { expenseCategories } from '@/lib/types';
 import { Calendar } from '@/components/ui/calendar';
+import type { DayProps } from 'react-day-picker';
 
 interface ExpenseCalendarProps {
   expenses: Transaction[];
@@ -76,7 +78,7 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
     }
   }, [expensesByDay, router]);
 
-  const DayComponent = React.memo(({ date, displayMonth }: { date: Date; displayMonth: Date }) => {
+  const DayComponent = React.memo(({ date, displayMonth }: DayProps) => {
     const formattedDate = format(date, 'yyyy-MM-dd');
     const dayData = expensesByDay[formattedDate];
     const hasPaid = dayData?.paid.count > 0;
@@ -106,7 +108,7 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
           <Tooltip>
             <TooltipTrigger asChild>{dayContent}</TooltipTrigger>
             <TooltipContent className="pointer-events-none w-48">
-              <p className="font-bold">{format(date, "PPP", { locale: 'pt-BR' })}</p>
+              <p className="font-bold">{format(date, "PPP", { locale: ptBR })}</p>
               <div className="mt-2 space-y-2">
                 {hasPaid && (
                   <div>
@@ -188,7 +190,7 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
         <Calendar
             month={selectedDate}
             onMonthChange={setSelectedDate}
-            components={{ Day: DayComponent }}
+            components={{ Day: DayComponent as any }}
             className="w-full"
             classNames={{
               table: 'w-full border-separate space-y-1',

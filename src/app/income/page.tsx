@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { collection, query, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { DataTable } from '@/components/data-table/data-table';
 import { useIncomeColumns } from './columns';
@@ -44,7 +44,7 @@ export default function IncomePage() {
     );
   }, [firestore, user]);
 
-  const { data: incomeData, isLoading: isIncomeLoading, optimisticDelete } = useCollection<Transaction>(incomeQuery);
+  const { data: incomeData, isLoading: isIncomeLoading } = useCollection<Transaction>(incomeQuery);
 
   const filteredIncomeData = useMemo(() => {
     if (!incomeData) return [];
@@ -133,7 +133,7 @@ export default function IncomePage() {
     }
   }
 
-  const columns = useIncomeColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange, optimisticDelete });
+  const columns = useIncomeColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange, optimisticDelete: (id: string, collectionName: string) => deleteDoc(doc(firestore, collectionName, id)) });
   const isLoading = isUserLoading || isIncomeLoading;
 
   if (isLoading) {
