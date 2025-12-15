@@ -182,6 +182,11 @@ export const leisureSubcategories = [
 
 export type LeisureSubcategory = typeof leisureSubcategories[number];
 
+export const subcategoryMap = {
+  'Contas de Consumo': utilitySubcategories,
+  'Lazer': leisureSubcategories,
+} as const;
+
 
 export const expenseCategories = [
     ...specificExpenseCategories,

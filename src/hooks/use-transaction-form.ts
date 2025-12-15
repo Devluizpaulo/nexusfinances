@@ -11,9 +11,11 @@ import { collection, doc, arrayUnion, updateDoc, setDoc, addDoc } from 'firebase
 import { useFirestore, useUser, useCollection, useMemoFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import type { Transaction, CreditCard } from '@/lib/types';
+import { subcategoryMap } from '@/lib/types';
 
 const formSchema = z.object({
   category: z.string().min(1, 'Escolha uma categoria.'),
+  subcategory: z.string().optional(),
   amount: z.coerce.number().positive('Use um valor maior que zero.'),
   date: z.date({
     required_error: 'Escolha uma data.',
@@ -60,6 +62,7 @@ export function useTransactionForm({
       vendor: '',
       amount: 0,
       category: '',
+      subcategory: '',
       date: new Date(),
       isRecurring: false,
       recurrenceSchedule: 'monthly',
@@ -112,6 +115,7 @@ export function useTransactionForm({
         vendor: '',
         amount: 0,
         category: '',
+        subcategory: '',
         date: new Date(),
         isRecurring: false,
         recurrenceSchedule: 'monthly',
@@ -141,6 +145,11 @@ export function useTransactionForm({
       userId: user.uid,
       type: transactionType,
     };
+    
+    // Se a categoria não tiver subcategorias, limpe o campo subcategory
+    if (!subcategoryMap[values.category as keyof typeof subcategoryMap]) {
+        delete dataToSave.subcategory;
+    }
 
     if (!values.isRecurring) {
         delete dataToSave.recurrenceSchedule;

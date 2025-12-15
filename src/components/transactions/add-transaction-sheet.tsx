@@ -25,6 +25,8 @@ import { Label } from '@/components/ui/label';
 import { AddCreditCardSheet } from '../credit-cards/add-credit-card-sheet';
 import { useTransactionForm } from '@/hooks/use-transaction-form';
 import { DatePicker } from '../ui/date-picker';
+import { subcategoryMap } from '@/lib/types';
+
 
 type AddTransactionSheetProps = {
   isOpen: boolean;
@@ -66,6 +68,8 @@ export function AddTransactionSheet({
 
   const paymentMethod = form.watch('paymentMethod');
   const isRecurring = form.watch('isRecurring');
+  const selectedCategory = form.watch('category') as keyof typeof subcategoryMap;
+  const subcategoriesForSelectedCategory = subcategoryMap[selectedCategory];
 
   const title = transaction ? `Editar ${transactionType === 'income' ? 'Renda' : 'Despesa'}` : `Adicionar ${transactionType === 'income' ? 'Renda' : 'Despesa'}`;
   const description = transaction ? 'Modifique os detalhes da sua transação.' : `Adicione uma nova ${transactionType === 'income' ? 'entrada de renda' : 'saída para suas despesas'}.`;
@@ -86,42 +90,69 @@ export function AddTransactionSheet({
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Categoria</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione uma categoria" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {allCategories.map((category) => (
-                          <SelectItem key={category} value={category}>
-                            {category}
-                          </SelectItem>
-                        ))}
-                        <Separator className="my-1" />
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start font-normal h-8 px-2"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setIsAddCategoryDialogOpen(true);
-                          }}
-                        >
-                          <PlusCircle className="mr-2 h-4 w-4" />
-                          Criar nova categoria...
-                        </Button>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Categoria</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione uma categoria" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {allCategories.map((category) => (
+                            <SelectItem key={category} value={category}>
+                              {category}
+                            </SelectItem>
+                          ))}
+                          <Separator className="my-1" />
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start font-normal h-8 px-2"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setIsAddCategoryDialogOpen(true);
+                            }}
+                          >
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Criar nova categoria...
+                          </Button>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {subcategoriesForSelectedCategory && (
+                  <FormField
+                    control={form.control}
+                    name="subcategory"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Subcategoria</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione uma subcategoria" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {subcategoriesForSelectedCategory.map((sub) => (
+                              <SelectItem key={sub} value={sub}>{sub}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 )}
-              />
+              </div>
               <FormField
                 control={form.control}
                 name="amount"
