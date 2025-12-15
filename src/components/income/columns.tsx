@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { useMemo } from 'react';
@@ -15,7 +16,6 @@ import { StatusBadge } from "@/components/transactions/status-badge"
 type ColumnsProps = {
   onEdit: (transaction: Transaction) => void;
   onStatusChange: (transaction: Transaction) => Promise<void>;
-  optimisticDelete?: (id: string, collectionPath: string) => Promise<void>;
 }
 
 

@@ -104,13 +104,13 @@ export default function FreelancerPage() {
     }
   }
 
-  const handleDelete = async (id: string, collectionName: string) => {
+  const handleDelete = async (id: string) => {
     if (!user || !firestore) return;
-    const docRef = doc(firestore, `users/${user.uid}/${collectionName}`, id);
+    const docRef = doc(firestore, `users/${user.uid}/incomes`, id);
     await deleteDoc(docRef);
   };
 
-  const columns = useFreelancerColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange, optimisticDelete: handleDelete });
+  const columns = useFreelancerColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange });
   const isLoading = isUserLoading || isIncomesLoading;
 
   if (isLoading) {
