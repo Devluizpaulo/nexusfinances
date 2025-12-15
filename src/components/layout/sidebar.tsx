@@ -1,7 +1,7 @@
 
 'use client';
 import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator, SidebarGroup, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton } from '@/components/ui/sidebar';
-import { LayoutDashboard, Landmark, CreditCard, Banknote, PiggyBank, GraduationCap, ShieldCheck, LifeBuoy, Home, Zap, FileText, HeartPulse, Repeat, WalletCards, List, LineChart, PieChart, Briefcase, PenSquare, BookOpen, Target, Trophy, Clapperboard, Car, Utensils } from 'lucide-react';
+import { LayoutDashboard, Landmark, CreditCard, Banknote, PiggyBank, GraduationCap, ShieldCheck, LifeBuoy, Home, Zap, FileText, HeartPulse, Repeat, WalletCards, List, LineChart, PieChart, Briefcase, PenSquare, BookOpen, Target, Trophy, Clapperboard, Car, Utensils, ShoppingCart, Activity } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '../ui/button';
@@ -46,12 +46,19 @@ const navSections = [
             { href: '/expenses/education', label: 'Educação', icon: BookOpen },
             { href: '/expenses/leisure', label: 'Lazer', icon: Clapperboard },
             { href: '/expenses/subscriptions', label: 'Assinaturas', icon: Repeat },
+            { href: '/expenses/others', label: 'Outras', icon: PenSquare },
         ]
     },
     {
         label: 'Dívidas',
         icon: Banknote,
         href: '/debts',
+        subItems: []
+    },
+     {
+        label: 'Cartões',
+        icon: CreditCard,
+        href: '/credit-cards',
         subItems: []
     },
     {
@@ -70,6 +77,12 @@ const navSections = [
         label: 'Metas',
         icon: PiggyBank,
         href: '/goals',
+        subItems: []
+    },
+    {
+        label: 'Desafios',
+        icon: Trophy,
+        href: '/challenges',
         subItems: []
     },
     {
