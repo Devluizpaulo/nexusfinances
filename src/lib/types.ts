@@ -213,6 +213,17 @@ export const educationSubcategories: SubcategoryOption[] = [
     { value: 'Outro', label: 'Outro', icon: 'MoreHorizontal' },
 ];
 
+export const transportSubcategories: SubcategoryOption[] = [
+    { value: 'Combustível', label: 'Combustível', icon: 'Fuel' },
+    { value: 'Transporte Público', label: 'Transporte Público', icon: 'Bus' },
+    { value: 'Aplicativos (Uber/99)', label: 'Aplicativos (Uber/99)', icon: 'Car' },
+    { value: 'Manutenção do Veículo', label: 'Manutenção do Veículo', icon: 'Wrench' },
+    { value: 'Estacionamento', label: 'Estacionamento', icon: 'ParkingCircle' },
+    { value: 'Pedágio', label: 'Pedágio', icon: 'DollarSign' },
+    { value: 'Seguro/IPVA', label: 'Seguro/IPVA', icon: 'FileText' },
+    { value: 'Outro', label: 'Outro', icon: 'MoreHorizontal' },
+];
+
 
 export const subcategoryMap = {
   'Contas de Consumo': utilitySubcategories,
@@ -220,6 +231,7 @@ export const subcategoryMap = {
   'Alimentação': foodSubcategories,
   'Saúde': healthSubcategories,
   'Educação': educationSubcategories,
+  'Transporte': transportSubcategories,
 } as const;
 
 
