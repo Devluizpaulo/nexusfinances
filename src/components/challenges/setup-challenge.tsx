@@ -176,7 +176,7 @@ export function SetupChallenge() {
               />
             </div>
             
-            <div className="rounded-lg border-2 border-dashed bg-muted/30 p-4 text-center">
+            <div className="rounded-lg border-2 border-primary/20 bg-primary/5 p-4 text-center">
                 <p className="text-sm text-muted-foreground mb-2">Resumo do Desafio</p>
                 <p className="text-xs text-muted-foreground mb-3">
                   Semana 1: R${initialAmount}, Semana 2: R${initialAmount + incrementAmount}, Semana 3: R${initialAmount + (incrementAmount * 2)}...
