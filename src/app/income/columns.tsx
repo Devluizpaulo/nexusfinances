@@ -15,11 +15,10 @@ import { StatusBadge } from "@/components/transactions/status-badge"
 type ColumnsProps = {
   onEdit: (transaction: Transaction) => void;
   onStatusChange: (transaction: Transaction) => Promise<void>;
-  optimisticDelete: (id: string, collectionPath: string) => Promise<void>;
 }
 
 
-export const useIncomeColumns = ({ onEdit, onStatusChange, optimisticDelete }: ColumnsProps) => {
+export const useIncomeColumns = ({ onEdit, onStatusChange }: ColumnsProps) => {
     const columns = useMemo((): ColumnDef<Transaction>[] => [
       {
         accessorKey: "date",
@@ -73,9 +72,9 @@ export const useIncomeColumns = ({ onEdit, onStatusChange, optimisticDelete }: C
       },
       {
         id: "actions",
-        cell: ({ row }) => <DataTableRowActions row={row} onEdit={onEdit} transactionType="income" optimisticDelete={optimisticDelete} />,
+        cell: ({ row }) => <DataTableRowActions row={row} onEdit={onEdit} transactionType="income" />,
       },
-    ], [onEdit, onStatusChange, optimisticDelete]);
+    ], [onEdit, onStatusChange]);
 
     return columns;
 };

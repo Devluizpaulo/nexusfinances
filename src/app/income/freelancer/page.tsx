@@ -104,12 +104,6 @@ export default function FreelancerPage() {
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!user || !firestore) return;
-    const docRef = doc(firestore, `users/${user.uid}/incomes`, id);
-    await deleteDoc(docRef);
-  };
-
   const columns = useFreelancerColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange });
   const isLoading = isUserLoading || isIncomesLoading;
 

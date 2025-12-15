@@ -133,7 +133,7 @@ export default function IncomePage() {
     }
   }
 
-  const columns = useIncomeColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange, optimisticDelete: (id: string, collectionName: string) => deleteDoc(doc(firestore, collectionName, id)) });
+  const columns = useIncomeColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange });
   const isLoading = isUserLoading || isIncomeLoading;
 
   if (isLoading) {
