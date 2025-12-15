@@ -190,11 +190,11 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
         <Calendar
             month={selectedDate}
             onMonthChange={setSelectedDate}
-            components={{ Day: DayComponent as any }}
+            components={{ Day: DayComponent }}
             className="w-full"
             classNames={{
               table: 'w-full border-separate space-y-1',
-              head_cell: 'w-full text-xs text-muted-foreground font-medium',
+              head_cell: 'text-xs text-muted-foreground font-medium',
               row: 'flex w-full mt-1',
               cell: 'flex-1 p-0 m-px h-12',
             }}
