@@ -55,12 +55,12 @@ export default function UtilitiesPage() {
     if (!expenseData) return [];
     
     return utilitySubcategories.map(subcategory => {
-      const expenses = expenseData.filter(expense => expense.subcategory === subcategory);
+      const expenses = expenseData.filter(expense => expense.subcategory === subcategory.value);
       const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
       const pendingCount = expenses.filter(expense => expense.status === 'pending').length;
       
       return {
-        subcategory,
+        ...subcategory,
         count: expenses.length,
         total,
         pendingCount,
@@ -71,16 +71,12 @@ export default function UtilitiesPage() {
   
   // Get icon for subcategory
   const getSubcategoryIcon = (subcategory: string) => {
-    switch (subcategory) {
-      case 'Luz': return <Lightbulb className="h-4 w-4" />;
-      case 'Água': return <Droplet className="h-4 w-4" />;
-      case 'Gás': return <Flame className="h-4 w-4" />;
-      case 'Internet': return <Wifi className="h-4 w-4" />;
-      case 'Celular':
-      case 'Telefone Fixo': return <Phone className="h-4 w-4" />;
-      case 'TV por Assinatura': return <Tv className="h-4 w-4" />;
-      default: return <Zap className="h-4 w-4" />;
+    const sub = utilitySubcategories.find(s => s.value === subcategory);
+    if (sub) {
+        const Icon = (sub.icon as any); // Type assertion if needed
+        return <Icon className="h-4 w-4" />;
     }
+    return <Zap className="h-4 w-4" />;
   };
   
   const handleOpenEditSheet = (transaction: Transaction) => {
@@ -126,7 +122,7 @@ export default function UtilitiesPage() {
       />
       <AddTransactionSheet
         isOpen={isEditSheetOpen}
-        onClose={() => setIsEditSheetOpen(false)}
+        onClose={() => { setIsEditSheetOpen(false); setEditingTransaction(null); }}
         transactionType="expense"
         categories={expenseCategories}
         transaction={editingTransaction}
@@ -160,19 +156,23 @@ export default function UtilitiesPage() {
               <TabsTrigger value="all" className="text-xs">
                 Todas
               </TabsTrigger>
-              {subcategoryStats.map(({ subcategory, count, pendingCount }) => (
-                <TabsTrigger key={subcategory} value={subcategory} className="text-xs">
-                  <div className="flex items-center gap-1">
-                    {getSubcategoryIcon(subcategory)}
-                    <span>{subcategory}</span>
-                    {pendingCount > 0 && (
-                      <Badge variant="destructive" className="ml-1 h-4 w-4 p-0 text-xs">
-                        {pendingCount}
-                      </Badge>
-                    )}
-                  </div>
-                </TabsTrigger>
-              ))}
+              {subcategoryStats.map(({ value, label, count, pendingCount }) => {
+                 const sub = utilitySubcategories.find(s => s.value === value);
+                 const Icon = sub?.icon ? (sub.icon as any) : Zap;
+                 return (
+                    <TabsTrigger key={value} value={value} className="text-xs">
+                        <div className="flex items-center gap-1">
+                            <Icon className="h-4 w-4" />
+                            <span>{label}</span>
+                            {pendingCount > 0 && (
+                            <Badge variant="destructive" className="ml-1 h-4 w-4 p-0 text-xs">
+                                {pendingCount}
+                            </Badge>
+                            )}
+                        </div>
+                    </TabsTrigger>
+                );
+              })}
             </TabsList>
           </Tabs>
         </div>
