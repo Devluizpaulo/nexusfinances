@@ -224,6 +224,12 @@ export const transportSubcategories: SubcategoryOption[] = [
     { value: 'Outro', label: 'Outro', icon: 'MoreHorizontal' },
 ];
 
+export const taxSubcategories: SubcategoryOption[] = [
+    { value: 'IPTU/IPVA', label: 'IPTU/IPVA', icon: 'Landmark' },
+    { value: 'Imposto de Renda (IRPF)', label: 'Imposto de Renda (IRPF)', icon: 'FileText' },
+    { value: 'Taxas Governamentais', label: 'Taxas Governamentais', icon: 'Banknote' },
+    { value: 'Outros Impostos', label: 'Outros Impostos', icon: 'MoreHorizontal' },
+];
 
 export const subcategoryMap = {
   'Contas de Consumo': utilitySubcategories,
@@ -232,6 +238,7 @@ export const subcategoryMap = {
   'Saúde': healthSubcategories,
   'Educação': educationSubcategories,
   'Transporte': transportSubcategories,
+  'Impostos & Taxas': taxSubcategories,
 } as const;
 
 
