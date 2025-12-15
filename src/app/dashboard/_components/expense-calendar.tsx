@@ -4,7 +4,7 @@
 import * as React from 'react';
 import { useMemo, useCallback, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { format, isSameMonth, isToday } from 'date-fns';
+import { format, isSameDay, isSameMonth, isToday } from 'date-fns';
 import type { Transaction } from '@/lib/types';
 import { formatCurrency, cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
@@ -24,17 +24,9 @@ interface ExpenseCalendarProps {
 }
 
 interface DayData {
-  total: number;
-  count: number;
-  categories: Record<string, number>;
+  paid: { total: number; count: number; categories: Record<string, number> };
+  pending: { total: number; count: number; categories: Record<string, number> };
 }
-
-const intensityLevels = [
-  { threshold: 0, label: 'Sem despesas', class: 'bg-slate-800/20 text-slate-400 border border-transparent' },
-  { threshold: 1, label: 'Baixo', class: 'bg-rose-900/40 text-rose-100 border-rose-800/50' },
-  { threshold: 40, label: 'Médio', class: 'bg-rose-800/60 text-rose-50 border-rose-700/80' },
-  { threshold: 75, label: 'Alto', class: 'bg-rose-600/80 text-white border-rose-500' },
-];
 
 export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
   const { selectedDate, setSelectedDate } = useDashboardDate();
@@ -50,94 +42,97 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
     return filteredExpenses.reduce((acc, expense) => {
       const day = format(new Date(expense.date), 'yyyy-MM-dd');
       if (!acc[day]) {
-        acc[day] = { total: 0, count: 0, categories: {} };
+        acc[day] = {
+          paid: { total: 0, count: 0, categories: {} },
+          pending: { total: 0, count: 0, categories: {} }
+        };
       }
-      acc[day].total += expense.amount;
-      acc[day].count += 1;
-      acc[day].categories[expense.category] = (acc[day].categories[expense.category] || 0) + expense.amount;
+      
+      const type = expense.status === 'paid' ? 'paid' : 'pending';
+      acc[day][type].total += expense.amount;
+      acc[day][type].count += 1;
+      acc[day][type].categories[expense.category] = (acc[day][type].categories[expense.category] || 0) + expense.amount;
+      
       return acc;
     }, {} as Record<string, DayData>);
   }, [filteredExpenses]);
-  
-  const maxExpense = useMemo(() => Math.max(0, ...Object.values(expensesByDay).map(d => d.total)), [expensesByDay]);
 
   const monthlySummary = useMemo(() => {
     const monthExpenses = expenses.filter(expense => 
       isSameMonth(new Date(expense.date), selectedDate)
     );
     return {
-      total: monthExpenses.reduce((sum, exp) => sum + exp.amount, 0),
+      paid: monthExpenses.filter(e => e.status === 'paid').reduce((sum, exp) => sum + exp.amount, 0),
+      pending: monthExpenses.filter(e => e.status === 'pending').reduce((sum, exp) => sum + exp.amount, 0),
       count: monthExpenses.length,
-      categories: monthExpenses.reduce((acc, exp) => {
-        acc[exp.category] = (acc[exp.category] || 0) + exp.amount;
-        return acc;
-      }, {} as Record<string, number>)
     };
   }, [expenses, selectedDate]);
 
   const handleDayClick = useCallback((day: Date) => {
     const formattedDate = format(day, 'yyyy-MM-dd');
     const dayData = expensesByDay[formattedDate];
-    if (dayData && dayData.total > 0) {
+    if (dayData) {
       router.push(`/expenses?date=${formattedDate}`);
     }
   }, [expensesByDay, router]);
-  
-  const getIntensityClass = (total: number) => {
-    if (total === 0 || maxExpense === 0) return intensityLevels[0].class;
-    const percentage = (total / maxExpense) * 100;
-    
-    for (let i = intensityLevels.length - 1; i > 0; i--) {
-      if (percentage >= intensityLevels[i].threshold) {
-        return intensityLevels[i].class;
-      }
-    }
-    return intensityLevels[1].class;
-  };
 
   const DayComponent = React.memo(({ date, displayMonth }: { date: Date; displayMonth: Date }) => {
     const formattedDate = format(date, 'yyyy-MM-dd');
     const dayData = expensesByDay[formattedDate];
-    const total = dayData?.total || 0;
-    const intensityClass = getIntensityClass(total);
-
+    const hasPaid = dayData?.paid.count > 0;
+    const hasPending = dayData?.pending.count > 0;
+    
     const dayContent = (
       <div
         onClick={() => handleDayClick(date)}
         className={cn(
-          'relative flex h-full w-full items-center justify-center rounded-md transition-all duration-150',
-          isSameMonth(date, selectedDate) && total > 0 && 'cursor-pointer hover:ring-2 hover:ring-primary',
-          isToday(date) && 'ring-1 ring-primary/80',
-          intensityClass,
-          !isSameMonth(date, selectedDate) && 'bg-transparent text-slate-600'
+          'relative flex h-full w-full flex-col items-center justify-center rounded-md p-1 transition-all duration-150',
+          !isSameMonth(date, selectedDate) && 'text-slate-600',
+          (hasPaid || hasPending) && isSameMonth(date, selectedDate) && 'cursor-pointer hover:bg-slate-800',
+          isToday(date) && 'bg-primary/10 text-primary ring-1 ring-primary/80',
         )}
       >
-        {format(date, 'd')}
+        <span className="text-sm">{format(date, 'd')}</span>
+        <div className="absolute bottom-1.5 flex gap-1">
+          {hasPaid && <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />}
+          {hasPending && <div className="h-1.5 w-1.5 rounded-full bg-amber-500" />}
+        </div>
       </div>
     );
 
-    if (dayData) {
-      const topCategories = Object.entries(dayData.categories)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 2);
-
+    if (dayData && (hasPaid || hasPending)) {
       return (
         <TooltipProvider delayDuration={100}>
           <Tooltip>
             <TooltipTrigger asChild>{dayContent}</TooltipTrigger>
-            <TooltipContent className="pointer-events-none">
-              <p className="font-bold">{formatCurrency(total)}</p>
-              <p className="text-xs text-muted-foreground">{dayData.count} transação(ões)</p>
-              {topCategories.length > 0 && (
-                 <div className="mt-2 space-y-1">
-                   {topCategories.map(([category, amount]) => (
-                     <div key={category} className="flex justify-between gap-2 text-xs">
-                        <span className="text-muted-foreground">{category}</span>
-                        <span className="font-medium">{formatCurrency(amount)}</span>
-                     </div>
-                   ))}
-                 </div>
-              )}
+            <TooltipContent className="pointer-events-none w-48">
+              <p className="font-bold">{format(date, "PPP", { locale: 'pt-BR' })}</p>
+              <div className="mt-2 space-y-2">
+                {hasPaid && (
+                  <div>
+                    <p className="text-xs font-semibold text-emerald-400">Pago: {formatCurrency(dayData.paid.total)}</p>
+                    <ul className="pl-2">
+                      {Object.entries(dayData.paid.categories).map(([cat, amount]) => (
+                        <li key={cat} className="flex justify-between text-xs text-muted-foreground">
+                          <span>{cat}</span><span>{formatCurrency(amount)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {hasPending && (
+                  <div>
+                    <p className="text-xs font-semibold text-amber-400">Pendente: {formatCurrency(dayData.pending.total)}</p>
+                    <ul className="pl-2">
+                      {Object.entries(dayData.pending.categories).map(([cat, amount]) => (
+                        <li key={cat} className="flex justify-between text-xs text-muted-foreground">
+                          <span>{cat}</span><span>{formatCurrency(amount)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -148,7 +143,6 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
   });
   DayComponent.displayName = 'DayComponent';
 
-
   return (
     <Card className="h-full rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
       <CardHeader className="p-0">
@@ -156,7 +150,7 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
           <div>
             <CardTitle className="text-base text-slate-200">Calendário de Despesas</CardTitle>
             <CardDescription className="mt-1 text-xs">
-              Passe o mouse ou clique em um dia para ver os detalhes.
+              Visualize seus gastos previstos e consolidados.
             </CardDescription>
           </div>
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
@@ -173,12 +167,21 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
             </SelectContent>
           </Select>
         </div>
-        <div className="mt-4 p-2.5 bg-slate-900/80 rounded-lg">
-            <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-slate-300">Total de despesas no mês:</span>
-                <span className="font-bold text-rose-300">{formatCurrency(monthlySummary.total)}</span>
+        <div className="mt-4 p-3 bg-slate-900/80 rounded-lg space-y-2">
+            <div className="flex items-center justify-between text-sm">
+                <span className="font-medium text-slate-300">Total de despesas no mês:</span>
+                <span className="font-bold text-rose-300">{formatCurrency(monthlySummary.paid + monthlySummary.pending)}</span>
             </div>
-            <p className="text-xs text-slate-500 text-right mt-0.5">{monthlySummary.count} transação(ões)</p>
+             <div className="flex justify-end gap-4 text-xs">
+                <div className="flex items-center gap-1.5 text-emerald-400">
+                    <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                    <span>Pago: {formatCurrency(monthlySummary.paid)}</span>
+                </div>
+                 <div className="flex items-center gap-1.5 text-amber-400">
+                    <div className="h-2 w-2 rounded-full bg-amber-500" />
+                    <span>Pendente: {formatCurrency(monthlySummary.pending)}</span>
+                </div>
+            </div>
         </div>
       </CardHeader>
       <CardContent className="p-0 mt-4">
@@ -189,7 +192,7 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
             className="w-full"
             classNames={{
               table: 'w-full border-separate space-y-1',
-              head_cell: 'w-full text-xs text-muted-foreground',
+              head_cell: 'w-full text-xs text-muted-foreground font-medium',
               row: 'flex w-full mt-1',
               cell: 'flex-1 p-0 m-px h-12',
             }}
