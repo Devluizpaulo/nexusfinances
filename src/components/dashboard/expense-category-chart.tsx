@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Pie, PieChart, Cell } from 'recharts';
@@ -34,7 +33,7 @@ export function ExpenseCategoryChart({ transactions }: { transactions: Transacti
     }
 
     const expenseByCat = transactions
-      .filter((t) => t.type === 'expense' || !t.type) // Inclui transações sem tipo como despesas
+      .filter((t) => t.type === 'expense' || !t.type)
       .reduce((acc, t) => {
         if (!acc[t.category]) {
           acc[t.category] = 0;

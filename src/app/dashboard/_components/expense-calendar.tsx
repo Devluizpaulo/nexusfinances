@@ -1,8 +1,7 @@
-
 'use client';
 
 import * as React from 'react';
-import { useMemo, useCallback, useState } from 'react';
+import { useMemo, useCallback, useState, memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { format, isSameDay, isSameMonth, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -30,14 +29,11 @@ interface DayData {
   pending: { total: number; count: number; categories: Record<string, number> };
 }
 
-function DayComponent({ date, displayMonth }: DayProps) {
+const DayComponent = memo(function DayComponent({ date, displayMonth }: DayProps) {
     const { selectedDate } = useDashboardDate();
     const router = useRouter();
 
     const expensesByDay = useMemo(() => {
-        // This is not ideal as it recalculates for every day. 
-        // For this specific component structure, it's a necessary trade-off.
-        // A better approach would be to provide this via context from the parent.
         const expenses: Transaction[] = (window as any).__expenseCalendarData || [];
         return expenses.reduce((acc, expense) => {
             const day = format(new Date(expense.date), 'yyyy-MM-dd');
@@ -55,7 +51,7 @@ function DayComponent({ date, displayMonth }: DayProps) {
 
             return acc;
         }, {} as Record<string, DayData>);
-    }, [selectedDate]); // Re-calculate when month changes
+    }, [selectedDate]);
 
     const handleDayClick = useCallback((day: Date) => {
         const formattedDate = format(day, 'yyyy-MM-dd');
@@ -128,8 +124,7 @@ function DayComponent({ date, displayMonth }: DayProps) {
     }
 
     return dayContent;
-}
-
+});
 
 export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
   const { selectedDate, setSelectedDate } = useDashboardDate();
@@ -140,8 +135,6 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
     return expenses.filter(expense => expense.category === selectedCategory);
   }, [expenses, selectedCategory]);
 
-  // Pass filtered expenses to a global scope for the DayComponent to access
-  // This is a workaround for the limitations of react-day-picker's `components` API
   if (typeof window !== 'undefined') {
     (window as any).__expenseCalendarData = filteredExpenses;
   }
