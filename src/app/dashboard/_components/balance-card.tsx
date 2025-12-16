@@ -12,8 +12,8 @@ interface BalanceCardProps {
 
 export function BalanceCard({ balance, income, expenses }: BalanceCardProps) {
     return (
-        <Card className="shadow-lg rounded-2xl border border-slate-900/60 bg-slate-950/70 p-1 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
-            <CardHeader>
+        <Card className="shadow-lg rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
+            <CardHeader className="p-0">
                 <div className="flex items-start justify-between">
                     <div>
                         <CardTitle className="text-base font-semibold text-slate-400">Balanço do mês</CardTitle>
@@ -27,7 +27,7 @@ export function BalanceCard({ balance, income, expenses }: BalanceCardProps) {
                 </div>
             </CardHeader>
 
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div className="flex items-center gap-3 rounded-xl bg-slate-900/50 p-3 border border-slate-800/60">
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/15">
                         <ArrowUpCircle className="h-5 w-5 text-emerald-400" />

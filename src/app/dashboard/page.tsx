@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -182,7 +183,7 @@ export default function DashboardPage() {
         onClose={handleCloseSheet}
       />
     
-      <div className="relative space-y-6">
+      <div className="space-y-6">
         <DashboardHeader 
           onAddIncome={() => handleOpenSheet('income')}
           onAddExpense={() => handleOpenSheet('expense')}
@@ -218,11 +219,15 @@ export default function DashboardPage() {
           />
         </div>
         
-        <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
-        
-        <OverdueDebtsCard debts={debtData || []} />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+            <div className="lg:col-span-5">
+                <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
+            </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <div className="lg:col-span-5">
+              <OverdueDebtsCard debts={debtData || []} />
+            </div>
+
             <div className="lg:col-span-3 space-y-6">
                 <IncomeExpenseChart transactions={allTransactions} />
                 <FinancialHealthScore
@@ -232,19 +237,14 @@ export default function DashboardPage() {
                   goals={goalData || []}
                   transactions={allTransactions}
                 />
+                 <FinancialInsightsCard financialData={financialDataForAI} />
             </div>
             <div className="lg:col-span-2 space-y-6">
                 <ExpenseCategoryChart transactions={expenseData || []} />
                  <RecentTransactionsList transactions={allTransactions} />
             </div>
-        </div>
-        
-         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            <div className="lg:col-span-3">
-                <ExpenseCalendar expenses={expenseData || []} />
-            </div>
-            <div className="lg:col-span-2">
-                <FinancialInsightsCard financialData={financialDataForAI} />
+            <div className="lg:col-span-5">
+                 <ExpenseCalendar expenses={expenseData || []} />
             </div>
         </div>
 
@@ -274,8 +274,8 @@ function DashboardSkeleton() {
         <Skeleton className="h-24 w-full rounded-2xl bg-slate-800/60" />
         <Skeleton className="h-24 w-full rounded-2xl bg-slate-800/60" />
       </div>
-
-      <Skeleton className="h-44 w-full rounded-2xl bg-slate-800/60" />
+      
+       <Skeleton className="h-44 w-full rounded-2xl bg-slate-800/60" />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <div className="lg:col-span-3 space-y-6">
