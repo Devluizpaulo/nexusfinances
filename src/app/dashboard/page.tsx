@@ -219,33 +219,32 @@ export default function DashboardPage() {
           />
         </div>
         
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-            <div className="lg:col-span-5">
-                <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
-            </div>
+        <div className="space-y-6">
+          <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
+          
+          <OverdueDebtsCard debts={debtData || []} />
 
-            <div className="lg:col-span-5">
-              <OverdueDebtsCard debts={debtData || []} />
-            </div>
-
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
             <div className="lg:col-span-3 space-y-6">
-                <IncomeExpenseChart transactions={allTransactions} />
-                <FinancialHealthScore
-                  income={totalIncome}
-                  expenses={totalExpenses}
-                  debts={debtData || []}
-                  goals={goalData || []}
-                  transactions={allTransactions}
-                />
-                 <FinancialInsightsCard financialData={financialDataForAI} />
+              <IncomeExpenseChart transactions={allTransactions} />
+              <FinancialHealthScore
+                income={totalIncome}
+                expenses={totalExpenses}
+                debts={debtData || []}
+                goals={goalData || []}
+                transactions={allTransactions}
+              />
+              <FinancialInsightsCard financialData={financialDataForAI} />
             </div>
             <div className="lg:col-span-2 space-y-6">
-                <ExpenseCategoryChart transactions={expenseData || []} />
-                 <RecentTransactionsList transactions={allTransactions} />
+              <ExpenseCategoryChart transactions={expenseData || []} />
+              <RecentTransactionsList transactions={allTransactions} />
             </div>
-            <div className="lg:col-span-5">
-                 <ExpenseCalendar expenses={expenseData || []} />
-            </div>
+          </div>
+          
+          <div>
+            <ExpenseCalendar expenses={expenseData || []} />
+          </div>
         </div>
 
       </div>
