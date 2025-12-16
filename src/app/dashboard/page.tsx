@@ -241,10 +241,10 @@ export default function DashboardPage() {
         
          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             <div className="lg:col-span-3">
-                <FinancialInsightsCard financialData={financialDataForAI} />
+                <ExpenseCalendar expenses={expenseData || []} />
             </div>
             <div className="lg:col-span-2">
-                <ExpenseCalendar expenses={expenseData || []} />
+                <FinancialInsightsCard financialData={financialDataForAI} />
             </div>
         </div>
 
@@ -268,19 +268,24 @@ function DashboardSkeleton() {
         <Skeleton className="h-10 w-36 rounded-full bg-slate-800/60" />
       </div>
 
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Skeleton className="h-24 w-full rounded-2xl bg-slate-800/60" />
+        <Skeleton className="h-24 w-full rounded-2xl bg-slate-800/60" />
+        <Skeleton className="h-24 w-full rounded-2xl bg-slate-800/60" />
+        <Skeleton className="h-24 w-full rounded-2xl bg-slate-800/60" />
+      </div>
+
       <Skeleton className="h-44 w-full rounded-2xl bg-slate-800/60" />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-3 space-y-6">
           <Skeleton className="h-96 w-full rounded-2xl bg-slate-800/60" />
+          <Skeleton className="h-64 w-full rounded-2xl bg-slate-800/60" />
         </div>
-        <div className="lg:col-span-2">
-           <Skeleton className="h-96 w-full rounded-2xl bg-slate-800/60" />
+        <div className="lg:col-span-2 space-y-6">
+           <Skeleton className="h-80 w-full rounded-2xl bg-slate-800/60" />
+           <Skeleton className="h-80 w-full rounded-2xl bg-slate-800/60" />
         </div>
-      </div>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Skeleton className="h-96 w-full rounded-2xl bg-slate-800/60" />
-        <Skeleton className="h-96 w-full rounded-2xl bg-slate-800/60" />
       </div>
     </div>
   )

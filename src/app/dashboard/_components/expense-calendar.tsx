@@ -31,7 +31,7 @@ interface DayData {
 }
 
 function DayComponent({ date, displayMonth }: DayProps) {
-    const { selectedDate, setSelectedDate } = useDashboardDate();
+    const { selectedDate } = useDashboardDate();
     const router = useRouter();
 
     const expensesByDay = useMemo(() => {
@@ -207,8 +207,8 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
             className="w-full"
             classNames={{
               table: 'w-full border-separate space-y-1',
-              head_cell: 'w-full text-xs text-muted-foreground font-medium',
-              row: 'flex mt-1',
+              head_cell: 'text-xs text-muted-foreground font-medium',
+              row: 'flex w-full mt-1',
               cell: 'flex-1 p-0 m-px h-12',
             }}
         />

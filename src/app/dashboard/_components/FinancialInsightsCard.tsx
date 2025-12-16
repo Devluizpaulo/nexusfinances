@@ -25,29 +25,6 @@ export function FinancialInsightsCard({ financialData }: FinancialInsightsCardPr
   const { toast } = useToast();
   const { user } = useUser();
 
-  const computedMissions = React.useMemo(() => {
-    const incomes = financialData.incomes || [];
-    const expenses = financialData.expenses || [];
-    const goals = financialData.goals || [];
-
-    const totalIncome = incomes.reduce((sum, t) => sum + (t.amount || 0), 0);
-    const totalExpenses = expenses.reduce((sum, t) => sum + (t.amount || 0), 0);
-    const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0;
-    const txCount = incomes.length + expenses.length;
-    const pendingCount = expenses.filter(e => e.status === 'pending').length;
-    const hasGoal = goals.length > 0;
-
-    const missions = [
-      { label: 'Taxa de poupança acima de 20%', done: savingsRate >= 20 },
-      { label: 'Cadastrar 10+ movimentações no mês', done: txCount >= 10 },
-      { label: 'Ter pelo menos uma meta ativa', done: hasGoal },
-      { label: 'Zerar despesas pendentes no mês', done: pendingCount === 0 },
-      { label: 'Gastar menos do que recebe', done: totalIncome >= totalExpenses },
-    ];
-    const completed = missions.filter(m => m.done).length;
-    return { missions, completed };
-  }, [financialData]);
-
   const handleGenerateAnalysis = async () => {
     setIsLoading(true);
     setAnalysis(null);
@@ -73,8 +50,8 @@ export function FinancialInsightsCard({ financialData }: FinancialInsightsCardPr
   };
 
   return (
-    <Card className="flex flex-col h-full rounded-2xl border border-slate-900/60 bg-slate-950/70 p-1 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
-      <CardHeader>
+    <Card className="flex flex-col h-full rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
+      <CardHeader className="p-0">
         <div className="flex items-center gap-3">
           <Sparkles className="h-5 w-5 text-primary" />
           <div>
@@ -85,7 +62,7 @@ export function FinancialInsightsCard({ financialData }: FinancialInsightsCardPr
           </div>
         </div>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col items-center justify-center text-center">
+      <CardContent className="flex-1 flex flex-col items-center justify-center text-center p-0 pt-4">
         {isLoading ? (
           <div className="space-y-3">
             <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
@@ -93,17 +70,17 @@ export function FinancialInsightsCard({ financialData }: FinancialInsightsCardPr
           </div>
         ) : analysis ? (
           <div className="space-y-4 text-left w-full">
-            <div className="p-3 bg-muted/50 rounded-lg">
+            <div className="p-3 bg-slate-900/80 rounded-lg">
                 <p className="text-sm font-medium">{analysis.summary}</p>
             </div>
             <div className="space-y-2">
-                <h4 className="font-semibold text-sm flex items-center gap-2">
+                <h4 className="font-semibold text-sm flex items-center gap-2 text-slate-300">
                     <Lightbulb className="h-4 w-4 text-amber-400"/>
                     Pontos de Ação
                 </h4>
                 <ul className="space-y-2">
                 {analysis.actionPoints.map((point, index) => (
-                    <li key={index} className="flex items-start gap-2 text-sm">
+                    <li key={index} className="flex items-start gap-2 text-sm text-slate-400">
                         <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
                         <span>{point}</span>
                     </li>
@@ -120,29 +97,8 @@ export function FinancialInsightsCard({ financialData }: FinancialInsightsCardPr
             <p className="text-xs text-muted-foreground">Clique abaixo para receber uma análise personalizada do seu mês.</p>
           </div>
         )}
-        <div className="mt-6 w-full">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-300">
-              <Target className="h-4 w-4" />
-              <span>Missões do Mês</span>
-            </div>
-            <span className="text-xs text-muted-foreground">{computedMissions.completed}/{computedMissions.missions.length}</span>
-          </div>
-          <ul className="space-y-2">
-            {computedMissions.missions.map((m, idx) => (
-              <li key={idx} className="flex items-center justify-between rounded-md border border-slate-800/70 bg-slate-900/40 px-3 py-2">
-                <span className="text-xs text-slate-200">{m.label}</span>
-                {m.done ? (
-                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                ) : (
-                  <Circle className="h-4 w-4 text-slate-600" />
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="p-0 pt-4">
         <Button onClick={handleGenerateAnalysis} disabled={isLoading} className="w-full">
           {isLoading ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
