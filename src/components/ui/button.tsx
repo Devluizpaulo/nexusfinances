@@ -5,7 +5,8 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold ring-offset-slate-950 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 shadow-[0_4px_12px_-4px_rgba(15,23,42,0.3)] hover:shadow-[0_6px_16px_-4px_rgba(15,23,42,0.4)]",
+  // Base button styles aplicados em todo o app
+  "inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold ring-offset-slate-950 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 shadow-[0_4px_12px_-4px_rgba(15,23,42,0.3)] hover:shadow-[0_6px_16px_-4px_rgba(15,23,42,0.4)] hover:-translate-y-px active:translate-y-0 active:scale-[0.97]",
   {
     variants: {
       variant: {

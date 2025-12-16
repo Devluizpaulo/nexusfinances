@@ -17,12 +17,15 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { AlertTriangle, Info, Loader2 } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Loader2 } from 'lucide-react';
 import { useFirestore, useUser } from '@/firebase';
 import { collection, query, where, getDocs, addDoc } from 'firebase/firestore';
 import type { Debt, Installment } from '@/lib/types';
 import { format, isPast, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
 
 interface OverdueDebtsCardProps {
   debts: Debt[];
@@ -108,17 +111,23 @@ export function OverdueDebtsCard({ debts }: OverdueDebtsCardProps) {
 
   if (isLoading) {
     return (
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25 }}
+      >
         <Card className="rounded-2xl border border-rose-900/60 bg-rose-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
-            <CardHeader className="flex flex-row items-center gap-4">
-                <Loader2 className="h-6 w-6 animate-spin text-rose-400" />
-                <div>
-                    <CardTitle className="text-rose-100">Verificando pendências...</CardTitle>
-                    <CardDescription className="text-rose-300">
-                        Estamos buscando por parcelas vencidas.
-                    </CardDescription>
-                </div>
-            </CardHeader>
+          <CardHeader className="flex flex-row items-center gap-4">
+            <Loader2 className="h-6 w-6 animate-spin text-rose-400" />
+            <div>
+              <CardTitle className="text-rose-100">Verificando pendências...</CardTitle>
+              <CardDescription className="text-rose-300">
+                Estamos buscando por parcelas vencidas.
+              </CardDescription>
+            </div>
+          </CardHeader>
         </Card>
+      </motion.div>
     );
   }
 
@@ -127,40 +136,74 @@ export function OverdueDebtsCard({ debts }: OverdueDebtsCardProps) {
   }
 
   return (
-    <Card className="rounded-2xl border border-rose-900/60 bg-rose-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
-      <CardHeader>
-        <div className="flex flex-row items-center gap-4">
-            <AlertTriangle className="h-6 w-6 text-rose-400" />
-            <div>
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25 }}
+    >
+      <Card className="rounded-2xl border border-rose-900/60 bg-rose-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
+        <CardHeader>
+          <div className="flex flex-row items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-500/15">
+                <AlertTriangle className="h-5 w-5 text-rose-400" />
+              </div>
+              <div>
                 <CardTitle className="text-rose-100">Atenção! Você possui pendências.</CardTitle>
                 <CardDescription className="text-rose-300">
-                    As seguintes parcelas estão vencidas e requerem sua atenção.
+                  As seguintes parcelas estão vencidas e requerem sua atenção.
                 </CardDescription>
+              </div>
             </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-rose-900/30">
-              <TableHead className="text-rose-300">Dívida</TableHead>
-              <TableHead className="text-rose-300">Nº da Parcela</TableHead>
-              <TableHead className="text-rose-300">Vencimento</TableHead>
-              <TableHead className="text-right text-rose-300">Valor</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {overdueInstallments.map(installment => (
-              <TableRow key={installment.id} className="border-rose-800/60 hover:bg-rose-900/30">
-                <TableCell className="font-medium text-rose-100">{installment.debtName}</TableCell>
-                <TableCell className="text-rose-100">{installment.installmentNumber}</TableCell>
-                <TableCell className="text-rose-100">{format(parseISO(installment.dueDate), 'PPP', { locale: ptBR })}</TableCell>
-                <TableCell className="text-right text-rose-100 font-bold">{formatCurrency(installment.amount)}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="border-rose-700/70 text-rose-200 hover:border-rose-500/80 hover:bg-rose-900/60"
+            >
+              <Link href="/debts" className="inline-flex items-center gap-2">
+                Ver todas as dívidas
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="w-full overflow-x-auto">
+            <Table className="min-w-[520px]">
+              <TableHeader>
+                <TableRow className="hover:bg-rose-900/30">
+                  <TableHead className="text-rose-300">Dívida</TableHead>
+                  <TableHead className="text-rose-300">Nº da Parcela</TableHead>
+                  <TableHead className="text-rose-300">Vencimento</TableHead>
+                  <TableHead className="text-right text-rose-300">Valor</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {overdueInstallments.map((installment) => (
+                  <TableRow
+                    key={installment.id}
+                    className="border-rose-800/60 hover:bg-rose-900/40 transition-colors"
+                  >
+                    <TableCell className="font-medium text-rose-100">
+                      {installment.debtName}
+                    </TableCell>
+                    <TableCell className="text-rose-100">
+                      {installment.installmentNumber}
+                    </TableCell>
+                    <TableCell className="text-rose-100">
+                      {format(parseISO(installment.dueDate), 'PPP', { locale: ptBR })}
+                    </TableCell>
+                    <TableCell className="text-right text-rose-100 font-bold">
+                      {formatCurrency(installment.amount)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }

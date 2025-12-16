@@ -19,6 +19,7 @@ import {
 import type { Transaction } from '@/lib/types';
 import * as React from 'react';
 import { useMemo } from 'react';
+import { PieChart as PieChartIcon } from 'lucide-react';
 
 type ChartDataItem = {
   name: string;
@@ -71,9 +72,18 @@ export function ExpenseCategoryChart({ transactions }: { transactions: Transacti
 
   return (
     <Card className="h-full rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
-      <CardHeader className="p-0">
-        <CardTitle className="text-base text-slate-200">Composição de Gastos</CardTitle>
-        <CardDescription className="mt-1 text-xs">Análise por categoria no período selecionado.</CardDescription>
+      <CardHeader className="p-0 flex flex-row items-center justify-between gap-3">
+        <div>
+          <CardTitle className="text-base text-slate-200 flex items-center gap-2">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-sky-500/10 text-sky-400">
+              <PieChartIcon className="h-4 w-4" />
+            </span>
+            Composição de Gastos
+          </CardTitle>
+          <CardDescription className="mt-1 text-xs">
+            Análise por categoria no período selecionado.
+          </CardDescription>
+        </div>
       </CardHeader>
       <CardContent className="p-0 mt-2 flex items-center justify-center">
         {chartData.length > 0 ? (
