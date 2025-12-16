@@ -25,6 +25,7 @@ import { FinancialInsightsCard } from './_components/FinancialInsightsCard';
 import { KpiCard } from '@/components/dashboard/kpi-card';
 import { TrendingUp, TrendingDown, PiggyBank, Percent } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 export default function DashboardPage() {
   const { selectedDate } = useDashboardDate();
@@ -183,7 +184,12 @@ export default function DashboardPage() {
         onClose={handleCloseSheet}
       />
     
-      <div className="space-y-6">
+      <motion.div 
+        className="space-y-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
         <DashboardHeader 
           onAddIncome={() => handleOpenSheet('income')}
           onAddExpense={() => handleOpenSheet('expense')}
@@ -197,6 +203,7 @@ export default function DashboardPage() {
             value={formatCurrency(totalIncome)}
             icon={TrendingUp}
             trend={trends.incomeTrend}
+            index={0}
           />
           <KpiCard
             title="Despesas do mês"
@@ -204,18 +211,21 @@ export default function DashboardPage() {
             icon={TrendingDown}
             trend={trends.expenseTrend}
             invertTrendColor
+            index={1}
           />
           <KpiCard
             title="Saldo do mês"
             value={formatCurrency(balance)}
             icon={PiggyBank}
             trend={trends.balanceTrend}
+            index={2}
           />
           <KpiCard
             title="Taxa de poupança"
             value={`${trends.savingsRate.toFixed(1)}%`}
             icon={Percent}
             trend={trends.savingsRateTrend}
+            index={3}
           />
         </div>
         
@@ -238,7 +248,10 @@ export default function DashboardPage() {
             </div>
             <div className="lg:col-span-2 space-y-6">
               <ExpenseCategoryChart transactions={expenseData || []} />
-              <RecentTransactionsList transactions={allTransactions} />
+              <RecentTransactionsList 
+                transactions={allTransactions} 
+                onAddTransaction={() => handleOpenSheet('expense')}
+              />
             </div>
           </div>
           
@@ -247,7 +260,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-      </div>
+      </motion.div>
     </>
   );
 }
@@ -255,37 +268,55 @@ export default function DashboardPage() {
 
 function DashboardSkeleton() {
   return (
-    <div className="space-y-6 animate-pulse">
-      <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-             <Skeleton className="h-12 w-12 rounded-full bg-slate-800/60" />
-            <div className="space-y-2">
-                <Skeleton className="h-7 w-48 bg-slate-800/60" />
-                <Skeleton className="h-4 w-32 bg-slate-800/60" />
-            </div>
+    <div className="space-y-6">
+      <motion.div 
+        className="flex items-center justify-between"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-12 w-12 rounded-full bg-gradient-to-r from-slate-800/60 via-slate-700/60 to-slate-800/60 bg-[length:200%_100%] animate-[shimmer_2s_infinite]" />
+          <div className="space-y-2">
+            <Skeleton className="h-7 w-48 bg-gradient-to-r from-slate-800/60 via-slate-700/60 to-slate-800/60 bg-[length:200%_100%] animate-[shimmer_2s_infinite]" />
+            <Skeleton className="h-4 w-32 bg-gradient-to-r from-slate-800/60 via-slate-700/60 to-slate-800/60 bg-[length:200%_100%] animate-[shimmer_2s_infinite]" />
           </div>
-        <Skeleton className="h-10 w-36 rounded-full bg-slate-800/60" />
-      </div>
+        </div>
+        <Skeleton className="h-10 w-36 rounded-full bg-gradient-to-r from-slate-800/60 via-slate-700/60 to-slate-800/60 bg-[length:200%_100%] animate-[shimmer_2s_infinite]" />
+      </motion.div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Skeleton className="h-24 w-full rounded-2xl bg-slate-800/60" />
-        <Skeleton className="h-24 w-full rounded-2xl bg-slate-800/60" />
-        <Skeleton className="h-24 w-full rounded-2xl bg-slate-800/60" />
-        <Skeleton className="h-24 w-full rounded-2xl bg-slate-800/60" />
+        {[0, 1, 2, 3].map((i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+          >
+            <Skeleton className="h-24 w-full rounded-2xl bg-gradient-to-r from-slate-800/60 via-slate-700/60 to-slate-800/60 bg-[length:200%_100%] animate-[shimmer_2s_infinite]" />
+          </motion.div>
+        ))}
       </div>
       
-       <Skeleton className="h-44 w-full rounded-2xl bg-slate-800/60" />
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4 }}
+      >
+        <Skeleton className="h-44 w-full rounded-2xl bg-gradient-to-r from-slate-800/60 via-slate-700/60 to-slate-800/60 bg-[length:200%_100%] animate-[shimmer_2s_infinite]" />
+      </motion.div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         <div className="lg:col-span-3 space-y-6">
-          <Skeleton className="h-96 w-full rounded-2xl bg-slate-800/60" />
-          <Skeleton className="h-64 w-full rounded-2xl bg-slate-800/60" />
+          <Skeleton className="h-96 w-full rounded-2xl bg-gradient-to-r from-slate-800/60 via-slate-700/60 to-slate-800/60 bg-[length:200%_100%] animate-[shimmer_2s_infinite]" />
+          <Skeleton className="h-64 w-full rounded-2xl bg-gradient-to-r from-slate-800/60 via-slate-700/60 to-slate-800/60 bg-[length:200%_100%] animate-[shimmer_2s_infinite]" />
         </div>
         <div className="lg:col-span-2 space-y-6">
-           <Skeleton className="h-80 w-full rounded-2xl bg-slate-800/60" />
-           <Skeleton className="h-80 w-full rounded-2xl bg-slate-800/60" />
+          <Skeleton className="h-80 w-full rounded-2xl bg-gradient-to-r from-slate-800/60 via-slate-700/60 to-slate-800/60 bg-[length:200%_100%] animate-[shimmer_2s_infinite]" />
+          <Skeleton className="h-80 w-full rounded-2xl bg-gradient-to-r from-slate-800/60 via-slate-700/60 to-slate-800/60 bg-[length:200%_100%] animate-[shimmer_2s_infinite]" />
         </div>
       </div>
+      
     </div>
   )
 }
