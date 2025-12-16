@@ -10,7 +10,7 @@ import {
   CardFooter
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Sparkles, Lightbulb, CheckCircle2 } from 'lucide-react';
+import { Loader2, Sparkles, Lightbulb, CheckCircle2, Circle, Target } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { getFinancialInsights, type GetFinancialInsightsInput, type GetFinancialInsightsOutput } from '@/ai/flows/financial-insights-flow';
 import { useUser } from '@/firebase';
@@ -24,6 +24,29 @@ export function FinancialInsightsCard({ financialData }: FinancialInsightsCardPr
   const [analysis, setAnalysis] = React.useState<GetFinancialInsightsOutput | null>(null);
   const { toast } = useToast();
   const { user } = useUser();
+
+  const computedMissions = React.useMemo(() => {
+    const incomes = financialData.incomes || [];
+    const expenses = financialData.expenses || [];
+    const goals = financialData.goals || [];
+
+    const totalIncome = incomes.reduce((sum, t) => sum + (t.amount || 0), 0);
+    const totalExpenses = expenses.reduce((sum, t) => sum + (t.amount || 0), 0);
+    const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0;
+    const txCount = incomes.length + expenses.length;
+    const pendingCount = expenses.filter(e => e.status === 'pending').length;
+    const hasGoal = goals.length > 0;
+
+    const missions = [
+      { label: 'Taxa de poupança acima de 20%', done: savingsRate >= 20 },
+      { label: 'Cadastrar 10+ movimentações no mês', done: txCount >= 10 },
+      { label: 'Ter pelo menos uma meta ativa', done: hasGoal },
+      { label: 'Zerar despesas pendentes no mês', done: pendingCount === 0 },
+      { label: 'Gastar menos do que recebe', done: totalIncome >= totalExpenses },
+    ];
+    const completed = missions.filter(m => m.done).length;
+    return { missions, completed };
+  }, [financialData]);
 
   const handleGenerateAnalysis = async () => {
     setIsLoading(true);
@@ -97,6 +120,27 @@ export function FinancialInsightsCard({ financialData }: FinancialInsightsCardPr
             <p className="text-xs text-muted-foreground">Clique abaixo para receber uma análise personalizada do seu mês.</p>
           </div>
         )}
+        <div className="mt-6 w-full">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-300">
+              <Target className="h-4 w-4" />
+              <span>Missões do Mês</span>
+            </div>
+            <span className="text-xs text-muted-foreground">{computedMissions.completed}/{computedMissions.missions.length}</span>
+          </div>
+          <ul className="space-y-2">
+            {computedMissions.missions.map((m, idx) => (
+              <li key={idx} className="flex items-center justify-between rounded-md border border-slate-800/70 bg-slate-900/40 px-3 py-2">
+                <span className="text-xs text-slate-200">{m.label}</span>
+                {m.done ? (
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                ) : (
+                  <Circle className="h-4 w-4 text-slate-600" />
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
       </CardContent>
       <CardFooter>
         <Button onClick={handleGenerateAnalysis} disabled={isLoading} className="w-full">
