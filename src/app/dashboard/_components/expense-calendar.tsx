@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -29,7 +30,7 @@ interface DayData {
   pending: { total: number; count: number; categories: Record<string, number> };
 }
 
-const DayComponent = memo(function DayComponent({ date, displayMonth }: DayProps) {
+function DayComponent({ date, displayMonth }: DayProps) {
     const { selectedDate } = useDashboardDate();
     const router = useRouter();
 
@@ -56,7 +57,7 @@ const DayComponent = memo(function DayComponent({ date, displayMonth }: DayProps
     const handleDayClick = useCallback((day: Date) => {
         const formattedDate = format(day, 'yyyy-MM-dd');
         const dayData = expensesByDay[formattedDate];
-        if (dayData) {
+        if (dayData && (dayData.paid.count > 0 || dayData.pending.count > 0)) {
             router.push(`/expenses?date=${formattedDate}`);
         }
     }, [expensesByDay, router]);
@@ -124,7 +125,7 @@ const DayComponent = memo(function DayComponent({ date, displayMonth }: DayProps
     }
 
     return dayContent;
-});
+}
 
 export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
   const { selectedDate, setSelectedDate } = useDashboardDate();
@@ -200,8 +201,8 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
             className="w-full"
             classNames={{
               table: 'w-full border-separate space-y-1',
-              head_cell: 'text-xs text-muted-foreground font-medium',
-              row: 'flex w-full mt-1',
+              head_cell: 'w-full text-xs text-muted-foreground font-medium',
+              row: 'flex mt-1',
               cell: 'flex-1 p-0 m-px h-12',
             }}
         />
