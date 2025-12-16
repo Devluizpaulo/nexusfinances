@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy } from 'firebase/firestore';
 import type { Transaction, Debt, Goal } from '@/lib/types';
-import { startOfMonth, endOfMonth, format } from 'date-fns';
+import { startOfMonth, endOfMonth, format, subMonths } from 'date-fns';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { AddDebtSheet } from '@/components/debts/add-debt-sheet';
 import { AddGoalSheet } from '@/components/goals/add-goal-sheet';
@@ -21,6 +21,9 @@ import { FinancialHealthScore } from '@/components/dashboard/financial-health-sc
 import { OverdueDebtsCard } from '@/components/dashboard/overdue-debts-card';
 import { ExpenseCalendar } from './_components/expense-calendar';
 import { FinancialInsightsCard } from './_components/FinancialInsightsCard';
+import { KpiCard } from '@/components/dashboard/kpi-card';
+import { TrendingUp, TrendingDown, PiggyBank, Percent } from 'lucide-react';
+import { formatCurrency } from '@/lib/utils';
 
 export default function DashboardPage() {
   const { selectedDate } = useDashboardDate();
@@ -33,6 +36,13 @@ export default function DashboardPage() {
     const start = startOfMonth(selectedDate);
     const end = endOfMonth(selectedDate);
     return { start, end };
+  }, [selectedDate]);
+
+  const { prevStart, prevEnd } = useMemo(() => {
+    const prevMonth = subMonths(selectedDate, 1);
+    const prevStart = startOfMonth(prevMonth);
+    const prevEnd = endOfMonth(prevMonth);
+    return { prevStart, prevEnd };
   }, [selectedDate]);
 
   // Queries
@@ -54,6 +64,24 @@ export default function DashboardPage() {
     );
   }, [firestore, user, start, end]);
   
+  const incomesPrevMonthQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(
+      collection(firestore, `users/${user.uid}/incomes`),
+      where('date', '>=', format(prevStart, 'yyyy-MM-dd')),
+      where('date', '<=', format(prevEnd, 'yyyy-MM-dd'))
+    );
+  }, [firestore, user, prevStart, prevEnd]);
+
+  const expensesPrevMonthQuery = useMemoFirebase(() => {
+    if (!user) return null;
+    return query(
+      collection(firestore, `users/${user.uid}/expenses`),
+      where('date', '>=', format(prevStart, 'yyyy-MM-dd')),
+      where('date', '<=', format(prevEnd, 'yyyy-MM-dd'))
+    );
+  }, [firestore, user, prevStart, prevEnd]);
+  
   const debtsQuery = useMemoFirebase(() => {
     if (!user) return null;
     return query(collection(firestore, `users/${user.uid}/debts`));
@@ -67,6 +95,8 @@ export default function DashboardPage() {
   // Data fetching
   const { data: incomeData, isLoading: isIncomeLoading } = useCollection<Transaction>(incomesForPeriodQuery);
   const { data: expenseData, isLoading: isExpensesLoading } = useCollection<Transaction>(expensesForPeriodQuery);
+  const { data: incomePrevData } = useCollection<Transaction>(incomesPrevMonthQuery);
+  const { data: expensePrevData } = useCollection<Transaction>(expensesPrevMonthQuery);
   const { data: debtData, isLoading: isDebtsLoading } = useCollection<Debt>(debtsQuery);
   const { data: goalData, isLoading: isGoalsLoading } = useCollection<Goal>(goalsQuery);
 
@@ -79,6 +109,32 @@ export default function DashboardPage() {
       balance: income - expenses,
     };
   }, [incomeData, expenseData]);
+  
+  const { prevIncome, prevExpenses, prevBalance } = useMemo(() => {
+    const income = incomePrevData?.reduce((sum, t) => sum + t.amount, 0) || 0;
+    const expenses = expensePrevData?.reduce((sum, t) => sum + t.amount, 0) || 0;
+    return {
+      prevIncome: income,
+      prevExpenses: expenses,
+      prevBalance: income - expenses,
+    };
+  }, [incomePrevData, expensePrevData]);
+
+  const trends = useMemo(() => {
+    const pct = (current: number, prev: number) => {
+      if (!prev || prev === 0) return 0;
+      return ((current - prev) / prev) * 100;
+    };
+    const savingsRate = totalIncome > 0 ? (balance / totalIncome) * 100 : 0;
+    const prevSavingsRate = prevIncome > 0 ? (prevBalance / prevIncome) * 100 : 0;
+    return {
+      incomeTrend: pct(totalIncome, prevIncome),
+      expenseTrend: pct(totalExpenses, prevExpenses),
+      balanceTrend: pct(balance, prevBalance),
+      savingsRate,
+      savingsRateTrend: savingsRate - prevSavingsRate,
+    };
+  }, [totalIncome, prevIncome, totalExpenses, prevExpenses, balance, prevBalance]);
   
   const allTransactions = useMemo(() => [...(incomeData || []), ...(expenseData || [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()), [incomeData, expenseData]);
 
@@ -133,6 +189,34 @@ export default function DashboardPage() {
           onAddDebt={() => handleOpenSheet('debt')}
           onAddGoal={() => handleOpenSheet('goal')}
         />
+        
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <KpiCard
+            title="Receitas do mês"
+            value={formatCurrency(totalIncome)}
+            icon={TrendingUp}
+            trend={trends.incomeTrend}
+          />
+          <KpiCard
+            title="Despesas do mês"
+            value={formatCurrency(totalExpenses)}
+            icon={TrendingDown}
+            trend={trends.expenseTrend}
+            invertTrendColor
+          />
+          <KpiCard
+            title="Saldo do mês"
+            value={formatCurrency(balance)}
+            icon={PiggyBank}
+            trend={trends.balanceTrend}
+          />
+          <KpiCard
+            title="Taxa de poupança"
+            value={`${trends.savingsRate.toFixed(1)}%`}
+            icon={Percent}
+            trend={trends.savingsRateTrend}
+          />
+        </div>
         
         <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
         
