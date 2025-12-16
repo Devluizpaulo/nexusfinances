@@ -5,7 +5,6 @@ import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebas
 import { collection, query, where, orderBy } from 'firebase/firestore';
 import type { Transaction, Debt, Goal } from '@/lib/types';
 import { startOfMonth, endOfMonth, format } from 'date-fns';
-import { QuickActions } from '@/components/dashboard/quick-actions';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
 import { AddDebtSheet } from '@/components/debts/add-debt-sheet';
 import { AddGoalSheet } from '@/components/goals/add-goal-sheet';
@@ -22,7 +21,6 @@ import { FinancialHealthScore } from '@/components/dashboard/financial-health-sc
 import { OverdueDebtsCard } from '@/components/dashboard/overdue-debts-card';
 import { ExpenseCalendar } from './_components/expense-calendar';
 import { FinancialInsightsCard } from './_components/FinancialInsightsCard';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function DashboardPage() {
   const { selectedDate } = useDashboardDate();
@@ -140,22 +138,9 @@ export default function DashboardPage() {
         
         <OverdueDebtsCard debts={debtData || []} />
 
-        <Tabs defaultValue="overview">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-            <TabsTrigger value="planning">Análise e Planejamento</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="overview" className="mt-6 space-y-6">
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-              <div className="lg:col-span-3">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <div className="lg:col-span-3 space-y-6">
                 <IncomeExpenseChart transactions={allTransactions} />
-              </div>
-              <div className="lg:col-span-2">
-                <ExpenseCategoryChart transactions={expenseData || []} />
-              </div>
-            </div>
-             <div className="grid grid-cols-1 gap-6">
                 <FinancialHealthScore
                   income={totalIncome}
                   expenses={totalExpenses}
@@ -164,22 +149,21 @@ export default function DashboardPage() {
                   transactions={allTransactions}
                 />
             </div>
-             <div className="grid grid-cols-1 gap-6">
-               <RecentTransactionsList transactions={allTransactions} />
+            <div className="lg:col-span-2 space-y-6">
+                <ExpenseCategoryChart transactions={expenseData || []} />
+                 <RecentTransactionsList transactions={allTransactions} />
             </div>
-          </TabsContent>
-
-          <TabsContent value="planning" className="mt-6 space-y-6">
-             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-              <div className="lg:col-span-3">
-                 <FinancialInsightsCard financialData={financialDataForAI} />
-              </div>
-              <div className="lg:col-span-2">
+        </div>
+        
+         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <div className="lg:col-span-3">
+                <FinancialInsightsCard financialData={financialDataForAI} />
+            </div>
+            <div className="lg:col-span-2">
                 <ExpenseCalendar expenses={expenseData || []} />
-              </div>
             </div>
-          </TabsContent>
-        </Tabs>
+        </div>
+
       </div>
     </>
   );

@@ -36,7 +36,7 @@ export function QuickActions({
           <span className="sr-only">Adicionar</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" side="bottom" className="w-64 mt-2 border border-slate-700/60 bg-slate-950/90 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
+      <DropdownMenuContent align="end" side="bottom" className="w-64 mt-2 border border-slate-700/60 bg-slate-950/90 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)] backdrop-blur-sm">
         <DropdownMenuLabel className="text-slate-100">Criar novo...</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onAddIncome} className="flex items-center gap-3 py-2 hover:bg-slate-800/60">
