@@ -214,7 +214,7 @@ export default function IncomePage() {
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                {searchParams.get('date') && (
+                 {searchParams.get('date') && (
                     <div className="mb-3 rounded-md border bg-muted/50 p-3 text-xs text-muted-foreground">
                     <span>
                         Filtrando rendas do dia{' '}
