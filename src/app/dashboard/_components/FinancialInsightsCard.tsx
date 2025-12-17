@@ -10,7 +10,7 @@ import {
   CardFooter
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Sparkles, Lightbulb, CheckCircle2, Circle, Target } from 'lucide-react';
+import { Loader2, Sparkles, Lightbulb, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { getFinancialInsights, type GetFinancialInsightsInput, type GetFinancialInsightsOutput } from '@/ai/flows/financial-insights-flow';
 import { useUser } from '@/firebase';

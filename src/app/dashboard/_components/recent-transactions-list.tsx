@@ -36,7 +36,7 @@ export function RecentTransactionsList({ transactions, onAddTransaction }: Recen
                 <CardDescription className="mt-1 text-xs">Suas movimentações mais recentes.</CardDescription>
             </CardHeader>
             <CardContent className="p-0 mt-4">
-                <AnimatePresence mode="wait">
+                <AnimatePresence>
                     {recent.length > 0 ? (
                         <motion.div 
                             key="transactions"

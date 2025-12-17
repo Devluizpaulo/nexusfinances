@@ -232,7 +232,6 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           <div className="lg:col-span-3 space-y-6">
              <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
-              <OverdueDebtsCard debts={debtData || []} />
               <IncomeExpenseChart transactions={allTransactions} />
               <FinancialHealthScore
                 income={totalIncome}
@@ -250,10 +249,10 @@ export default function DashboardPage() {
               onAddTransaction={() => handleOpenSheet('expense')}
             />
           </div>
-           <div className="lg:col-span-5">
-            <ExpenseCalendar expenses={expenseData || []} />
-          </div>
         </div>
+
+        <OverdueDebtsCard debts={debtData || []} />
+        <ExpenseCalendar expenses={expenseData || []} />
       </motion.div>
     </>
   );
@@ -270,13 +269,13 @@ function DashboardSkeleton() {
         transition={{ duration: 0.3 }}
       >
         <div className="flex items-center gap-4">
-          <Skeleton className="h-12 w-12 rounded-full bg-gradient-to-r from-slate-800/60 via-slate-700/60 to-slate-800/60 bg-[length:200%_100%] animate-[shimmer_2s_infinite]" />
+          <Skeleton className="h-12 w-12 rounded-full bg-slate-800/60" />
           <div className="space-y-2">
-            <Skeleton className="h-7 w-48 bg-gradient-to-r from-slate-800/60 via-slate-700/60 to-slate-800/60 bg-[length:200%_100%] animate-[shimmer_2s_infinite]" />
-            <Skeleton className="h-4 w-32 bg-gradient-to-r from-slate-800/60 via-slate-700/60 to-slate-800/60 bg-[length:200%_100%] animate-[shimmer_2s_infinite]" />
+            <Skeleton className="h-7 w-48 bg-slate-800/60" />
+            <Skeleton className="h-4 w-32 bg-slate-800/60" />
           </div>
         </div>
-        <Skeleton className="h-10 w-36 rounded-full bg-gradient-to-r from-slate-800/60 via-slate-700/60 to-slate-800/60 bg-[length:200%_100%] animate-[shimmer_2s_infinite]" />
+        <Skeleton className="h-10 w-36 rounded-full bg-slate-800/60" />
       </motion.div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -287,20 +286,20 @@ function DashboardSkeleton() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
           >
-            <Skeleton className="h-24 w-full rounded-2xl bg-gradient-to-r from-slate-800/60 via-slate-700/60 to-slate-800/60 bg-[length:200%_100%] animate-[shimmer_2s_infinite]" />
+            <Skeleton className="h-24 w-full rounded-2xl bg-slate-800/60" />
           </motion.div>
         ))}
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <div className="lg:col-span-3 space-y-6">
-          <Skeleton className="h-44 w-full rounded-2xl bg-gradient-to-r from-slate-800/60 via-slate-700/60 to-slate-800/60 bg-[length:200%_100%] animate-[shimmer_2s_infinite]" />
-          <Skeleton className="h-96 w-full rounded-2xl bg-gradient-to-r from-slate-800/60 via-slate-700/60 to-slate-800/60 bg-[length:200%_100%] animate-[shimmer_2s_infinite]" />
-          <Skeleton className="h-64 w-full rounded-2xl bg-gradient-to-r from-slate-800/60 via-slate-700/60 to-slate-800/60 bg-[length:200%_100%] animate-[shimmer_2s_infinite]" />
+          <Skeleton className="h-44 w-full rounded-2xl bg-slate-800/60" />
+          <Skeleton className="h-96 w-full rounded-2xl bg-slate-800/60" />
+          <Skeleton className="h-64 w-full rounded-2xl bg-slate-800/60" />
         </div>
         <div className="lg:col-span-2 space-y-6">
-          <Skeleton className="h-80 w-full rounded-2xl bg-gradient-to-r from-slate-800/60 via-slate-700/60 to-slate-800/60 bg-[length:200%_100%] animate-[shimmer_2s_infinite]" />
-          <Skeleton className="h-80 w-full rounded-2xl bg-gradient-to-r from-slate-800/60 via-slate-700/60 to-slate-800/60 bg-[length:200%_100%] animate-[shimmer_2s_infinite]" />
+          <Skeleton className="h-80 w-full rounded-2xl bg-slate-800/60" />
+          <Skeleton className="h-[22rem] w-full rounded-2xl bg-slate-800/60" />
         </div>
       </div>
       
