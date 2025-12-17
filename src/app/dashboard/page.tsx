@@ -124,7 +124,7 @@ export default function DashboardPage() {
 
   const trends = useMemo(() => {
     const pct = (current: number, prev: number) => {
-      if (!prev || prev === 0) return 0;
+      if (!prev || prev === 0) return current > 0 ? 100 : 0;
       return ((current - prev) / prev) * 100;
     };
     const savingsRate = totalIncome > 0 ? (balance / totalIncome) * 100 : 0;
@@ -197,7 +197,7 @@ export default function DashboardPage() {
           onAddGoal={() => handleOpenSheet('goal')}
         />
         
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <KpiCard
             title="Receitas do mês"
             value={formatCurrency(totalIncome)}
@@ -214,7 +214,7 @@ export default function DashboardPage() {
             index={1}
           />
           <KpiCard
-            title="Saldo do mês"
+            title="Balanço do mês"
             value={formatCurrency(balance)}
             icon={PiggyBank}
             trend={trends.balanceTrend}
@@ -232,6 +232,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           <div className="lg:col-span-3 space-y-6">
             <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
+            <FinancialInsightsCard financialData={financialDataForAI} />
             <IncomeExpenseChart transactions={allTransactions} />
             <FinancialHealthScore
               income={totalIncome}
@@ -242,7 +243,6 @@ export default function DashboardPage() {
             />
           </div>
            <div className="lg:col-span-2 space-y-6">
-            <FinancialInsightsCard financialData={financialDataForAI} />
             <ExpenseCategoryChart transactions={expenseData || []} />
             <RecentTransactionsList 
               transactions={allTransactions} 
@@ -280,15 +280,15 @@ function DashboardSkeleton() {
         <Skeleton className="h-10 w-36 rounded-full bg-slate-800/60" />
       </motion.div>
       
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
           <motion.div
             key={i}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
+            transition={{ delay: i * 0.05 }}
           >
-            <Skeleton className="h-24 w-full rounded-2xl bg-slate-800/60" />
+            <Skeleton className="h-32 w-full rounded-2xl bg-slate-800/60" />
           </motion.div>
         ))}
       </div>
@@ -296,17 +296,17 @@ function DashboardSkeleton() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <div className="lg:col-span-3 space-y-6">
           <Skeleton className="h-44 w-full rounded-2xl bg-slate-800/60" />
+          <Skeleton className="h-64 w-full rounded-2xl bg-slate-800/60" />
           <Skeleton className="h-96 w-full rounded-2xl bg-slate-800/60" />
           <Skeleton className="h-64 w-full rounded-2xl bg-slate-800/60" />
         </div>
         <div className="lg:col-span-2 space-y-6">
-          <Skeleton className="h-64 w-full rounded-2xl bg-slate-800/60" />
-          <Skeleton className="h-80 w-full rounded-2xl bg-slate-800/60" />
           <Skeleton className="h-[22rem] w-full rounded-2xl bg-slate-800/60" />
+          <Skeleton className="h-[26rem] w-full rounded-2xl bg-slate-800/60" />
         </div>
       </div>
        <div className="space-y-6">
-            <Skeleton className="h-48 w-full rounded-2xl bg-slate-800/60" />
+          <Skeleton className="h-48 w-full rounded-2xl bg-slate-800/60" />
        </div>
     </div>
   )

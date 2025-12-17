@@ -1,3 +1,4 @@
+
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { type ElementType } from "react";
 import { ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
@@ -34,7 +35,7 @@ export function KpiCard({ title, value, icon: Icon, description, trend, invertTr
       transition={{ duration: 0.3, delay: index * 0.05 }}
     >
       <Card className="rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)] transition-all duration-300 hover:shadow-xl hover:border-slate-800/60 hover:scale-[1.02] h-full group cursor-default">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-0">
           <CardTitle className="text-sm font-medium text-slate-400 group-hover:text-slate-300 transition-colors">{title}</CardTitle>
           <motion.div
             whileHover={{ rotate: [0, -10, 10, -10, 0] }}
@@ -43,7 +44,7 @@ export function KpiCard({ title, value, icon: Icon, description, trend, invertTr
             <Icon className="h-4 w-4 text-slate-400 group-hover:text-primary transition-colors" />
           </motion.div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <motion.div 
             className="text-2xl font-bold text-slate-100"
             initial={{ scale: 0.9 }}
