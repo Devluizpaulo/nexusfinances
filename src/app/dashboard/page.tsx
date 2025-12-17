@@ -144,9 +144,10 @@ export default function DashboardPage() {
         <DashboardHeader onAddIncome={() => handleOpenSheet('income')} onAddExpense={() => handleOpenSheet('expense')} onAddDebt={() => handleOpenSheet('debt')} onAddGoal={() => handleOpenSheet('goal')} />
         
         <Tabs defaultValue="overview">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
             <TabsTrigger value="analysis">Análise Detalhada</TabsTrigger>
+            <TabsTrigger value="calendar">Calendário</TabsTrigger>
             <TabsTrigger value="journey">Jornada Financeira</TabsTrigger>
           </TabsList>
 
@@ -166,7 +167,7 @@ export default function DashboardPage() {
                     <FinancialHealthScore income={totalIncome} expenses={totalExpenses} debts={debtData || []} goals={goalData || []} transactions={allTransactions}/>
                 </div>
                 <div className="lg:col-span-2 space-y-6">
-                    <ExpenseCalendar expenses={expenseData || []}/>
+                    <RecentTransactionsList transactions={allTransactions} onAddTransaction={() => handleOpenSheet('expense')} />
                 </div>
             </div>
             <OverdueDebtsCard debts={debtData || []} />
@@ -177,7 +178,10 @@ export default function DashboardPage() {
                 <IncomeExpenseChart transactions={allTransactions} />
                 <ExpenseCategoryChart transactions={expenseData || []} />
              </div>
-             <RecentTransactionsList transactions={allTransactions} onAddTransaction={() => handleOpenSheet('expense')} />
+          </TabsContent>
+
+           <TabsContent value="calendar" className="mt-6">
+              <ExpenseCalendar expenses={expenseData || []}/>
           </TabsContent>
           
            <TabsContent value="journey" className="mt-6">
