@@ -123,7 +123,7 @@ export default function AdminDashboardPage() {
 
       {activeSection === 'overview' && (
         <section className="space-y-4 animate-in fade-in-50">
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-1">
             <KpiCard
               title="Total de Usuários"
               value={formatNumber(totalUsers)}
