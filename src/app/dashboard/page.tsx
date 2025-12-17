@@ -251,8 +251,10 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <OverdueDebtsCard debts={debtData || []} />
-        <ExpenseCalendar expenses={expenseData || []} />
+        <div className="space-y-6">
+            <OverdueDebtsCard debts={debtData || []} />
+            <ExpenseCalendar expenses={expenseData || []} />
+        </div>
       </motion.div>
     </>
   );
@@ -302,7 +304,10 @@ function DashboardSkeleton() {
           <Skeleton className="h-[22rem] w-full rounded-2xl bg-slate-800/60" />
         </div>
       </div>
-      
+       <div className="space-y-6">
+            <Skeleton className="h-48 w-full rounded-2xl bg-slate-800/60" />
+            <Skeleton className="h-[450px] w-full rounded-2xl bg-slate-800/60" />
+       </div>
     </div>
   )
 }
