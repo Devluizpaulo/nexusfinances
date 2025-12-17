@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   Card,
   CardContent,
@@ -58,7 +59,7 @@ interface DebtCardProps {
   selectedDueDate?: string;
 }
 
-export function DebtCard({ debt, selectedDueDate }: DebtCardProps) {
+function DebtCardComponent({ debt, selectedDueDate }: DebtCardProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const firestore = useFirestore();
   const { user } = useUser();
@@ -203,7 +204,7 @@ export function DebtCard({ debt, selectedDueDate }: DebtCardProps) {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Card className={cn(isPaid ? 'border-green-300 bg-green-50/50' : '')}>
+      <Card className={cn("flex flex-col h-full", isPaid ? 'border-green-300 bg-green-50/50' : '')}>
         <CardHeader>
           <div className="flex items-start justify-between">
             <div>
@@ -219,7 +220,7 @@ export function DebtCard({ debt, selectedDueDate }: DebtCardProps) {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-grow">
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Pago</span>
@@ -306,3 +307,6 @@ export function DebtCard({ debt, selectedDueDate }: DebtCardProps) {
     </motion.div>
   );
 }
+
+
+export const DebtCard = memo(DebtCardComponent);

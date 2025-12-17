@@ -1,25 +1,14 @@
 
-
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { collection, setDoc, updateDoc, getDocs, query, where, doc, deleteDoc, orderBy } from 'firebase/firestore';
+import { collection, query, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Transaction } from '@/lib/types';
-import { Loader2, Briefcase, PlusCircle, TrendingUp, TrendingDown, Edit, Star, Trash2, MoreVertical, Upload, PenSquare, List, Calendar, DollarSign } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Loader2, PlusCircle, Upload, List, Calendar, DollarSign, PenSquare } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { AddFreelancerSheet } from './add-freelancer-sheet';
-import { incomeCategories } from '@/lib/types';
-import { KpiCard } from '@/components/dashboard/kpi-card';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Badge } from '@/components/ui/badge';
 import { ImportPayslipSheet } from '@/components/income/import-payslip-sheet';
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/lib/utils';
@@ -75,17 +64,17 @@ export default function FreelancerPage() {
     };
   }, [freelancerIncomes]);
 
-  const handleOpenSheet = (transaction: Transaction | null = null) => {
+  const handleOpenSheet = useCallback((transaction: Transaction | null = null) => {
     setEditingTransaction(transaction);
     setIsAddSheetOpen(true);
-  };
+  }, []);
 
-  const handleCloseSheet = () => {
+  const handleCloseSheet = useCallback(() => {
     setEditingTransaction(null);
     setIsAddSheetOpen(false);
-  };
+  }, []);
 
-   const handleStatusChange = async (transaction: Transaction) => {
+   const handleStatusChange = useCallback(async (transaction: Transaction) => {
     if (!user || transaction.status === 'paid') return;
     const docRef = doc(firestore, `users/${user.uid}/incomes`, transaction.id);
     try {
@@ -102,7 +91,7 @@ export default function FreelancerPage() {
             description: "Não foi possível marcar a transação como recebida."
         });
     }
-  }
+  }, [user, firestore, toast]);
 
   const columns = useFreelancerColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange });
   const isLoading = isUserLoading || isIncomesLoading;

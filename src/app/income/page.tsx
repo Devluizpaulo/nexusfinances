@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { collection, query, orderBy, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { DataTable } from '@/components/data-table/data-table';
@@ -104,17 +104,17 @@ export default function IncomePage() {
   }, [filteredIncomeData]);
 
 
-  const handleOpenSheet = (transaction: Transaction | null = null) => {
+  const handleOpenSheet = useCallback((transaction: Transaction | null = null) => {
     setEditingTransaction(transaction);
     setIsSheetOpen(true);
-  };
+  }, []);
 
-  const handleCloseSheet = () => {
+  const handleCloseSheet = useCallback(() => {
     setIsSheetOpen(false);
     setEditingTransaction(null);
-  };
+  }, []);
 
-  const handleStatusChange = async (transaction: Transaction) => {
+  const handleStatusChange = useCallback(async (transaction: Transaction) => {
     if (!user || transaction.status === 'paid') return;
     const docRef = doc(firestore, `users/${user.uid}/incomes`, transaction.id);
     try {
@@ -131,7 +131,7 @@ export default function IncomePage() {
         description: "Não foi possível marcar a transação como recebida."
       });
     }
-  }
+  }, [user, firestore, toast]);
 
   const columns = useIncomeColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange });
   const isLoading = isUserLoading || isIncomeLoading;

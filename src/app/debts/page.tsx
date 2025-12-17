@@ -1,9 +1,10 @@
+
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Loader2, Banknote } from 'lucide-react';
-import { collection, query } from 'firebase/firestore';
+import { collection, query, orderBy } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Debt } from '@/lib/types';
 import { DebtCard } from '@/components/debts/debt-card';
@@ -16,15 +17,24 @@ function DebtsContent() {
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
   const searchParams = useSearchParams();
-  const selectedDueDate = searchParams.get('dueDate');
+  
+  const selectedDueDate = useMemo(() => searchParams.get('dueDate'), [searchParams]);
 
   const debtsQuery = useMemoFirebase(() => {
     if (!user) return null;
-    return query(collection(firestore, `users/${user.uid}/debts`));
+    return query(collection(firestore, `users/${user.uid}/debts`), orderBy('totalAmount', 'desc'));
   }, [firestore, user]);
 
   const { data: debtData, isLoading: isDebtsLoading } = useCollection<Debt>(debtsQuery);
   
+  const handleOpenSheet = useCallback(() => {
+    setIsSheetOpen(true);
+  }, []);
+
+  const handleCloseSheet = useCallback(() => {
+    setIsSheetOpen(false);
+  }, []);
+
   const isLoading = isUserLoading || isDebtsLoading;
 
   if (isLoading) {
@@ -37,12 +47,12 @@ function DebtsContent() {
 
   return (
     <>
-      <AddDebtSheet isOpen={isSheetOpen} onClose={() => setIsSheetOpen(false)} />
+      <AddDebtSheet isOpen={isSheetOpen} onClose={handleCloseSheet} />
       <PageHeader
         title="Dívidas e Parcelamentos"
         description="Organize seus financiamentos, empréstimos e compras parceladas em um só lugar."
       >
-        <Button onClick={() => setIsSheetOpen(true)} disabled={!user} className="bg-rose-500/20 border-rose-500/30 text-rose-300 hover:bg-rose-500/30 hover:border-rose-500/50">
+        <Button onClick={handleOpenSheet} disabled={!user} className="bg-rose-500/20 border-rose-500/30 text-rose-300 hover:bg-rose-500/30 hover:border-rose-500/50">
           <PlusCircle className="mr-2 h-4 w-4" />
           Adicionar Dívida
         </Button>
@@ -60,7 +70,7 @@ function DebtsContent() {
           <p className="mt-2 max-w-sm text-sm text-slate-400">
             Adicione suas dívidas, financiamentos e parcelamentos aqui para ter um controle centralizado e nunca mais perder um vencimento.
           </p>
-          <Button className="mt-6 bg-rose-500/20 border-rose-500/30 text-rose-300 hover:bg-rose-500/30 hover:border-rose-500/50" onClick={() => setIsSheetOpen(true)}>
+          <Button className="mt-6 bg-rose-500/20 border-rose-500/30 text-rose-300 hover:bg-rose-500/30 hover:border-rose-500/50" onClick={handleOpenSheet}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Adicionar Primeira Dívida
           </Button>

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { collection, query, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { DataTable } from '@/components/data-table/data-table';
@@ -104,17 +104,17 @@ export default function ExpensesPage() {
   }, [filteredExpenseData]);
 
 
-  const handleOpenSheet = (transaction: Transaction | null = null) => {
+  const handleOpenSheet = useCallback((transaction: Transaction | null = null) => {
     setEditingTransaction(transaction);
     setIsAddSheetOpen(true);
-  };
+  }, []);
 
-  const handleCloseSheet = () => {
+  const handleCloseSheet = useCallback(() => {
     setIsAddSheetOpen(false);
     setEditingTransaction(null);
-  };
+  }, []);
 
-  const handleStatusChange = async (transaction: Transaction) => {
+  const handleStatusChange = useCallback(async (transaction: Transaction) => {
     if (!user || transaction.status === 'paid') return;
     const docRef = doc(firestore, `users/${user.uid}/expenses`, transaction.id);
     try {
@@ -131,7 +131,7 @@ export default function ExpensesPage() {
         description: "Não foi possível marcar a despesa como paga."
       });
     }
-  }
+  }, [user, firestore, toast]);
   
   const columns = useExpenseColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange });
   

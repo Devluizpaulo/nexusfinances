@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, memo, useCallback } from 'react';
+import React, { useState, useMemo, memo, useCallback } from 'react';
 import {
   Card,
   CardContent,
@@ -97,7 +97,7 @@ function RentalContractCardComponent({ contract, onEdit }: RentalContractCardPro
     return '';
   }, [contractStatus]);
 
-  const handleDeleteContract = async () => {
+  const handleDeleteContract = useCallback(async () => {
     if (!user || !firestore) return;
     try {
       const batch = writeBatch(firestore);
@@ -128,7 +128,7 @@ function RentalContractCardComponent({ contract, onEdit }: RentalContractCardPro
     } finally {
         setIsDeleteDialogOpen(false);
     }
-  };
+  }, [user, firestore, contract, toast]);
 
   return (
     <>
