@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, orderBy } from 'firebase/firestore';
 import type { Transaction, Debt, Goal } from '@/lib/types';
@@ -149,13 +149,13 @@ export default function DashboardPage() {
   }), [user, incomeData, expenseData, debtData, goalData]);
 
 
-  const handleOpenSheet = (type: 'income' | 'expense' | 'debt' | 'goal' | 'budget') => {
+  const handleOpenSheet = useCallback((type: 'income' | 'expense' | 'debt' | 'goal' | 'budget') => {
     setSheetType(type);
-  };
+  }, []);
   
-  const handleCloseSheet = () => {
+  const handleCloseSheet = useCallback(() => {
     setSheetType(null);
-  };
+  }, []);
 
   const isLoading = isUserLoading || isIncomeLoading || isExpensesLoading || isDebtsLoading || isGoalsLoading;
 
@@ -229,13 +229,10 @@ export default function DashboardPage() {
           />
         </div>
         
-        <div className="space-y-6">
-          <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
-          
-          <OverdueDebtsCard debts={debtData || []} />
-
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-            <div className="lg:col-span-3 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          <div className="lg:col-span-3 space-y-6">
+             <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
+              <OverdueDebtsCard debts={debtData || []} />
               <IncomeExpenseChart transactions={allTransactions} />
               <FinancialHealthScore
                 income={totalIncome}
@@ -245,21 +242,18 @@ export default function DashboardPage() {
                 transactions={allTransactions}
               />
               <FinancialInsightsCard financialData={financialDataForAI} />
-            </div>
-            <div className="lg:col-span-2 space-y-6">
-              <ExpenseCategoryChart transactions={expenseData || []} />
-              <RecentTransactionsList 
-                transactions={allTransactions} 
-                onAddTransaction={() => handleOpenSheet('expense')}
-              />
-            </div>
           </div>
-          
-          <div>
+           <div className="lg:col-span-2 space-y-6">
+            <ExpenseCategoryChart transactions={expenseData || []} />
+            <RecentTransactionsList 
+              transactions={allTransactions} 
+              onAddTransaction={() => handleOpenSheet('expense')}
+            />
+          </div>
+           <div className="lg:col-span-5">
             <ExpenseCalendar expenses={expenseData || []} />
           </div>
         </div>
-
       </motion.div>
     </>
   );
@@ -298,16 +292,9 @@ function DashboardSkeleton() {
         ))}
       </div>
       
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
-      >
-        <Skeleton className="h-44 w-full rounded-2xl bg-gradient-to-r from-slate-800/60 via-slate-700/60 to-slate-800/60 bg-[length:200%_100%] animate-[shimmer_2s_infinite]" />
-      </motion.div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <div className="lg:col-span-3 space-y-6">
+          <Skeleton className="h-44 w-full rounded-2xl bg-gradient-to-r from-slate-800/60 via-slate-700/60 to-slate-800/60 bg-[length:200%_100%] animate-[shimmer_2s_infinite]" />
           <Skeleton className="h-96 w-full rounded-2xl bg-gradient-to-r from-slate-800/60 via-slate-700/60 to-slate-800/60 bg-[length:200%_100%] animate-[shimmer_2s_infinite]" />
           <Skeleton className="h-64 w-full rounded-2xl bg-gradient-to-r from-slate-800/60 via-slate-700/60 to-slate-800/60 bg-[length:200%_100%] animate-[shimmer_2s_infinite]" />
         </div>

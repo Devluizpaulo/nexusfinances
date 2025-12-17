@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { useMemo } from "react";
 
 interface RecentTransactionsListProps {
     transactions: Transaction[];
@@ -18,7 +19,7 @@ interface RecentTransactionsListProps {
 
 export function RecentTransactionsList({ transactions, onAddTransaction }: RecentTransactionsListProps) {
     const router = useRouter();
-    const recent = transactions.slice(0, 5);
+    const recent = useMemo(() => transactions.slice(0, 5), [transactions]);
 
     const handleAddClick = () => {
         if (onAddTransaction) {
@@ -29,7 +30,7 @@ export function RecentTransactionsList({ transactions, onAddTransaction }: Recen
     };
 
     return (
-        <Card className="h-full rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)] hover:shadow-xl transition-all duration-300 hover:border-slate-800/60 group">
+        <Card className="h-full rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)] hover:shadow-xl transition-all duration-300 hover:border-slate-800/60 group cursor-default">
             <CardHeader className="p-0">
                 <CardTitle className="text-base text-slate-200 group-hover:text-slate-100 transition-colors">Últimos Lançamentos</CardTitle>
                 <CardDescription className="mt-1 text-xs">Suas movimentações mais recentes.</CardDescription>
@@ -76,7 +77,7 @@ export function RecentTransactionsList({ transactions, onAddTransaction }: Recen
                                         <motion.p 
                                             className={cn(
                                                 "font-semibold text-sm ml-2 shrink-0",
-                                                isIncome ? 'text-emerald-400' : 'text-red-400'
+                                                isIncome ? 'text-emerald-400' : 'text-rose-400'
                                             )}
                                             initial={{ opacity: 0 }}
                                             animate={{ opacity: 1 }}

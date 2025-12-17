@@ -14,6 +14,7 @@ import { Loader2, Sparkles, Lightbulb, CheckCircle2, Circle, Target } from 'luci
 import { useToast } from '@/hooks/use-toast';
 import { getFinancialInsights, type GetFinancialInsightsInput, type GetFinancialInsightsOutput } from '@/ai/flows/financial-insights-flow';
 import { useUser } from '@/firebase';
+import { useCallback } from 'react';
 
 interface FinancialInsightsCardProps {
   financialData: GetFinancialInsightsInput;
@@ -25,7 +26,7 @@ export function FinancialInsightsCard({ financialData }: FinancialInsightsCardPr
   const { toast } = useToast();
   const { user } = useUser();
 
-  const handleGenerateAnalysis = async () => {
+  const handleGenerateAnalysis = useCallback(async () => {
     setIsLoading(true);
     setAnalysis(null);
     try {
@@ -47,7 +48,7 @@ export function FinancialInsightsCard({ financialData }: FinancialInsightsCardPr
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [financialData, user?.firstName, toast]);
 
   return (
     <Card className="flex flex-col h-full rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">

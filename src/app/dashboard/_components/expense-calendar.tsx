@@ -30,7 +30,7 @@ interface DayData {
   pending: { total: number; count: number; categories: Record<string, number> };
 }
 
-function DayComponent({ date, displayMonth }: DayProps) {
+function DayComponent({ date }: DayProps) {
     const { selectedDate } = useDashboardDate();
     const router = useRouter();
 
@@ -201,7 +201,7 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
             className="w-full"
             classNames={{
               table: 'w-full border-separate space-y-1',
-              head_cell: 'w-full text-xs text-muted-foreground font-medium',
+              head_cell: 'text-xs text-muted-foreground font-medium',
               row: 'flex mt-1',
               cell: 'flex-1 p-0 m-px h-12',
             }}
