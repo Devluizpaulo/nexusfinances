@@ -26,42 +26,47 @@ import { useState, useCallback } from "react"
 import { doc, updateDoc, deleteDoc } from "firebase/firestore"
 import { useFirestore, useUser } from "@/firebase"
 import { useToast } from "@/hooks/use-toast"
-import { useRouter } from "next/navigation"
 import type { Transaction } from "@/lib/types"
 
-interface DataTableRowActionsProps {
-  row: Row<Transaction>
-  onEdit: (transaction: Transaction) => void;
+interface TransactionActionsProps<TData> {
+  row: Row<TData>
+  transactionType: "income" | "expense"
+  onEdit: (transaction: TData) => void;
 }
 
-export function DataTableRowActions({ row, onEdit }: DataTableRowActionsProps) {
+const TransactionActionsComponent = <TData,>({
+  row,
+  transactionType,
+  onEdit,
+}: TransactionActionsProps<TData>) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false);
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
-  const router = useRouter();
 
-  const transaction = row.original;
-  const collectionName = 'expenses';
+  const transaction = row.original as Transaction;
+  
+  const collectionName = transactionType === 'income' ? 'incomes' : 'expenses';
+  const collectionPath = `users/${user?.uid}/${collectionName}`;
 
   const handleUpdateStatus = useCallback(async () => {
     if (!user) {
       toast({ variant: "destructive", title: "Erro", description: "Você não está autenticado." });
       return;
     }
-    const docRef = doc(firestore, `users/${user.uid}/${collectionName}`, transaction.id);
+    const docRef = doc(firestore, collectionPath, transaction.id);
     try {
         await updateDoc(docRef, { status: "paid" });
         toast({
           title: "Transação atualizada!",
-          description: `A transação "${transaction.description}" foi marcada como paga.`,
+          description: `A transação "${transaction.description}" foi marcada como ${transactionType === 'income' ? 'recebida' : 'paga'}.`,
         });
     } catch (e) {
-        console.error("Error updating transaction status:", e);
-        toast({ variant: "destructive", title: "Erro ao atualizar", description: "Não foi possível marcar a despesa como paga." });
+        console.error("Error updating status:", e);
+        toast({ variant: 'destructive', title: 'Erro ao atualizar', description: 'Não foi possível atualizar o status da transação.' });
     }
-  }, [user, firestore, collectionName, transaction.id, transaction.description, toast]);
+  }, [user, firestore, collectionPath, transaction.id, transaction.description, transactionType, toast]);
 
   const handleDelete = useCallback(async () => {
     if (!user) {
@@ -70,7 +75,7 @@ export function DataTableRowActions({ row, onEdit }: DataTableRowActionsProps) {
     }
 
     setIsDeleting(true);
-    const docRef = doc(firestore, `users/${user.uid}/${collectionName}`, transaction.id);
+    const docRef = doc(firestore, collectionPath, transaction.id);
     try {
         await deleteDoc(docRef);
         toast({
@@ -78,24 +83,19 @@ export function DataTableRowActions({ row, onEdit }: DataTableRowActionsProps) {
             description: `A transação "${transaction.description}" foi removida.`,
         });
     } catch (error) {
-        console.error("Error deleting transaction:", error);
-        toast({
-            variant: "destructive",
-            title: "Erro ao excluir",
-            description: "Não foi possível remover a transação.",
-        });
+         toast({ variant: "destructive", title: "Erro ao excluir", description: "Não foi possível remover a transação." });
     } finally {
         setIsDeleting(false);
         setIsDeleteDialogOpen(false);
     }
-  }, [user, firestore, collectionName, transaction.id, transaction.description, toast]);
+  }, [user, firestore, collectionPath, transaction.id, transaction.description, toast]);
 
   return (
     <>
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Tem certeza que deseja excluir?</AlertDialogTitle>
+            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
             <AlertDialogDescription>
               Esta ação não pode ser desfeita. Isso excluirá permanentemente a transação
               e removerá os dados de nossos servidores.
@@ -103,11 +103,7 @@ export function DataTableRowActions({ row, onEdit }: DataTableRowActionsProps) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete} 
-              className="bg-destructive hover:bg-destructive/90"
-              disabled={isDeleting}
-            >
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90" disabled={isDeleting}>
               {isDeleting ? "Excluindo..." : "Excluir"}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -129,7 +125,7 @@ export function DataTableRowActions({ row, onEdit }: DataTableRowActionsProps) {
             <>
               <DropdownMenuItem onClick={handleUpdateStatus}>
                 <CheckCircle className="mr-2 h-3.5 w-3.5" />
-                Marcar como Paga
+                Marcar como {transactionType === 'income' ? 'Recebida' : 'Paga'}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
             </>
@@ -148,3 +144,5 @@ export function DataTableRowActions({ row, onEdit }: DataTableRowActionsProps) {
     </>
   )
 }
+
+export const TransactionActions = React.memo(TransactionActionsComponent) as typeof TransactionActionsComponent;

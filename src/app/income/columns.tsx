@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { format, parseISO } from "date-fns"
 import { ptBR } from 'date-fns/locale';
 import { Badge } from "@/components/ui/badge";
-import { DataTableRowActions } from "./actions"
+import { TransactionActions } from "@/components/transactions/actions"
 import { StatusBadge } from "@/components/transactions/status-badge"
 
 type ColumnsProps = {
@@ -72,7 +72,7 @@ export const useIncomeColumns = ({ onEdit, onStatusChange }: ColumnsProps) => {
       },
       {
         id: "actions",
-        cell: ({ row }) => <DataTableRowActions row={row} onEdit={onEdit} transactionType="income" />,
+        cell: ({ row }) => <TransactionActions row={row} onEdit={onEdit} transactionType="income" />,
       },
     ], [onEdit, onStatusChange]);
 
