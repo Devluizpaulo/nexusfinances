@@ -72,17 +72,17 @@ export function ExpenseCategoryChart({ transactions }: { transactions: Transacti
 
 
   return (
-    <Card className="h-full rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
+    <Card className="h-full rounded-xl p-4 sm:p-5">
       <CardHeader className="p-0 flex flex-row items-center justify-between gap-3">
         <div>
-          <CardTitle className="text-base text-slate-200 flex items-center gap-2">
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-sky-500/10 text-sky-400">
+          <CardTitle className="text-base flex items-center gap-2">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-sky-500/10 text-sky-400">
               <PieChartIcon className="h-4 w-4" />
             </span>
-            Composição de Gastos
+            Saídas e Entradas
           </CardTitle>
           <CardDescription className="mt-1 text-xs">
-            Análise por categoria no período selecionado.
+            Composição de gastos no período.
           </CardDescription>
         </div>
       </CardHeader>
@@ -90,7 +90,7 @@ export function ExpenseCategoryChart({ transactions }: { transactions: Transacti
         {chartData.length > 0 ? (
             <ChartContainer
               config={chartConfig}
-              className="mx-auto h-[320px] max-h-[360px] w-full"
+              className="mx-auto h-[280px] max-h-[320px] w-full"
             >
               <PieChart>
                 <ChartTooltip
@@ -129,7 +129,7 @@ export function ExpenseCategoryChart({ transactions }: { transactions: Transacti
               </PieChart>
             </ChartContainer>
         ) : (
-          <div className="flex h-[350px] w-full items-center justify-center text-muted-foreground">
+          <div className="flex h-[310px] w-full items-center justify-center text-muted-foreground">
             Nenhuma despesa para exibir.
           </div>
         )}

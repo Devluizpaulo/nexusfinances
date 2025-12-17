@@ -72,7 +72,7 @@ const DayComponent = memo(function DayComponent({ date, displayMonth }: DayProps
         className={cn(
           'relative flex h-full w-full flex-col items-center justify-center rounded-md p-1 transition-all duration-150',
           !isSameMonth(date, displayMonth) && 'text-slate-600',
-          (hasPaid || hasPending) && isSameMonth(date, displayMonth) && 'cursor-pointer hover:bg-slate-800',
+          (hasPaid || hasPending) && isSameMonth(date, displayMonth) && 'cursor-pointer hover:bg-accent',
           isToday(date) && 'bg-primary/10 text-primary ring-1 ring-primary/80',
         )}
       >
@@ -153,17 +153,17 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
 
 
   return (
-    <Card className="h-full rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
-      <CardHeader className="p-0">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+    <Card className="h-full rounded-xl">
+      <CardHeader className="p-4">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
           <div>
-            <CardTitle className="text-base text-slate-200">Calendário de Despesas</CardTitle>
+            <CardTitle className="text-base">Calendário de Despesas</CardTitle>
             <CardDescription className="mt-1 text-xs">
               Visualize seus gastos previstos e consolidados.
             </CardDescription>
           </div>
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-full sm:w-[140px] h-8 text-xs border-slate-800/80 bg-slate-950/70 hover:border-slate-700/80">
+            <SelectTrigger className="w-full sm:w-[140px] h-8 text-xs">
               <SelectValue placeholder="Categoria" />
             </SelectTrigger>
             <SelectContent>
@@ -176,7 +176,7 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
             </SelectContent>
           </Select>
         </div>
-        <div className="mt-4 p-3 bg-slate-900/80 rounded-lg space-y-2">
+        <div className="mt-4 p-3 bg-muted rounded-lg space-y-2">
             <div className="flex items-center justify-between text-sm">
                 <span className="font-medium text-slate-300">Total de despesas no mês:</span>
                 <span className="font-bold text-rose-300">{formatCurrency(monthlySummary.paid + monthlySummary.pending)}</span>
@@ -193,12 +193,12 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
             </div>
         </div>
       </CardHeader>
-      <CardContent className="p-0 mt-4">
+      <CardContent className="p-0">
         <Calendar
             month={selectedDate}
             onMonthChange={setSelectedDate}
             components={{ Day: DayComponent }}
-            className="w-full"
+            className="w-full p-4"
             classNames={{
               table: 'w-full border-separate space-y-1',
               head_cell: 'text-xs text-muted-foreground font-medium',

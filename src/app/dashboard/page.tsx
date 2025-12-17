@@ -66,24 +66,6 @@ export default function DashboardPage() {
     );
   }, [firestore, user, start, end]);
   
-  const incomesPrevMonthQuery = useMemoFirebase(() => {
-    if (!user) return null;
-    return query(
-      collection(firestore, `users/${user.uid}/incomes`),
-      where('date', '>=', format(prevStart, 'yyyy-MM-dd')),
-      where('date', '<=', format(prevEnd, 'yyyy-MM-dd'))
-    );
-  }, [firestore, user, prevStart, prevEnd]);
-
-  const expensesPrevMonthQuery = useMemoFirebase(() => {
-    if (!user) return null;
-    return query(
-      collection(firestore, `users/${user.uid}/expenses`),
-      where('date', '>=', format(prevStart, 'yyyy-MM-dd')),
-      where('date', '<=', format(prevEnd, 'yyyy-MM-dd'))
-    );
-  }, [firestore, user, prevStart, prevEnd]);
-  
   const debtsQuery = useMemoFirebase(() => {
     if (!user) return null;
     return query(collection(firestore, `users/${user.uid}/debts`));
@@ -97,8 +79,6 @@ export default function DashboardPage() {
   // Data fetching
   const { data: incomeData, isLoading: isIncomeLoading } = useCollection<Transaction>(incomesForPeriodQuery);
   const { data: expenseData, isLoading: isExpensesLoading } = useCollection<Transaction>(expensesForPeriodQuery);
-  const { data: incomePrevData } = useCollection<Transaction>(incomesPrevMonthQuery);
-  const { data: expensePrevData } = useCollection<Transaction>(expensesPrevMonthQuery);
   const { data: debtData, isLoading: isDebtsLoading } = useCollection<Debt>(debtsQuery);
   const { data: goalData, isLoading: isGoalsLoading } = useCollection<Goal>(goalsQuery);
 
@@ -112,41 +92,8 @@ export default function DashboardPage() {
     };
   }, [incomeData, expenseData]);
   
-  const { prevIncome, prevExpenses, prevBalance } = useMemo(() => {
-    const income = incomePrevData?.reduce((sum, t) => sum + t.amount, 0) || 0;
-    const expenses = expensePrevData?.reduce((sum, t) => sum + t.amount, 0) || 0;
-    return {
-      prevIncome: income,
-      prevExpenses: expenses,
-      prevBalance: income - expenses,
-    };
-  }, [incomePrevData, expensePrevData]);
-
-  const trends = useMemo(() => {
-    const pct = (current: number, prev: number) => {
-      if (!prev || prev === 0) return current > 0 ? 100 : 0;
-      return ((current - prev) / prev) * 100;
-    };
-    const savingsRate = totalIncome > 0 ? (balance / totalIncome) * 100 : 0;
-    const prevSavingsRate = prevIncome > 0 ? (prevBalance / prevIncome) * 100 : 0;
-    return {
-      incomeTrend: pct(totalIncome, prevIncome),
-      expenseTrend: pct(totalExpenses, prevExpenses),
-      balanceTrend: pct(balance, prevBalance),
-      savingsRate,
-      savingsRateTrend: savingsRate - prevSavingsRate,
-    };
-  }, [totalIncome, prevIncome, totalExpenses, prevExpenses, balance, prevBalance]);
-  
   const allTransactions = useMemo(() => [...(incomeData || []), ...(expenseData || [])].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()), [incomeData, expenseData]);
-
-  const financialDataForAI = useMemo(() => ({
-    userName: user?.firstName || '',
-    incomes: incomeData || [],
-    expenses: expenseData || [],
-    debts: debtData || [],
-    goals: goalData || [],
-  }), [user, incomeData, expenseData, debtData, goalData]);
+  const pendingIncomes = useMemo(() => (incomeData || []).filter(t => t.status === 'pending'), [incomeData]);
 
 
   const handleOpenSheet = useCallback((type: 'income' | 'expense' | 'debt' | 'goal' | 'budget') => {
@@ -197,64 +144,20 @@ export default function DashboardPage() {
           onAddGoal={() => handleOpenSheet('goal')}
         />
         
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <KpiCard
-            title="Receitas do mês"
-            value={formatCurrency(totalIncome)}
-            icon={TrendingUp}
-            trend={trends.incomeTrend}
-            index={0}
-          />
-          <KpiCard
-            title="Despesas do mês"
-            value={formatCurrency(totalExpenses)}
-            icon={TrendingDown}
-            trend={trends.expenseTrend}
-            invertTrendColor
-            index={1}
-          />
-          <KpiCard
-            title="Balanço do mês"
-            value={formatCurrency(balance)}
-            icon={PiggyBank}
-            trend={trends.balanceTrend}
-            index={2}
-          />
-          <KpiCard
-            title="Taxa de poupança"
-            value={`${trends.savingsRate.toFixed(1)}%`}
-            icon={Percent}
-            trend={trends.savingsRateTrend}
-            index={3}
-          />
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          <div className="lg:col-span-3 space-y-6">
-            <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
-            <FinancialInsightsCard financialData={financialDataForAI} />
-            <IncomeExpenseChart transactions={allTransactions} />
-            <FinancialHealthScore
-              income={totalIncome}
-              expenses={totalExpenses}
-              debts={debtData || []}
-              goals={goalData || []}
-              transactions={allTransactions}
-            />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="md:col-span-2 lg:col-span-1 space-y-6">
+             <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
+             <ExpenseCalendar expenses={expenseData || []} />
           </div>
-           <div className="lg:col-span-2 space-y-6">
+          <div className="md:col-span-2 lg:col-span-2 space-y-6">
+             <OverdueDebtsCard debts={debtData || []} />
+             <RecentTransactionsList title="Contas a Receber" transactions={pendingIncomes} />
+          </div>
+           <div className="md:col-span-2 lg:col-span-1 space-y-6">
             <ExpenseCategoryChart transactions={expenseData || []} />
-            <RecentTransactionsList 
-              transactions={allTransactions} 
-              onAddTransaction={() => handleOpenSheet('expense')}
-            />
           </div>
         </div>
 
-        <div className="space-y-6">
-            <OverdueDebtsCard debts={debtData || []} />
-            <ExpenseCalendar expenses={expenseData || []} />
-        </div>
       </motion.div>
     </>
   );
@@ -271,43 +174,28 @@ function DashboardSkeleton() {
         transition={{ duration: 0.3 }}
       >
         <div className="flex items-center gap-4">
-          <Skeleton className="h-12 w-12 rounded-full bg-slate-800/60" />
+          <Skeleton className="h-12 w-12 rounded-full" />
           <div className="space-y-2">
-            <Skeleton className="h-7 w-48 bg-slate-800/60" />
-            <Skeleton className="h-4 w-32 bg-slate-800/60" />
+            <Skeleton className="h-7 w-48" />
+            <Skeleton className="h-4 w-32" />
           </div>
         </div>
-        <Skeleton className="h-10 w-36 rounded-full bg-slate-800/60" />
+        <Skeleton className="h-10 w-36 rounded-full" />
       </motion.div>
       
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {[0, 1, 2, 3].map((i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
-          >
-            <Skeleton className="h-32 w-full rounded-2xl bg-slate-800/60" />
-          </motion.div>
-        ))}
-      </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        <div className="lg:col-span-3 space-y-6">
-          <Skeleton className="h-44 w-full rounded-2xl bg-slate-800/60" />
-          <Skeleton className="h-64 w-full rounded-2xl bg-slate-800/60" />
-          <Skeleton className="h-96 w-full rounded-2xl bg-slate-800/60" />
-          <Skeleton className="h-64 w-full rounded-2xl bg-slate-800/60" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="md:col-span-2 lg:col-span-1 space-y-6">
+             <Skeleton className="h-44 w-full rounded-xl" />
+             <Skeleton className="h-[400px] w-full rounded-xl" />
+          </div>
+          <div className="md:col-span-2 lg:col-span-2 space-y-6">
+             <Skeleton className="h-[250px] w-full rounded-xl" />
+             <Skeleton className="h-[350px] w-full rounded-xl" />
+          </div>
+           <div className="md:col-span-2 lg:col-span-1 space-y-6">
+            <Skeleton className="h-[400px] w-full rounded-xl" />
+          </div>
         </div>
-        <div className="lg:col-span-2 space-y-6">
-          <Skeleton className="h-[22rem] w-full rounded-2xl bg-slate-800/60" />
-          <Skeleton className="h-[26rem] w-full rounded-2xl bg-slate-800/60" />
-        </div>
-      </div>
-       <div className="space-y-6">
-          <Skeleton className="h-48 w-full rounded-2xl bg-slate-800/60" />
-       </div>
     </div>
   )
 }

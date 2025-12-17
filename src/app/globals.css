@@ -7,10 +7,10 @@
     --background: 222 84% 4.9%; /* slate-950 */
     --foreground: 210 40% 98%; /* slate-100 */
 
-    --card: 215 28% 17%; /* slate-800 */
+    --card: 222 47.4% 11.2%; /* slate-900 */
     --card-foreground: 210 40% 98%; /* slate-100 */
 
-    --popover: 215 28% 17%; /* slate-800 */
+    --popover: 222 47.4% 11.2%; /* slate-900 */
     --popover-foreground: 210 40% 98%; /* slate-100 */
 
     --primary: 217 91% 60%;
@@ -19,7 +19,7 @@
     --secondary: 215 28% 17%; /* slate-800 */
     --secondary-foreground: 210 40% 98%; /* slate-100 */
 
-    --muted: 222 84% 4.9%; /* slate-950 */
+    --muted: 222 47.4% 11.2%; /* slate-900 */
     --muted-foreground: 217.9 10.6% 64.9%; /* slate-400 */
 
     --accent: 215 28% 17%; /* slate-800 */
