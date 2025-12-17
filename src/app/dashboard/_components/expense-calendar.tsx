@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import { useMemo, useCallback, useState, memo } from 'react';
+import { useMemo, useCallback, useState, memo, createContext, useContext } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { format, isSameDay, isSameMonth, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -30,28 +30,13 @@ interface DayData {
   pending: { total: number; count: number; categories: Record<string, number> };
 }
 
+// 1. Criar o Contexto
+const ExpenseCalendarContext = createContext<Record<string, DayData>>({});
+
 const DayComponent = memo(function DayComponent({ date, displayMonth }: DayProps) {
     const router = useRouter();
-
-    const expensesByDay = useMemo(() => {
-        const expenses: Transaction[] = (window as any).__expenseCalendarData || [];
-        return expenses.reduce((acc, expense) => {
-            const day = format(new Date(expense.date), 'yyyy-MM-dd');
-            if (!acc[day]) {
-                acc[day] = {
-                    paid: { total: 0, count: 0, categories: {} },
-                    pending: { total: 0, count: 0, categories: {} }
-                };
-            }
-
-            const type = expense.status === 'paid' ? 'paid' : 'pending';
-            acc[day][type].total += expense.amount;
-            acc[day][type].count += 1;
-            acc[day][type].categories[expense.category] = (acc[day][type].categories[expense.category] || 0) + expense.amount;
-
-            return acc;
-        }, {} as Record<string, DayData>);
-    }, [displayMonth]);
+    // 2. Consumir o Contexto em vez da `window`
+    const expensesByDay = useContext(ExpenseCalendarContext);
 
     const handleDayClick = useCallback((day: Date) => {
         const formattedDate = format(day, 'yyyy-MM-dd');
@@ -136,9 +121,25 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
     return expenses.filter(expense => expense.category === selectedCategory);
   }, [expenses, selectedCategory]);
 
-  if (typeof window !== 'undefined') {
-    (window as any).__expenseCalendarData = filteredExpenses;
-  }
+  // 3. Preparar os dados para o Contexto
+  const expensesByDay = useMemo(() => {
+    return filteredExpenses.reduce((acc, expense) => {
+        const day = format(new Date(expense.date), 'yyyy-MM-dd');
+        if (!acc[day]) {
+            acc[day] = {
+                paid: { total: 0, count: 0, categories: {} },
+                pending: { total: 0, count: 0, categories: {} }
+            };
+        }
+
+        const type = expense.status === 'paid' ? 'paid' : 'pending';
+        acc[day][type].total += expense.amount;
+        acc[day][type].count += 1;
+        acc[day][type].categories[expense.category] = (acc[day][type].categories[expense.category] || 0) + expense.amount;
+
+        return acc;
+    }, {} as Record<string, DayData>);
+  }, [filteredExpenses]);
   
   const monthlySummary = useMemo(() => {
     const monthExpenses = expenses.filter(expense => 
@@ -194,18 +195,21 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <Calendar
-            month={selectedDate}
-            onMonthChange={setSelectedDate}
-            components={{ Day: DayComponent }}
-            className="w-full p-4"
-            classNames={{
-              table: 'w-full border-separate space-y-1',
-              head_cell: 'text-xs text-muted-foreground font-medium',
-              row: 'flex mt-1',
-              cell: 'flex-1 p-0 m-px h-12',
-            }}
-        />
+        {/* 4. Envolver o Calendário com o Provedor do Contexto */}
+        <ExpenseCalendarContext.Provider value={expensesByDay}>
+          <Calendar
+              month={selectedDate}
+              onMonthChange={setSelectedDate}
+              components={{ Day: DayComponent }}
+              className="w-full p-4"
+              classNames={{
+                table: 'w-full border-separate space-y-1',
+                head_cell: 'text-xs text-muted-foreground font-medium',
+                row: 'flex mt-1',
+                cell: 'flex-1 p-0 m-px h-12',
+              }}
+          />
+        </ExpenseCalendarContext.Provider>
       </CardContent>
     </Card>
   );
