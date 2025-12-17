@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
@@ -15,7 +16,7 @@ import { RecentTransactionsList } from './_components/recent-transactions-list';
 import { BalanceCard } from './_components/balance-card';
 import { DashboardHeader } from './_components/dashboard-header';
 import { IncomeExpenseChart } from '@/components/dashboard/income-expense-chart';
-import { ExpenseCategoryChart } from './_components/expense-category-chart';
+import { ExpenseCategoryChart } from '@/app/dashboard/_components/expense-category-chart';
 import { FinancialHealthScore } from '@/components/dashboard/financial-health-score';
 import { OverdueDebtsCard } from '@/components/dashboard/overdue-debts-card';
 import { FinancialInsightsCard } from './_components/FinancialInsightsCard';
@@ -25,6 +26,7 @@ import { formatCurrency } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { JourneyProgressCard } from '@/components/education/JourneyProgressCard';
+import { ExpenseCalendar } from './_components/expense-calendar';
 
 
 export default function DashboardPage() {
@@ -155,14 +157,16 @@ export default function DashboardPage() {
               <KpiCard index={2} title="Balanço Mensal" value={formatCurrency(balance)} icon={HandCoins} />
               <KpiCard index={3} title="Taxa de Poupança" value={`${savingsRate.toFixed(0)}%`} icon={Percent} />
             </div>
+            
+             <FinancialInsightsCard financialData={financialDataForAI} />
+
              <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                 <div className="lg:col-span-3 space-y-6">
                     <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
                     <FinancialHealthScore income={totalIncome} expenses={totalExpenses} debts={debtData || []} goals={goalData || []} transactions={allTransactions}/>
                 </div>
                 <div className="lg:col-span-2 space-y-6">
-                    <FinancialInsightsCard financialData={financialDataForAI} />
-                    <RecentTransactionsList transactions={allTransactions} onAddTransaction={() => handleOpenSheet('expense')} />
+                    <ExpenseCalendar expenses={expenseData || []}/>
                 </div>
             </div>
             <OverdueDebtsCard debts={debtData || []} />
@@ -173,6 +177,7 @@ export default function DashboardPage() {
                 <IncomeExpenseChart transactions={allTransactions} />
                 <ExpenseCategoryChart transactions={expenseData || []} />
              </div>
+             <RecentTransactionsList transactions={allTransactions} onAddTransaction={() => handleOpenSheet('expense')} />
           </TabsContent>
           
            <TabsContent value="journey" className="mt-6">
@@ -202,14 +207,14 @@ function DashboardSkeleton() {
         <Skeleton className="h-28 w-full rounded-2xl" />
         <Skeleton className="h-28 w-full rounded-2xl" />
       </div>
+       <Skeleton className="h-20 w-full rounded-2xl" />
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <div className="lg:col-span-3 space-y-6">
           <Skeleton className="h-40 w-full rounded-2xl" />
           <Skeleton className="h-64 w-full rounded-2xl" />
         </div>
-        <div className="lg:col-span-2 space-y-6">
-          <Skeleton className="h-64 w-full rounded-2xl" />
-          <Skeleton className="h-64 w-full rounded-2xl" />
+        <div className="lg:col-span-2">
+           <Skeleton className="h-[28.75rem] w-full rounded-2xl" />
         </div>
       </div>
     </div>

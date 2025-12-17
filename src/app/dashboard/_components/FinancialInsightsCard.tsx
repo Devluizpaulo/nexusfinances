@@ -16,6 +16,8 @@ import { useToast } from '@/hooks/use-toast';
 import { getFinancialInsights, type GetFinancialInsightsInput, type GetFinancialInsightsOutput } from '@/ai/flows/financial-insights-flow';
 import { useUser } from '@/firebase';
 import { useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface FinancialInsightsCardProps {
   financialData: GetFinancialInsightsInput;
@@ -52,64 +54,82 @@ export function FinancialInsightsCard({ financialData }: FinancialInsightsCardPr
   }, [financialData, user?.firstName, toast]);
 
   return (
-    <Card className="flex flex-col h-full rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
-      <CardHeader className="p-0">
-        <div className="flex items-center gap-3">
-          <Sparkles className="h-5 w-5 text-primary" />
-          <div>
-            <CardTitle className="text-base text-slate-200">Análise com IA</CardTitle>
-            <CardDescription className="text-xs">
-              Receba um resumo inteligente e dicas para o seu mês.
-            </CardDescription>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="flex-1 flex flex-col items-center justify-center text-center p-0 pt-4">
-        {isLoading ? (
-          <div className="space-y-3">
-            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-            <p className="text-sm text-muted-foreground">Analisando seus dados...</p>
-          </div>
-        ) : analysis ? (
-          <div className="space-y-4 text-left w-full">
-            <div className="p-3 bg-slate-900/80 rounded-lg">
-                <p className="text-sm font-medium">{analysis.summary}</p>
-            </div>
-            <div className="space-y-2">
-                <h4 className="font-semibold text-sm flex items-center gap-2 text-slate-300">
-                    <Lightbulb className="h-4 w-4 text-amber-400"/>
-                    Pontos de Ação
-                </h4>
-                <ul className="space-y-2">
-                {analysis.actionPoints.map((point, index) => (
-                    <li key={index} className="flex items-start gap-2 text-sm text-slate-400">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
-                        <span>{point}</span>
-                    </li>
-                ))}
-                </ul>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 mx-auto">
-                <Sparkles className="h-8 w-8 text-primary" />
-            </div>
-            <p className="text-sm font-medium text-foreground">Pronto para otimizar suas finanças?</p>
-            <p className="text-xs text-muted-foreground">Clique abaixo para receber uma análise personalizada do seu mês.</p>
-          </div>
-        )}
-      </CardContent>
-      <CardFooter className="p-0 pt-4">
-        <Button onClick={handleGenerateAnalysis} disabled={isLoading} className="w-full">
-          {isLoading ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Sparkles className="mr-2 h-4 w-4" />
-          )}
-          {analysis ? 'Gerar Nova Análise' : 'Gerar Análise com IA'}
-        </Button>
-      </CardFooter>
+    <Card className="rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
+        <AnimatePresence mode="wait">
+            {isLoading ? (
+                <motion.div
+                    key="loading"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="flex flex-col items-center justify-center text-center p-4 space-y-3"
+                >
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <p className="text-sm text-muted-foreground">Analisando seus dados...</p>
+                </motion.div>
+            ) : analysis ? (
+                <motion.div
+                    key="analysis"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full"
+                >
+                    <div className="flex items-center gap-3 flex-1">
+                        <Sparkles className="h-5 w-5 text-primary shrink-0" />
+                        <p className="text-sm font-medium">{analysis.summary}</p>
+                    </div>
+
+                    <div className="flex items-center gap-4 shrink-0">
+                        <TooltipProvider>
+                            <div className="flex items-center gap-2">
+                                {analysis.actionPoints.map((point, index) => (
+                                    <Tooltip key={index}>
+                                        <TooltipTrigger asChild>
+                                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/10 hover:bg-amber-500/20 cursor-pointer">
+                                                <Lightbulb className="h-4 w-4 text-amber-400" />
+                                            </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>{point}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                ))}
+                            </div>
+                        </TooltipProvider>
+
+                         <Button size="sm" onClick={handleGenerateAnalysis} disabled={isLoading}>
+                            <Sparkles className="mr-2 h-4 w-4" />
+                            Nova Análise
+                        </Button>
+                    </div>
+                </motion.div>
+            ) : (
+                 <motion.div
+                    key="initial"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex flex-col md:flex-row items-center justify-between gap-4"
+                >
+                    <div className="flex items-center gap-3">
+                         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                            <Sparkles className="h-6 w-6 text-primary" />
+                        </div>
+                        <div>
+                            <CardTitle className="text-base text-slate-200">Análise Rápida com IA</CardTitle>
+                            <CardDescription className="text-xs">
+                            Receba um resumo inteligente e dicas para o seu mês.
+                            </CardDescription>
+                        </div>
+                    </div>
+                    <Button onClick={handleGenerateAnalysis} disabled={isLoading} className="w-full md:w-auto">
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        Gerar Análise
+                    </Button>
+                </motion.div>
+            )}
+        </AnimatePresence>
     </Card>
   );
 }
