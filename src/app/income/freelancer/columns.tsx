@@ -1,23 +1,66 @@
 
 "use client"
 
-import { useMemo } from 'react';
-import { ColumnDef } from "@tanstack/react-table"
+import { useMemo, useCallback } from 'react';
+import { ColumnDef, Row } from "@tanstack/react-table"
 import { Transaction } from "@/lib/types"
-import { ArrowUpDown, Repeat } from "lucide-react"
+import { ArrowUpDown, Repeat, Pen, Trash2, MoreHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { format, parseISO } from "date-fns"
 import { ptBR } from 'date-fns/locale';
 import { Badge } from "@/components/ui/badge";
-import { TransactionActions } from "@/components/transactions/actions"
 import { StatusBadge } from "@/components/transactions/status-badge"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
+interface ActionsProps {
+  row: Row<Transaction>;
+  onEdit: (transaction: Transaction) => void;
+  onDelete: (transaction: Transaction) => void;
+}
+
+function FreelancerActions({ row, onEdit, onDelete }: ActionsProps) {
+  const transaction = row.original;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          className="flex h-8 w-8 p-0 data-[state=open]:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <MoreHorizontal className="h-4 w-4" />
+          <span className="sr-only">Abrir menu</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-[200px]">
+        <DropdownMenuItem onClick={() => onEdit(transaction)}>
+          <Pen className="mr-2 h-3.5 w-3.5" />
+          Editar
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => onDelete(transaction)} className="text-red-600">
+          <Trash2 className="mr-2 h-3.5 w-3.5" />
+          Excluir
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 
 type ColumnsProps = {
   onEdit: (transaction: Transaction) => void;
+  onDelete: (transaction: Transaction) => void;
   onStatusChange: (transaction: Transaction) => Promise<void>;
 }
 
-export const useFreelancerColumns = ({ onEdit, onStatusChange }: ColumnsProps) => {
+export const useFreelancerColumns = ({ onEdit, onDelete, onStatusChange }: ColumnsProps) => {
     const columns = useMemo((): ColumnDef<Transaction>[] => [
       {
         accessorKey: "date",
@@ -77,9 +120,9 @@ export const useFreelancerColumns = ({ onEdit, onStatusChange }: ColumnsProps) =
       },
       {
         id: "actions",
-        cell: ({ row }) => <TransactionActions row={row} transactionType="income" onEdit={onEdit} />,
+        cell: ({ row }) => <FreelancerActions row={row} onEdit={onEdit} onDelete={onDelete} />,
       },
-    ], [onEdit, onStatusChange]);
+    ], [onEdit, onDelete, onStatusChange]);
 
     return columns;
 }

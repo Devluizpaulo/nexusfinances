@@ -3,10 +3,10 @@
 
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { collection, query, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Transaction } from '@/lib/types';
-import { Loader2, PlusCircle, Upload, List, Calendar, DollarSign, PenSquare } from 'lucide-react';
+import { Loader2, PlusCircle, Upload, PenSquare, List, Calendar, DollarSign } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { AddFreelancerSheet } from './add-freelancer-sheet';
 import { ImportPayslipSheet } from '@/components/income/import-payslip-sheet';
@@ -15,12 +15,16 @@ import { formatCurrency } from '@/lib/utils';
 import { DataTable } from '@/components/data-table/data-table';
 import { useFreelancerColumns } from './columns';
 import { differenceInMonths, parseISO } from 'date-fns';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 
 export default function FreelancerPage() {
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
   const [isImportSheetOpen, setIsImportSheetOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
+
 
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
@@ -93,7 +97,31 @@ export default function FreelancerPage() {
     }
   }, [user, firestore, toast]);
 
-  const columns = useFreelancerColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange });
+  const openDeleteDialog = (transaction: Transaction) => {
+    setTransactionToDelete(transaction);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteTransaction = async () => {
+    if (!user || !firestore || !transactionToDelete) return;
+
+    const docRef = doc(firestore, `users/${user.uid}/incomes`, transactionToDelete.id);
+    try {
+        await deleteDoc(docRef);
+        toast({
+            title: "Salário excluído",
+            description: `O registro de salário de ${formatCurrency(transactionToDelete.amount)} foi removido.`,
+        });
+    } catch(e) {
+        toast({ variant: 'destructive', title: "Erro ao excluir", description: "Não foi possível remover o registro."})
+    } finally {
+        setIsDeleteDialogOpen(false);
+        setTransactionToDelete(null);
+    }
+  }
+
+
+  const columns = useFreelancerColumns({ onEdit: handleOpenSheet, onDelete: openDeleteDialog, onStatusChange: handleStatusChange });
   const isLoading = isUserLoading || isIncomesLoading;
 
   if (isLoading) {
@@ -115,6 +143,22 @@ export default function FreelancerPage() {
         isOpen={isImportSheetOpen}
         onClose={() => setIsImportSheetOpen(false)}
       />
+       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Você tem certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Isso excluirá permanentemente o registro de salário.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteTransaction} className="bg-destructive hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-2xl font-bold tracking-tight">Renda Freelancer</h2>

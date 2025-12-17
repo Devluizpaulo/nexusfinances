@@ -66,7 +66,8 @@ export default function SalaryPage() {
     if (!user) return null;
     return query(
       collection(firestore, `users/${user.uid}/incomes`), 
-      where('category', '==', 'Salário')
+      where('category', '==', 'Salário'),
+      orderBy('date', 'desc')
     );
   }, [firestore, user]);
 
