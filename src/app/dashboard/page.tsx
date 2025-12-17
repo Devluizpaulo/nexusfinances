@@ -196,6 +196,20 @@ export default function DashboardPage() {
           onAddDebt={() => handleOpenSheet('debt')}
           onAddGoal={() => handleOpenSheet('goal')}
         />
+
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          <div className="lg:col-span-3">
+             <ExpenseCalendar expenses={expenseData || []} />
+          </div>
+          <div className="lg:col-span-2 space-y-6">
+            <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
+            <RecentTransactionsList 
+              transactions={allTransactions} 
+              onAddTransaction={() => handleOpenSheet('expense')}
+            />
+            <FinancialInsightsCard financialData={financialDataForAI} />
+          </div>
+        </div>
         
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <KpiCard
@@ -231,7 +245,6 @@ export default function DashboardPage() {
         
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           <div className="lg:col-span-3 space-y-6">
-             <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
               <IncomeExpenseChart transactions={allTransactions} />
               <FinancialHealthScore
                 income={totalIncome}
@@ -240,20 +253,14 @@ export default function DashboardPage() {
                 goals={goalData || []}
                 transactions={allTransactions}
               />
-              <FinancialInsightsCard financialData={financialDataForAI} />
           </div>
            <div className="lg:col-span-2 space-y-6">
             <ExpenseCategoryChart transactions={expenseData || []} />
-            <RecentTransactionsList 
-              transactions={allTransactions} 
-              onAddTransaction={() => handleOpenSheet('expense')}
-            />
           </div>
         </div>
 
         <div className="space-y-6">
             <OverdueDebtsCard debts={debtData || []} />
-            <ExpenseCalendar expenses={expenseData || []} />
         </div>
       </motion.div>
     </>
@@ -279,6 +286,17 @@ function DashboardSkeleton() {
         </div>
         <Skeleton className="h-10 w-36 rounded-full bg-slate-800/60" />
       </motion.div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="lg:col-span-3">
+          <Skeleton className="h-[450px] w-full rounded-2xl bg-slate-800/60" />
+        </div>
+        <div className="lg:col-span-2 space-y-6">
+          <Skeleton className="h-44 w-full rounded-2xl bg-slate-800/60" />
+          <Skeleton className="h-[22rem] w-full rounded-2xl bg-slate-800/60" />
+          <Skeleton className="h-64 w-full rounded-2xl bg-slate-800/60" />
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
@@ -295,19 +313,18 @@ function DashboardSkeleton() {
       
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <div className="lg:col-span-3 space-y-6">
-          <Skeleton className="h-44 w-full rounded-2xl bg-slate-800/60" />
           <Skeleton className="h-96 w-full rounded-2xl bg-slate-800/60" />
           <Skeleton className="h-64 w-full rounded-2xl bg-slate-800/60" />
         </div>
         <div className="lg:col-span-2 space-y-6">
           <Skeleton className="h-80 w-full rounded-2xl bg-slate-800/60" />
-          <Skeleton className="h-[22rem] w-full rounded-2xl bg-slate-800/60" />
         </div>
       </div>
        <div className="space-y-6">
             <Skeleton className="h-48 w-full rounded-2xl bg-slate-800/60" />
-            <Skeleton className="h-[450px] w-full rounded-2xl bg-slate-800/60" />
        </div>
     </div>
   )
 }
+
+    

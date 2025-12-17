@@ -30,8 +30,7 @@ interface DayData {
   pending: { total: number; count: number; categories: Record<string, number> };
 }
 
-function DayComponent({ date }: DayProps) {
-    const { selectedDate } = useDashboardDate();
+function DayComponent({ date, displayMonth }: DayProps) {
     const router = useRouter();
 
     const expensesByDay = useMemo(() => {
@@ -52,7 +51,7 @@ function DayComponent({ date }: DayProps) {
 
             return acc;
         }, {} as Record<string, DayData>);
-    }, [selectedDate]);
+    }, [displayMonth]);
 
     const handleDayClick = useCallback((day: Date) => {
         const formattedDate = format(day, 'yyyy-MM-dd');
@@ -72,8 +71,8 @@ function DayComponent({ date }: DayProps) {
         onClick={() => handleDayClick(date)}
         className={cn(
           'relative flex h-full w-full flex-col items-center justify-center rounded-md p-1 transition-all duration-150',
-          !isSameMonth(date, selectedDate) && 'text-slate-600',
-          (hasPaid || hasPending) && isSameMonth(date, selectedDate) && 'cursor-pointer hover:bg-slate-800',
+          !isSameMonth(date, displayMonth) && 'text-slate-600',
+          (hasPaid || hasPending) && isSameMonth(date, displayMonth) && 'cursor-pointer hover:bg-slate-800',
           isToday(date) && 'bg-primary/10 text-primary ring-1 ring-primary/80',
         )}
       >
@@ -210,3 +209,5 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
     </Card>
   );
 }
+
+    
