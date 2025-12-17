@@ -70,7 +70,7 @@ export function RecentTransactionsList({ transactions, onAddTransaction }: Recen
                                                 {isIncome ? <ArrowUpCircle size={20} /> : <ArrowDownCircle size={20} />}
                                             </motion.div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="font-medium text-sm truncate">{t.description}</p>
+                                                <p className="font-medium text-sm truncate text-slate-200">{t.description}</p>
                                                 <p className="text-xs text-muted-foreground truncate">{t.category} &bull; {format(parseISO(t.date), "dd 'de' MMM", { locale: ptBR })}</p>
                                             </div>
                                         </div>

@@ -30,7 +30,7 @@ interface DayData {
   pending: { total: number; count: number; categories: Record<string, number> };
 }
 
-function DayComponent({ date, displayMonth }: DayProps) {
+const DayComponent = memo(function DayComponent({ date, displayMonth }: DayProps) {
     const router = useRouter();
 
     const expensesByDay = useMemo(() => {
@@ -124,7 +124,8 @@ function DayComponent({ date, displayMonth }: DayProps) {
     }
 
     return dayContent;
-}
+});
+
 
 export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
   const { selectedDate, setSelectedDate } = useDashboardDate();

@@ -48,7 +48,7 @@ export function BalanceCard({ balance, income, expenses }: BalanceCardProps) {
                     </div>
                 </CardHeader>
 
-                <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 p-0">
                     <motion.div 
                         className="flex items-center gap-3 rounded-xl bg-slate-900/50 p-3 border border-slate-800/60 hover:bg-slate-900/70 hover:border-emerald-500/30 transition-all duration-200 cursor-default"
                         whileHover={{ scale: 1.02 }}
