@@ -1,7 +1,7 @@
 
 'use client';
 import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator, SidebarGroup, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton } from '@/components/ui/sidebar';
-import { LayoutDashboard, Landmark, CreditCard, Banknote, PiggyBank, GraduationCap, ShieldCheck, LifeBuoy, Home, Zap, FileText, HeartPulse, Repeat, WalletCards, List, LineChart, PieChart, Briefcase, PenSquare, BookOpen, Target, Trophy, Clapperboard, Car, Utensils, ShoppingCart, Activity } from 'lucide-react';
+import { ShieldCheck, LifeBuoy } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '../ui/button';
@@ -9,89 +9,7 @@ import { useSidebar } from '../ui/sidebar';
 import { cn } from '@/lib/utils';
 import { useUser } from '@/firebase';
 import Image from 'next/image';
-
-const navSections = [
-    {
-        label: 'Dashboard',
-        icon: LayoutDashboard,
-        href: '/dashboard',
-        subItems: [
-            { href: '/dashboard', label: 'Resumo', icon: LineChart },
-            { href: '/reports', label: 'Relatórios', icon: PieChart },
-        ]
-    },
-    {
-        label: 'Rendas',
-        icon: Landmark,
-        href: '/income',
-        subItems: [
-            { href: '/income', label: 'Visão Geral', icon: List },
-            { href: '/income/salary', label: 'Salário', icon: Briefcase },
-            { href: '/income/freelancer', label: 'Freelancer', icon: PenSquare },
-            { href: '/income/others', label: 'Outras', icon: WalletCards },
-        ]
-    },
-    {
-        label: 'Despesas',
-        icon: CreditCard,
-        href: '/expenses',
-        subItems: [
-            { href: '/expenses', label: 'Visão Geral', icon: List },
-            { href: '/expenses/housing', label: 'Moradia', icon: Home },
-            { href: '/expenses/utilities', label: 'Contas', icon: Zap },
-            { href: '/expenses/food', label: 'Alimentação', icon: Utensils },
-            { href: '/expenses/transport', label: 'Transporte', icon: Car },
-            { href: '/expenses/taxes', label: 'Impostos', icon: FileText },
-            { href: '/expenses/health', label: 'Saúde', icon: HeartPulse },
-            { href: '/expenses/education', label: 'Educação', icon: BookOpen },
-            { href: '/expenses/leisure', label: 'Lazer', icon: Clapperboard },
-            { href: '/expenses/subscriptions', label: 'Assinaturas', icon: Repeat },
-            { href: '/expenses/others', label: 'Outras', icon: PenSquare },
-        ]
-    },
-    {
-        label: 'Dívidas',
-        icon: Banknote,
-        href: '/debts',
-        subItems: []
-    },
-     {
-        label: 'Cartões',
-        icon: CreditCard,
-        href: '/credit-cards',
-        subItems: []
-    },
-    {
-        label: 'Orçamentos',
-        icon: Target,
-        href: '/budgets',
-        subItems: []
-    },
-     {
-        label: 'Saúde',
-        icon: HeartPulse,
-        href: '/health',
-        subItems: []
-    },
-    {
-        label: 'Metas',
-        icon: PiggyBank,
-        href: '/goals',
-        subItems: []
-    },
-    {
-        label: 'Desafios',
-        icon: Trophy,
-        href: '/challenges',
-        subItems: []
-    },
-    {
-        label: 'Jornada',
-        icon: GraduationCap,
-        href: '/education',
-        subItems: []
-    },
-];
+import { navSections } from '@/lib/nav-config';
 
 const bottomMenuItems = [
     { href: '/support', label: 'Suporte', icon: LifeBuoy },
@@ -156,7 +74,7 @@ export function AppSidebar() {
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
-                        {isActiveSection && section.subItems.length > 0 && (
+                        {isActiveSection && section.subItems && section.subItems.length > 0 && (
                              <SidebarMenuSub>
                                 {section.subItems.map(subItem => (
                                     <SidebarMenuSubItem key={subItem.href}>
