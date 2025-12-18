@@ -3,11 +3,13 @@
 
 import { useMemo, useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { collection, query, orderBy, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { collection, setDoc, updateDoc, getDocs, query, where, doc, deleteDoc, orderBy } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Transaction } from '@/lib/types';
 import { Loader2, PlusCircle, Upload, PenSquare, List, Calendar, DollarSign } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AddFreelancerSheet } from './add-freelancer-sheet';
 import { ImportPayslipSheet } from '@/components/income/import-payslip-sheet';
 import { useToast } from '@/hooks/use-toast';
