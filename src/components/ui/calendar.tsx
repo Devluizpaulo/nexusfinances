@@ -39,13 +39,13 @@ function CustomCaption(props: CaptionProps) {
   const months = Array.from({ length: 12 }, (_, i) => i);
   
   return (
-    <div className="flex items-center justify-between px-2 py-1.5">
+    <div className="flex items-center justify-between px-1 py-1.5">
       <div className="flex items-center gap-1">
         <Select
           onValueChange={handleMonthChange}
           value={String(displayMonth.getMonth())}
         >
-          <SelectTrigger className="h-8 w-[120px] text-xs font-semibold focus:ring-0 focus:ring-offset-0">
+          <SelectTrigger className="h-8 w-[120px] text-xs font-semibold focus:ring-0 focus:ring-offset-0 border-slate-800/80 bg-slate-900/60">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -60,7 +60,7 @@ function CustomCaption(props: CaptionProps) {
           onValueChange={handleYearChange}
           value={String(displayMonth.getFullYear())}
         >
-          <SelectTrigger className="h-8 w-20 text-xs focus:ring-0 focus:ring-offset-0">
+          <SelectTrigger className="h-8 w-[75px] text-xs focus:ring-0 focus:ring-offset-0 border-slate-800/80 bg-slate-900/60">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -78,14 +78,14 @@ function CustomCaption(props: CaptionProps) {
         <button
           onClick={() => previousMonth && goToMonth(previousMonth)}
           disabled={!previousMonth}
-          className={cn(buttonVariants({ variant: "outline", size: "icon" }), "h-7 w-7")}
+          className={cn(buttonVariants({ variant: "outline", size: "icon" }), "h-8 w-8 bg-slate-900/60 border-slate-800/80")}
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
         <button
           onClick={() => nextMonth && goToMonth(nextMonth)}
           disabled={!nextMonth}
-          className={cn(buttonVariants({ variant: "outline", size: "icon" }), "h-7 w-7")}
+          className={cn(buttonVariants({ variant: "outline", size: "icon" }), "h-8 w-8 bg-slate-900/60 border-slate-800/80")}
         >
           <ChevronRight className="h-4 w-4" />
         </button>
@@ -120,7 +120,7 @@ function Calendar({
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",
         table: "w-full border-collapse space-y-1",
-        head_row: "flex",
+        head_row: "flex w-full",
         head_cell:
           "text-muted-foreground rounded-md w-full font-normal text-[0.8rem]",
         row: "flex w-full mt-2",

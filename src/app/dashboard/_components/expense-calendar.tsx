@@ -35,7 +35,7 @@ const ExpenseCalendarContext = createContext<Record<string, DayData>>({});
 
 const DayComponent = memo(function DayComponent({ date, displayMonth }: DayProps) {
     const router = useRouter();
-    // 2. Consumir o Contexto em vez da `window`
+    // 2. Consumir o Contexto
     const expensesByDay = useContext(ExpenseCalendarContext);
 
     const handleDayClick = useCallback((day: Date) => {
@@ -57,12 +57,16 @@ const DayComponent = memo(function DayComponent({ date, displayMonth }: DayProps
         className={cn(
           'relative flex h-full w-full flex-col items-center justify-center rounded-md p-1 transition-all duration-150',
           !isSameMonth(date, displayMonth) && 'text-slate-600',
-          (hasPaid || hasPending) && isSameMonth(date, displayMonth) && 'cursor-pointer hover:bg-accent',
-          isToday(date) && 'bg-primary/10 text-primary ring-1 ring-primary/80',
+          (hasPaid || hasPending) && isSameMonth(date, displayMonth) && 'cursor-pointer hover:bg-slate-800/60',
+           isToday(date) && 'bg-primary/10 ring-1 ring-primary/80',
         )}
       >
-        <span className="text-sm">{format(date, 'd')}</span>
-        <div className="absolute bottom-1.5 flex gap-1">
+        <span className="text-sm z-10">{format(date, 'd')}</span>
+        <div className="absolute inset-0 flex items-center justify-center gap-1">
+          {hasPaid && <div className="h-full w-full rounded-md bg-emerald-500/10" />}
+          {hasPending && <div className="h-full w-full rounded-md bg-amber-500/10" />}
+        </div>
+         <div className="absolute bottom-1.5 flex gap-1">
           {hasPaid && <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />}
           {hasPending && <div className="h-1.5 w-1.5 rounded-full bg-amber-500" />}
         </div>
@@ -74,16 +78,16 @@ const DayComponent = memo(function DayComponent({ date, displayMonth }: DayProps
         <TooltipProvider delayDuration={100}>
           <Tooltip>
             <TooltipTrigger asChild>{dayContent}</TooltipTrigger>
-            <TooltipContent className="pointer-events-none w-48">
-              <p className="font-bold">{format(date, "PPP", { locale: ptBR })}</p>
-              <div className="mt-2 space-y-2">
+            <TooltipContent className="pointer-events-none w-56 p-4 border-slate-700/60 bg-slate-950/90 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)] backdrop-blur-sm">
+              <p className="font-bold text-base text-slate-100">{format(date, "PPP", { locale: ptBR })}</p>
+              <div className="mt-3 space-y-3">
                 {hasPaid && (
                   <div>
                     <p className="text-xs font-semibold text-emerald-400">Pago: {formatCurrency(dayData.paid.total)}</p>
-                    <ul className="pl-2">
+                    <ul className="mt-1 space-y-0.5">
                       {Object.entries(dayData.paid.categories).map(([cat, amount]) => (
-                        <li key={cat} className="flex justify-between text-xs text-muted-foreground">
-                          <span>{cat}</span><span>{formatCurrency(amount)}</span>
+                        <li key={cat} className="flex justify-between text-xs text-slate-400">
+                          <span>{cat}</span><span className="font-mono">{formatCurrency(amount)}</span>
                         </li>
                       ))}
                     </ul>
@@ -92,10 +96,10 @@ const DayComponent = memo(function DayComponent({ date, displayMonth }: DayProps
                 {hasPending && (
                   <div>
                     <p className="text-xs font-semibold text-amber-400">Pendente: {formatCurrency(dayData.pending.total)}</p>
-                    <ul className="pl-2">
+                    <ul className="mt-1 space-y-0.5">
                       {Object.entries(dayData.pending.categories).map(([cat, amount]) => (
-                        <li key={cat} className="flex justify-between text-xs text-muted-foreground">
-                          <span>{cat}</span><span>{formatCurrency(amount)}</span>
+                        <li key={cat} className="flex justify-between text-xs text-slate-400">
+                          <span>{cat}</span><span className="font-mono">{formatCurrency(amount)}</span>
                         </li>
                       ))}
                     </ul>
@@ -121,7 +125,6 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
     return expenses.filter(expense => expense.category === selectedCategory);
   }, [expenses, selectedCategory]);
 
-  // 3. Preparar os dados para o Contexto
   const expensesByDay = useMemo(() => {
     return filteredExpenses.reduce((acc, expense) => {
         const day = format(new Date(expense.date), 'yyyy-MM-dd');
@@ -154,8 +157,8 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
 
 
   return (
-    <Card className="h-full rounded-xl">
-      <CardHeader className="p-4">
+    <Card className="h-full rounded-xl p-4 sm:p-5">
+      <CardHeader className="p-0">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
           <div>
             <CardTitle className="text-base">Calendário de Despesas</CardTitle>
@@ -164,11 +167,11 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
             </CardDescription>
           </div>
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-full sm:w-[140px] h-8 text-xs">
-              <SelectValue placeholder="Categoria" />
+            <SelectTrigger className="w-full sm:w-[160px] h-9 text-xs">
+              <SelectValue placeholder="Filtrar categoria" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todas</SelectItem>
+              <SelectItem value="all">Todas as categorias</SelectItem>
               {expenseCategories.map(category => (
                 <SelectItem key={category} value={category}>
                   {category}
@@ -177,10 +180,10 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
             </SelectContent>
           </Select>
         </div>
-        <div className="mt-4 p-3 bg-muted rounded-lg space-y-2">
+        <div className="mt-4 p-3 bg-slate-900/60 rounded-lg space-y-2 border border-slate-800/60">
             <div className="flex items-center justify-between text-sm">
                 <span className="font-medium text-slate-300">Total de despesas no mês:</span>
-                <span className="font-bold text-rose-300">{formatCurrency(monthlySummary.paid + monthlySummary.pending)}</span>
+                <span className="font-bold text-rose-400">{formatCurrency(monthlySummary.paid + monthlySummary.pending)}</span>
             </div>
              <div className="flex justify-end gap-4 text-xs">
                 <div className="flex items-center gap-1.5 text-emerald-400">
@@ -194,19 +197,18 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
             </div>
         </div>
       </CardHeader>
-      <CardContent className="p-0">
-        {/* 4. Envolver o Calendário com o Provedor do Contexto */}
+      <CardContent className="p-0 mt-2">
         <ExpenseCalendarContext.Provider value={expensesByDay}>
           <Calendar
               month={selectedDate}
               onMonthChange={setSelectedDate}
               components={{ Day: DayComponent }}
-              className="w-full p-4"
+              className="w-full"
               classNames={{
                 table: 'w-full border-separate space-y-1',
                 head_cell: 'text-xs text-muted-foreground font-medium',
-                row: 'flex mt-1',
-                cell: 'flex-1 p-0 m-px h-12',
+                row: 'flex w-full mt-1',
+                cell: 'h-14 p-0 m-px flex-1',
               }}
           />
         </ExpenseCalendarContext.Provider>
@@ -214,5 +216,3 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
     </Card>
   );
 }
-
-    
