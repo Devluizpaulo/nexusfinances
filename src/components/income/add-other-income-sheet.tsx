@@ -197,17 +197,6 @@ export function AddOtherIncomeSheet({
                             {category}
                           </SelectItem>
                         ))}
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start font-normal h-8 px-2"
-                          onClick={(e) => {
-                             e.preventDefault();
-                             setIsAddCategoryDialogOpen(true);
-                          }}
-                        >
-                           <PlusCircle className="mr-2 h-4 w-4" />
-                           Criar nova categoria...
-                        </Button>
                       </SelectContent>
                     </Select>
                     <FormMessage />
