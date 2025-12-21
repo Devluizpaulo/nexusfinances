@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useMemo, useState, useEffect, useCallback } from 'react';
@@ -61,7 +60,7 @@ export default function SalaryPage() {
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
 
-  // Query para buscar salários
+  // Query para buscar APENAS salários
   const salaryIncomesQuery = useMemoFirebase(() => {
     if (!user) return null;
     return query(
@@ -72,7 +71,7 @@ export default function SalaryPage() {
   }, [firestore, user]);
 
   const { data: salaryData, isLoading: isIncomesLoading } = useCollection<Transaction>(salaryIncomesQuery);
-  
+
   const stats = useMemo(() => {
     if (!salaryData || salaryData.length === 0) {
       return { totalReceived: 0, averageMonthly: 0, entryCount: 0 };
@@ -308,7 +307,7 @@ export default function SalaryPage() {
         isOpen={isAddSheetOpen}
         onClose={handleCloseSheet}
         transactionType="income"
-        categories={incomeCategories}
+        categories={["Salário"]}
         transaction={editingTransaction}
         vendors={vendorList}
       />

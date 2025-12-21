@@ -27,20 +27,17 @@ export default function OthersIncomePage() {
   const { user, isUserLoading } = useUser();
   const { toast } = useToast();
 
-  const allIncomesQuery = useMemoFirebase(() => {
+  const otherIncomesQuery = useMemoFirebase(() => {
     if (!user) return null;
     return query(
       collection(firestore, `users/${user.uid}/incomes`),
+      where('category', 'not-in', otherIncomeKeywords),
+      orderBy('category'),
       orderBy('date', 'desc')
     );
   }, [user, firestore]);
   
-  const { data: allIncomes, isLoading: isExpensesLoading } = useCollection<Transaction>(allIncomesQuery);
-
-  const otherIncomes = useMemo(() => {
-    if (!allIncomes) return [];
-    return allIncomes.filter(income => !otherIncomeKeywords.includes(income.category));
-  }, [allIncomes]);
+  const { data: otherIncomes, isLoading: isIncomesLoading } = useCollection<Transaction>(otherIncomesQuery);
 
 
   const handleOpenSheet = useCallback((transaction: Transaction | null = null) => {
@@ -74,7 +71,7 @@ export default function OthersIncomePage() {
   
   const columns = useIncomeColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange });
 
-  const isLoading = isUserLoading || isExpensesLoading;
+  const isLoading = isUserLoading || isIncomesLoading;
 
   if (isLoading) {
     return (

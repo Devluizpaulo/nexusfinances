@@ -21,11 +21,11 @@ interface UseUserSubcollectionOptions {
 }
 
 /**
- * Hook para buscar TODOS os dados de uma subcoleção do usuário autenticado.
- * Este hook não aceita filtros dinâmicos para garantir a estabilidade da consulta.
- * Para consultas filtradas, construa a query na página usando `useMemoFirebase` e use `useCollection`.
+ * @deprecated Use `useCollection` with a memoized query (`useMemoFirebase`) instead.
+ * This hook is inefficient as it fetches all documents and should be avoided.
+ * It will be removed in a future version.
  *
- * @param subcollectionName - O nome da subcoleção (ex: 'incomes', 'expenses').
+ * @param subcollectionName - The name of the subcollection (ex: 'incomes', 'expenses').
  * @param options - Opções para escutar em tempo real.
  * @returns Um objeto com `data`, `isLoading` e `error`.
  */
