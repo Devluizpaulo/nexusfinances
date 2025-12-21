@@ -8,58 +8,49 @@ service cloud.firestore {
     // Funções de Apoio
     // =================================
 
-    // Retorna true se o ID do usuário da requisição for o mesmo do documento acessado.
     function isOwner(userId) {
       return request.auth != null && request.auth.uid == userId;
     }
 
-    // Retorna true se o usuário da requisição for um superadmin.
-    // Faz uma leitura segura no documento do próprio requisitante para checar a 'role'.
     function isSuperAdmin() {
       return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "superadmin";
     }
 
     // =================================
-    // Regras Globais para Usuários
+    // Regras para Usuários
     // =================================
 
     match /users/{userId} {
-      // O dono do perfil pode ler e escrever seus próprios dados.
       allow read, write: if isOwner(userId);
-      
-      // Superadmins podem ler, listar e modificar qualquer perfil de usuário.
-      allow list, get, update: if isSuperAdmin();
+      allow list, get, update, delete: if isSuperAdmin();
     }
     
     // ==============================================================
-    // Regra Genérica para TODAS as Subcoleções do Usuário
+    // Regras para Subcoleções do Usuário (Versão Explícita)
     // ==============================================================
     
-    // Esta regra usa um wildcard `{subcollection}` para aplicar as permissões a 
-    // QUALQUER subcoleção diretamente abaixo de um documento de usuário (ex: incomes, expenses, goals).
     match /users/{userId}/{subcollection}/{docId} {
-      // Um usuário pode ler, escrever, criar, atualizar e deletar
-      // QUALQUER documento dentro de SUAS PRÓPRIAS subcoleções.
-      allow read, write, create, update, delete: if isOwner(userId);
+      allow read, write, update, delete: if isOwner(userId);
+    }
+    
+    match /users/{userId}/{subcollection=**} {
+        allow list, create: if isOwner(userId);
     }
 
     // =================================
     // Coleções Públicas e de Admin
     // =================================
 
-    // Coleção de conteúdo educacional é pública para leitura por usuários autenticados.
     match /education/{document=**} {
       allow read: if request.auth != null;
       allow write: if isSuperAdmin();
     }
     
-    // Planos de assinatura são públicos para leitura por usuários autenticados.
     match /subscriptionPlans/{document=**} {
       allow read: if request.auth != null;
       allow write: if isSuperAdmin();
     }
 
-    // Logs podem ser criados por qualquer usuário autenticado, mas apenas lidos/escritos por admins.
     match /logs/{logId} {
       allow read, write: if isSuperAdmin();
       allow create: if request.auth != null;
