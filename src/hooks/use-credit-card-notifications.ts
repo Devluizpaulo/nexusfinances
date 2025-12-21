@@ -4,10 +4,10 @@
 import { useEffect, useCallback } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, writeBatch, doc, addDoc, getDocs, where } from 'firebase/firestore';
-import { startOfDay, addDays, differenceInDays, set, getMonth, addMonths } from 'date-fns';
+import { startOfDay, addDays, differenceInDays, set, getMonth, addMonths, isBefore } from 'date-fns';
 import type { CreditCard } from '@/lib/types';
 
-const LAST_CHECKED_KEY = 'creditCardNotificationsLastChecked';
+const LAST_CHECKED_KEY = 'creditCardNotificationsLastChecked_v2';
 const NOTIFICATION_WINDOW_DAYS = 2; // Notify 2 days in advance
 
 export function useCreditCardNotifications() {
@@ -38,12 +38,14 @@ export function useCreditCardNotifications() {
     const notificationsColRef = collection(firestore, `users/${user.uid}/notifications`);
 
     for (const card of cards) {
+      const currentMonth = getMonth(today);
+
       // --- Closing Date Notification ---
-      const closingDate = set(today, { date: card.closingDate });
-      const daysUntilClose = differenceInDays(closingDate, today);
+      const closingDateThisMonth = set(today, { date: card.closingDate });
+      const daysUntilClose = differenceInDays(closingDateThisMonth, today);
 
       if (daysUntilClose >= 0 && daysUntilClose <= NOTIFICATION_WINDOW_DAYS) {
-        const entityId = `card-close-${card.id}-${closingDate.toISOString().split('T')[0]}`;
+        const entityId = `card-close-${card.id}-${closingDateThisMonth.toISOString().split('T')[0]}`;
         const existingNotifQuery = query(notificationsColRef, where('entityId', '==', entityId));
         const existingNotifs = await getDocs(existingNotifQuery);
 
@@ -51,7 +53,7 @@ export function useCreditCardNotifications() {
           const message = `A fatura do seu cartão ${card.name} fecha ${daysUntilClose === 0 ? 'hoje' : `em ${daysUntilClose} dia(s)`}.`;
           const newNotification = {
             userId: user.uid,
-            type: 'upcoming_due' as const,
+            type: 'credit_card_notification' as const,
             message,
             isRead: false,
             link: '/credit-cards',
@@ -64,14 +66,16 @@ export function useCreditCardNotifications() {
       }
 
       // --- Due Date Notification ---
-      let dueDate = set(today, { date: card.dueDate });
-      if (dueDate < closingDate) {
-        dueDate = addMonths(dueDate, 1);
+      let dueDateThisMonth = set(today, { date: card.dueDate });
+      // If due date is before closing date this month, it refers to next month's bill
+      if (isBefore(dueDateThisMonth, closingDateThisMonth)) {
+        dueDateThisMonth = addMonths(dueDateThisMonth, 1);
       }
-      const daysUntilDue = differenceInDays(dueDate, today);
-
+      
+      const daysUntilDue = differenceInDays(dueDateThisMonth, today);
+      
       if (daysUntilDue >= 0 && daysUntilDue <= NOTIFICATION_WINDOW_DAYS) {
-        const entityId = `card-due-${card.id}-${dueDate.toISOString().split('T')[0]}`;
+        const entityId = `card-due-${card.id}-${dueDateThisMonth.toISOString().split('T')[0]}`;
         const existingNotifQuery = query(notificationsColRef, where('entityId', '==', entityId));
         const existingNotifs = await getDocs(existingNotifQuery);
 
@@ -79,7 +83,7 @@ export function useCreditCardNotifications() {
           const message = `A fatura do seu cartão ${card.name} vence ${daysUntilDue === 0 ? 'hoje' : `em ${daysUntilDue} dia(s)`}.`;
           const newNotification = {
             userId: user.uid,
-            type: 'debt_due' as const,
+            type: 'credit_card_notification' as const,
             message,
             isRead: false,
             link: '/credit-cards',
@@ -102,6 +106,7 @@ export function useCreditCardNotifications() {
   }, [user, firestore, cards]);
 
   useEffect(() => {
+    // Only check if all dependencies are ready
     if (user && firestore && cards) {
       checkCardNotifications();
     }

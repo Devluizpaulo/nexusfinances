@@ -51,19 +51,19 @@ export default function DashboardPage() {
   }, [selectedDate]);
 
   // Queries
-  const buildQuery = (collectionName: string, dateField: string, start: string, end: string) => {
+  const buildQuery = useCallback((collectionName: string, dateField: string, start: string, end: string) => {
     if (!user) return null;
     return query(
       collection(firestore, `users/${user.uid}/${collectionName}`),
       where(dateField, '>=', start),
       where(dateField, '<=', end)
     );
-  };
+  }, [user, firestore]);
   
-  const incomesForPeriodQuery = useMemoFirebase(() => buildQuery('incomes', 'date', start, end), [user, firestore, start, end]);
-  const expensesForPeriodQuery = useMemoFirebase(() => buildQuery('expenses', 'date', start, end), [user, firestore, start, end]);
-  const prevIncomesQuery = useMemoFirebase(() => buildQuery('incomes', 'date', prevStart, prevEnd), [user, firestore, prevStart, prevEnd]);
-  const prevExpensesQuery = useMemoFirebase(() => buildQuery('expenses', 'date', prevStart, prevEnd), [user, firestore, prevStart, prevEnd]);
+  const incomesForPeriodQuery = useMemoFirebase(() => buildQuery('incomes', 'date', start, end), [buildQuery, start, end]);
+  const expensesForPeriodQuery = useMemoFirebase(() => buildQuery('expenses', 'date', start, end), [buildQuery, start, end]);
+  const prevIncomesQuery = useMemoFirebase(() => buildQuery('incomes', 'date', prevStart, prevEnd), [buildQuery, prevStart, prevEnd]);
+  const prevExpensesQuery = useMemoFirebase(() => buildQuery('expenses', 'date', prevStart, prevEnd), [buildQuery, prevStart, prevEnd]);
   const allDebtsQuery = useMemoFirebase(() => user ? query(collection(firestore, `users/${user.uid}/debts`)) : null, [user, firestore]);
   const allGoalsQuery = useMemoFirebase(() => user ? query(collection(firestore, `users/${user.uid}/goals`)) : null, [user, firestore]);
 

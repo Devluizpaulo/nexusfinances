@@ -1,14 +1,13 @@
 
-
 'use client';
 
 import { useEffect, useCallback } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, writeBatch, getDocs, doc, addDoc } from 'firebase/firestore';
-import { startOfMonth, endOfMonth, getMonth, getYear, setMonth, formatISO } from 'date-fns';
+import { startOfMonth, endOfMonth, getMonth, getYear, setMonth, formatISO, setDate } from 'date-fns';
 import type { Transaction } from '@/lib/types';
 
-const LAST_CHECKED_KEY = 'recurrencesLastChecked';
+const LAST_CHECKED_KEY = 'recurrencesLastChecked_v2';
 
 /**
  * Hook to manage recurring transactions for the current user.
@@ -79,7 +78,11 @@ export function useManageRecurrences() {
       const existing = await getDocs(q);
 
       if (existing.empty) {
-        const newDate = setMonth(new Date(template.date), currentMonth);
+        // A data da transação recorrente deve ser criada no mesmo dia do mês, mas no mês atual
+        const templateDay = parseISO(template.date).getDate();
+        let newDate = setMonth(now, currentMonth);
+        newDate = setDate(newDate, templateDay);
+        
         const newTransaction: Omit<Transaction, 'id'> = {
           ...template,
           date: formatISO(newDate),
@@ -121,8 +124,8 @@ export function useManageRecurrences() {
 
   useEffect(() => {
     // Run only if all data is loaded to avoid partial checks
-    if (expenseTemplates !== null && incomeTemplates !== null) {
+    if (user && expenseTemplates !== null && incomeTemplates !== null) {
       createRecurringTransactions();
     }
-  }, [expenseTemplates, incomeTemplates, createRecurringTransactions]);
+  }, [user, expenseTemplates, incomeTemplates, createRecurringTransactions]);
 }

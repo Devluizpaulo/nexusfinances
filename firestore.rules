@@ -5,135 +5,88 @@ service cloud.firestore {
   match /databases/{database}/documents {
     
     // =================================
-    // Funções de Apoio
+    // Helper Functions
     // =================================
 
     function isOwner(userId) {
       return request.auth != null && request.auth.uid == userId;
     }
 
-    // Função para verificar se o usuário que faz a requisição é um superadmin.
-    // Faz uma leitura segura no documento do próprio requisitante para checar o 'role'.
     function isSuperAdmin() {
       return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "superadmin";
     }
 
     // =================================
-    // Regras para Usuários
+    // User Profile Rules
     // =================================
 
     match /users/{userId} {
-      // O dono pode ler e escrever no seu próprio perfil.
       allow read, write: if isOwner(userId);
-      
-      // Superadmins podem listar, ler, e modificar qualquer perfil de usuário.
       allow list, get, update, delete: if isSuperAdmin();
     }
     
     // ==============================================================
-    // Regras para Subcoleções do Usuário
+    // User Subcollections Rules
     // ==============================================================
     
-    match /users/{userId}/incomes/{docId} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/incomes {
-      allow list, create: if isOwner(userId);
-    }
-    
-    match /users/{userId}/expenses/{docId} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/expenses {
-      allow list, create: if isOwner(userId);
-    }
-
-    match /users/{userId}/debts/{docId} {
-      allow read, write: if isOwner(userId);
-    }
-     match /users/{userId}/debts {
-      allow list, create: if isOwner(userId);
-    }
-
-    match /users/{userId}/debts/{debtId}/installments/{installmentId} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/debts/{debtId}/installments {
-      allow list, create: if isOwner(userId);
-    }
-
-    match /users/{userId}/goals/{docId} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/goals {
-      allow list, create: if isOwner(userId);
-    }
-
-    match /users/{userId}/budgets/{docId} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/budgets {
-      allow list, create: if isOwner(userId);
+    // This function secures all user-specific subcollections.
+    // It allows a user to read and write only their own documents.
+    function allowOwnerAccess(userId) {
+      return {
+        // Allow creating new documents if the user is the owner
+        'allow create': if isOwner(userId),
+        
+        // Allow reading, updating, and deleting individual documents if the user is the owner
+        'match /{docId}': {
+          'allow read, update, delete': if isOwner(userId)
+        },
+        
+        // IMPORTANT: Explicitly allow listing the collection if the user is the owner.
+        // This is crucial for queries and `useCollection`.
+        'allow list': if isOwner(userId)
+      }
     }
     
-    match /users/{userId}/notifications/{docId} {
+    // Apply the generic rule to each subcollection
+    match /users/{userId}/incomes/{docId=**} {
       allow read, write: if isOwner(userId);
     }
-    match /users/{userId}/notifications {
-      allow list, create: if isOwner(userId);
+    match /users/{userId}/expenses/{docId=**} {
+      allow read, write: if isOwner(userId);
+    }
+    match /users/{userId}/debts/{docId=**} {
+      allow read, write: if isOwner(userId);
+    }
+    match /users/{userId}/goals/{docId=**} {
+      allow read, write: if isOwner(userId);
+    }
+    match /users/{userId}/budgets/{docId=**} {
+      allow read, write: if isOwner(userId);
+    }
+    match /users/{userId}/notifications/{docId=**} {
+      allow read, write: if isOwner(userId);
+    }
+    match /users/{userId}/creditCards/{docId=**} {
+      allow read, write: if isOwner(userId);
+    }
+    match /users/{userId}/rentalContracts/{docId=**} {
+      allow read, write: if isOwner(userId);
+    }
+    match /users/{userId}/healthProviders/{docId=**} {
+      allow read, write: if isOwner(userId);
+    }
+    match /users/{userId}/healthProfessionals/{docId=**} {
+      allow read, write: if isOwner(userId);
+    }
+    match /users/{userId}/healthInsurances/{docId=**} {
+      allow read, write: if isOwner(userId);
+    }
+    match /users/{userId}/challenges52weeks/{docId=**} {
+      allow read, write: if isOwner(userId);
     }
     
-    match /users/{userId}/creditCards/{docId} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/creditCards {
-      allow list, create: if isOwner(userId);
-    }
-    
-    match /users/{userId}/rentalContracts/{docId} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/rentalContracts {
-      allow list, create: if isOwner(userId);
-    }
-    
-    match /users/{userId}/healthProviders/{docId} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/healthProviders {
-      allow list, create: if isOwner(userId);
-    }
-    
-    match /users/{userId}/healthProfessionals/{docId} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/healthProfessionals {
-      allow list, create: if isOwner(userId);
-    }
-    
-    match /users/{userId}/healthInsurances/{docId} {
-      allow read, write: if isOwner(userId);
-    }
-     match /users/{userId}/healthInsurances {
-      allow list, create: if isOwner(userId);
-    }
-    
-    match /users/{userId}/challenges52weeks/{docId} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/challenges52weeks {
-      allow list, create: if isOwner(userId);
-    }
-    
-    match /users/{userId}/challenges52weeks/{challengeId}/deposits/{depositId} {
-      allow read, write: if isOwner(userId);
-    }
-     match /users/{userId}/challenges52weeks/{challengeId}/deposits {
-      allow list, create: if isOwner(userId);
-    }
-
     // =================================
-    // Coleções Públicas e de Admin
+    // Public and Admin Collections
     // =================================
 
     match /education/{document=**} {

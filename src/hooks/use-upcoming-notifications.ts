@@ -4,10 +4,10 @@
 import { useEffect, useCallback } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, writeBatch, doc, addDoc, getDocs } from 'firebase/firestore';
-import { startOfDay, addDays, differenceInDays, parseISO, format } from 'date-fns';
+import { startOfDay, addDays, differenceInDays, parseISO, format, setMonth, getMonth, getYear, setDate } from 'date-fns';
 import type { Transaction, Debt, Installment } from '@/lib/types';
 
-const LAST_CHECKED_KEY = 'upcomingNotificationsLastChecked';
+const LAST_CHECKED_KEY = 'upcomingNotificationsLastChecked_v2';
 const NOTIFICATION_WINDOW_DAYS = 3;
 
 /**
@@ -63,7 +63,9 @@ export function useUpcomingNotifications() {
 
     for (const docSnap of allTemplates) {
       const template = docSnap.data() as Transaction;
-      const dueDate = new Date(template.date); // This is the template date
+      const templateDay = parseISO(template.date).getDate();
+      const dueDate = setDate(today, templateDay); // Due date in the current month
+
       const daysUntilDue = differenceInDays(dueDate, today);
 
       if (daysUntilDue >= 0 && daysUntilDue <= NOTIFICATION_WINDOW_DAYS) {

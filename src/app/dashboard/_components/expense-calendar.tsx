@@ -30,21 +30,22 @@ interface DayData {
   pending: { total: number; count: number; categories: Record<string, number> };
 }
 
-// 1. Criar o Contexto
-const ExpenseCalendarContext = createContext<Record<string, DayData>>({});
+const ExpenseCalendarContext = createContext<Record<string, DayData> | null>(null);
 
 const DayComponent = memo(function DayComponent({ date, displayMonth }: DayProps) {
     const router = useRouter();
-    // 2. Consumir o Contexto
     const expensesByDay = useContext(ExpenseCalendarContext);
 
     const handleDayClick = useCallback((day: Date) => {
+        if (!expensesByDay) return;
         const formattedDate = format(day, 'yyyy-MM-dd');
         const dayData = expensesByDay[formattedDate];
         if (dayData && (dayData.paid.count > 0 || dayData.pending.count > 0)) {
             router.push(`/expenses?date=${formattedDate}`);
         }
     }, [expensesByDay, router]);
+
+    if (!expensesByDay) return null;
 
     const formattedDate = format(date, 'yyyy-MM-dd');
     const dayData = expensesByDay[formattedDate];
