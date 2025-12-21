@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -72,13 +72,27 @@ export default function SalaryPage() {
   }, [firestore, user]);
 
   const { data: salaryData, isLoading: isIncomesLoading } = useCollection<Transaction>(salaryIncomesQuery);
+  
+  const stats = useMemo(() => {
+    if (!salaryData || salaryData.length === 0) {
+      return { totalReceived: 0, averageMonthly: 0, entryCount: 0 };
+    }
 
-  // Ordenação no cliente
-  const sortedSalaryData = useMemo(() => {
-    if (!salaryData) return [];
-    return [...salaryData].sort((a, b) => 
-      new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
+    const totalReceived = salaryData.reduce((sum, income) => sum + income.amount, 0);
+    const entryCount = salaryData.length;
+
+    const firstEntryDate = parseISO(salaryData[salaryData.length - 1].date);
+    const lastEntryDate = parseISO(salaryData[0].date);
+    const months = differenceInMonths(lastEntryDate, firstEntryDate);
+    const monthCount = Math.max(1, months + 1);
+    
+    const averageMonthly = totalReceived / monthCount;
+
+    return {
+      totalReceived,
+      averageMonthly,
+      entryCount
+    };
   }, [salaryData]);
 
   // Buscar contratos
@@ -211,7 +225,7 @@ export default function SalaryPage() {
 
   // Cálculos dos salários
   const { avgGross, avgNet, avgDeductions, salaryHistory } = useMemo(() => {
-    if (!sortedSalaryData || sortedSalaryData.length === 0) {
+    if (!salaryData || salaryData.length === 0) {
       return { 
         avgGross: 0, 
         avgNet: 0, 
@@ -220,14 +234,14 @@ export default function SalaryPage() {
       };
     }
 
-    const salaries = sortedSalaryData.filter(t => t.grossAmount !== undefined && t.grossAmount > 0);
+    const salaries = salaryData.filter(t => t.grossAmount !== undefined && t.grossAmount > 0);
     
     if (salaries.length === 0) {
       return { 
         avgGross: 0, 
         avgNet: 0, 
         avgDeductions: 0, 
-        salaryHistory: sortedSalaryData.slice(0, 6) 
+        salaryHistory: salaryData.slice(0, 6) 
       };
     }
 
@@ -239,9 +253,9 @@ export default function SalaryPage() {
       avgNet: totalNet / salaries.length,
       avgGross: totalGross / salaries.length,
       avgDeductions: totalDeductions / salaries.length,
-      salaryHistory: sortedSalaryData.slice(0, 6)
+      salaryHistory: salaryData.slice(0, 6)
     };
-  }, [sortedSalaryData]);
+  }, [salaryData]);
 
   // Handlers para o sheet
   const handleOpenSheet = (transaction: Transaction | null = null) => {
