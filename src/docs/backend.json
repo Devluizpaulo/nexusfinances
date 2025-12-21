@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -227,6 +228,10 @@
           "type": "number",
           "description": "Total amount of the debt."
         },
+        "paidAmount": {
+            "type": "number",
+            "description": "Total amount paid towards the debt."
+        },
         "interestRate": {
           "type": "number",
           "description": "Interest rate for the debt."
@@ -263,6 +268,10 @@
         "userId": {
           "type": "string",
           "description": "Reference to User. (Denormalized for security rules)"
+        },
+        "installmentNumber": {
+            "type": "number",
+            "description": "The number of the installment in the sequence."
         },
         "dueDate": {
           "type": "string",
@@ -310,6 +319,14 @@
           "type": "string",
           "description": "Name of the financial goal."
         },
+        "description": {
+          "type": "string",
+          "description": "Why this goal is important to the user."
+        },
+        "category": {
+            "type": "string",
+            "description": "The category of the goal."
+        },
         "targetAmount": {
           "type": "number",
           "description": "The target amount for the goal."
@@ -322,6 +339,21 @@
           "type": "string",
           "description": "Optional target date to achieve the goal.",
           "format": "date-time"
+        },
+        "monthlyContribution": {
+            "type": "number",
+            "description": "The planned monthly contribution towards the goal."
+        },
+        "contributions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": { "type": "string" },
+                    "amount": { "type": "number" },
+                    "date": { "type": "string", "format": "date-time" }
+                }
+            }
         }
       },
       "required": [
@@ -490,6 +522,38 @@
             "paymentGatewaySubscriptionId": { "type": "string" }
         },
         "required": ["planId", "status", "startDate"]
+    },
+    "Challenge52Weeks": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "52-Week Challenge",
+      "type": "object",
+      "description": "Represents an instance of a 52-week savings challenge for a user.",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "startDate": { "type": "string", "format": "date-time" },
+        "initialAmount": { "type": "number" },
+        "incrementAmount": { "type": "number" },
+        "totalDeposited": { "type": "number" },
+        "status": { "type": "string", "enum": ["active", "completed", "cancelled"] }
+      },
+      "required": ["userId", "startDate", "initialAmount", "incrementAmount", "status"]
+    },
+    "Challenge52WeeksDeposit": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "52-Week Challenge Deposit",
+      "type": "object",
+      "description": "Represents a single weekly deposit for a 52-week challenge.",
+      "properties": {
+        "id": { "type": "string" },
+        "challengeId": { "type": "string" },
+        "weekNumber": { "type": "number" },
+        "expectedAmount": { "type": "number" },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["pending", "deposited", "skipped"] },
+        "depositDate": { "type": "string", "format": "date-time" }
+      },
+      "required": ["challengeId", "weekNumber", "expectedAmount", "dueDate", "status"]
     },
     "Log": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -810,6 +874,31 @@
         }
       },
       {
+        "path": "/users/{userId}/challenges52weeks/{challengeId}",
+        "definition": {
+          "entityName": "Challenge52Weeks",
+          "schema": { "$ref": "#/backend/entities/Challenge52Weeks" },
+          "description": "Stores the user's 52-week savings challenge configurations.",
+          "params": [
+            { "name": "userId", "description": "The user's unique ID." },
+            { "name": "challengeId", "description": "The challenge's unique ID." }
+          ]
+        }
+      },
+       {
+        "path": "/users/{userId}/challenges52weeks/{challengeId}/deposits/{depositId}",
+        "definition": {
+          "entityName": "Challenge52WeeksDeposit",
+          "schema": { "$ref": "#/backend/entities/Challenge52WeeksDeposit" },
+          "description": "Stores the individual weekly deposits for a 52-week challenge.",
+          "params": [
+            { "name": "userId", "description": "The user's unique ID." },
+            { "name": "challengeId", "description": "The challenge's unique ID." },
+            { "name": "depositId", "description": "The deposit's unique ID." }
+          ]
+        }
+      },
+      {
         "path": "/subscriptionPlans/{planId}",
         "definition": {
           "entityName": "SubscriptionPlan",
@@ -854,3 +943,5 @@
     "reasoning": "The Firestore data structure is designed to support the xô planilhas application, focusing on secure and efficient data management for user finances.  The design follows the core principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), QAPs (Queries are not Filters), and Invariants.\\n\\n**Authorization Independence:** Achieved through denormalization of the `userId` field in the `incomes`, `expenses`, `debts`, `installments` and `goals` collections. This eliminates the need for `get()` calls to parent documents (users) in security rules, enabling atomic operations (transactions/batches) and simplifying debugging.\\n\\n**Structural Segregation:**  Employed by storing all `incomes`, `expenses`, `debts`, and `installments` for a given user under the `/users/{userId}` path. This ensures that all documents within these subcollections share the same security requirements, simplifying rules and improving maintainability. All private user data is segregated under the user's document.\\n\\n**Access Modeling:** Path-based ownership is consistently used for all user-owned data (incomes, expenses, debts, installments, goals). This makes security rules simple and efficient.\\n\\n**QAPs (Rules Are Not Filters):** The structure enables secure list operations. Because all documents within a collection share the same security requirements and authorization information (`userId`), it's possible to write rules that allow listing only the documents that the user has access to, without having to filter based on document content.\\n\\n**Invariants:** Enforced through clear ownership (`userId` in child collections) and consistent naming conventions. Timestamps can be added to each entity to track creation and modification times, if required.\\n\\n**Logging:** A top-level `/logs` collection is added to store system-wide events. Access is restricted to superadmins for reading, while creation is allowed for any authenticated user to enable client-side event logging."
   }
 }
+
+    
