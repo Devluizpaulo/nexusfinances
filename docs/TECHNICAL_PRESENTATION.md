@@ -55,27 +55,38 @@ A organização dos diretórios segue as convenções do Next.js e foi estrutura
 
 ## 4. Lógica de Funcionalidades por Página
 
-### 4.1. Autenticação e Acesso (`/login`, `/admin/login`)
+### 4.1. Autenticação e Controle de Acesso
+
+O sistema de permissões é robusto e opera em duas camadas: no **backend** (com Firebase Security Rules) e no **frontend** (com CASL).
+
+-   **Backend (Firebase Rules):** A regra de ouro está no `firestore.rules`. A regra `match /users/{userId}/{document=**} { allow read, write: if isOwner(userId); }` garante que um usuário só possa ler e escrever dados dentro de sua própria estrutura de documentos (`/users/SEU_ID/...`). Isso é o que chamamos de "data ownership" e é a nossa principal linha de defesa. Ninguém, nem mesmo um erro no código do app, pode fazer com que um usuário acesse dados de outro.
+
+-   **Frontend (CASL - Context-Aware Access Control):** No lado do cliente, usamos a biblioteca CASL para melhorar a experiência do usuário.
+    -   **`lib/ability.ts`:** Este arquivo define as permissões de forma declarativa. Por exemplo: "Um `superadmin` pode `manage` (gerenciar) `all` (tudo), mas `cannot` (não pode) `delete` (excluir) a si mesmo".
+    -   **`lib/ability-provider.tsx`:** Este componente disponibiliza as habilidades (abilities) do usuário logado para toda a aplicação.
+    -   **Componentes:** Em componentes como `DataTableRowActions` (ações da tabela de usuários), usamos `const ability = useAbility(AppAbilityContext);` para obter as permissões e então verificamos `if (ability.can('delete', userToModify))` antes de renderizar o botão "Excluir". Isso esconde proativamente ações que o usuário não pode realizar, evitando frustração e erros desnecessários.
+
+### 4.2. Fluxo de Login (`/login`, `/admin/login`)
 
 -   **`src/app/login/page.tsx`**: Página de login e cadastro para usuários.
     -   **Lógica:** Utiliza o hook `useAuth` do Firebase. Oferece login com Google (`signInWithPopup`) e com E-mail/Senha (`signInWithEmailAndPassword` e `createUserWithEmailAndPassword`).
-    -   **Criação de Usuário:** Após o primeiro login bem-sucedido, um novo documento de usuário é criado na coleção `/users/{userId}` no Firestore, contendo informações básicas como nome, e-mail e data de registro.
+    -   **Criação de Usuário:** O componente `FirebaseProvider` detecta o primeiro login e cria um documento de usuário em `/users/{userId}`, registrando informações básicas e a `role` padrão `"user"`.
 -   **`src/app/admin/login/page.tsx`**: Página de login restrita para administradores.
     -   **Lógica:** Após a autenticação, verifica no documento do usuário no Firestore se o campo `role` é igual a `"superadmin"`. Se não for, o acesso é negado, e o usuário é deslogado.
 
-### 4.2. Dashboard (`/dashboard`)
+### 4.3. Dashboard (`/dashboard`)
 
 -   **`src/app/dashboard/page.tsx`**: O hub principal da aplicação.
     -   **Lógica:**
         -   Utiliza o hook `useDashboardDate` para gerenciar o período de visualização (mês/ano).
-        -   Realiza múltiplas consultas ao Firestore para buscar dados do período selecionado: rendas, despesas, dívidas e metas.
+        -   Realiza múltiplas consultas ao Firestore para buscar dados do período selecionado: rendas, despesas, dívidas e metas. Todas as consultas são direcionadas para o caminho `/users/{user.uid}/...`, garantindo que apenas os dados do usuário logado sejam solicitados.
         -   Usa o hook `useManageRecurrences` para verificar se há transações recorrentes a serem criadas para o mês atual.
         -   Usa o hook `useNotificationGenerator` para verificar e criar notificações (ex: parcelas de dívidas vencidas).
         -   Calcula KPIs (Renda Total, Despesas Totais, Balanço, Progresso de Metas).
         -   Chama o fluxo do Genkit `getFinancialInsights` para gerar a análise com IA.
     -   **Componentes:** Exibe `KpiCard` para os indicadores, `IncomeExpenseChart` e `ExpenseCategoryChart` para os gráficos, um `Calendar` para a visão mensal, e `FinancialHealthScore` para gamificação.
 
-### 4.3. Rendas e Despesas (`/income/**`, `/expenses/**`)
+### 4.4. Rendas e Despesas (`/income/**`, `/expenses/**`)
 
 -   **Páginas Principais (`/income`, `/expenses`):**
     -   **Lógica:** Listam todas as transações do respectivo tipo em um `DataTable`. Permitem filtrar por período (mês, ano, tudo).
@@ -88,7 +99,7 @@ A organização dos diretórios segue as convenções do Next.js e foi estrutura
 -   **Componente Chave (`AddTransactionSheet`):**
     -   Um formulário em modal (sheet) usado para adicionar ou editar qualquer tipo de transação (renda ou despesa). Ele é reutilizável e se adapta com base no `transactionType` passado como prop.
 
-### 4.4. Dívidas e Parcelamentos (`/debts`)
+### 4.5. Dívidas e Parcelamentos (`/debts`)
 
 -   **`src/app/debts/page.tsx`**:
     -   **Lógica:** Exibe um `DebtCard` para cada dívida cadastrada. Cada card busca as parcelas (`installments`) da sua subcoleção no Firestore (`/users/{uid}/debts/{debtId}/installments`).
@@ -96,7 +107,7 @@ A organização dos diretórios segue as convenções do Next.js e foi estrutura
 -   **Componente Chave (`AddDebtSheet`):**
     -   Formulário para criar uma nova dívida. Ao submeter, ele cria o documento da dívida e, em um único `writeBatch` do Firestore, gera todos os documentos de parcelas na subcoleção correspondente.
 
-### 4.5. Metas e Reservas (`/goals`)
+### 4.6. Metas e Reservas (`/goals`)
 
 -   **`src/app/goals/page.tsx`**:
     -   **Lógica:** Mostra um `GoalCard` para cada meta. Os cards exibem o progresso e permitem a adição de novos aportes.
@@ -104,21 +115,21 @@ A organização dos diretórios segue as convenções do Next.js e foi estrutura
     -   **`AddGoalSheet`:** Permite criar ou editar uma meta, definindo nome, valor alvo e valor inicial.
     -   **`AddContributionSheet`:** Um modal simples para adicionar um novo valor (`currentAmount`) a uma meta existente.
 
-### 4.6. Central de Saúde (`/health`)
+### 4.7. Central de Saúde (`/health`)
 
 -   **`src/app/health/page.tsx`**:
     -   **Lógica:** Centraliza informações de saúde em três seções: Planos de Saúde/Odontológico, Empresas (clínicas, academias) e Profissionais.
     -   **Estrutura:** Utiliza três coleções separadas no Firestore (`healthInsurances`, `healthProviders`, `healthProfessionals`) para manter os dados organizados. Os profissionais podem ser vinculados a uma empresa.
     -   **Componentes:** `HealthProviderCard` exibe os detalhes de uma empresa e lista os profissionais associados a ela.
 
-### 4.7. Jornada Financeira (`/education/**`)
+### 4.8. Jornada Financeira (`/education/**`)
 
 -   **`src/app/education/page.tsx`**: A página principal da jornada.
     -   **Lógica:** Busca todas as `EducationTrack` da coleção `/education`. Compara com o campo `completedTracks` do documento do usuário para separar as trilhas concluídas das pendentes e calcular o nível de progresso.
 -   **`src/app/education/[slug]/page.tsx`**: Página de uma trilha específica.
     -   **Lógica:** Renderiza os módulos da trilha de forma interativa usando um componente de abas (`Tabs`). O progresso do usuário (itens lidos, hábitos marcados) é salvo no estado do componente. A conclusão do quiz final atualiza o documento do usuário no Firestore, adicionando o `slug` da trilha ao array `completedTracks`.
 
-### 4.8. Painel do Administrador (`/admin/dashboard`)
+### 4.9. Painel do Administrador (`/admin/dashboard`)
 
 -   **Lógica de Acesso:** O layout (`AuthenticatedLayout`) e a própria página verificam se `user.role === 'superadmin'`.
 -   **Funcionalidades:**
