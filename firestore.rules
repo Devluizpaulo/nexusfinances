@@ -34,55 +34,11 @@ service cloud.firestore {
     // Regras para Subcoleções do Usuário
     // ==============================================================
 
-    match /users/{userId}/incomes/{incomeId} {
+    match /users/{userId}/{collection}/{docId} {
       allow read, write: if isOwner(userId);
     }
-    
-    match /users/{userId}/expenses/{expenseId} {
-      allow read, write: if isOwner(userId);
-    }
-    
-    match /users/{userId}/debts/{debtId} {
-      allow read, write: if isOwner(userId);
-    }
-    
+
     match /users/{userId}/debts/{debtId}/installments/{installmentId} {
-      allow read, write: if isOwner(userId);
-    }
-
-    match /users/{userId}/goals/{goalId} {
-      allow read, write: if isOwner(userId);
-    }
-
-    match /users/{userId}/budgets/{budgetId} {
-      allow read, write: if isOwner(userId);
-    }
-    
-    match /users/{userId}/creditCards/{cardId} {
-      allow read, write: if isOwner(userId);
-    }
-
-    match /users/{userId}/rentalContracts/{contractId} {
-      allow read, write: if isOwner(userId);
-    }
-
-    match /users/{userId}/healthProviders/{providerId} {
-      allow read, write: if isOwner(userId);
-    }
-
-    match /users/{userId}/healthProfessionals/{professionalId} {
-      allow read, write: if isOwner(userId);
-    }
-
-    match /users/{userId}/healthInsurances/{insuranceId} {
-      allow read, write: if isOwner(userId);
-    }
-
-    match /users/{userId}/notifications/{notificationId} {
-      allow read, write: if isOwner(userId);
-    }
-    
-    match /users/{userId}/challenges52weeks/{challengeId} {
       allow read, write: if isOwner(userId);
     }
     
