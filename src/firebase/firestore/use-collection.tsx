@@ -11,7 +11,7 @@ import {
   CollectionReference,
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 /** Utility type to add an 'id' field to a given type T. */
 export type WithId<T> = T & { id: string };
@@ -71,21 +71,21 @@ export function useCollection<T = any>(
             setIsLoading(false);
         });
       },
-      (error: FirestoreError) => {
+      (serverError: FirestoreError) => {
         const path: string =
           memoizedTargetRefOrQuery.type === 'collection'
             ? (memoizedTargetRefOrQuery as CollectionReference).path
             : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.toString()
 
-        const contextualError = new FirestorePermissionError({
-          operation: 'list',
+        const permissionError = new FirestorePermissionError({
           path,
-        })
+          operation: 'list',
+        } satisfies SecurityRuleContext);
 
-        setError(contextualError)
-        setData(null)
-        setIsLoading(false)
-        errorEmitter.emit('permission-error', contextualError);
+        setError(permissionError);
+        setData(null);
+        setIsLoading(false);
+        errorEmitter.emit('permission-error', permissionError);
       }
     );
 
@@ -98,3 +98,4 @@ export function useCollection<T = any>(
   
   return { data, isLoading: isLoading || isPending, error };
 }
+

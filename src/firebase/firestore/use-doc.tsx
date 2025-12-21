@@ -10,7 +10,7 @@ import {
   DocumentSnapshot,
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 /** Utility type to add an 'id' field to a given type T. */
 type WithId<T> = T & { id: string };
@@ -72,18 +72,18 @@ export function useDoc<T = any>(
         setError(null); // Clear any previous error on successful snapshot
         setIsLoading(false);
       },
-      (error: FirestoreError) => {
-        const contextualError = new FirestorePermissionError({
-          operation: 'get',
+      (serverError: FirestoreError) => {
+        const permissionError = new FirestorePermissionError({
           path: memoizedDocRef.path,
-        })
+          operation: 'get',
+        } satisfies SecurityRuleContext);
 
-        setError(contextualError)
-        setData(null)
-        setIsLoading(false)
+        setError(permissionError);
+        setData(null);
+        setIsLoading(false);
 
         // trigger global error propagation
-        errorEmitter.emit('permission-error', contextualError);
+        errorEmitter.emit('permission-error', permissionError);
       }
     );
 
@@ -92,3 +92,4 @@ export function useDoc<T = any>(
 
   return { data, isLoading, error };
 }
+
