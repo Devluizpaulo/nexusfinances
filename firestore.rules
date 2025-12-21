@@ -13,7 +13,8 @@ service cloud.firestore {
     }
 
     function isSuperAdmin() {
-      return request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "superadmin";
+      // Check if the user document exists and has the role 'superadmin'
+      return request.auth != null && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "superadmin";
     }
 
     // =================================
@@ -29,59 +30,8 @@ service cloud.firestore {
     // User Subcollections Rules
     // ==============================================================
     
-    // This function secures all user-specific subcollections.
-    // It allows a user to read and write only their own documents.
-    function allowOwnerAccess(userId) {
-      return {
-        // Allow creating new documents if the user is the owner
-        'allow create': if isOwner(userId),
-        
-        // Allow reading, updating, and deleting individual documents if the user is the owner
-        'match /{docId}': {
-          'allow read, update, delete': if isOwner(userId)
-        },
-        
-        // IMPORTANT: Explicitly allow listing the collection if the user is the owner.
-        // This is crucial for queries and `useCollection`.
-        'allow list': if isOwner(userId)
-      }
-    }
-    
-    // Apply the generic rule to each subcollection
-    match /users/{userId}/incomes/{docId=**} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/expenses/{docId=**} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/debts/{docId=**} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/goals/{docId=**} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/budgets/{docId=**} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/notifications/{docId=**} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/creditCards/{docId=**} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/rentalContracts/{docId=**} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/healthProviders/{docId=**} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/healthProfessionals/{docId=**} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/healthInsurances/{docId=**} {
-      allow read, write: if isOwner(userId);
-    }
-    match /users/{userId}/challenges52weeks/{docId=**} {
+    // Generic rule for all user-specific subcollections
+    match /users/{userId}/{document=**} {
       allow read, write: if isOwner(userId);
     }
     
