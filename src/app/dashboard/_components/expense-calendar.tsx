@@ -32,7 +32,7 @@ interface DayData {
 
 const ExpenseCalendarContext = createContext<Record<string, DayData> | null>(null);
 
-const DayComponent = memo(function DayComponent({ date, displayMonth }: DayProps) {
+const DayComponent: React.FC<DayProps> = memo(function DayComponent({ date, displayMonth }: DayProps) {
     const router = useRouter();
     const expensesByDay = useContext(ExpenseCalendarContext);
 

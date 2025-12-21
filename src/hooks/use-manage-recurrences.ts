@@ -4,7 +4,7 @@
 import { useEffect, useCallback } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, writeBatch, getDocs, doc, addDoc } from 'firebase/firestore';
-import { startOfMonth, endOfMonth, getMonth, getYear, setMonth, formatISO, setDate } from 'date-fns';
+import { startOfMonth, endOfMonth, getMonth, getYear, setMonth, formatISO, setDate, parseISO } from 'date-fns';
 import type { Transaction } from '@/lib/types';
 
 const LAST_CHECKED_KEY = 'recurrencesLastChecked_v2';
