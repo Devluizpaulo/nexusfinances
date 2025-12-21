@@ -21,6 +21,7 @@ export function useCreditCardNotifications() {
   const { data: cards } = useCollection<CreditCard>(cardsQuery);
 
   const checkCardNotifications = useCallback(async () => {
+    if (typeof window === 'undefined') return; // Ensure this only runs on the client
     if (!user || !firestore || !cards || cards.length === 0) return;
 
     const today = startOfDay(new Date());
