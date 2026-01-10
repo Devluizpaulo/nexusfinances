@@ -17,6 +17,7 @@ import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { motion } from 'framer-motion';
+import { LandingHeader } from '@/components/landing-header';
 
 function ClientRoot() {
   const { user, isUserLoading } = useUser();
@@ -52,31 +53,7 @@ function ClientRoot() {
   
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground overflow-x-hidden">
-      <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-sm px-4 py-3 md:px-6 transition-all duration-300">
-        <div className="container mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <motion.div 
-              className="flex h-12 w-12 items-center justify-center rounded-xl"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Image src="/images/xoplanilhas_logo.png" alt="Logo Xô Planilhas" width={48} height={48} />
-            </motion.div>
-            <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-              Xô Planilhas
-            </span>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Button asChild variant="ghost" className="font-medium hover:bg-primary/10 hover:text-primary">
-              <Link href="/login">Entrar</Link>
-            </Button>
-            <Button asChild className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-primary/20 transition-all duration-300">
-              <Link href="/login">Começar Agora</Link>
-            </Button>
-          </div>
-        </div>
-      </header>
-
+      <LandingHeader />
       <main>
         {/* Hero Section */}
         <section className="relative overflow-hidden border-b bg-gradient-to-br from-primary/5 via-background to-background pt-16 pb-24 md:pt-24 md:pb-32">

@@ -48,8 +48,11 @@ function UserMenu() {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                    <Avatar className="h-9 w-9">
+                <Button 
+                  variant="ghost" 
+                  className="relative h-9 w-9 rounded-full p-0 hover:bg-slate-800/60 transition-all duration-200"
+                >
+                    <Avatar className="h-9 w-9 border border-slate-700/50 hover:border-primary/50 transition-colors">
                         {user.photoURL ? (
                            <AvatarImage src={user.photoURL} alt="Avatar do usuário"/>
                         ) : user.avatar ? (
@@ -57,28 +60,31 @@ function UserMenu() {
                                 <Icon className="h-5 w-5" />
                             </div>
                         ) : (
-                           <AvatarFallback>{user.displayName?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
+                           <AvatarFallback className="bg-slate-800 text-slate-100">{user.displayName?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase() || 'U'}</AvatarFallback>
                         )}
                     </Avatar>
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent side="bottom" align="end" className="w-56">
-                <DropdownMenuLabel className='font-normal'>
+            <DropdownMenuContent side="bottom" align="end" className="w-56 bg-slate-900/95 border-slate-800">
+                <DropdownMenuLabel className='font-normal py-2'>
                     <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{getFirstName(user.displayName)}</p>
-                        <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                        <p className="text-sm font-semibold leading-none text-slate-100">{getFirstName(user.displayName)}</p>
+                        <p className="text-xs leading-none text-slate-400 truncate">{user.email}</p>
                     </div>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="bg-slate-800/50" />
                 <Link href="/profile">
-                    <DropdownMenuItem>
-                        <UserCircle className="mr-2 h-4 w-4" />
-                        <span>Perfil & Configurações</span>
+                    <DropdownMenuItem className="hover:bg-slate-800/50 transition-colors duration-150 cursor-pointer">
+                        <UserCircle className="mr-2 h-4 w-4 text-slate-400" />
+                        <span className="text-slate-100">Perfil & Configurações</span>
                     </DropdownMenuItem>
                 </Link>
-                <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Sair</span>
+                <DropdownMenuItem 
+                  onClick={handleSignOut}
+                  className="hover:bg-red-950/30 transition-colors duration-150 cursor-pointer"
+                >
+                    <LogOut className="mr-2 h-4 w-4 text-red-400" />
+                    <span className="text-slate-100">Sair</span>
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
@@ -115,44 +121,61 @@ function NotificationsMenu() {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative h-10 w-10">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="relative h-9 w-9 rounded-full text-slate-400 hover:bg-slate-800/60 hover:text-slate-100 transition-all duration-200"
+                >
                     <Bell className="h-5 w-5" />
                     {unreadCount > 0 && (
-                        <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
-                          {unreadCount}
+                        <Badge 
+                          variant="destructive" 
+                          className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs font-bold shadow-lg"
+                        >
+                          {unreadCount > 9 ? '9+' : unreadCount}
                         </Badge>
                     )}
                     <span className="sr-only">Notificações</span>
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80">
-                <DropdownMenuLabel>Notificações</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <div className="max-h-80 overflow-y-auto">
+            <DropdownMenuContent align="end" className="w-80 bg-slate-900/95 border-slate-800">
+                <DropdownMenuLabel className="text-slate-100 font-semibold">Notificações</DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-slate-800/50" />
+                <div className="max-h-[28rem] overflow-y-auto">
                 {isLoading ? (
-                    <div className="p-4 text-center text-sm text-muted-foreground">Carregando...</div>
+                    <div className="p-4 text-center text-sm text-slate-400 flex items-center justify-center gap-2">
+                      <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                      Carregando notificações...
+                    </div>
                 ) : notifications && notifications.length > 0 ? (
-                    notifications.map(notification => (
-                        <DropdownMenuItem key={notification.id} asChild className="cursor-pointer data-[highlighted]:bg-slate-800">
-                            <Link href={notification.link || '#'} className="items-start" onClick={() => handleMarkAsRead(notification.id)}>
-                                <div className="flex items-start gap-3 py-2">
+                    notifications.map((notification, idx) => (
+                        <div key={notification.id} className={cn("border-b border-slate-800/40", idx === notifications.length - 1 && "border-b-0")}>
+                          <DropdownMenuItem asChild className="cursor-pointer hover:bg-slate-800/50 p-0 transition-colors duration-150">
+                            <Link href={notification.link || '#'} className="w-full" onClick={() => handleMarkAsRead(notification.id)}>
+                                <div className="flex items-start gap-3 py-3 px-4 w-full">
                                      {!notification.isRead && (
-                                        <div className="h-2 w-2 rounded-full bg-primary mt-1.5 shrink-0" />
+                                        <div className="h-2.5 w-2.5 rounded-full bg-primary mt-1.5 shrink-0 shadow-lg shadow-primary/50" />
                                     )}
-                                    <div className={cn("flex-grow", notification.isRead && "pl-5")}>
-                                        <p className="text-sm leading-snug">{notification.message}</p>
-                                        <p className="text-xs text-muted-foreground mt-1">
+                                    <div className={cn("flex-grow", notification.isRead && "pl-1")}>
+                                        <p className="text-sm leading-snug text-slate-100">{notification.message}</p>
+                                        <p className="text-xs text-slate-500 mt-1.5">
                                              {formatDistanceToNow(parseISO(notification.timestamp as string), { addSuffix: true, locale: ptBR })}
                                         </p>
                                     </div>
                                 </div>
                             </Link>
-                        </DropdownMenuItem>
+                          </DropdownMenuItem>
+                        </div>
                     ))
                 ) : (
-                     <div className="p-4 text-center text-sm text-muted-foreground flex flex-col items-center gap-2">
-                        <Bell className="h-8 w-8 text-muted-foreground/50"/>
-                        <p>Tudo em dia!</p>
+                     <div className="p-8 text-center text-sm text-slate-400 flex flex-col items-center gap-3">
+                        <div className="p-3 bg-slate-800/40 rounded-full">
+                          <Bell className="h-6 w-6 text-slate-500"/>
+                        </div>
+                        <div>
+                          <p className="font-medium">Tudo em dia!</p>
+                          <p className="text-xs text-slate-500 mt-1">Nenhuma notificação no momento</p>
+                        </div>
                     </div>
                 )}
                 </div>
@@ -165,24 +188,25 @@ export function Header() {
   const { toggleSidebar } = useSidebar();
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center border-b border-slate-900/70 bg-slate-950/85 px-4 sm:px-6 backdrop-blur-xl shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
+    <header className="sticky top-0 z-30 flex h-16 items-center border-b border-slate-800/60 bg-gradient-to-r from-slate-950/90 via-slate-950/85 to-slate-950/90 px-4 sm:px-6 backdrop-blur-xl shadow-[0_20px_50px_-30px_rgba(15,23,42,0.8)] transition-all duration-300 hover:shadow-[0_20px_50px_-25px_rgba(15,23,42,1)]">
       <div className="flex w-full items-center justify-between gap-4">
         {/* Botão para abrir sidebar no mobile */}
         <Button
           onClick={toggleSidebar}
           variant="ghost"
           size="icon"
-          className="md:hidden rounded-full text-slate-300 hover:bg-slate-900/80 hover:text-white"
+          className="md:hidden rounded-full text-slate-400 hover:bg-slate-800/60 hover:text-slate-100 transition-all duration-200"
         >
-          <Menu className="h-6 w-6" />
+          <Menu className="h-5 w-5" />
           <span className="sr-only">Abrir Menu</span>
         </Button>
 
         {/* Espaçador para centralizar o conteúdo do meio em telas maiores */}
-        <div className="hidden md:flex" />
+        <div className="hidden md:flex flex-1" />
 
         {/* Ações da Direita */}
-        <div className="flex items-center gap-2 ml-auto">
+        <div className="flex items-center gap-2 ml-auto sm:gap-3">
+          <div className="hidden sm:block h-6 w-px bg-slate-700/50" />
           <NotificationsMenu />
           <UserMenu />
         </div>
