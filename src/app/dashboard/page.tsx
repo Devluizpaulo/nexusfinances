@@ -27,6 +27,7 @@ import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { JourneyProgressCard } from '@/components/education/JourneyProgressCard';
 import { ExpenseCalendar } from './_components/expense-calendar';
+import { PremiumBackground } from '@/components/premium-effects';
 
 
 export default function DashboardPage() {
@@ -131,37 +132,73 @@ export default function DashboardPage() {
 
   return (
     <>
+      <PremiumBackground />
       <AddTransactionSheet isOpen={sheetType === 'income' || sheetType === 'expense'} onClose={handleCloseSheet} transactionType={sheetType as 'income' | 'expense'} categories={sheetType === 'income' ? incomeCategories : expenseCategories} />
       <AddDebtSheet isOpen={sheetType === 'debt'} onClose={handleCloseSheet} />
       <AddGoalSheet isOpen={sheetType === 'goal'} onClose={handleCloseSheet} />
     
       <motion.div 
-        className="space-y-6"
+        className="space-y-6 relative z-10"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.5 }}
       >
         <DashboardHeader onAddIncome={() => handleOpenSheet('income')} onAddExpense={() => handleOpenSheet('expense')} onAddDebt={() => handleOpenSheet('debt')} onAddGoal={() => handleOpenSheet('goal')} />
         
-        <Tabs defaultValue="overview">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-            <TabsTrigger value="analysis">Análise Detalhada</TabsTrigger>
-            <TabsTrigger value="calendar">Calendário</TabsTrigger>
-            <TabsTrigger value="journey">Jornada Financeira</TabsTrigger>
-          </TabsList>
+        {/* Tabs with Glassmorphism */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="relative"
+        >
+          {/* Glow effect behind tabs */}
+          <motion.div
+            className="absolute -inset-2 bg-gradient-to-r from-blue-600/5 via-cyan-500/5 to-blue-600/5 rounded-2xl blur-2xl -z-10"
+            animate={{
+              opacity: [0.3, 0.6, 0.3],
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+            }}
+          />
 
-          <TabsContent value="overview" className="mt-6 space-y-6">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-              <KpiCard index={0} title="Receitas do Mês" value={formatCurrency(totalIncome)} icon={TrendingUp} trend={incomeTrend} />
-              <KpiCard index={1} title="Despesas do Mês" value={formatCurrency(totalExpenses)} icon={TrendingDown} trend={expenseTrend} invertTrendColor />
-              <KpiCard index={2} title="Balanço Mensal" value={formatCurrency(balance)} icon={HandCoins} />
-              <KpiCard index={3} title="Taxa de Poupança" value={`${savingsRate.toFixed(0)}%`} icon={Percent} />
-            </div>
-            
-             <FinancialInsightsCard financialData={financialDataForAI} />
+          <Tabs defaultValue="overview" className="relative">
+            <TabsList className="grid w-full grid-cols-4 bg-gradient-to-r from-slate-900/50 to-slate-800/50 border border-blue-500/20 rounded-xl p-1 backdrop-blur-xl">
+              <TabsTrigger value="overview" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg transition-all">Visão Geral</TabsTrigger>
+              <TabsTrigger value="analysis" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg transition-all">Análise Detalhada</TabsTrigger>
+              <TabsTrigger value="calendar" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg transition-all">Calendário</TabsTrigger>
+              <TabsTrigger value="journey" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg transition-all">Jornada Financeira</TabsTrigger>
+            </TabsList>
 
-             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <TabsContent value="overview" className="mt-6 space-y-6">
+              <motion.div 
+                className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, staggerChildren: 0.1 }}
+              >
+                <KpiCard index={0} title="Receitas do Mês" value={formatCurrency(totalIncome)} icon={TrendingUp} trend={incomeTrend} />
+                <KpiCard index={1} title="Despesas do Mês" value={formatCurrency(totalExpenses)} icon={TrendingDown} trend={expenseTrend} invertTrendColor />
+                <KpiCard index={2} title="Balanço Mensal" value={formatCurrency(balance)} icon={HandCoins} />
+                <KpiCard index={3} title="Taxa de Poupança" value={`${savingsRate.toFixed(0)}%`} icon={Percent} />
+              </motion.div>
+              
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <FinancialInsightsCard financialData={financialDataForAI} />
+              </motion.div>
+
+              <motion.div 
+                className="grid grid-cols-1 lg:grid-cols-5 gap-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+              >
                 <div className="lg:col-span-3 space-y-6">
                     <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
                     <FinancialHealthScore income={totalIncome} expenses={totalExpenses} debts={debtData || []} goals={goalData || []} transactions={allTransactions}/>
@@ -169,26 +206,51 @@ export default function DashboardPage() {
                 <div className="lg:col-span-2 space-y-6">
                     <RecentTransactionsList transactions={allTransactions} onAddTransaction={() => handleOpenSheet('expense')} />
                 </div>
-            </div>
-            <OverdueDebtsCard debts={debtData || []} />
-          </TabsContent>
+              </motion.div>
+              
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+              >
+                <OverdueDebtsCard debts={debtData || []} />
+              </motion.div>
+            </TabsContent>
 
-          <TabsContent value="analysis" className="mt-6 space-y-6">
-             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <TabsContent value="analysis" className="mt-6 space-y-6">
+              <motion.div 
+                className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
                 <IncomeExpenseChart transactions={allTransactions} />
                 <ExpenseCategoryChart transactions={expenseData || []} />
-             </div>
-          </TabsContent>
+              </motion.div>
+            </TabsContent>
 
-           <TabsContent value="calendar" className="mt-6">
-              <ExpenseCalendar expenses={expenseData || []}/>
-          </TabsContent>
-          
-           <TabsContent value="journey" className="mt-6">
-              <JourneyProgressCard />
-          </TabsContent>
+            <TabsContent value="calendar" className="mt-6">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <ExpenseCalendar expenses={expenseData || []}/>
+              </motion.div>
+            </TabsContent>
+            
+            <TabsContent value="journey" className="mt-6">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <JourneyProgressCard />
+              </motion.div>
+            </TabsContent>
 
-        </Tabs>
+          </Tabs>
+        </motion.div>
       </motion.div>
     </>
   );

@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth, useUser } from '@/firebase';
-import { DollarSign, Loader2 } from 'lucide-react';
+import { DollarSign, Loader2, Eye, EyeOff } from 'lucide-react';
 import { 
   GoogleAuthProvider, 
   signInWithPopup, 
@@ -43,6 +43,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
+import { PremiumBackground } from '@/components/premium-effects';
 
 const loginSchema = z.object({
   email: z.string().email('Por favor, insira um e-mail válido.'),
@@ -83,6 +85,8 @@ function LoginClient() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('login');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordRegister, setShowPasswordRegister] = useState(false);
   const searchParams = useSearchParams();
 
   const loginForm = useForm<LoginValues>({
@@ -222,38 +226,105 @@ function LoginClient() {
   }
 
   return (
-    <div className="grid min-h-screen w-full lg:grid-cols-2">
-      <div className="flex items-center justify-center p-6 sm:p-12 animate-in fade-in duration-500">
-        <div className="mx-auto grid w-[350px] gap-6">
-          <div className="grid gap-2 text-center">
-             <Link href="/" className="flex items-center justify-center gap-2 mb-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg">
-                  <Image src="/images/xoplanilhas_logo.png" alt="Logo Xô Planilhas" width={48} height={48} />
-                </div>
-                <span className="text-2xl font-bold tracking-tight">Xô Planilhas</span>
+    <div className="relative grid min-h-screen w-full lg:grid-cols-2 overflow-hidden">
+      <PremiumBackground />
+      
+      {/* Left - Form Section */}
+      <motion.div 
+        className="relative flex items-center justify-center p-6 sm:p-12 z-10"
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6 }}
+      >
+        <div className="mx-auto w-full max-w-sm">
+          {/* Header */}
+          <motion.div 
+            className="mb-8"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+          >
+            <Link href="/" className="flex items-center justify-center mb-10 group">
+              {/* Logo Container with Glow */}
+              <motion.div
+                className="relative"
+                whileHover={{ scale: 1.12 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {/* Outer glow */}
+                <motion.div
+                  className="absolute -inset-4 bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-600 rounded-xl blur-2xl opacity-40 group-hover:opacity-70"
+                  animate={{
+                    opacity: [0.3, 0.4, 0.3],
+                  }}
+                  transition={{
+                    duration: 10,
+                    repeat: Infinity,
+                  }}
+                />
+                <Image 
+                    src="/images/xoplanilhas_logo.png" 
+                    alt="Logo Xô Planilhas" 
+                    width={400} 
+                    height={500} 
+                    className="h-44 w-50 object-contain relative z-10 drop-shadow-2xl" 
+                  />
+                
+              </motion.div>
             </Link>
-            <h1 className="text-3xl font-bold">Acesse sua conta</h1>
-            <p className="text-balance text-muted-foreground">
-              Entre para assumir o controle da sua vida financeira.
-            </p>
-          </div>
-         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Entrar</TabsTrigger>
-              <TabsTrigger value="register">Cadastrar</TabsTrigger>
-            </TabsList>
+            
+            <div className="text-center mt-8">
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-200 via-cyan-200 to-blue-300 bg-clip-text text-transparent mb-3">
+                Acesse sua conta
+              </h1>
+              <p className="text-slate-400 text-base leading-relaxed">
+                Entre para assumir o controle da sua vida financeira
+              </p>
+            </div>
+          </motion.div>
 
-            <TabsContent value="login" className="mt-4">
-               <Form {...loginForm}>
+          {/* Tabs */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+          >
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 bg-slate-800/50 border border-slate-700/50 rounded-xl p-1 mb-6 backdrop-blur-xl">
+                <TabsTrigger 
+                  value="login"
+                  className="rounded-lg font-semibold text-sm py-2.5 transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-500/30"
+                >
+                  Entrar
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="register"
+                  className="rounded-lg font-semibold text-sm py-2.5 transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-blue-500/30"
+                >
+                  Cadastrar
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Login Tab */}
+              <TabsContent value="login" className="space-y-4 mt-4">
+                <Form {...loginForm}>
                   <form onSubmit={loginForm.handleSubmit(handleEmailLogin)} className="space-y-4">
                     <FormField
                       control={loginForm.control}
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel className="text-sm font-semibold text-slate-300">Email</FormLabel>
                           <FormControl>
-                            <Input type="email" placeholder="seu@email.com" {...field} />
+                            <div className="relative group">
+                              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl blur opacity-20 group-hover:opacity-30 transition duration-300 -z-10"></div>
+                              <Input 
+                                type="email" 
+                                placeholder="seu@email.com" 
+                                {...field}
+                                className="h-12 rounded-xl border-2 border-slate-700/50 bg-slate-900/50 text-white placeholder:text-slate-500 focus:border-blue-500/50 focus:ring-blue-500/30 transition-all backdrop-blur-xl"
+                              />
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -264,22 +335,45 @@ function LoginClient() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Senha</FormLabel>
+                          <FormLabel className="text-sm font-semibold text-slate-300">Senha</FormLabel>
                           <FormControl>
-                            <Input type="password" placeholder="******" {...field} />
+                            <div className="relative group">
+                              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl blur opacity-20 group-hover:opacity-30 transition duration-300 -z-10"></div>
+                              <Input 
+                                type={showPassword ? "text" : "password"} 
+                                placeholder="••••••••" 
+                                {...field}
+                                className="h-12 rounded-xl border-2 border-slate-700/50 bg-slate-900/50 text-white placeholder:text-slate-500 focus:border-blue-500/50 focus:ring-blue-500/30 transition-all backdrop-blur-xl pr-12"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors"
+                              >
+                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                              </button>
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" className="w-full" disabled={isLoading || !auth}>
-                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Entrar com Email
-                    </Button>
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <Button 
+                        type="submit" 
+                        className="w-full h-12 rounded-xl font-bold text-base bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white shadow-lg hover:shadow-blue-500/40 transition-all duration-300" 
+                        disabled={isLoading || !auth}
+                      >
+                        {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                        Entrar com Email
+                      </Button>
+                    </motion.div>
                   </form>
                 </Form>
-            </TabsContent>
-             <TabsContent value="register" className="mt-4">
+              </TabsContent>
+
+              {/* Register Tab */}
+              <TabsContent value="register" className="space-y-4 mt-4">
                 <Form {...registerForm}>
                   <form onSubmit={registerForm.handleSubmit(handleEmailRegister)} className="space-y-4">
                     <FormField
@@ -287,9 +381,16 @@ function LoginClient() {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Nome Completo</FormLabel>
+                          <FormLabel className="text-sm font-semibold text-slate-300">Nome Completo</FormLabel>
                           <FormControl>
-                            <Input placeholder="Seu nome" {...field} />
+                            <div className="relative group">
+                              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl blur opacity-20 group-hover:opacity-30 transition duration-300 -z-10"></div>
+                              <Input 
+                                placeholder="Seu nome" 
+                                {...field}
+                                className="h-12 rounded-xl border-2 border-slate-700/50 bg-slate-900/50 text-white placeholder:text-slate-500 focus:border-blue-500/50 focus:ring-blue-500/30 transition-all backdrop-blur-xl"
+                              />
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -300,9 +401,17 @@ function LoginClient() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel className="text-sm font-semibold text-slate-300">Email</FormLabel>
                           <FormControl>
-                            <Input type="email" placeholder="seu@email.com" {...field} />
+                            <div className="relative group">
+                              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl blur opacity-20 group-hover:opacity-30 transition duration-300 -z-10"></div>
+                              <Input 
+                                type="email" 
+                                placeholder="seu@email.com" 
+                                {...field}
+                                className="h-12 rounded-xl border-2 border-slate-700/50 bg-slate-900/50 text-white placeholder:text-slate-500 focus:border-blue-500/50 focus:ring-blue-500/30 transition-all backdrop-blur-xl"
+                              />
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -313,89 +422,156 @@ function LoginClient() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Senha</FormLabel>
+                          <FormLabel className="text-sm font-semibold text-slate-300">Senha</FormLabel>
                           <FormControl>
-                            <Input type="password" placeholder="Mínimo 6 caracteres" {...field} />
+                            <div className="relative group">
+                              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl blur opacity-20 group-hover:opacity-30 transition duration-300 -z-10"></div>
+                              <Input 
+                                type={showPasswordRegister ? "text" : "password"} 
+                                placeholder="Mínimo 6 caracteres" 
+                                {...field}
+                                className="h-12 rounded-xl border-2 border-slate-700/50 bg-slate-900/50 text-white placeholder:text-slate-500 focus:border-blue-500/50 focus:ring-blue-500/30 transition-all backdrop-blur-xl pr-12"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPasswordRegister(!showPasswordRegister)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors"
+                              >
+                                {showPasswordRegister ? <EyeOff size={20} /> : <Eye size={20} />}
+                              </button>
+                            </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" className="w-full" disabled={isLoading || !auth}>
-                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Criar Conta Grátis
-                    </Button>
+                    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      <Button 
+                        type="submit" 
+                        className="w-full h-12 rounded-xl font-bold text-base bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white shadow-lg hover:shadow-blue-500/40 transition-all duration-300" 
+                        disabled={isLoading || !auth}
+                      >
+                        {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                        Criar Conta Grátis
+                      </Button>
+                    </motion.div>
                   </form>
                 </Form>
-             </TabsContent>
-          </Tabs>
-           <div className="relative my-2">
+              </TabsContent>
+            </Tabs>
+          </motion.div>
+
+          {/* Divider */}
+          <motion.div 
+            className="relative my-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
+          >
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
+              <span className="w-full border-t border-slate-700/50" />
             </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
+            <div className="relative flex justify-center">
+              <span className="bg-background px-3 text-xs uppercase font-semibold text-slate-400">
                 Ou continue com
               </span>
             </div>
-          </div>
-           <Button
-            variant="outline"
-            onClick={handleGoogleSignIn}
-            className="w-full"
-            disabled={isLoading || !auth}
+          </motion.div>
+
+          {/* Google Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> :
-              <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
-                <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 21.5 174.4 58.9L359.7 127.4c-27.8-26.2-63.5-42.6-111.7-42.6-88.5 0-160.9 72.4-160.9 161.2s72.4 161.2 160.9 161.2c38.3 0 71.3-12.8 96.2-34.4 22.1-19.1 33.4-44.9 36.8-74.6H248V261.8h239.2z"></path>
-              </svg>}
-            Continuar com Google
-          </Button>
-
-          <p className="mt-4 px-8 text-center text-xs text-muted-foreground">
-            Ao clicar em continuar, você concorda com nossos{" "}
-            <Link
-              href="/terms"
-              className="underline underline-offset-4 hover:text-primary"
+            <Button
+              onClick={handleGoogleSignIn}
+              className="w-full h-12 rounded-xl font-semibold text-base border-2 border-slate-700/50 bg-slate-900/50 hover:bg-slate-800/50 text-white hover:border-blue-500/50 transition-all duration-300 backdrop-blur-xl"
+              disabled={isLoading || !auth}
             >
-              Termos de Uso
-            </Link>{" "}
-            e{" "}
-            <Link
-              href="/privacy"
-              className="underline underline-offset-4 hover:text-primary"
-            >
-              Política de Privacidade
-            </Link>
-            .
-          </p>
+              {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> :
+                <svg className="mr-2 h-5 w-5" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+                  <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 21.5 174.4 58.9L359.7 127.4c-27.8-26.2-63.5-42.6-111.7-42.6-88.5 0-160.9 72.4-160.9 161.2s72.4 161.2 160.9 161.2c38.3 0 71.3-12.8 96.2-34.4 22.1-19.1 33.4-44.9 36.8-74.6H248V261.8h239.2z"></path>
+                </svg>}
+              Continuar com Google
+            </Button>
+          </motion.div>
 
-          <div className="mt-4 text-center text-sm">
-            <Link href="/" className="underline underline-offset-2">
-              Voltar para a página inicial
-            </Link>
-          </div>
-        </div>
-      </div>
-      <div className="hidden bg-muted lg:block relative">
-        {loginImage && (
-            <Image
-                src={loginImage.imageUrl}
-                alt={loginImage.description}
-                fill
-                className="object-cover"
-                data-ai-hint={loginImage.imageHint}
-                priority
-            />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-primary/30 to-primary/5"></div>
-         <div className="relative flex h-full flex-col justify-end p-10 text-primary-foreground">
-            <div className="z-10 rounded-lg bg-black/30 p-6 backdrop-blur-sm">
-                <h2 className="text-3xl font-bold">Simples. Visual. Sem estresse.</h2>
-                <p className="mt-2 text-primary-foreground/80">&quot;Finalmente uma ferramenta que entende o que eu preciso. Em minutos, todo o meu fluxo financeiro estava organizado.&quot;</p>
+          {/* Footer Links */}
+          <motion.div 
+            className="mt-8 space-y-4 text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.6 }}
+          >
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Ao clicar em continuar, você concorda com nossos{" "}
+              <Link href="/terms" className="text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors">
+                Termos de Uso
+              </Link>{" "}
+              e{" "}
+              <Link href="/privacy" className="text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors">
+                Política de Privacidade
+              </Link>
+              .
+            </p>
+
+            <div className="text-sm">
+              <Link href="/" className="text-blue-400 hover:text-blue-300 underline underline-offset-2 font-semibold transition-colors">
+                ← Voltar para a página inicial
+              </Link>
             </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
+
+      {/* Right - Image Section */}
+      <motion.div 
+        className="hidden lg:flex relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-950"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8 }}
+      >
+        {loginImage && (
+          <>
+            <Image
+              src={loginImage.imageUrl}
+              alt={loginImage.description}
+              fill
+              className="object-cover opacity-40"
+              data-ai-hint={loginImage.imageHint}
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+          </>
+        )}
+        
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-1/2 -right-1/2 w-full h-full rounded-full bg-blue-600/20 blur-3xl" />
+          <div className="absolute -bottom-1/2 -left-1/2 w-full h-full rounded-full bg-cyan-500/10 blur-3xl" />
+        </div>
+
+        <div className="relative flex flex-col justify-end p-12 z-10">
+          <motion.div 
+            className="rounded-2xl bg-gradient-to-br from-blue-950/60 to-slate-950/60 border border-blue-500/20 backdrop-blur-xl p-8 space-y-4"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.8 }}
+          >
+            <h2 className="text-3xl font-bold text-white leading-tight">
+              Simples. Visual. Sem estresse.
+            </h2>
+            <p className="text-slate-300 text-lg">
+              &quot;Finalmente uma ferramenta que entende o que eu preciso. Em minutos, todo o meu fluxo financeiro estava organizado.&quot;
+            </p>
+            <div className="pt-4 border-t border-slate-700/50">
+              <p className="text-sm text-slate-400">— Usuário satisfeito do Xô Planilhas</p>
+            </div>
+          </motion.div>
+        </div>
+      </motion.div>
     </div>
   );
 }

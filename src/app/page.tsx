@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { motion } from 'framer-motion';
 import { LandingHeader } from '@/components/landing-header';
+import { PremiumBackground } from '@/components/premium-effects';
 
 function ClientRoot() {
   const { user, isUserLoading } = useUser();
@@ -52,11 +53,12 @@ function ClientRoot() {
   const feature3Image = PlaceHolderImages.find(p => p.id === 'lp-feature-3');
   
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground overflow-x-hidden">
+    <div className="relative flex min-h-screen flex-col bg-background text-foreground overflow-x-hidden">
+      <PremiumBackground />
       <LandingHeader />
       <main>
         {/* Hero Section */}
-        <section className="relative overflow-hidden border-b bg-gradient-to-br from-primary/5 via-background to-background pt-16 pb-24 md:pt-24 md:pb-32">
+        <section className="relative overflow-hidden border-b border-blue-500/10 bg-gradient-to-br from-blue-950/20 via-background to-background pt-16 pb-24 md:pt-24 md:pb-32">
           {/* Elementos decorativos */}
           <div className="absolute -left-20 -top-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
           <div className="absolute -right-20 top-1/2 h-80 w-80 -translate-y-1/2 rounded-full bg-secondary/20 blur-3xl" />
@@ -67,29 +69,51 @@ function ClientRoot() {
               className="relative z-10 text-center md:text-left"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
             >
-              <div className="mb-4 inline-flex items-center rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
-                <Sparkles className="mr-2 h-4 w-4" />
+              <motion.div 
+                className="mb-6 inline-flex items-center rounded-full bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-300 border border-blue-500/20 transition-all duration-300 hover:bg-blue-500/15 hover:border-blue-500/40"
+                whileHover={{ scale: 1.05 }}
+              >
+                <motion.div animate={{ rotate: [0, 20, 0] }} transition={{ duration: 3, repeat: Infinity }}>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                </motion.div>
                 Transforme sua vida financeira
-              </div>
-              <h1 className="bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-4xl font-bold tracking-tight text-transparent md:text-5xl lg:text-6xl">
-                Controle financeiro <span className="text-primary">simples</span> e poderoso
-              </h1>
-              <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground md:mx-0">
-                O Xô Planilhas nasce para transformar o controle financeiro pessoal em algo rápido, seguro e organizado. Ele substitui as planilhas frágeis e cheias de fórmulas que vivem quebrando, oferecendo uma experiência moderna, estável e escalável. É a evolução natural para quem quer abandonar a confusão das células e ganhar clareza real sobre o próprio dinheiro.
-              </p>
+              </motion.div>
+              <motion.h1 
+                className="bg-gradient-to-r from-blue-200 via-cyan-200 to-blue-300 bg-clip-text text-4xl font-bold tracking-tight text-transparent md:text-5xl lg:text-6xl leading-tight"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.8 }}
+              >
+                Controle financeiro <span className="relative inline-block px-2">
+                  <span className="absolute inset-0 bg-gradient-to-r from-blue-400 to-cyan-400 blur-lg opacity-50 -z-10 rounded-lg"></span>
+                  <span className="relative text-transparent bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text">simples</span>
+                </span> e poderoso
+              </motion.h1>
+              <motion.p 
+                className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-slate-300 md:mx-0"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.8 }}
+              >
+                O Xô Planilhas nasce para transformar o controle financeiro pessoal em algo <span className="text-blue-300 font-semibold">rápido, seguro e organizado</span>. Ele substitui as planilhas frágeis e cheias de fórmulas que vivem quebrando, oferecendo uma experiência moderna, estável e escalável.
+              </motion.p>
               
               <div className="mt-8 flex flex-col items-center space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0 md:justify-start">
-                <form 
+                <motion.form 
                   onSubmit={(e) => { e.preventDefault(); handleStart(); }} 
-                  className="flex w-full max-w-md flex-col space-y-3 sm:flex-row sm:space-x-3 sm:space-y-0"
+                  className="w-full max-w-md flex-col space-y-3 sm:flex-row sm:space-x-3 sm:space-y-0"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4, duration: 0.8 }}
                 >
-                  <div className="relative flex-1">
+                  <div className="relative flex-1 group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-300 -z-10"></div>
                     <Input
                       type="email"
                       placeholder="seu@email.com"
-                      className="h-14 w-full rounded-xl border-2 border-primary/20 bg-background/50 px-5 text-base backdrop-blur-sm transition-all duration-300 hover:border-primary/30 focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
+                      className="h-14 w-full rounded-xl border-2 border-blue-500/30 bg-slate-900/50 px-5 text-base backdrop-blur-xl transition-all duration-300 hover:border-blue-500/50 focus:border-blue-400 focus:ring-2 focus:ring-blue-500/30 placeholder:text-slate-500"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
@@ -102,49 +126,80 @@ function ClientRoot() {
                         <Button
                           type="submit"
                           size="lg"
-                          className="h-10 rounded-lg bg-gradient-to-r from-primary to-primary/80 px-6 font-medium text-white shadow-lg transition-all duration-300 hover:from-primary/90 hover:to-primary/70 hover:shadow-primary/20"
+                          className="h-10 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 px-6 font-medium text-white shadow-lg shadow-blue-500/30 transition-all duration-300 hover:from-blue-500 hover:to-cyan-400 hover:shadow-blue-500/50"
                         >
-                          Começar Agora
+                          Começar
                           <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                       </motion.div>
                     </div>
                   </div>
-                </form>
+                </motion.form>
               </div>
               
-              <p className="mt-4 text-sm text-muted-foreground">
-                Cadastro rápido. Sem cartão de crédito. Cancele quando quiser.
-              </p>
+              <motion.p 
+                className="mt-4 text-sm text-slate-400"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5, duration: 0.8 }}
+              >
+                ✓ Cadastro rápido • ✓ Sem cartão • ✓ Cancele quando quiser
+              </motion.p>
               
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-4 md:justify-start">
-                <div className="flex -space-x-2">
+              <motion.div 
+                className="mt-10 flex flex-wrap items-center justify-center gap-6 md:justify-start"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6, duration: 0.8 }}
+              >
+                <div className="flex -space-x-3">
                   {[
                     'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
                     'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
                     'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
                   ].map((src, i) => (
-                     <Avatar key={i} className="h-10 w-10 border-2 border-background">
-                        <AvatarImage src={src} />
-                        <AvatarFallback>{i}</AvatarFallback>
-                    </Avatar>
+                     <motion.div key={i} whileHover={{ scale: 1.1, zIndex: 10 }}>
+                       <Avatar className="h-12 w-12 border-3 border-slate-900 hover:border-blue-500/50 transition-colors">
+                          <AvatarImage src={src} />
+                          <AvatarFallback>{i}</AvatarFallback>
+                      </Avatar>
+                     </motion.div>
                   ))}
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  <span className="font-medium text-foreground">+5.000</span> pessoas já estão no controle
+                <div className="text-sm text-slate-300">
+                  <motion.span 
+                    className="block font-bold text-blue-300"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.8 }}
+                  >
+                    +5.000 pessoas
+                  </motion.span>
+                  <span className="text-slate-400">já estão no controle</span>
                 </div>
-              </div>
+              </motion.div>
             </motion.div>
             
             {heroImage && (
               <motion.div 
                 className="relative h-80 w-full md:h-[32rem]"
-                initial={{ opacity: 0, scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
               >
+                {/* Glow effect background */}
+                <motion.div 
+                  className="absolute -inset-4 bg-gradient-to-r from-blue-600/20 to-cyan-500/20 rounded-3xl blur-2xl"
+                  animate={{
+                    opacity: [0.3, 0.6, 0.3],
+                  }}
+                  transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                  }}
+                />
                 
-                <div className="relative h-full w-full overflow-hidden rounded-2xl border border-border/50 bg-background/50 shadow-2xl backdrop-blur-sm">
+                <div className="relative h-full w-full overflow-hidden rounded-2xl border border-blue-500/30 bg-gradient-to-br from-slate-900/80 to-slate-950/60 shadow-2xl shadow-blue-500/20 backdrop-blur-xl">
                   <Image
                     src={heroImage.imageUrl}
                     alt={heroImage.description}
@@ -153,11 +208,13 @@ function ClientRoot() {
                     data-ai-hint={heroImage.imageHint}
                     priority
                   />
+                  {/* Overlay gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 to-transparent opacity-40"></div>
                 </div>
                 
-                {/* Elementos flutuantes decorativos */}
+                {/* Floating elements */}
                 <motion.div 
-                  className="absolute -left-4 top-1/2 hidden h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 backdrop-blur-sm md:flex"
+                  className="absolute -left-4 top-1/2 hidden h-16 w-16 items-center justify-center rounded-2xl bg-blue-500/15 backdrop-blur-md border border-blue-500/30 md:flex shadow-lg shadow-blue-500/20"
                   animate={{
                     y: [0, -15, 0],
                   }}
@@ -167,11 +224,11 @@ function ClientRoot() {
                     repeatType: "reverse",
                   }}
                 >
-                  <TrendingUp className="h-8 w-8 text-primary" />
+                  <TrendingUp className="h-8 w-8 text-blue-300" />
                 </motion.div>
                 
                 <motion.div 
-                  className="absolute -bottom-4 right-8 hidden h-12 w-12 items-center justify-center rounded-2xl bg-secondary/10 backdrop-blur-sm md:flex"
+                  className="absolute -bottom-4 right-8 hidden h-12 w-12 items-center justify-center rounded-2xl bg-cyan-500/15 backdrop-blur-md border border-cyan-500/30 md:flex shadow-lg shadow-cyan-500/20"
                   animate={{
                     y: [0, 15, 0],
                   }}
@@ -182,7 +239,7 @@ function ClientRoot() {
                     delay: 0.5
                   }}
                 >
-                  <ShieldCheck className="h-6 w-6 text-secondary" />
+                  <ShieldCheck className="h-6 w-6 text-cyan-300" />
                 </motion.div>
               </motion.div>
             )}

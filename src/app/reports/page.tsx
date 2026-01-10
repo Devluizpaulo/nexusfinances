@@ -17,6 +17,7 @@ import { IncomeExpenseChart } from '@/components/dashboard/income-expense-chart'
 import { LineChart, Line, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Separator } from '@/components/ui/separator';
+import { PremiumBackground, GlowingCard } from '@/components/premium-effects';
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -29,6 +30,7 @@ import {
   Tag,
   Filter as Funnel,
   FileDown,
+  FileSpreadsheet,
 } from 'lucide-react';
 
 type FilterType = 'all' | 'income' | 'expense';
@@ -373,6 +375,33 @@ export default function ReportsPage() {
     }
   };
   
+  const handleExportCsv = () => {
+    if (!filteredTransactions.length) return;
+
+    const headers = ['Data', 'Descrição', 'Categoria', 'Tipo', 'Valor'];
+    const rows = filteredTransactions.map((t) => [
+      t.date,
+      t.description,
+      t.category,
+      t.type === 'income' ? 'Renda' : 'Despesa',
+      t.amount.toString(),
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'relatorio-nexusfinances.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+  
   const allCategories = useMemo(() => {
     const incomeCats = user?.customIncomeCategories || [];
     const expenseCats = user?.customExpenseCategories || [];
@@ -428,8 +457,11 @@ export default function ReportsPage() {
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       ) : (
-        <div className="space-y-8 print:space-y-4">
-          <Card className="print:hidden">
+        <div className="relative">
+          <PremiumBackground />
+          <div className="relative z-10 space-y-8 print:space-y-4">
+          <GlowingCard className="print:hidden">
+            <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base font-semibold">
                 <Funnel className="h-4 w-4 text-primary" />
@@ -540,11 +572,23 @@ export default function ReportsPage() {
                       <FileDown className="h-3 w-3" />
                       Exportar PDF
                   </Button>
+                  <Button
+                      variant="default"
+                      size="sm"
+                      className="gap-1 text-xs"
+                      onClick={handleExportCsv}
+                      disabled={!filteredTransactions.length}
+                  >
+                      <FileSpreadsheet className="h-3 w-3" />
+                      Exportar CSV
+                  </Button>
                 </div>
               </div>
             </CardContent>
           </Card>
+          </GlowingCard>
           <div className="grid gap-4 md:grid-cols-3 print:grid-cols-3">
+            <GlowingCard>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -562,6 +606,8 @@ export default function ReportsPage() {
                 )}
               </CardContent>
             </Card>
+            </GlowingCard>
+            <GlowingCard>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -579,6 +625,8 @@ export default function ReportsPage() {
                 )}
               </CardContent>
             </Card>
+            </GlowingCard>
+            <GlowingCard>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -598,9 +646,11 @@ export default function ReportsPage() {
                 )}
               </CardContent>
             </Card>
+            </GlowingCard>
           </div>
 
           <div className="grid gap-4 md:grid-cols-3 print:grid-cols-3">
+            <GlowingCard>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -615,6 +665,8 @@ export default function ReportsPage() {
                 </p>
               </CardContent>
             </Card>
+            </GlowingCard>
+            <GlowingCard>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -629,6 +681,8 @@ export default function ReportsPage() {
                 </p>
               </CardContent>
             </Card>
+            </GlowingCard>
+            <GlowingCard>
             <Card>
               <CardHeader className="flex flex-col space-y-1 pb-2">
                 <CardTitle className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -650,6 +704,7 @@ export default function ReportsPage() {
                 </p>
               </CardContent>
             </Card>
+            </GlowingCard>
           </div>
 
           <div className={`grid grid-cols-1 gap-6 ${reportType === 'categories' ? 'lg:grid-cols-1' : 'lg:grid-cols-2'}`}>
@@ -663,6 +718,7 @@ export default function ReportsPage() {
 
           {filteredTransactions.length > 0 && (
             <div className={`grid grid-cols-1 gap-6 ${reportType === 'categories' ? 'lg:grid-cols-2' : 'lg:grid-cols-2'}`}>
+              <GlowingCard>
               <Card>
                 <CardHeader>
                   <CardTitle className="text-sm font-semibold">Top categorias de renda</CardTitle>
@@ -719,7 +775,9 @@ export default function ReportsPage() {
                   })()}
                 </CardContent>
               </Card>
+              </GlowingCard>
 
+              <GlowingCard>
               <Card>
                 <CardHeader>
                   <CardTitle className="text-sm font-semibold">Top categorias de despesas</CardTitle>
@@ -776,15 +834,21 @@ export default function ReportsPage() {
                   })()}
                 </CardContent>
               </Card>
+              </GlowingCard>
             </div>
           )}
 
           <Separator className="my-6" />
 
-          <DataTable
-            columns={columns}
-            data={filteredTransactions}
-          />
+          <GlowingCard>
+            <div className="rounded-2xl">
+              <DataTable
+                columns={columns}
+                data={filteredTransactions}
+              />
+            </div>
+          </GlowingCard>
+          </div>
         </div>
       )}
     </>

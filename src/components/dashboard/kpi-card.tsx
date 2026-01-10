@@ -32,38 +32,63 @@ export function KpiCard({ title, value, icon: Icon, description, trend, invertTr
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.05 }}
+      transition={{ duration: 0.4, delay: index * 0.1 }}
+      className="group relative h-full"
     >
-      <Card className="rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)] transition-all duration-300 hover:shadow-xl hover:border-slate-800/60 hover:scale-[1.02] h-full group cursor-default">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-0">
-          <CardTitle className="text-sm font-medium text-slate-400 group-hover:text-slate-300 transition-colors">{title}</CardTitle>
+      {/* Glow effect */}
+      <motion.div
+        className="absolute -inset-1 bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-600 rounded-2xl blur-xl opacity-0 group-hover:opacity-40"
+        animate={{
+          opacity: [0, 0.3, 0],
+        }}
+        transition={{
+          duration: 3,
+          repeat: Infinity,
+        }}
+      />
+
+      <Card className="relative rounded-2xl border border-blue-500/30 bg-gradient-to-br from-slate-950/50 to-slate-900/30 p-5 shadow-lg backdrop-blur-xl transition-all duration-300 hover:border-cyan-400/60 hover:shadow-2xl hover:shadow-blue-500/20 h-full group-hover:scale-[1.02]">
+        {/* Shine effect */}
+        <motion.div 
+          className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/5 to-white/0 rounded-2xl opacity-0 group-hover:opacity-100"
+          transition={{ duration: 0.3 }}
+        />
+
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 p-0 relative z-10">
+          <CardTitle className="text-sm font-bold bg-gradient-to-r from-slate-300 to-slate-400 bg-clip-text text-transparent group-hover:from-slate-200 group-hover:to-slate-300 transition-colors">{title}</CardTitle>
           <motion.div
-            whileHover={{ rotate: [0, -10, 10, -10, 0] }}
+            whileHover={{ rotate: [0, -15, 15, -15, 0], scale: 1.1 }}
             transition={{ duration: 0.5 }}
+            className="p-2 rounded-lg bg-gradient-to-br from-blue-500/20 to-cyan-500/10 group-hover:from-blue-500/40 group-hover:to-cyan-500/20 transition-colors"
           >
-            <Icon className="h-4 w-4 text-slate-400 group-hover:text-primary transition-colors" />
+            <Icon className="h-4 w-4 text-cyan-400" />
           </motion.div>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-0 relative z-10">
           <motion.div 
-            className="text-2xl font-bold text-slate-100"
-            initial={{ scale: 0.9 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.2 }}
+            className="text-3xl font-bold bg-gradient-to-r from-blue-200 via-cyan-200 to-blue-300 bg-clip-text text-transparent"
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
           >
             {value}
           </motion.div>
-          <div className="flex items-center justify-between text-xs text-slate-500 mt-1">
-            {description && <p className="group-hover:text-slate-400 transition-colors">{description}</p>}
+          <div className="flex items-center justify-between text-xs mt-3">
+            {description && <p className="text-slate-400 group-hover:text-slate-300 transition-colors">{description}</p>}
             {hasTrend && (
               <motion.div 
-                className={cn("flex items-center gap-1", trendColor)}
+                className={cn("flex items-center gap-1.5 px-2 py-1 rounded-lg backdrop-blur-sm", 
+                  trend === 0 ? 'bg-slate-600/20' :
+                  (trend > 0 && !invertTrendColor) || (trend < 0 && invertTrendColor)
+                    ? 'bg-emerald-500/20 text-emerald-300'
+                    : 'bg-rose-500/20 text-rose-300'
+                )}
                 initial={{ opacity: 0, x: -5 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 }}
               >
                 <TrendIcon className="h-3.5 w-3.5" />
-                <span className="font-medium">{Math.abs(trend).toFixed(1)}%</span>
+                <span className="font-bold">{Math.abs(trend).toFixed(1)}%</span>
               </motion.div>
             )}
           </div>
