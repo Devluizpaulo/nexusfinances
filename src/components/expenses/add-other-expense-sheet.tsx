@@ -173,9 +173,15 @@ export function AddOtherExpenseSheet({
   const title = transaction ? 'Editar Despesa' : 'Adicionar Outra Despesa';
   const descriptionText = transaction ? 'Modifique os detalhes da sua despesa.' : 'Registre um gasto avulso.';
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open && !form.formState.isSubmitting) {
+      onClose();
+    }
+  };
+
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogContent className="max-w-full sm:max-w-2xl lg:max-w-3xl max-h-[95vh] overflow-hidden p-0">
           <div className="flex flex-col max-h-[95vh]">
             {/* Header com gradiente */}

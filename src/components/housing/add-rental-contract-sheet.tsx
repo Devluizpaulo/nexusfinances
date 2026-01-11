@@ -1,6 +1,9 @@
 'use client';
 
 import { useForm } from 'react-hook-form';
+import { useMemo } from 'react';
+import { addMonths, format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import {
   Dialog,
   DialogContent,
@@ -27,7 +30,7 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2, Home, Calendar, CreditCard, Info, DollarSign, FileText } from 'lucide-react';
+import { Loader2, Home, Calendar, CreditCard, Info, DollarSign, FileText, CalendarCheck } from 'lucide-react';
 import { CurrencyInput } from '../ui/currency-input';
 import { Separator } from '../ui/separator';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -55,9 +58,37 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
   } = useRentalContractForm({ contract, onClose });
 
   const isEditing = !!contract;
+  
+  // Watch form values para preview
+  const totalAmount = form.watch('totalAmount');
+  const dueDate = form.watch('dueDate');
+  const startDate = form.watch('startDate');
+
+  // Calcular próximas 3 mensalidades
+  const upcomingPayments = useMemo(() => {
+    if (!totalAmount || !dueDate || !startDate) return [];
+    
+    const payments = [];
+    for (let i = 0; i < 3; i++) {
+      const paymentDate = addMonths(new Date(startDate), i);
+      paymentDate.setDate(dueDate);
+      payments.push({
+        month: format(paymentDate, 'MMMM/yyyy', { locale: ptBR }),
+        date: format(paymentDate, 'dd/MM/yyyy'),
+        amount: totalAmount,
+      });
+    }
+    return payments;
+  }, [totalAmount, dueDate, startDate]);
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open && !form.formState.isSubmitting) {
+      onClose();
+    }
+  };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-full sm:max-w-2xl lg:max-w-4xl max-h-[95vh] overflow-hidden p-0">
         <div className="flex flex-col max-h-[95vh]">
           {/* Header com gradiente */}
@@ -76,16 +107,42 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
                 </div>
               </div>
               {!isEditing && (
-                <Badge variant="secondary" className="w-fit">
-                  <Calendar className="h-3 w-3 mr-1" />
-                  Recorrência automática
-                </Badge>
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="secondary" className="w-fit">
+                    <Calendar className="h-3 w-3 mr-1" />
+                    Recorrência automática
+                  </Badge>
+                  <Badge variant="outline" className="w-fit bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800">
+                    🤖 Mensalidades criadas automaticamente
+                  </Badge>
+                </div>
               )}
             </DialogHeader>
           </div>
 
+          {/* Banner informativo */}
+          {!isEditing && (
+            <div className="mx-6 mt-4 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg flex-shrink-0">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                    💡 Como funciona a automação?
+                  </h4>
+                  <p className="text-sm text-blue-700 dark:text-blue-300 leading-relaxed">
+                    Ao salvar este contrato, uma <strong>despesa recorrente automática</strong> será criada. 
+                    Todo mês, no dia do vencimento escolhido, o sistema criará automaticamente a cobrança na aba de Moradia. 
+                    Você só precisa cadastrar uma vez! 🎉
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Conteúdo scrollável */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-6" style={{ maxHeight: 'calc(95vh - 180px)' }}>
+          <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-6" style={{ maxHeight: 'calc(95vh - 280px)' }}>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" id="rental-contract-form">
                 
@@ -527,6 +584,67 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
                     />
                   </CardContent>
                 </Card>
+
+                {/* Preview das próximas mensalidades (apenas para novos contratos) */}
+                {!isEditing && totalAmount > 0 && upcomingPayments.length > 0 && (
+                  <Card className="border-2 border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50/50 to-emerald-50/30 dark:from-green-950/20 dark:to-emerald-950/10">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center gap-2">
+                        <CalendarCheck className="h-4 w-4 text-green-600 dark:text-green-400" />
+                        <CardTitle className="text-lg text-green-900 dark:text-green-100">
+                          Próximas Mensalidades Automáticas
+                        </CardTitle>
+                      </div>
+                      <CardDescription className="text-green-700 dark:text-green-300">
+                        Estas cobranças serão criadas automaticamente nos próximos meses
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {upcomingPayments.map((payment, index) => (
+                          <div 
+                            key={index}
+                            className="flex items-center justify-between p-3 bg-white dark:bg-gray-900 rounded-lg border border-green-200 dark:border-green-800 hover:shadow-md transition-shadow"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 font-semibold">
+                                {index + 1}
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-900 dark:text-gray-100 capitalize">
+                                  {payment.month}
+                                </p>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                  Vencimento: {payment.date}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                                {new Intl.NumberFormat('pt-BR', { 
+                                  style: 'currency', 
+                                  currency: 'BRL' 
+                                }).format(payment.amount)}
+                              </p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                {index === 0 ? 'Próximo' : `Daqui a ${index + 1} meses`}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-4 p-3 bg-green-100 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                        <p className="text-sm text-green-800 dark:text-green-200 flex items-center gap-2">
+                          <span className="text-lg">🤖</span>
+                          <span>
+                            <strong>Automático:</strong> Você não precisa fazer nada! 
+                            O sistema criará essas cobranças automaticamente a cada mês.
+                          </span>
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
               </form>
             </Form>

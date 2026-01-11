@@ -87,6 +87,12 @@ export function AddCreditCardSheet({ isOpen, onClose, card }: AddCreditCardSheet
   
   const isEditing = !!card;
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open && !form.formState.isSubmitting) {
+      onClose();
+    }
+  };
+
   const onSubmit = async (values: CreditCardFormValues) => {
     if (!user || !firestore) {
       toast({
@@ -120,7 +126,7 @@ export function AddCreditCardSheet({ isOpen, onClose, card }: AddCreditCardSheet
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-full sm:max-w-2xl lg:max-w-3xl max-h-[95vh] h-full sm:h-auto overflow-hidden p-0">
         <div className="flex flex-col h-full">
           {/* Header com gradiente */}

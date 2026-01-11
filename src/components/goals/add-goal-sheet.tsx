@@ -196,8 +196,14 @@ export function AddGoalSheet({ isOpen, onClose, goal }: AddGoalSheetProps) {
 
   const isEditing = !!goal;
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open && !form.formState.isSubmitting) {
+      onClose();
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-full sm:max-w-2xl lg:max-w-4xl max-h-[95vh] h-full sm:h-auto overflow-hidden p-0">
         <div className="flex flex-col h-full">
           {/* Header com gradiente */}
