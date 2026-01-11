@@ -35,7 +35,7 @@ export function AppSidebar() {
         <SidebarHeader className="py-6 flex-shrink-0">
             <Button
               variant="ghost"
-              className="h-24 justify-center items-center p-4 w-full hover:bg-slate-900/70 transition-all duration-300 group"
+              className="h-32 justify-center items-center p-4 w-full hover:bg-slate-900/70 transition-all duration-300 group"
               asChild
             >
                 <Link href="/dashboard">
@@ -43,8 +43,8 @@ export function AppSidebar() {
                         <Image 
                           src="/images/xoplanilhas_logo.png" 
                           alt="Logo Xô Planilhas" 
-                          width={100} 
-                          height={100}
+                          width={120} 
+                          height={120}
                           className="group-hover:brightness-110 transition-all duration-300"
                         />
                     </div>
