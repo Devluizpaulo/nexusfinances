@@ -23,7 +23,8 @@ import {
   Users,
   Zap,
   Star,
-  AlertCircle
+  AlertCircle,
+  HelpCircle,
 } from 'lucide-react';
 import { Faq } from '@/components/support/faq';
 import { motion } from 'framer-motion';
@@ -31,40 +32,35 @@ import { useToast } from '@/hooks/use-toast';
 
 const contactChannels = [
   {
-    icon: MessageCircle,
-    title: 'Chat ao Vivo',
-    description: 'Resposta em minutos',
-    availability: 'Segunda a Sexta, 9h-18h',
+    id: 'form',
+    icon: MessageSquare,
+    title: 'Formulário de Contato',
+    description: 'A forma mais direta de nos contatar.',
+    availability: 'Responderemos em até 48h úteis',
     color: 'from-blue-500 to-cyan-500',
-    action: 'Iniciar Chat',
-    status: 'online',
+    action: 'Preencher Formulário',
+    href: '#contact-form',
   },
   {
+    id: 'email',
     icon: Mail,
     title: 'Email',
-    description: 'Resposta em até 24h',
+    description: 'Para questões detalhadas.',
     availability: 'contato@xoplanilhas.com',
     color: 'from-purple-500 to-pink-500',
     action: 'Enviar Email',
-    status: 'always',
+    href: 'mailto:contato@xoplanilhas.com',
+
   },
   {
-    icon: Phone,
-    title: 'WhatsApp',
-    description: 'Suporte direto',
-    availability: '+55 (11) 99999-9999',
-    color: 'from-green-500 to-emerald-500',
-    action: 'Abrir WhatsApp',
-    status: 'online',
-  },
-  {
-    icon: BookOpen,
-    title: 'Documentação',
-    description: 'Guias completos',
+    id: 'faq',
+    icon: HelpCircle,
+    title: 'Ajuda Rápida',
+    description: 'Encontre respostas imediatas.',
     availability: 'Acesso 24/7',
     color: 'from-orange-500 to-red-500',
-    action: 'Ver Docs',
-    status: 'always',
+    action: 'Ver Perguntas Frequentes',
+    href: '#faq',
   },
 ];
 
@@ -72,7 +68,7 @@ const supportStats = [
   {
     icon: Clock,
     label: 'Tempo Médio',
-    value: '< 2h',
+    value: '< 48h',
     color: 'text-blue-500',
     bgColor: 'bg-blue-500/10',
   },
@@ -119,6 +115,14 @@ export default function SupportPage() {
     setIsSubmitting(false);
     (e.target as HTMLFormElement).reset();
   };
+
+  const handleChannelClick = (href: string) => {
+    if (href.startsWith('#')) {
+      document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      window.location.href = href;
+    }
+  }
 
   return (
     <div className="space-y-8">
@@ -186,7 +190,7 @@ export default function SupportPage() {
       </motion.div>
 
       {/* Contact Channels */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {contactChannels.map((channel, index) => (
           <motion.div
             key={channel.title}
@@ -202,17 +206,6 @@ export default function SupportPage() {
                   <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${channel.color} shadow-lg`}>
                     <channel.icon className="h-6 w-6 text-white" />
                   </div>
-                  {channel.status === 'online' && (
-                    <Badge variant="outline" className="border-green-500/50 bg-green-500/10 text-green-500">
-                      <div className="mr-1 h-2 w-2 animate-pulse rounded-full bg-green-500" />
-                      Online
-                    </Badge>
-                  )}
-                  {channel.status === 'always' && (
-                    <Badge variant="outline" className="border-blue-500/50 bg-blue-500/10 text-blue-500">
-                      24/7
-                    </Badge>
-                  )}
                 </div>
                 <div>
                   <CardTitle className="text-lg">{channel.title}</CardTitle>
@@ -224,7 +217,7 @@ export default function SupportPage() {
                   <Clock className="h-4 w-4" />
                   <span>{channel.availability}</span>
                 </div>
-                <Button className="w-full" variant="outline">
+                <Button className="w-full" variant="outline" onClick={() => handleChannelClick(channel.href)}>
                   {channel.action}
                 </Button>
               </CardContent>
@@ -234,7 +227,7 @@ export default function SupportPage() {
       </div>
 
       {/* Contact Form & Quick Tips */}
-      <div className="grid gap-8 lg:grid-cols-3">
+      <div id="contact-form" className="grid gap-8 lg:grid-cols-3">
         {/* Contact Form - 2 columns */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
@@ -336,7 +329,7 @@ export default function SupportPage() {
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <AlertCircle className="h-4 w-4" />
-                    <span>Responderemos em até 24 horas</span>
+                    <span>Responderemos em até 48 horas úteis</span>
                   </div>
                   <Button 
                     type="submit" 
@@ -405,31 +398,13 @@ export default function SupportPage() {
                 <div className="flex gap-3 rounded-lg border border-green-500/20 bg-green-500/5 p-3">
                   <MessageSquare className="h-5 w-5 shrink-0 text-green-500" />
                   <div className="space-y-1">
-                    <p className="text-sm font-medium">Chat para urgências</p>
+                    <p className="text-sm font-medium">Seja detalhista no formulário</p>
                     <p className="text-xs text-muted-foreground">
-                      Use o chat ao vivo para problemas críticos
+                      Quanto mais detalhes, mais rápido resolvemos
                     </p>
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-orange-500/20 bg-gradient-to-br from-orange-500/5 to-red-500/5">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-orange-500">
-                <Sparkles className="h-5 w-5" />
-                Precisa de Ajuda Urgente?
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="mb-4 text-sm text-muted-foreground">
-                Para problemas críticos que impedem o uso do sistema, entre em contato pelo chat ao vivo.
-              </p>
-              <Button className="w-full bg-gradient-to-r from-orange-500 to-red-500 shadow-lg hover:shadow-xl">
-                <MessageCircle className="mr-2 h-4 w-4" />
-                Iniciar Chat Prioritário
-              </Button>
             </CardContent>
           </Card>
         </motion.div>
@@ -437,6 +412,7 @@ export default function SupportPage() {
 
       {/* FAQ Section */}
       <motion.div
+        id="faq"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4, duration: 0.5 }}
