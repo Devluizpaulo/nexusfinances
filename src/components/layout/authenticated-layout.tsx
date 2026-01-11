@@ -11,6 +11,10 @@ import { DashboardDateProvider } from '@/context/dashboard-date-context';
 import { useManageRecurrences } from '@/hooks/use-manage-recurrences';
 import { useUpcomingNotifications } from '@/hooks/use-upcoming-notifications';
 import { useCreditCardNotifications } from '@/hooks/use-credit-card-notifications';
+import { useBudgetWarningNotifications } from '@/hooks/use-budget-warning-notifications';
+import { useDebtOverdueNotifications } from '@/hooks/use-debt-overdue-notifications';
+import { useMonthlySummaryNotifications } from '@/hooks/use-monthly-summary-notifications';
+import { useGoalMilestoneNotifications } from '@/hooks/use-goal-milestone-notifications';
 
 export function AuthenticatedLayout({
   children,
@@ -19,10 +23,14 @@ export function AuthenticatedLayout({
 }) {
   const { user, isUserLoading } = useUser();
   
-  // Custom hooks for background tasks
-  useManageRecurrences();
-  useUpcomingNotifications();
-  useCreditCardNotifications();
+  // Custom hooks for background tasks and notifications
+  useManageRecurrences(); // Creates recurring transactions monthly
+  useUpcomingNotifications(); // Alerts for upcoming due dates (3 days)
+  useCreditCardNotifications(); // Credit card closing/due date alerts (2 days)
+  useBudgetWarningNotifications(); // Budget warnings at 80% and 100%
+  useDebtOverdueNotifications(); // Overdue debt installment alerts
+  useMonthlySummaryNotifications(); // Monthly financial summary
+  useGoalMilestoneNotifications(); // Goal milestone achievements (25%, 50%, 75%, 90%)
 
   if (isUserLoading) {
     return (

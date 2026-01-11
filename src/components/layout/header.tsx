@@ -22,6 +22,14 @@ import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { parseISO } from 'date-fns';
 import { Badge } from '../ui/badge';
+import { 
+  getNotificationIcon, 
+  getNotificationColor, 
+  getNotificationBgColor,
+  getNotificationBorderColor,
+  getNotificationLabel,
+  getPriorityBadgeVariant 
+} from '@/lib/notification-config';
 
 function UserMenu() {
     const { user } = useUser();
@@ -148,16 +156,44 @@ function NotificationsMenu() {
                       Carregando notificações...
                     </div>
                 ) : notifications && notifications.length > 0 ? (
-                    notifications.map((notification, idx) => (
+                    notifications.map((notification, idx) => {
+                        const NotifIcon = getNotificationIcon(notification.type);
+                        const iconColor = getNotificationColor(notification.type);
+                        const bgColor = getNotificationBgColor(notification.type);
+                        const borderColor = getNotificationBorderColor(notification.type);
+                        const label = getNotificationLabel(notification.type);
+                        
+                        return (
                         <div key={notification.id} className={cn("border-b border-slate-800/40", idx === notifications.length - 1 && "border-b-0")}>
                           <DropdownMenuItem asChild className="cursor-pointer hover:bg-slate-800/50 p-0 transition-colors duration-150">
                             <Link href={notification.link || '#'} className="w-full" onClick={() => handleMarkAsRead(notification.id)}>
                                 <div className="flex items-start gap-3 py-3 px-4 w-full">
-                                     {!notification.isRead && (
-                                        <div className="h-2.5 w-2.5 rounded-full bg-primary mt-1.5 shrink-0 shadow-lg shadow-primary/50" />
-                                    )}
-                                    <div className={cn("flex-grow", notification.isRead && "pl-1")}>
-                                        <p className="text-sm leading-snug text-slate-100">{notification.message}</p>
+                                    {/* Ícone com cor específica */}
+                                    <div className={cn("p-2 rounded-lg shrink-0 border", bgColor, borderColor)}>
+                                        <NotifIcon className={cn("h-4 w-4", iconColor)} />
+                                    </div>
+                                    
+                                    <div className="flex-grow min-w-0">
+                                        {/* Badge com tipo de notificação */}
+                                        <div className="flex items-center gap-2 mb-1.5">
+                                            <Badge 
+                                                variant={getPriorityBadgeVariant(notification.priority)} 
+                                                className="text-[10px] px-1.5 py-0 h-5"
+                                            >
+                                                {label}
+                                            </Badge>
+                                            {!notification.isRead && (
+                                                <div className="h-2 w-2 rounded-full bg-primary shrink-0 shadow-lg shadow-primary/50" />
+                                            )}
+                                        </div>
+                                        
+                                        <p className={cn(
+                                            "text-sm leading-snug",
+                                            notification.isRead ? "text-slate-400" : "text-slate-100 font-medium"
+                                        )}>
+                                            {notification.message}
+                                        </p>
+                                        
                                         <p className="text-xs text-slate-500 mt-1.5">
                                              {formatDistanceToNow(parseISO(notification.timestamp as string), { addSuffix: true, locale: ptBR })}
                                         </p>
@@ -166,7 +202,8 @@ function NotificationsMenu() {
                             </Link>
                           </DropdownMenuItem>
                         </div>
-                    ))
+                        );
+                    })
                 ) : (
                      <div className="p-8 text-center text-sm text-slate-400 flex flex-col items-center gap-3">
                         <div className="p-3 bg-slate-800/40 rounded-full">

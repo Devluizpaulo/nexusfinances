@@ -142,15 +142,31 @@ export type Log = {
     createdByName: string;
 }
 
+export type NotificationType = 
+  | 'debt_due' 
+  | 'goal_reached' 
+  | 'goal_milestone'
+  | 'budget_warning' 
+  | 'budget_exceeded'
+  | 'debt_overdue'
+  | 'upcoming_due' 
+  | 'recurrence_created' 
+  | 'credit_card_notification'
+  | 'monthly_summary';
+
+export type NotificationPriority = 'low' | 'medium' | 'high';
+
 export type Notification = {
   id: string;
   userId: string;
-  type: 'debt_due' | 'goal_reached' | 'budget_warning' | 'upcoming_due' | 'recurrence_created' | 'credit_card_notification';
+  type: NotificationType;
   message: string;
   isRead: boolean;
   link?: string;
   timestamp: string; // ISO string
   entityId?: string;
+  priority?: NotificationPriority;
+  metadata?: Record<string, any>; // Additional data for filtering/display
 }
 
 // Categorias que possuem páginas/lógicas específicas
