@@ -150,7 +150,6 @@ export default function ExpensesPage() {
         title: "Erro ao excluir",
         description: "Não foi possível remover a despesa. Tente novamente.",
       });
-      throw error;
     }
   }, [user, firestore, toast]);
   

@@ -67,18 +67,26 @@ export function TransactionList({
     setDeleteDialogOpen(true);
   };
 
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setTransactionToDelete(null);
+    setIsDeleting(false);
+  };
+
   const handleConfirmDelete = async () => {
-    if (!transactionToDelete || !onDelete) return;
+    if (!transactionToDelete || !onDelete || isDeleting) return;
     
     setIsDeleting(true);
     try {
       await onDelete(transactionToDelete);
-      setDeleteDialogOpen(false);
-      setTransactionToDelete(null);
+      // Pequeno delay para garantir que o Firestore processou a exclusão
+      await new Promise(resolve => setTimeout(resolve, 300));
     } catch (error) {
       console.error('Error deleting transaction:', error);
     } finally {
       setIsDeleting(false);
+      setDeleteDialogOpen(false);
+      setTransactionToDelete(null);
     }
   };
 
@@ -104,7 +112,11 @@ export function TransactionList({
 
   return (
     <div className="space-y-6">
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={(open) => {
+        if (!open && !isDeleting) {
+          handleCancelDelete();
+        }
+      }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Transação?</AlertDialogTitle>
@@ -113,7 +125,7 @@ export function TransactionList({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel onClick={handleCancelDelete} disabled={isDeleting}>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
               className="bg-destructive hover:bg-destructive/90"
@@ -125,7 +137,7 @@ export function TransactionList({
         </AlertDialogContent>
       </AlertDialog>
 
-      <AnimatePresence initial={false}>
+      <AnimatePresence initial={false} mode="popLayout">
         {Object.entries(groupedByMonth).map(([month, monthTransactions]) => (
           <motion.div
             key={month}
@@ -140,18 +152,15 @@ export function TransactionList({
             <Card className="border-slate-900/60 bg-slate-950/70 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
               <CardContent className="p-0">
                 <div className="divide-y divide-slate-800/60">
-                  <AnimatePresence initial={false}>
+                  <AnimatePresence initial={false} mode="popLayout">
                     {monthTransactions.map((t) => (
                       <motion.div
                         key={t.id}
-                        layout
-                        initial={{ opacity: 0, y: 4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -4 }}
-                        transition={{ duration: 0.16, ease: 'easeOut' }}
-                        whileHover={{ backgroundColor: 'rgba(51, 65, 85, 0.4)', scale: 1.01 }}
-                        whileTap={{ scale: 0.99 }}
-                        className="flex items-center p-3 border-b border-slate-800/60 last:border-b-0"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2, ease: 'easeOut' }}
+                        className="flex items-center p-3 border-b border-slate-800/60 last:border-b-0 hover:bg-slate-700/20"
                       >
                         <div className="flex-1 space-y-1">
                           <div className="flex items-center gap-2">

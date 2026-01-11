@@ -127,7 +127,6 @@ export default function HousingPage() {
         title: "Erro ao excluir",
         description: "Não foi possível remover a despesa. Tente novamente.",
       });
-      throw error; // Re-throw to let TransactionList handle the loading state
     }
   }
 

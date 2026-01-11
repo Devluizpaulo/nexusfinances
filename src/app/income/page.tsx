@@ -150,7 +150,6 @@ export default function IncomePage() {
         title: "Erro ao excluir",
         description: "Não foi possível remover a receita. Tente novamente.",
       });
-      throw error;
     }
   }, [user, firestore, toast]);
 
