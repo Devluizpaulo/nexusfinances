@@ -81,7 +81,8 @@ O sistema de permissões é robusto e opera em duas camadas: no **backend** (com
         -   Utiliza o hook `useDashboardDate` para gerenciar o período de visualização (mês/ano).
         -   Realiza múltiplas consultas ao Firestore para buscar dados do período selecionado: rendas, despesas, dívidas e metas. Todas as consultas são direcionadas para o caminho `/users/{user.uid}/...`, garantindo que apenas os dados do usuário logado sejam solicitados.
         -   Usa o hook `useManageRecurrences` para verificar se há transações recorrentes a serem criadas para o mês atual.
-        -   Usa o hook `useNotificationGenerator` para verificar e criar notificações (ex: parcelas de dívidas vencidas).
+        -   Usa o hook `useUpcomingNotifications` para verificar e criar notificações de contas a vencer.
+        -   Usa o hook `useCreditCardNotifications` para criar alertas de fechamento e vencimento de faturas.
         -   Calcula KPIs (Renda Total, Despesas Totais, Balanço, Progresso de Metas).
         -   Chama o fluxo do Genkit `getFinancialInsights` para gerar a análise com IA.
     -   **Componentes:** Exibe `KpiCard` para os indicadores, `IncomeExpenseChart` e `ExpenseCategoryChart` para os gráficos, um `Calendar` para a visão mensal, e `FinancialHealthScore` para gamificação.
@@ -144,7 +145,8 @@ O sistema de permissões é robusto e opera em duas camadas: no **backend** (com
     -   Um usuário só pode ler e escrever seus próprios dados (`isOwner(userId)`).
     -   Coleções públicas, como `/education`, podem ser lidas por qualquer usuário autenticado.
     -   Apenas `superadmin` pode escrever em coleções públicas ou acessar dados de outros usuários.
--   **Recorrências (`useManageRecurrences.ts`):** Este hook é executado no `AuthenticatedLayout`. Uma vez por mês, ele verifica todas as transações marcadas como `isRecurring` e cria cópias delas para o mês atual com o status "pendente", automatizando o lançamento de contas fixas.
--   **Notificações (`useNotificationGenerator.ts`):** Também executado no layout, este hook verifica periodicamente (a cada 4 horas, controlado por `localStorage`) se há parcelas de dívidas vencidas e cria uma notificação na subcoleção `/users/{uid}/notifications` caso encontre alguma.
+-   **`useManageRecurrences`:** Este hook, executado no layout principal, verifica uma vez por mês se existem transações marcadas como recorrentes (ex: aluguel, assinaturas) e cria cópias delas para o mês atual com status "pendente", automatizando o lançamento de contas fixas.
+-   **`useUpcomingNotifications`:** Este hook verifica periodicamente (a cada 4 horas) se há parcelas de dívidas ou contas recorrentes com vencimento próximo (nos próximos 3 dias) e cria uma notificação na subcoleção `/users/{uid}/notifications` caso encontre alguma.
+-   **`useCreditCardNotifications`:** Similar ao anterior, este hook monitora as datas de fechamento e vencimento das faturas dos cartões de crédito cadastrados e gera notificações de lembrete.
 
 Essa estrutura garante que a aplicação seja robusta, segura e preparada para futuras expansões.

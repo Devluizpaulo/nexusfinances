@@ -8,9 +8,11 @@ Xô Planilhas é uma aplicação web moderna construída com Next.js e Firebase,
 - **Gerenciamento de Transações:** Adicione, edite e acompanhe suas rendas e despesas com status de pagamento, organizadas por categorias como salário, freelancer, moradia, contas de consumo e muito mais.
 - **Controle de Dívidas:** Cadastre empréstimos e financiamentos, e gerencie o pagamento das parcelas.
 - **Cartões de Crédito:** Centralize a gestão de múltiplos cartões, acompanhando limites e faturas.
+- **Orçamentos Inteligentes:** Crie limites de gastos por categoria e receba sugestões baseadas em IA para otimizar seu orçamento.
 - **Controle de Moradia:** Gerencie contratos de aluguel e condomínio.
 - **Central de Saúde:** Organize seus planos de saúde, contatos de clínicas e profissionais.
 - **Metas e Investimentos:** Crie e acompanhe o progresso de suas metas financeiras e reservas.
+- **Desafio das 52 Semanas:** Participe de desafios de poupança estruturados para construir o hábito de economizar de forma consistente e divertida.
 - **Jornada de Educação Financeira:** Trilhas de conhecimento interativas para melhorar sua saúde financeira.
 - **Autenticação Segura:** Login social com Google e sistema de autenticação por e-mail e senha.
 - **Personalização:** Crie suas próprias categorias de renda e despesa para adaptar o sistema à sua realidade.
