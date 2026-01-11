@@ -127,10 +127,10 @@ export function AddCreditCardSheet({ isOpen, onClose, card }: AddCreditCardSheet
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-full sm:max-w-2xl lg:max-w-3xl max-h-[95vh] h-full sm:h-auto overflow-hidden p-0">
-        <div className="flex flex-col h-full">
+      <DialogContent className="max-w-full sm:max-w-2xl lg:max-w-3xl max-h-[95vh] overflow-hidden p-0">
+        <div className="flex flex-col max-h-[95vh]">
           {/* Header com gradiente */}
-          <div className="relative bg-gradient-to-r from-purple-500/10 via-primary/5 to-background border-b px-6 py-6">
+          <div className="relative bg-gradient-to-r from-purple-500/10 via-primary/5 to-background border-b px-6 py-6 flex-shrink-0">
             <div className="absolute inset-0 bg-grid-white/5 [mask-image:radial-gradient(white,transparent_85%)]" />
             <DialogHeader className="relative space-y-3">
               <div className="flex items-center gap-3">
@@ -154,7 +154,7 @@ export function AddCreditCardSheet({ isOpen, onClose, card }: AddCreditCardSheet
           </div>
 
           {/* Conteúdo scrollável */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-6">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-6" style={{ maxHeight: 'calc(95vh - 180px)' }}>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" id="credit-card-form">
                 
@@ -281,7 +281,7 @@ export function AddCreditCardSheet({ isOpen, onClose, card }: AddCreditCardSheet
           </div>
 
           {/* Footer fixo */}
-          <div className="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6 py-4">
+          <div className="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6 py-4 flex-shrink-0">
             <DialogFooter>
               <Button
                 type="submit"
