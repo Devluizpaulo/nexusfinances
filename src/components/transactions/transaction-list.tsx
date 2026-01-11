@@ -4,23 +4,36 @@ import { Transaction } from '@/lib/types';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn, formatCurrency } from '@/lib/utils';
-import { MoreVertical, Lightbulb, Droplet, Flame, Wifi, Phone, Tv, Zap } from 'lucide-react';
+import { MoreVertical, Lightbulb, Droplet, Flame, Wifi, Phone, Tv, Zap, Trash2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/transactions/status-badge';
 import { Badge } from '@/components/ui/badge';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useState } from 'react';
 
 interface TransactionListProps {
   transactions: Transaction[];
   onEdit: (transaction: Transaction) => void;
   onStatusChange: (transaction: Transaction) => Promise<void>;
+  onDelete?: (transaction: Transaction) => Promise<void>;
   transactionType: 'income' | 'expense';
 }
 
@@ -42,8 +55,33 @@ export function TransactionList({
   transactions,
   onEdit,
   onStatusChange,
+  onDelete,
   transactionType,
 }: TransactionListProps) {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteClick = (transaction: Transaction) => {
+    setTransactionToDelete(transaction);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!transactionToDelete || !onDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      await onDelete(transactionToDelete);
+      setDeleteDialogOpen(false);
+      setTransactionToDelete(null);
+    } catch (error) {
+      console.error('Error deleting transaction:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (transactions.length === 0) {
     return (
       <div className="flex h-40 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-800/60 bg-slate-950/70 p-8 text-center shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
@@ -66,6 +104,27 @@ export function TransactionList({
 
   return (
     <div className="space-y-6">
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Transação?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir a transação &quot;{transactionToDelete?.description}&quot;? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive hover:bg-destructive/90"
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Excluindo...' : 'Excluir'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AnimatePresence initial={false}>
         {Object.entries(groupedByMonth).map(([month, monthTransactions]) => (
           <motion.div
@@ -140,6 +199,18 @@ export function TransactionList({
                                 <DropdownMenuItem onClick={() => onStatusChange(t)}>
                                   Marcar como {t.type === 'income' ? 'Recebido' : 'Pago'}
                                 </DropdownMenuItem>
+                              )}
+                              {onDelete && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onClick={() => handleDeleteClick(t)}
+                                    className="text-destructive"
+                                  >
+                                    <Trash2 className="mr-2 h-3.5 w-3.5" />
+                                    Excluir
+                                  </DropdownMenuItem>
+                                </>
                               )}
                             </DropdownMenuContent>
                           </DropdownMenu>

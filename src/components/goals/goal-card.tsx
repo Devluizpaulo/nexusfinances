@@ -82,6 +82,7 @@ const goalIcons: Record<GoalCategory, string> = {
 export function GoalCard({ goal, onAddContribution, onEdit }: GoalCardProps) {
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [selectedHorizon, setSelectedHorizon] = useState<6 | 12 | 24>(12);
@@ -119,23 +120,26 @@ export function GoalCard({ goal, onAddContribution, onEdit }: GoalCardProps) {
   }, [user, firestore, goal, contributions, toast]);
 
   const handleDeleteGoal = useCallback(async () => {
-    if (!user || !firestore) {
+    if (!user || !firestore || isDeleting) {
       toast({ variant: "destructive", title: "Erro", description: "Você não está autenticado." });
       return;
     }
     
-    setIsDeleteDialogOpen(false);
+    setIsDeleting(true);
     
     const goalRef = doc(firestore, `users/${user.uid}/goals`, goal.id);
     try {
         await deleteDoc(goalRef);
         toast({ title: 'Item Excluído', description: `O item "${goal.name}" foi removido.` });
+        setIsDeleteDialogOpen(false);
     } catch (error) {
         console.error("Error deleting goal:", error);
         toast({ variant: "destructive", title: "Erro ao excluir", description: "Não foi possível remover a meta."});
+    } finally {
+      setIsDeleting(false);
     }
     
-  }, [user, firestore, goal.id, goal.name, toast]);
+  }, [user, firestore, goal.id, goal.name, toast, isDeleting]);
 
   const progress = goal.targetAmount > 0 ? (goal.currentAmount / goal.targetAmount) * 100 : 100;
   const isCompleted = goal.currentAmount >= goal.targetAmount;
@@ -319,9 +323,13 @@ export function GoalCard({ goal, onAddContribution, onEdit }: GoalCardProps) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteGoal} className="bg-destructive hover:bg-destructive/90">
-              Excluir
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteGoal} 
+              className="bg-destructive hover:bg-destructive/90"
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Excluindo...' : 'Excluir'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -55,6 +55,7 @@ interface RentalContractCardProps {
 
 function RentalContractCardComponent({ contract, onEdit }: RentalContractCardProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const firestore = useFirestore();
@@ -98,7 +99,9 @@ function RentalContractCardComponent({ contract, onEdit }: RentalContractCardPro
   }, [contractStatus]);
 
   const handleDeleteContract = useCallback(async () => {
-    if (!user || !firestore) return;
+    if (!user || !firestore || isDeleting) return;
+    
+    setIsDeleting(true);
     try {
       const batch = writeBatch(firestore);
       const contractRef = doc(firestore, `users/${user.uid}/rentalContracts`, contract.id);
@@ -119,16 +122,18 @@ function RentalContractCardComponent({ contract, onEdit }: RentalContractCardPro
         title: 'Contrato Excluído',
         description: `O contrato com ${contract.landlordName} e suas despesas recorrentes foram removidos.`,
       });
+      setIsDeleteDialogOpen(false);
     } catch (error) {
-       toast({
+      console.error('Error deleting contract:', error);
+      toast({
         variant: "destructive",
         title: 'Erro ao excluir',
         description: 'Não foi possível remover o contrato. Tente novamente.',
       });
     } finally {
-        setIsDeleteDialogOpen(false);
+      setIsDeleting(false);
     }
-  }, [user, firestore, contract, toast]);
+  }, [user, firestore, contract, toast, isDeleting]);
 
   return (
     <>
@@ -146,8 +151,14 @@ function RentalContractCardComponent({ contract, onEdit }: RentalContractCardPro
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteContract} className="bg-destructive hover:bg-destructive/90">Excluir</AlertDialogAction>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteContract} 
+              className="bg-destructive hover:bg-destructive/90"
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Excluindo...' : 'Excluir'}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

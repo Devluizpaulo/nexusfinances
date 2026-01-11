@@ -133,6 +133,27 @@ export default function IncomePage() {
     }
   }, [user, firestore, toast]);
 
+  const handleDeleteTransaction = useCallback(async (transaction: Transaction) => {
+    if (!user) return;
+    
+    const docRef = doc(firestore, `users/${user.uid}/incomes`, transaction.id);
+    try {
+      await deleteDoc(docRef);
+      toast({
+        title: "Transação excluída",
+        description: `A receita "${transaction.description}" foi removida com sucesso.`,
+      });
+    } catch (error) {
+      console.error("Error deleting transaction:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao excluir",
+        description: "Não foi possível remover a receita. Tente novamente.",
+      });
+      throw error;
+    }
+  }, [user, firestore, toast]);
+
   const columns = useIncomeColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange });
   const isLoading = isUserLoading || isIncomeLoading;
 
@@ -235,6 +256,7 @@ export default function IncomePage() {
                     transactions={filteredIncomeData}
                     onEdit={handleOpenSheet}
                     onStatusChange={handleStatusChange}
+                    onDelete={handleDeleteTransaction}
                     transactionType="income"
                     />
                 </div>

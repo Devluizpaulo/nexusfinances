@@ -72,6 +72,7 @@ type AddInsuranceSheetProps = {
 
 export function AddInsuranceSheet({ isOpen, onClose, insurance }: AddInsuranceSheetProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const form = useForm<InsuranceFormValues>({
     resolver: zodResolver(formSchema),
@@ -144,14 +145,19 @@ export function AddInsuranceSheet({ isOpen, onClose, insurance }: AddInsuranceSh
   };
 
   const handleDelete = async () => {
-    if (!user || !isEditing) return;
+    if (!user || !isEditing || isDeleting) return;
+    
+    setIsDeleting(true);
     try {
         await deleteDoc(doc(firestore, `users/${user.uid}/healthInsurances`, insurance.id));
         toast({ title: "Convênio removido", description: "As informações do convênio foram excluídas." });
+        setIsDeleteDialogOpen(false);
         onClose();
     } catch (error) {
         console.error("Error deleting insurance:", error);
         toast({ variant: 'destructive', title: 'Erro ao remover', description: 'Não foi possível remover o convênio.' });
+    } finally {
+        setIsDeleting(false);
     }
   };
 
@@ -166,8 +172,14 @@ export function AddInsuranceSheet({ isOpen, onClose, insurance }: AddInsuranceSh
                 </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Excluir</AlertDialogAction>
+                <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={handleDelete} 
+                  className="bg-destructive hover:bg-destructive/90"
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? 'Excluindo...' : 'Excluir'}
+                </AlertDialogAction>
             </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

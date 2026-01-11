@@ -103,6 +103,27 @@ export default function UtilitiesPage() {
     }
   }
 
+  const handleDeleteTransaction = async (transaction: Transaction) => {
+    if (!user) return;
+    
+    const docRef = doc(firestore, `users/${user.uid}/expenses`, transaction.id);
+    try {
+      await deleteDoc(docRef);
+      toast({
+        title: "Transação excluída",
+        description: `A despesa "${transaction.description}" foi removida com sucesso.`,
+      });
+    } catch (error) {
+      console.error("Error deleting transaction:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao excluir",
+        description: "Não foi possível remover a despesa. Tente novamente.",
+      });
+      throw error;
+    }
+  }
+
   const columns = useExpenseColumns({ onEdit: handleOpenEditSheet, onStatusChange: handleStatusChange });
   const isLoading = isUserLoading || isExpensesLoading;
 
@@ -186,6 +207,7 @@ export default function UtilitiesPage() {
               transactions={filteredExpenses}
               onEdit={handleOpenEditSheet}
               onStatusChange={handleStatusChange}
+              onDelete={handleDeleteTransaction}
               transactionType="expense"
             />
           </div>

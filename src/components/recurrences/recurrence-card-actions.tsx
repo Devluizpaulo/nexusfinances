@@ -33,7 +33,9 @@ interface RecurrenceCardActionsProps {
 
 export function RecurrenceCardActions({ recurrence, onEdit }: RecurrenceCardActionsProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isConfirmingStop, setIsConfirmingStop] = useState(false);
+  const [isStopping, setIsStopping] = useState(false);
   
   const firestore = useFirestore();
   const { user } = useUser();
@@ -43,32 +45,40 @@ export function RecurrenceCardActions({ recurrence, onEdit }: RecurrenceCardActi
   const docRef = doc(firestore, `users/${user?.uid}/${collectionName}`, recurrence.id);
 
   const handleDelete = async () => {
+    if (isDeleting) return;
+    
+    setIsDeleting(true);
     try {
       await deleteDoc(docRef);
       toast({
         title: 'Item recorrente excluído',
         description: `O modelo de recorrência "${recurrence.description}" foi removido.`,
       });
+      setIsDeleteDialogOpen(false);
     } catch(e) {
       console.error("Error deleting recurrence template:", e);
       toast({ variant: 'destructive', title: 'Erro ao excluir', description: 'Não foi possível remover o modelo de recorrência.' });
     } finally {
-        setIsDeleteDialogOpen(false);
+      setIsDeleting(false);
     }
   };
   
   const handleStopRecurrence = async () => {
+    if (isStopping) return;
+    
+    setIsStopping(true);
     try {
       await updateDoc(docRef, { isRecurring: false });
       toast({
           title: 'Recorrência interrompida',
           description: `"${recurrence.description}" não será mais criada automaticamente.`,
       });
+      setIsConfirmingStop(false);
     } catch(e) {
         console.error("Error stopping recurrence:", e);
         toast({ variant: 'destructive', title: 'Erro ao interromper', description: 'Não foi possível interromper a recorrência.' });
     } finally {
-        setIsConfirmingStop(false);
+      setIsStopping(false);
     }
   }
 
@@ -85,9 +95,13 @@ export function RecurrenceCardActions({ recurrence, onEdit }: RecurrenceCardActi
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
-              Excluir
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete} 
+              className="bg-destructive hover:bg-destructive/90"
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Excluindo...' : 'Excluir'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -102,9 +116,12 @@ export function RecurrenceCardActions({ recurrence, onEdit }: RecurrenceCardActi
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleStopRecurrence}>
-              Sim, interromper
+            <AlertDialogCancel disabled={isStopping}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleStopRecurrence}
+              disabled={isStopping}
+            >
+              {isStopping ? 'Interrompendo...' : 'Sim, interromper'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

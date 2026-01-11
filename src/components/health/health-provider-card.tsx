@@ -37,7 +37,9 @@ interface HealthProviderCardProps {
 
 export function HealthProviderCard({ provider, professionals, onEditProvider, onEditProfessional }: HealthProviderCardProps) {
   const [isProviderDeleteDialogOpen, setIsProviderDeleteDialogOpen] = useState(false);
+  const [isDeletingProvider, setIsDeletingProvider] = useState(false);
   const [professionalToDelete, setProfessionalToDelete] = useState<HealthProfessional | null>(null);
+  const [isDeletingProfessional, setIsDeletingProfessional] = useState(false);
 
   const firestore = useFirestore();
   const { user } = useUser();
@@ -46,28 +48,34 @@ export function HealthProviderCard({ provider, professionals, onEditProvider, on
   const providerProfessionals = professionals.filter(p => p.providerId === provider.id);
   
   const handleDeleteProvider = async () => {
-    if (!user) return;
+    if (!user || isDeletingProvider) return;
+    
+    setIsDeletingProvider(true);
     try {
         await deleteDoc(doc(firestore, `users/${user.uid}/healthProviders`, provider.id));
         toast({ title: "Empresa excluída", description: `"${provider.name}" foi removida.` });
+        setIsProviderDeleteDialogOpen(false);
     } catch (error) {
         console.error("Error deleting provider:", error);
         toast({ variant: "destructive", title: "Erro ao excluir", description: "Não foi possível remover a empresa." });
     } finally {
-        setIsProviderDeleteDialogOpen(false);
+        setIsDeletingProvider(false);
     }
   }
   
   const handleDeleteProfessional = async () => {
-    if (!user || !professionalToDelete) return;
+    if (!user || !professionalToDelete || isDeletingProfessional) return;
+    
+    setIsDeletingProfessional(true);
     try {
         await deleteDoc(doc(firestore, `users/${user.uid}/healthProfessionals`, professionalToDelete.id));
         toast({ title: "Profissional excluído", description: `"${professionalToDelete.name}" foi removido.` });
+        setProfessionalToDelete(null);
     } catch(error) {
         console.error("Error deleting professional:", error);
         toast({ variant: "destructive", title: "Erro ao excluir", description: "Não foi possível remover o profissional." });
     } finally {
-        setProfessionalToDelete(null);
+        setIsDeletingProfessional(false);
     }
   }
 
@@ -82,8 +90,14 @@ export function HealthProviderCard({ provider, professionals, onEditProvider, on
                   </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDeleteProvider} className="bg-destructive hover:bg-destructive/90">Excluir</AlertDialogAction>
+                  <AlertDialogCancel disabled={isDeletingProvider}>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleDeleteProvider} 
+                    className="bg-destructive hover:bg-destructive/90"
+                    disabled={isDeletingProvider}
+                  >
+                    {isDeletingProvider ? 'Excluindo...' : 'Excluir'}
+                  </AlertDialogAction>
               </AlertDialogFooter>
           </AlertDialogContent>
       </AlertDialog>
@@ -97,8 +111,14 @@ export function HealthProviderCard({ provider, professionals, onEditProvider, on
                   </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDeleteProfessional} className="bg-destructive hover:bg-destructive/90">Excluir</AlertDialogAction>
+                  <AlertDialogCancel disabled={isDeletingProfessional}>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleDeleteProfessional} 
+                    className="bg-destructive hover:bg-destructive/90"
+                    disabled={isDeletingProfessional}
+                  >
+                    {isDeletingProfessional ? 'Excluindo...' : 'Excluir'}
+                  </AlertDialogAction>
               </AlertDialogFooter>
           </AlertDialogContent>
       </AlertDialog>

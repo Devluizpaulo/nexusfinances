@@ -132,6 +132,27 @@ export default function ExpensesPage() {
       });
     }
   }, [user, firestore, toast]);
+
+  const handleDeleteTransaction = useCallback(async (transaction: Transaction) => {
+    if (!user) return;
+    
+    const docRef = doc(firestore, `users/${user.uid}/expenses`, transaction.id);
+    try {
+      await deleteDoc(docRef);
+      toast({
+        title: "Transação excluída",
+        description: `A despesa "${transaction.description}" foi removida com sucesso.`,
+      });
+    } catch (error) {
+      console.error("Error deleting transaction:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao excluir",
+        description: "Não foi possível remover a despesa. Tente novamente.",
+      });
+      throw error;
+    }
+  }, [user, firestore, toast]);
   
   const columns = useExpenseColumns({ onEdit: handleOpenSheet, onStatusChange: handleStatusChange });
   
@@ -237,6 +258,7 @@ export default function ExpensesPage() {
                     transactions={filteredExpenseData}
                     onEdit={handleOpenSheet}
                     onStatusChange={handleStatusChange}
+                    onDelete={handleDeleteTransaction}
                     transactionType="expense"
                     />
                 </div>

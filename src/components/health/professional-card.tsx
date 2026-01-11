@@ -22,6 +22,7 @@ interface ProfessionalCardProps {
 
 export function ProfessionalCard({ professional, providers, onEdit }: ProfessionalCardProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const firestore = useFirestore();
   const { user } = useUser();
@@ -30,15 +31,18 @@ export function ProfessionalCard({ professional, providers, onEdit }: Profession
   const provider = providers.find(p => p.id === professional.providerId);
   
   const handleDeleteProfessional = async () => {
-    if (!user) return;
+    if (!user || isDeleting) return;
+    
+    setIsDeleting(true);
     try {
         await deleteDoc(doc(firestore, `users/${user.uid}/healthProfessionals`, professional.id));
         toast({ title: "Profissional excluído", description: `"${professional.name}" foi removido.` });
+        setIsDeleteDialogOpen(false);
     } catch(error) {
         console.error("Error deleting professional:", error);
         toast({ variant: "destructive", title: "Erro ao excluir", description: "Não foi possível remover o profissional." });
     } finally {
-        setIsDeleteDialogOpen(false);
+        setIsDeleting(false);
     }
   }
 
@@ -53,8 +57,14 @@ export function ProfessionalCard({ professional, providers, onEdit }: Profession
                   </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDeleteProfessional} className="bg-destructive hover:bg-destructive/90">Excluir</AlertDialogAction>
+                  <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleDeleteProfessional} 
+                    className="bg-destructive hover:bg-destructive/90"
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? 'Excluindo...' : 'Excluir'}
+                  </AlertDialogAction>
               </AlertDialogFooter>
           </AlertDialogContent>
       </AlertDialog>

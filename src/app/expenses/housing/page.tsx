@@ -3,7 +3,7 @@
 
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { collection, query, orderBy, where, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, orderBy, where, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { RentalContract, Transaction } from '@/lib/types';
 import { Loader2, Home, PlusCircle, Settings } from 'lucide-react';
@@ -110,6 +110,27 @@ export default function HousingPage() {
     }
   }
 
+  const handleDeleteTransaction = async (transaction: Transaction) => {
+    if (!user) return;
+    
+    const docRef = doc(firestore, `users/${user.uid}/expenses`, transaction.id);
+    try {
+      await deleteDoc(docRef);
+      toast({
+        title: "Transação excluída",
+        description: `A despesa "${transaction.description}" foi removida com sucesso.`,
+      });
+    } catch (error) {
+      console.error("Error deleting transaction:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao excluir",
+        description: "Não foi possível remover a despesa. Tente novamente.",
+      });
+      throw error; // Re-throw to let TransactionList handle the loading state
+    }
+  }
+
   const columns = useExpenseColumns({ onEdit: handleEditTransaction, onStatusChange: handleStatusChange });
   const isLoading = isUserLoading || isContractsLoading || isExpensesLoading;
 
@@ -184,6 +205,7 @@ export default function HousingPage() {
                       transactions={housingExpenses ?? []}
                       onEdit={handleEditTransaction}
                       onStatusChange={handleStatusChange}
+                      onDelete={handleDeleteTransaction}
                       transactionType="expense"
                     />
                   </div>
