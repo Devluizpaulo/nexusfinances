@@ -35,20 +35,13 @@ export function AppSidebar() {
         <SidebarHeader>
             <Button
               variant="ghost"
-              className="h-12 justify-start items-center gap-2 p-2 w-full hover:bg-slate-900/70"
+              className="h-12 justify-center items-center p-2 w-full hover:bg-slate-900/70"
               asChild
             >
                 <Link href="/dashboard">
                     <div className="p-1.5 rounded-xl bg-slate-900/80 border border-slate-800/70">
                         <Image src="/images/xoplanilhas_logo.png" alt="Logo Xô Planilhas" width={32} height={32} />
                     </div>
-                    <span
-                      className={cn(
-                        "text-lg font-semibold tracking-tight text-slate-100 group-data-[state=expanded]:inline-flex hidden"
-                      )}
-                    >
-                      Xô Planilhas
-                    </span>
                 </Link>
             </Button>
         </SidebarHeader>
