@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useForm, useFieldArray } from 'react-hook-form';
@@ -73,8 +74,8 @@ export function RegisterHousingPaymentDialog({ isOpen, onClose, contract }: Regi
     if (contract.condoFee && contract.condoFee > 0) {
       items.push({ id: 'condo', label: 'Condomínio', amount: contract.condoFee });
     }
-    // Se não for aluguel nem condomínio, use o valor total como um item único
-    if (items.length === 0 && contract.totalAmount > 0) {
+    // Se não for aluguel nem condomínio, e o tipo for 'Outros', usa o valor total como um item único
+    if (items.length === 0 && contract.type === 'Outros' && contract.totalAmount > 0) {
         items.push({ id: 'total', label: contract.type, amount: contract.totalAmount });
     }
     return items;
@@ -287,3 +288,4 @@ export function RegisterHousingPaymentDialog({ isOpen, onClose, contract }: Regi
     </Dialog>
   );
 }
+
