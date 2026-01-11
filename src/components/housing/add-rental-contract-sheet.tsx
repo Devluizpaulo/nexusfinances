@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -32,13 +30,13 @@ import { Button } from '@/components/ui/button';
 import { Loader2, Home, Calendar, CreditCard, Info, DollarSign, FileText } from 'lucide-react';
 import { CurrencyInput } from '../ui/currency-input';
 import { Separator } from '../ui/separator';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import type { RentalContract } from '@/lib/types';
 import { Textarea } from '../ui/textarea';
 import { Switch } from '../ui/switch';
 import { useRentalContractForm, type RentalFormValues } from '@/hooks/use-rental-contract-form';
 import { DatePicker } from '../ui/date-picker';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Badge } from '../ui/badge';
 
 type AddRentalContractSheetProps = {
   isOpen: boolean;
@@ -309,7 +307,7 @@ export function AddRentalContractSheet({ isOpen, onClose, contract }: AddRentalC
                     />
                   </CardContent>
                 </Card>
-                </Card>
+
 
                 {/* Seção 4: Meio de Pagamento */}
                 <Card className="border-2 hover:border-primary/20 transition-colors">
