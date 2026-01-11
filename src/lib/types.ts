@@ -1,4 +1,5 @@
 
+
 import { z } from 'zod';
 import type { ElementType } from 'react';
 import type { LucideIcon } from 'lucide-react';
@@ -27,6 +28,7 @@ export type Transaction = {
   notes?: string;
   vendor?: string;
   consumption?: string; // e.g., '150 kWh', '25 m³'
+  paymentMethod?: 'cash' | 'creditCard' | 'debit_card' | 'pix' | 'bank_transfer' | 'boleto' | 'debit';
 };
 
 export type CreditCard = {

@@ -3,7 +3,7 @@
 
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { collection, query, where, doc, orderBy, updateDoc } from 'firebase/firestore';
+import { collection, query, where, doc, orderBy, updateDoc, deleteDoc } from 'firebase/firestore';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import type { Transaction } from '@/lib/types';
 import { Loader2, Landmark, PlusCircle, Upload } from 'lucide-react';

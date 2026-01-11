@@ -173,7 +173,7 @@ export function RecentTransactionsList({ transactions, onAddTransaction, title =
                                         <div className="flex-1">
                                             <p className="text-xs text-slate-400 mb-1">Método de Pagamento</p>
                                             <p className="text-base font-semibold text-slate-200 capitalize">
-                                                {selectedTransaction.paymentMethod === 'credit_card' ? 'Cartão de Crédito' :
+                                                {selectedTransaction.paymentMethod === 'creditCard' ? 'Cartão de Crédito' :
                                                  selectedTransaction.paymentMethod === 'debit_card' ? 'Cartão de Débito' :
                                                  selectedTransaction.paymentMethod === 'pix' ? 'PIX' :
                                                  selectedTransaction.paymentMethod === 'cash' ? 'Dinheiro' :

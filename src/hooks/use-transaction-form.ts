@@ -102,7 +102,7 @@ export function useTransactionForm({
       form.reset({
         ...transaction,
         description: transaction.description || '',
-        vendor: (transaction as any).vendor || '',
+        vendor: transaction.vendor || '',
         date: parseISO(transaction.date),
         status: transaction.status || 'paid',
         paymentMethod: transaction.creditCardId ? 'creditCard' : 'cash',
@@ -160,6 +160,8 @@ export function useTransactionForm({
     } else {
       delete dataToSave.creditCardId;
     }
+    // O `paymentMethod` é um estado da UI e não precisa ser salvo no documento da transação,
+    // pois a presença do `creditCardId` já define o método de pagamento.
     delete dataToSave.paymentMethod;
 
     try {

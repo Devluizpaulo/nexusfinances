@@ -202,6 +202,7 @@ const DayComponent: React.FC<DayProps> = memo(function DayComponent({ date, disp
 
 
 export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
+  const router = useRouter();
   const { selectedDate, setSelectedDate } = useDashboardDate();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
@@ -382,7 +383,7 @@ export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {
                     <div className="flex-1">
                       <p className="text-xs text-slate-400 mb-1">Método de Pagamento</p>
                       <p className="text-base font-semibold text-slate-200 capitalize">
-                        {selectedExpense.paymentMethod === 'credit_card' ? 'Cartão de Crédito' :
+                        {selectedExpense.paymentMethod === 'creditCard' ? 'Cartão de Crédito' :
                          selectedExpense.paymentMethod === 'debit_card' ? 'Cartão de Débito' :
                          selectedExpense.paymentMethod === 'pix' ? 'PIX' :
                          selectedExpense.paymentMethod === 'cash' ? 'Dinheiro' :

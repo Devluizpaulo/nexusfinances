@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import { collection, query, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { useCollection, useFirestore, useUser, useMemoFirebase } from '@/firebase';
 import { DataTable } from '@/components/data-table/data-table';
 import { useExpenseColumns } from './columns';
@@ -20,7 +20,7 @@ import { TransactionList } from '@/components/transactions/transaction-list';
 import { KpiCard } from '@/components/dashboard/kpi-card';
 import { formatCurrency } from '@/lib/utils';
 import { IncomeExpenseChart } from '@/components/dashboard/income-expense-chart';
-import { ExpenseCategoryChart } from '@/components/dashboard/expense-category-chart';
+import { ExpenseCategoryChart } from '@/app/dashboard/_components/expense-category-chart';
 
 type ViewMode = 'month' | 'year' | 'all';
 
