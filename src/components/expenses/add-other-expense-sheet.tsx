@@ -25,6 +25,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form';
 import {
   Select,
@@ -35,7 +36,7 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { CalendarIcon, Loader2, PlusCircle } from 'lucide-react';
+import { CalendarIcon, Loader2, PlusCircle, ShoppingBag, DollarSign, Calendar as CalendarIco, FileText, Receipt } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -49,6 +50,8 @@ import { Textarea } from '../ui/textarea';
 import { CurrencyInput } from '../ui/currency-input';
 import { expenseCategories, specificExpenseCategories } from '@/lib/types';
 import { Label } from '../ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Badge } from '../ui/badge';
 
 const otherExpenseCategories = expenseCategories.filter(
   (c) => !(specificExpenseCategories as unknown as string[]).includes(c)
@@ -173,143 +176,236 @@ export function AddOtherExpenseSheet({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-        <DialogContent>
-           <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-            <DialogDescription>{descriptionText}</DialogDescription>
-          </DialogHeader>
+        <DialogContent className="max-w-full sm:max-w-2xl lg:max-w-3xl max-h-[95vh] overflow-hidden p-0">
+          <div className="flex flex-col max-h-[95vh]">
+            {/* Header com gradiente */}
+            <div className="relative bg-gradient-to-r from-orange-500/10 via-primary/5 to-background border-b px-6 py-6 flex-shrink-0">
+              <div className="absolute inset-0 bg-grid-white/5 [mask-image:radial-gradient(white,transparent_85%)]" />
+              <DialogHeader className="relative space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-orange-500/10 border border-orange-500/20 backdrop-blur-sm">
+                    <ShoppingBag className="h-5 w-5 text-orange-500" />
+                  </div>
+                  <div>
+                    <DialogTitle className="text-2xl">{title}</DialogTitle>
+                    <DialogDescription className="text-sm mt-1">{descriptionText}</DialogDescription>
+                  </div>
+                </div>
+                {!transaction && (
+                  <Badge variant="secondary" className="w-fit">
+                    <Receipt className="h-3 w-3 mr-1" />
+                    Nova despesa
+                  </Badge>
+                )}
+              </DialogHeader>
+            </div>
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-               <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Categoria</FormLabel>
-                     <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione uma categoria" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {allCategories.map((category) => (
-                          <SelectItem key={category} value={category}>
-                            {category}
-                          </SelectItem>
-                        ))}
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start font-normal h-8 px-2"
-                          onClick={(e) => {
-                             e.preventDefault();
-                             setIsAddCategoryDialogOpen(true);
-                          }}
-                        >
-                           <PlusCircle className="mr-2 h-4 w-4" />
-                           Criar nova categoria...
-                        </Button>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Descrição (Opcional)</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="Ex: Almoço com amigos, Camiseta nova..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <FormField
-                control={form.control}
-                name="amount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Valor (R$)</FormLabel>
-                    <FormControl>
-                      <CurrencyInput
-                        value={field.value}
-                        onValueChange={field.onChange}
+            {/* Conteúdo scrollável */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-6" style={{ maxHeight: 'calc(95vh - 180px)' }}>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" id="expense-form">
+                  
+                  {/* Seção 1: Categoria */}
+                  <Card className="border-2 hover:border-primary/20 transition-colors">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-primary" />
+                        <CardTitle className="text-lg">Categoria</CardTitle>
+                      </div>
+                      <CardDescription>Classifique sua despesa</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <FormField
+                        control={form.control}
+                        name="category"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Tipo de Despesa</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="h-11">
+                                  <SelectValue placeholder="Selecione uma categoria" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {allCategories.map((category) => (
+                                  <SelectItem key={category} value={category}>
+                                    {category}
+                                  </SelectItem>
+                                ))}
+                                <Button
+                                  variant="ghost"
+                                  className="w-full justify-start font-normal h-8 px-2"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    setIsAddCategoryDialogOpen(true);
+                                  }}
+                                >
+                                  <PlusCircle className="mr-2 h-4 w-4" />
+                                  Criar nova categoria...
+                                </Button>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <FormField
-                control={form.control}
-                name="date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Data</FormLabel>
-                    <FormControl>
-                      <DatePicker
-                        value={field.value}
-                        onChange={field.onChange}
-                        placeholder="Escolha uma data"
+                    </CardContent>
+                  </Card>
+
+                  {/* Seção 2: Detalhes */}
+                  <Card className="border-2 hover:border-primary/20 transition-colors">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center gap-2">
+                        <Receipt className="h-4 w-4 text-primary" />
+                        <CardTitle className="text-lg">Detalhes</CardTitle>
+                      </div>
+                      <CardDescription>Informações sobre a despesa</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Descrição (Opcional)</FormLabel>
+                            <FormControl>
+                              <Textarea 
+                                placeholder="Ex: Almoço com amigos, Camiseta nova..." 
+                                {...field}
+                                className="min-h-[80px]"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="isRecurring"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border border-border bg-muted p-3">
-                    <div className="space-y-0.5">
-                      <FormLabel>Recorrente</FormLabel>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
+                    </CardContent>
+                  </Card>
+
+                  {/* Seção 3: Valor e Data */}
+                  <Card className="border-2 hover:border-primary/20 transition-colors">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="h-4 w-4 text-primary" />
+                        <CardTitle className="text-lg">Valor e Data</CardTitle>
+                      </div>
+                      <CardDescription>Quanto e quando foi a despesa</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="amount"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Valor (R$)</FormLabel>
+                              <FormControl>
+                                <CurrencyInput
+                                  value={field.value}
+                                  onValueChange={field.onChange}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="date"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Data</FormLabel>
+                              <FormControl>
+                                <DatePicker
+                                  value={field.value}
+                                  onChange={field.onChange}
+                                  placeholder="Escolha uma data"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Seção 4: Configurações */}
+                  <Card className="border-2 hover:border-primary/20 transition-colors">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center gap-2">
+                        <CalendarIco className="h-4 w-4 text-primary" />
+                        <CardTitle className="text-lg">Configurações</CardTitle>
+                      </div>
+                      <CardDescription>Recorrência e status de pagamento</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="isRecurring"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border-2 p-4 bg-muted/30 hover:bg-muted/50 transition-colors">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base">Recorrente</FormLabel>
+                              <FormDescription className="text-xs">
+                                Esta despesa se repetirá automaticamente
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
                       />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-               <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border border-border bg-muted p-3">
-                    <div className="space-y-0.5">
-                      <FormLabel>Pago</FormLabel>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value === 'paid'}
-                        onCheckedChange={(checked) => field.onChange(checked ? 'paid' : 'pending')}
+                      <FormField
+                        control={form.control}
+                        name="status"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border-2 p-4 bg-muted/30 hover:bg-muted/50 transition-colors">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base">Pago</FormLabel>
+                              <FormDescription className="text-xs">
+                                Marque se esta despesa já foi paga
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value === 'paid'}
+                                onCheckedChange={(checked) => field.onChange(checked ? 'paid' : 'pending')}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
                       />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+                    </CardContent>
+                  </Card>
+
+                </form>
+              </Form>
+            </div>
+
+            {/* Footer fixo */}
+            <div className="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6 py-4 flex-shrink-0">
               <DialogFooter>
-                  <Button
+                <Button
                   type="submit"
+                  form="expense-form"
                   disabled={form.formState.isSubmitting || !user}
-                  className="w-full"
-                  >
+                  className="w-full h-11 text-base font-medium shadow-lg hover:shadow-xl transition-all"
+                  size="lg"
+                >
                   {form.formState.isSubmitting && (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                   )}
                   {transaction ? 'Salvar Alterações' : 'Salvar Despesa'}
-                  </Button>
+                </Button>
               </DialogFooter>
-            </form>
-          </Form>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
       
