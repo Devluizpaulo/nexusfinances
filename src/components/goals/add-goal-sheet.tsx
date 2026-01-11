@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Target, DollarSign, TrendingUp, Calendar } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { CurrencyInput } from '../ui/currency-input';
 import { goalCategories, type Goal } from '@/lib/types';
@@ -43,6 +43,9 @@ import { addMonths, formatISO, parseISO } from 'date-fns';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Textarea } from '../ui/textarea';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Badge } from '../ui/badge';
+import { cn } from '@/lib/utils';
 
 const formSchema = z
   .object({
@@ -195,194 +198,257 @@ export function AddGoalSheet({ isOpen, onClose, goal }: AddGoalSheetProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{isEditing ? 'Editar Objetivo' : 'Adicionar Nova Reserva/Investimento'}</DialogTitle>
-          <DialogDescription>
-            {isEditing ? 'Atualize os detalhes do seu objetivo.' : 'Defina um objetivo e acompanhe seu progresso.'}
-          </DialogDescription>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome do Objetivo</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: Viagem para o Japão" {...field} />
-                  </FormControl>
-                  <FormDescription className="text-[11px]">
-                    Ex.: Emergência financeira, Comprar um carro, Viagem para o Japão, Aposentadoria, Reserva de
-                    oportunidade.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
+      <DialogContent className="max-w-full sm:max-w-2xl lg:max-w-4xl max-h-[95vh] h-full sm:h-auto overflow-hidden p-0">
+        <div className="flex flex-col h-full">
+          {/* Header com gradiente */}
+          <div className="relative bg-gradient-to-r from-blue-500/10 via-primary/5 to-background border-b px-6 py-6">
+            <div className="absolute inset-0 bg-grid-white/5 [mask-image:radial-gradient(white,transparent_85%)]" />
+            <DialogHeader className="relative space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 backdrop-blur-sm">
+                  <Target className="h-5 w-5 text-blue-500" />
+                </div>
+                <div>
+                  <DialogTitle className="text-2xl">{isEditing ? 'Editar Objetivo' : 'Adicionar Nova Reserva/Investimento'}</DialogTitle>
+                  <DialogDescription className="text-sm mt-1">
+                    {isEditing ? 'Atualize os detalhes do seu objetivo.' : 'Defina um objetivo e acompanhe seu progresso.'}
+                  </DialogDescription>
+                </div>
+              </div>
+              {!isEditing && (
+                <Badge variant="secondary" className="w-fit">
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                  Nova meta financeira
+                </Badge>
               )}
-            />
+            </DialogHeader>
+          </div>
 
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Categoria</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma categoria" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {goalCategories.map((category) => {
-                        const iconMap: Record<string, string> = {
-                          'Reserva de Emergência': '🆘',
-                          Viagem: '✈️',
-                          Carro: '🚗',
-                          Casa: '🏠',
-                          Eletrônicos: '💻',
-                          Educação: '🎓',
-                          Aposentadoria: '💼',
-                          Investir: '📈',
-                          'Quitar Dívidas': '💸',
-                          Outros: '✨',
-                        };
-                        const icon = iconMap[category] || '🎯';
-                        return (
-                          <SelectItem key={category} value={category}>
-                            <span className="mr-2 inline-block w-4 text-center">{icon}</span>
-                            {category}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Por que este objetivo é importante para você? (Opcional)</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Ex.: Quero ter uma reserva para emergências e não depender de crédito quando algo inesperado acontecer."
-                      {...field}
+          {/* Conteúdo scrollável */}
+          <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-6">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" id="goal-form">
+                
+                {/* Seção 1: Informações Básicas */}
+                <Card className="border-2 hover:border-primary/20 transition-colors">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-2">
+                      <Target className="h-4 w-4 text-primary" />
+                      <CardTitle className="text-lg">Informações do Objetivo</CardTitle>
+                    </div>
+                    <CardDescription>Defina seu objetivo financeiro</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nome do Objetivo</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Ex: Viagem para o Japão" {...field} className="h-11" />
+                          </FormControl>
+                          <FormDescription className="text-xs">
+                            Ex.: Emergência financeira, Comprar um carro, Viagem para o Japão, Aposentadoria, Reserva de oportunidade.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </FormControl>
-                  <FormDescription className="text-[11px]">
-                    Registrar o motivo aumenta o compromisso e ajuda você a manter o foco no longo prazo.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="targetAmount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Valor Alvo (R$)</FormLabel>
-                    <FormControl>
-                      <CurrencyInput value={field.value} onValueChange={field.onChange} />
-                    </FormControl>
-                    <FormDescription className="text-[11px]">
-                      Quanto você deseja acumular no total.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="currentAmount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Valor Inicial (R$)</FormLabel>
-                    <FormControl>
-                      <CurrencyInput value={field.value} onValueChange={field.onChange} disabled={isEditing} />
-                    </FormControl>
-                    <FormDescription className="text-[11px]">
-                      {isEditing ? 'O valor atual é gerenciado pelos aportes.' : 'O que você já tem guardado.'}
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="monthlyContribution"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Aporte mensal planejado (R$) (Opcional)</FormLabel>
-                  <FormControl>
-                    <CurrencyInput
-                      value={Number(field.value) || 0}
-                      onValueChange={(val) => field.onChange(val ?? 0)}
+                    <FormField
+                      control={form.control}
+                      name="category"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Categoria</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="h-11">
+                                <SelectValue placeholder="Selecione uma categoria" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {goalCategories.map((category) => {
+                                const iconMap: Record<string, string> = {
+                                  'Reserva de Emergência': '🆘',
+                                  Viagem: '✈️',
+                                  Carro: '🚗',
+                                  Casa: '🏠',
+                                  Eletrônicos: '💻',
+                                  Educação: '🎓',
+                                  Aposentadoria: '💼',
+                                  Investir: '📈',
+                                  'Quitar Dívidas': '💸',
+                                  Outros: '✨',
+                                };
+                                const icon = iconMap[category] || '🎯';
+                                return (
+                                  <SelectItem key={category} value={category}>
+                                    <span className="mr-2 inline-block w-4 text-center">{icon}</span>
+                                    {category}
+                                  </SelectItem>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </FormControl>
-                  <FormDescription className="text-[11px]">
-                    Usado para estimar a data de conclusão.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
-            <FormField
-              control={form.control}
-              name="targetDate"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Data Alvo (Opcional)</FormLabel>
-                  <FormControl>
-                    <DatePicker 
-                      value={field.value}
-                      onChange={field.onChange}
+                    <FormField
+                      control={form.control}
+                      name="description"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Por que este objetivo é importante para você? (Opcional)</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Ex.: Quero ter uma reserva para emergências e não depender de crédito quando algo inesperado acontecer."
+                              {...field}
+                              className="min-h-[80px]"
+                            />
+                          </FormControl>
+                          <FormDescription className="text-xs">
+                            Registrar o motivo aumenta o compromisso e ajuda você a manter o foco no longo prazo.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </FormControl>
-                  <FormDescription className="text-[11px] space-y-0.5">
-                    {estimatedDate && !watchedTargetDate && (
-                      <span className="block text-[11px] text-emerald-700">
-                        Estimativa com aporte mensal:{' '}
-                        <span className="font-semibold">
-                          {format(estimatedDate, 'MM/yyyy', { locale: ptBR })}
-                        </span>
-                        .
-                      </span>
-                    )}
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                  </CardContent>
+                </Card>
 
+                {/* Seção 2: Valores */}
+                <Card className="border-2 hover:border-primary/20 transition-colors">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-primary" />
+                      <CardTitle className="text-lg">Valores</CardTitle>
+                    </div>
+                    <CardDescription>Defina os valores e aportes</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="targetAmount"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Valor Alvo (R$)</FormLabel>
+                            <FormControl>
+                              <CurrencyInput value={field.value} onValueChange={field.onChange} />
+                            </FormControl>
+                            <FormDescription className="text-xs">
+                              Quanto você deseja acumular no total.
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="currentAmount"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Valor Inicial (R$)</FormLabel>
+                            <FormControl>
+                              <CurrencyInput value={field.value} onValueChange={field.onChange} disabled={isEditing} />
+                            </FormControl>
+                            <FormDescription className="text-xs">
+                              {isEditing ? 'O valor atual é gerenciado pelos aportes.' : 'O que você já tem guardado.'}
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <FormField
+                      control={form.control}
+                      name="monthlyContribution"
+                      render={({ field }) => (
+                        <FormItem className="mt-4">
+                          <FormLabel>Aporte mensal planejado (R$) (Opcional)</FormLabel>
+                          <FormControl>
+                            <CurrencyInput
+                              value={Number(field.value) || 0}
+                              onValueChange={(val) => field.onChange(val ?? 0)}
+                            />
+                          </FormControl>
+                          <FormDescription className="text-xs">
+                            Usado para estimar a data de conclusão.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+
+                {/* Seção 3: Prazo */}
+                <Card className="border-2 hover:border-primary/20 transition-colors">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-primary" />
+                      <CardTitle className="text-lg">Prazo</CardTitle>
+                    </div>
+                    <CardDescription>Quando você pretende alcançar este objetivo</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <FormField
+                      control={form.control}
+                      name="targetDate"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Data Alvo (Opcional)</FormLabel>
+                          <FormControl>
+                            <DatePicker 
+                              value={field.value}
+                              onChange={field.onChange}
+                            />
+                          </FormControl>
+                          <FormDescription className="text-xs space-y-0.5">
+                            {estimatedDate && !watchedTargetDate && (
+                              <span className="block text-xs text-emerald-600 font-medium bg-emerald-50 dark:bg-emerald-950/20 px-2 py-1 rounded mt-2">
+                                📅 Estimativa com aporte mensal:{' '}
+                                <span className="font-semibold">
+                                  {format(estimatedDate, 'MM/yyyy', { locale: ptBR })}
+                                </span>
+                              </span>
+                            )}
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                </Card>
+
+              </form>
+            </Form>
+          </div>
+
+          {/* Footer fixo */}
+          <div className="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6 py-4">
             <DialogFooter>
               <Button
                 type="submit"
+                form="goal-form"
                 disabled={form.formState.isSubmitting || !user || !form.formState.isValid}
-                className="w-full"
+                className="w-full h-11 text-base font-medium shadow-lg hover:shadow-xl transition-all"
+                size="lg"
               >
                 {form.formState.isSubmitting && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 )}
                 {isEditing ? 'Salvar Alterações' : 'Salvar Objetivo'}
               </Button>
             </DialogFooter>
-
-          </form>
-        </Form>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

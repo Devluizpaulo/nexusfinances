@@ -1,0 +1,500 @@
+'use client';
+
+import * as React from 'react';
+import { cn } from '@/lib/utils';
+import {
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage,
+} from '@/components/ui/form';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Loader2, PlusCircle, ArrowUpCircle, ArrowDownCircle, Wallet, Calendar, FileText, CreditCard as CreditCardIcon, Receipt } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import type { Transaction } from '@/lib/types';
+import { Textarea } from '../ui/textarea';
+import { CurrencyInput } from '../ui/currency-input';
+import { Separator } from '../ui/separator';
+import { Label } from '@/components/ui/label';
+import { AddCreditCardSheet } from '../credit-cards/add-credit-card-sheet';
+import { useTransactionForm } from '@/hooks/use-transaction-form';
+import { DatePicker } from '../ui/date-picker';
+import { subcategoryMap } from '@/lib/types';
+import * as LucideIcons from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Badge } from '../ui/badge';
+
+
+type AddTransactionSheetProps = {
+  isOpen: boolean;
+  onClose: () => void;
+  transactionType: 'income' | 'expense';
+  categories: readonly string[];
+  transaction?: Transaction | null;
+  vendors?: string[];
+};
+
+export function AddTransactionSheet({
+  isOpen,
+  onClose,
+  transactionType,
+  categories,
+  transaction,
+  vendors,
+}: AddTransactionSheetProps) {
+  const {
+    form,
+    user,
+    allCategories,
+    creditCardsData,
+    isAddCategoryDialogOpen,
+    setIsAddCategoryDialogOpen,
+    newCategoryName,
+    setNewCategoryName,
+    isAddCardSheetOpen,
+    setIsAddCardSheetOpen,
+    onSubmit,
+    handleAddCategory,
+  } = useTransactionForm({
+    transactionType,
+    categories,
+    transaction,
+    onClose,
+    vendors
+  });
+
+  const paymentMethod = form.watch('paymentMethod');
+  const isRecurring = form.watch('isRecurring');
+  const selectedCategory = form.watch('category') as keyof typeof subcategoryMap;
+  const subcategoriesForSelectedCategory = subcategoryMap[selectedCategory];
+
+  const title = transaction ? `Editar ${transactionType === 'income' ? 'Renda' : 'Despesa'}` : `Adicionar ${transactionType === 'income' ? 'Renda' : 'Despesa'}`;
+  const description = transaction ? 'Modifique os detalhes da sua transação.' : `Adicione uma nova ${transactionType === 'income' ? 'entrada de renda' : 'saída para suas despesas'}.`;
+
+  const HeaderIcon = transactionType === 'income' ? ArrowUpCircle : ArrowDownCircle;
+  const iconColor = transactionType === 'income' ? 'text-green-500' : 'text-red-500';
+  const gradientFrom = transactionType === 'income' ? 'from-green-500/10' : 'from-red-500/10';
+  const gradientTo = transactionType === 'income' ? 'to-emerald-500/5' : 'to-orange-500/5';
+
+  return (
+    <>
+      <AddCreditCardSheet 
+        isOpen={isAddCardSheetOpen}
+        onClose={() => setIsAddCardSheetOpen(false)}
+      />
+
+      <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+        <DialogContent className="max-w-full sm:max-w-2xl lg:max-w-4xl max-h-[95vh] h-full sm:h-auto overflow-hidden p-0">
+          <div className="flex flex-col h-full">
+            {/* Header com gradiente */}
+            <div className={cn("relative bg-gradient-to-r border-b px-6 py-6", gradientFrom, gradientTo, "via-background")}>
+              <div className="absolute inset-0 bg-grid-white/5 [mask-image:radial-gradient(white,transparent_85%)]" />
+              <DialogHeader className="relative space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className={cn("p-2 rounded-lg border backdrop-blur-sm", 
+                    transactionType === 'income' ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20'
+                  )}>
+                    <HeaderIcon className={cn("h-5 w-5", iconColor)} />
+                  </div>
+                  <div>
+                    <DialogTitle className="text-2xl">{title}</DialogTitle>
+                    <DialogDescription className="text-sm mt-1">{description}</DialogDescription>
+                  </div>
+                </div>
+                {!transaction && (
+                  <Badge variant="secondary" className="w-fit">
+                    <Receipt className="h-3 w-3 mr-1" />
+                    Nova transação
+                  </Badge>
+                )}
+              </DialogHeader>
+            </div>
+
+            {/* Conteúdo scrollável */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 py-6">
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6" id="transaction-form">
+                  
+                  {/* Seção 1: Categorização */}
+                  <Card className="border-2 hover:border-primary/20 transition-colors">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-primary" />
+                        <CardTitle className="text-lg">Categorização</CardTitle>
+                      </div>
+                      <CardDescription>Classifique sua transação</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="category"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Categoria</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger className="h-11">
+                                    <SelectValue placeholder="Selecione uma categoria" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {allCategories.map((category) => (
+                                    <SelectItem key={category} value={category}>
+                                      {category}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        {subcategoriesForSelectedCategory && (
+                          <FormField
+                            control={form.control}
+                            name="subcategory"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Subcategoria</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger className="h-11">
+                                      <SelectValue placeholder="Selecione uma subcategoria" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {subcategoriesForSelectedCategory.map((sub) => {
+                                      const Icon = (LucideIcons as any)[sub.icon] || LucideIcons.File;
+                                      return (
+                                        <SelectItem key={sub.value} value={sub.value}>
+                                          <div className="flex items-center gap-2">
+                                            <Icon className="h-4 w-4 text-muted-foreground" />
+                                            <span>{sub.label}</span>
+                                          </div>
+                                        </SelectItem>
+                                      );
+                                    })}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Seção 2: Valores e Data */}
+                  <Card className="border-2 hover:border-primary/20 transition-colors">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center gap-2">
+                        <Wallet className="h-4 w-4 text-primary" />
+                        <CardTitle className="text-lg">Valor e Data</CardTitle>
+                      </div>
+                      <CardDescription>Defina o valor e quando ocorreu</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="amount"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Valor (R$)</FormLabel>
+                              <FormControl>
+                                <CurrencyInput
+                                  value={field.value}
+                                  onValueChange={field.onChange}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="date"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Data</FormLabel>
+                              <FormControl>
+                                <DatePicker
+                                  value={field.value}
+                                  onChange={field.onChange}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Seção 3: Detalhes */}
+                  <Card className="border-2 hover:border-primary/20 transition-colors">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center gap-2">
+                        <Receipt className="h-4 w-4 text-primary" />
+                        <CardTitle className="text-lg">Detalhes</CardTitle>
+                      </div>
+                      <CardDescription>Informações adicionais (opcional)</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="vendor"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Estabelecimento</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="Ex: Netflix, Padaria do Zé, Mercado X..." 
+                                {...field}
+                                list="vendor-suggestions"
+                                className="h-11"
+                              />
+                            </FormControl>
+                            {vendors && vendors.length > 0 && (
+                              <datalist id="vendor-suggestions">
+                                {vendors.map(vendor => <option key={vendor} value={vendor} />)}
+                              </datalist>
+                            )}
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Descrição</FormLabel>
+                            <FormControl>
+                              <Textarea 
+                                placeholder="Ex: Salário da empresa, compra do mês no mercado X..." 
+                                {...field}
+                                className="min-h-[80px]"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </CardContent>
+                  </Card>
+                    </CardContent>
+                  </Card>
+
+                  {/* Seção 4: Forma de Pagamento (apenas para despesas) */}
+                  {transactionType === 'expense' && (
+                    <Card className="border-2 hover:border-primary/20 transition-colors">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center gap-2">
+                          <CreditCardIcon className="h-4 w-4 text-primary" />
+                          <CardTitle className="text-lg">Forma de Pagamento</CardTitle>
+                        </div>
+                        <CardDescription>Como você pagou esta despesa</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <FormField
+                          control={form.control}
+                          name="paymentMethod"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Método</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger className="h-11">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="cash">À vista (dinheiro/débito)</SelectItem>
+                                  <SelectItem value="creditCard">Cartão de Crédito</SelectItem>
+                                  <SelectItem value="pix">PIX</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        {paymentMethod === 'creditCard' && (
+                          <FormField
+                            control={form.control}
+                            name="creditCardId"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Cartão de Crédito</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger className="h-11">
+                                      <SelectValue placeholder="Selecione um cartão" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {creditCardsData?.map((card) => (
+                                      <SelectItem key={card.id} value={card.id}>
+                                        {card.name} (final {card.lastFourDigits})
+                                      </SelectItem>
+                                    ))}
+                                    <Separator className="my-1" />
+                                    <Button
+                                      variant="ghost"
+                                      className="w-full justify-start font-normal h-8 px-2"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        setIsAddCardSheetOpen(true);
+                                      }}
+                                    >
+                                      <PlusCircle className="mr-2 h-4 w-4" />
+                                      Adicionar novo cartão...
+                                    </Button>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Seção 5: Configurações */}
+                  <Card className="border-2 hover:border-primary/20 transition-colors">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-primary" />
+                        <CardTitle className="text-lg">Configurações</CardTitle>
+                      </div>
+                      <CardDescription>Recorrência e status de pagamento</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="isRecurring"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border-2 p-4 bg-muted/30 hover:bg-muted/50 transition-colors">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base">Recorrente</FormLabel>
+                              <FormDescription>Esta transação se repetirá automaticamente</FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      {isRecurring && (
+                        <FormField
+                          control={form.control}
+                          name="recurrenceSchedule"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Periodicidade</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger className="h-11">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="monthly">Mensal</SelectItem>
+                                  <SelectItem value="quarterly">Trimestral</SelectItem>
+                                  <SelectItem value="semiannual">Semestral</SelectItem>
+                                  <SelectItem value="annual">Anual</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+                      <FormField
+                        control={form.control}
+                        name="status"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border-2 p-4 bg-muted/30 hover:bg-muted/50 transition-colors">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base">{transactionType === 'income' ? 'Recebido' : 'Pago'}</FormLabel>
+                              <FormDescription>Marque se esta transação já foi efetivada</FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value === 'paid'}
+                                onCheckedChange={(checked) => field.onChange(checked ? 'paid' : 'pending')}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </CardContent>
+                  </Card>
+
+                </form>
+              </Form>
+            </div>
+
+            {/* Footer fixo */}
+            <div className="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6 py-4">
+              <DialogFooter>
+                <Button
+                  type="submit"
+                  form="transaction-form"
+                  disabled={form.formState.isSubmitting || !user}
+                  className="w-full h-11 text-base font-medium shadow-lg hover:shadow-xl transition-all"
+                  size="lg"
+                >
+                  {form.formState.isSubmitting && (
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  )}
+                  {transaction ? 'Salvar Alterações' : 'Salvar Transação'}
+                </Button>
+              </DialogFooter>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isAddCategoryDialogOpen} onOpenChange={setIsAddCategoryDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Criar Nova Categoria</DialogTitle>
+            <DialogDescription>
+              Adicione uma nova categoria de {transactionType === 'income' ? 'renda' : 'despesa'}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-category-name">Nome da Categoria</Label>
+              <Input
+                id="new-category-name"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                placeholder="Ex: Educação"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddCategoryDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleAddCategory} disabled={!newCategoryName.trim()}>
+              Salvar Categoria
+            </Button>
+          </DialogFooter>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
