@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -377,6 +378,9 @@ export function ProfessionalsManager({ isOpen, onClose }: ProfessionalsManagerPr
           <SheetContent>
             <SheetHeader>
               <SheetTitle>Adicionar Profissional</SheetTitle>
+              <SheetDescription>
+                Cadastre um novo profissional de saúde para acesso rápido.
+              </SheetDescription>
             </SheetHeader>
             <div className="space-y-4 mt-6">
               <div>
@@ -477,6 +481,9 @@ export function ProfessionalsManager({ isOpen, onClose }: ProfessionalsManagerPr
           <SheetContent>
             <SheetHeader>
               <SheetTitle>Adicionar Estabelecimento</SheetTitle>
+              <SheetDescription>
+                Cadastre um novo hospital, clínica ou outro local de saúde.
+              </SheetDescription>
             </SheetHeader>
             <div className="space-y-4 mt-6">
               <div>
