@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Loader2, PlusCircle, Trash2, Sparkles, CheckCircle2, Lock, Zap, Palette, BookOpen, Settings2 } from "lucide-react";
+import { Loader2, PlusCircle, Trash2, Sparkles, CheckCircle2, Lock, Zap, Palette, BookOpen, Settings2, ArrowLeft, X, Menu } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -236,7 +236,39 @@ export function EducationTrackWizard({ initialValues, onSaved, onCancel }: Educa
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      {/* Header */}
+      <header className="sticky top-0 z-50 border-b border-slate-700/50 bg-slate-900/95 backdrop-blur supports-[backdrop-filter]:bg-slate-900/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                <BookOpen className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-white">Criar Nova Trilha</h1>
+                <p className="text-xs text-slate-400">Construa uma jornada de aprendizado gamificada</p>
+              </div>
+            </div>
+            
+            {/* Close Button */}
+            {onCancel && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onCancel}
+                className="text-slate-400 hover:text-white hover:bg-slate-700/50"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="space-y-6">
       {/* Progress Indicator - Improved */}
       <ProgressIndicator
         steps={steps}
@@ -280,8 +312,8 @@ export function EducationTrackWizard({ initialValues, onSaved, onCancel }: Educa
               </StepContainer>
 
               {/* Navigation */}
-              <Card className="border-dashed">
-                <CardContent className="pt-6 flex justify-between gap-3">
+              <Card className="border-slate-700/50 bg-slate-800/50 backdrop-blur">
+                <CardContent className="pt-6 flex flex-col sm:flex-row justify-between gap-3">
                   <Button
                     type="button"
                     variant="outline"
@@ -290,22 +322,33 @@ export function EducationTrackWizard({ initialValues, onSaved, onCancel }: Educa
                       setCurrentStep(steps[newIndex].id);
                     }}
                     disabled={currentStepIndex === 0}
+                    className="border-slate-600 hover:bg-slate-700"
                   >
-                    ← Anterior
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Anterior
                   </Button>
 
                   {currentStep === "review" ? (
-                    <>
+                    <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                       {onCancel && (
-                        <Button type="button" variant="outline" onClick={onCancel}>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={onCancel}
+                          className="border-slate-600 hover:bg-slate-700 flex-1 sm:flex-none"
+                        >
                           Cancelar
                         </Button>
                       )}
-                      <Button type="submit" disabled={isSaving} className="min-w-32">
+                      <Button
+                        type="submit"
+                        disabled={isSaving}
+                        className="flex-1 sm:flex-none bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                      >
                         {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
                         Salvar Trilha
                       </Button>
-                    </>
+                    </div>
                   ) : (
                     <Button
                       type="button"
@@ -314,8 +357,10 @@ export function EducationTrackWizard({ initialValues, onSaved, onCancel }: Educa
                         setCurrentStep(steps[newIndex].id);
                       }}
                       disabled={currentStepIndex === steps.length - 1}
+                      className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
                     >
-                      Próximo →
+                      Próximo
+                      <ArrowLeft className="ml-2 h-4 w-4 rotate-180" />
                     </Button>
                   )}
                 </CardContent>
@@ -335,6 +380,8 @@ export function EducationTrackWizard({ initialValues, onSaved, onCancel }: Educa
               totalModules={6}
             />
           </div>
+        </div>
+      </div>
         </div>
       </div>
     </div>
@@ -357,20 +404,22 @@ function AIGenerationStep({
   onGenerate: () => void;
 }) {
   return (
-    <Card>
+    <Card className="border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-yellow-500" />
+        <CardTitle className="flex items-center gap-2 text-white">
+          <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center">
+            <Sparkles className="h-5 w-5 text-white" />
+          </div>
           Criar Trilha com IA
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-slate-300">
           Digite um tema e deixe a inteligência artificial gerar uma proposta completa de curso.
           Você poderá editar qualquer coisa nos próximos passos.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <FormLabel>Tema da Trilha</FormLabel>
+          <FormLabel className="text-slate-200">Tema da Trilha</FormLabel>
           <Input
             placeholder='Ex: "Como sair das dívidas" ou "Investindo para iniciantes"'
             value={aiTopic}
@@ -378,8 +427,9 @@ function AIGenerationStep({
             onKeyDown={(e) => {
               if (e.key === "Enter") onGenerate();
             }}
+            className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
           />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-slate-400">
             Descreva o tema ou conceito que você deseja que a IA crie uma trilha educacional.
           </p>
         </div>
@@ -389,7 +439,7 @@ function AIGenerationStep({
           type="button"
           onClick={onGenerate}
           disabled={isGenerating || !aiTopic.trim()}
-          className="w-full"
+          className="w-full bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white"
           size="lg"
         >
           {isGenerating ? (
@@ -417,13 +467,15 @@ function BasicInfoStep({
   onGenerateSlug: () => void;
 }) {
   return (
-    <Card>
+    <Card className="border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <BookOpen className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-white">
+          <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+            <BookOpen className="h-5 w-5 text-white" />
+          </div>
           Informações Básicas
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-slate-300">
           Defina o título, descrição e identificador da trilha.
         </CardDescription>
       </CardHeader>
@@ -433,9 +485,9 @@ function BasicInfoStep({
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Título da Trilha</FormLabel>
+              <FormLabel className="text-slate-200">Título da Trilha</FormLabel>
               <FormControl>
-                <Input placeholder="Ex: Diagnóstico Financeiro" {...field} />
+                <Input placeholder="Ex: Diagnóstico Financeiro" {...field} className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -447,16 +499,16 @@ function BasicInfoStep({
           name="slug"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Slug (identificador para URL)</FormLabel>
+              <FormLabel className="text-slate-200">Slug (identificador para URL)</FormLabel>
               <div className="flex gap-2">
                 <FormControl>
-                  <Input placeholder="diagnostico-financeiro" {...field} />
+                  <Input placeholder="diagnostico-financeiro" {...field} className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400" />
                 </FormControl>
-                <Button type="button" variant="outline" onClick={onGenerateSlug} className="shrink-0">
+                <Button type="button" variant="outline" onClick={onGenerateSlug} className="shrink-0 border-slate-600 hover:bg-slate-700">
                   Gerar
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-slate-400">
                 Apenas letras minúsculas, números e hifens.
               </p>
               <FormMessage />
@@ -486,9 +538,9 @@ function BasicInfoStep({
           name="order"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Ordem de Exibição</FormLabel>
+              <FormLabel className="text-slate-200">Ordem de Exibição</FormLabel>
               <FormControl>
-                <Input type="number" {...field} />
+                <Input type="number" {...field} className="bg-slate-700/50 border-slate-600 text-white" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -509,20 +561,22 @@ function AppearanceStep({ form }: { form: ReturnType<typeof useForm<TrackFormVal
   const modules = form.watch("modules");
 
   return (
-    <Card>
+    <Card className="border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Palette className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-white">
+          <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
+            <Palette className="h-5 w-5 text-white" />
+          </div>
           Aparência e Design
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-slate-300">
           Escolha as cores e ícone. A prévia atualiza em tempo real.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Tema Rápido */}
         <div className="space-y-3">
-          <FormLabel className="text-sm font-semibold">Escolha um Tema</FormLabel>
+          <FormLabel className="text-sm font-semibold text-slate-200">Escolha um Tema</FormLabel>
           <ColorPicker
             value={{ color, bgColor, borderColor }}
             onChange={(theme: ColorTheme) => {
@@ -533,10 +587,10 @@ function AppearanceStep({ form }: { form: ReturnType<typeof useForm<TrackFormVal
           />
         </div>
 
-        <Separator />
+        <Separator className="bg-slate-700/50" />
 
         <div className="space-y-2">
-          <FormLabel>Ícone da Trilha</FormLabel>
+          <FormLabel className="text-slate-200">Ícone da Trilha</FormLabel>
           <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
             {LUCIDE_COMMON_ICONS.map((iconName) => {
               const IconComp = (LucideIcons as any)[iconName] || LucideIcons.HelpCircle;
@@ -585,13 +639,15 @@ function AppearanceStep({ form }: { form: ReturnType<typeof useForm<TrackFormVal
 
 function IntroductionStep({ form }: { form: ReturnType<typeof useForm<TrackFormValues>> }) {
   return (
-    <Card>
+    <Card className="border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Zap className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-white">
+          <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center">
+            <Zap className="h-5 w-5 text-white" />
+          </div>
           Introdução da Trilha
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-slate-300">
           Escreva um parágrafo motivador que aparecerá no topo da página.
         </CardDescription>
       </CardHeader>
@@ -601,15 +657,16 @@ function IntroductionStep({ form }: { form: ReturnType<typeof useForm<TrackFormV
           name="introduction"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Texto de Introdução</FormLabel>
+              <FormLabel className="text-slate-200">Texto de Introdução</FormLabel>
               <FormControl>
                 <Textarea
                   rows={6}
                   placeholder="Descreva o que o usuário aprenderá nesta trilha. Você pode usar **negrito**, *itálico* e outros formatos Markdown."
                   {...field}
+                  className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
                 />
               </FormControl>
-              <p className="text-xs text-muted-foreground mt-2">
+              <p className="text-xs text-slate-400 mt-2">
                 Suporta formatação Markdown: **negrito**, *itálico*, [links](url), etc.
               </p>
               <FormMessage />
@@ -631,24 +688,27 @@ function ModulesStep({
   removeModule: (index: number) => void;
 }) {
   return (
-    <Card>
+    <Card className="border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Settings2 className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-white">
+          <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
+            <Settings2 className="h-5 w-5 text-white" />
+          </div>
           Módulos da Trilha
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-slate-300">
           Crie e organize os módulos educacionais. Mínimo 1 módulo obrigatório.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {moduleFields.length === 0 ? (
-          <div className="rounded-lg border-2 border-dashed p-8 text-center">
-            <p className="text-sm text-muted-foreground mb-4">Nenhum módulo adicionado ainda.</p>
+          <div className="rounded-lg border-2 border-dashed border-slate-600 p-8 text-center">
+            <p className="text-sm text-slate-400 mb-4">Nenhum módulo adicionado ainda.</p>
             <Button
               type="button"
               variant="outline"
               onClick={() => appendModule({ type: "narrative", title: "", subtitle: "", points: [], experiences: [], habits: [], questions: [] })}
+              className="border-slate-600 hover:bg-slate-700"
             >
               <PlusCircle className="mr-2 h-4 w-4" />
               Adicionar Primeiro Módulo
@@ -663,7 +723,7 @@ function ModulesStep({
               type="button"
               variant="outline"
               onClick={() => appendModule({ type: "narrative", title: "", subtitle: "", points: [], experiences: [], habits: [], questions: [] })}
-              className="w-full"
+              className="w-full border-slate-600 hover:bg-slate-700"
             >
               <PlusCircle className="mr-2 h-4 w-4" />
               Adicionar Módulo
@@ -681,20 +741,22 @@ function ReviewStep({ form }: { form: ReturnType<typeof useForm<TrackFormValues>
   const isValid = form.formState.isValid;
 
   return (
-    <Card>
+    <Card className="border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <CheckCircle2 className="h-5 w-5" />
+        <CardTitle className="flex items-center gap-2 text-white">
+          <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
+            <CheckCircle2 className="h-5 w-5 text-white" />
+          </div>
           Revisar e Finalizar
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-slate-300">
           Verifique se tudo está correto antes de salvar.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {!isValid && (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900/50 dark:bg-red-900/20">
-            <p className="text-sm font-medium text-red-800 dark:text-red-200">
+          <div className="rounded-lg border border-red-900/50 bg-red-900/20 p-4">
+            <p className="text-sm font-medium text-red-200">
               ⚠️ Existem erros no formulário. Volte aos passos anteriores para corrigi-los.
             </p>
           </div>
