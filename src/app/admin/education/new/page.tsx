@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
-import { EducationTrackForm } from "@/components/admin/education/education-track-form";
+import { EducationTrackWizard } from "@/components/admin/education/education-track-wizard";
 import { useToast } from "@/hooks/use-toast";
 
 export default function NewEducationTrackPage() {
@@ -11,22 +11,21 @@ export default function NewEducationTrackPage() {
 
   const handleSaved = () => {
     toast({
-      title: "Trilha Salva!",
-      description: "A nova trilha de educação foi criada com sucesso.",
+      title: "🎉 Trilha Salva com Sucesso!",
+      description: "Sua nova trilha de educação foi criada e está pronta para os usuários.",
     });
-    router.push("/admin/dashboard");
-    // Forçar o admin dashboard a selecionar a aba de educação
-    // (Pode necessitar de uma abordagem mais robusta com context ou query params)
-    setTimeout(() => {
-        // Workaround to encourage section switch
-    }, 100);
+    router.push("/admin/education");
   };
 
   return (
     <div className="space-y-6">
-      <EducationTrackForm
+      <PageHeader
+        title="Criar Nova Trilha Educacional"
+        description="Construa uma jornada de aprendizado gamificada passo a passo."
+      />
+      <EducationTrackWizard
         onSaved={handleSaved}
-        onCancel={() => router.push("/admin/dashboard")}
+        onCancel={() => router.push("/admin/education")}
       />
     </div>
   );
