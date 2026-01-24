@@ -228,7 +228,7 @@ const FinalQuizModule = ({ module, track, user, onQuizComplete }: { module: any,
                   completedTracks: arrayUnion(track.slug)
               });
               toast({
-                title: "Trilha Concluída!",
+                title: "🎉 Trilha Concluída!",
                 description: `Parabéns! Você concluiu a trilha "${track.title}".`,
                 className: "bg-emerald-100 border-emerald-300 text-emerald-800 dark:bg-emerald-800/50 dark:border-emerald-700 dark:text-emerald-200"
               });
@@ -254,25 +254,71 @@ const FinalQuizModule = ({ module, track, user, onQuizComplete }: { module: any,
   };
   
   const allQuestionsAnswered = Object.keys(quizAnswers).length === module.questions.length;
+  const answeredCount = Object.keys(quizAnswers).length;
+  const totalQuestions = module.questions.length;
+  const progressPercentage = (answeredCount / totalQuestions) * 100;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <LucideIcons.Check className="h-5 w-5 text-green-600" />
-          {module.title}
-        </CardTitle>
-        <CardDescription>{module.subtitle}</CardDescription>
+    <Card className="border-2">
+      <CardHeader className="space-y-4">
+        <div>
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+              <LucideIcons.Check className="h-5 w-5 text-white" />
+            </div>
+            {module.title}
+          </CardTitle>
+          <CardDescription className="mt-2 text-base">{module.subtitle}</CardDescription>
+        </div>
+        
+        {/* Progress Bar */}
+        {!showQuizResult && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Progresso do Quiz</span>
+              <span className="font-semibold">{answeredCount} / {totalQuestions} questões</span>
+            </div>
+            <div className="h-2 w-full rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300 ease-out"
+                style={{ width: `${progressPercentage}%` }}
+              />
+            </div>
+          </div>
+        )}
+        
+        {/* Result Banner */}
+        {showQuizResult && (
+          <div className="rounded-lg border-2 border-emerald-500 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 p-4">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-full bg-emerald-500 flex items-center justify-center">
+                <LucideIcons.Trophy className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <p className="font-semibold text-emerald-900 dark:text-emerald-100">Respostas Verificadas!</p>
+                <p className="text-sm text-emerald-700 dark:text-emerald-300">
+                  Você acertou {module.questions.filter((q: any, idx: number) => quizAnswers[idx] === q.correctAnswer).length} de {totalQuestions} questões
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </CardHeader>
       <form onSubmit={handleQuizSubmit}>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-8">
           {module.questions.map((q: any, qIndex: number) => (
-            <div key={qIndex}>
-              <p className="font-medium text-sm mb-2">{qIndex + 1}. {q.question}</p>
+            <div key={qIndex} className="space-y-3 rounded-lg border bg-slate-50 dark:bg-slate-900/50 p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 font-semibold text-sm">
+                  {qIndex + 1}
+                </div>
+                <p className="font-medium text-base pt-1">{q.question}</p>
+              </div>
               <RadioGroup
                 onValueChange={(value) => setQuizAnswers(prev => ({ ...prev, [qIndex]: value }))}
                 value={quizAnswers[qIndex]}
                 disabled={showQuizResult}
+                className="space-y-2 pl-11"
               >
                 {q.options.map((opt: string, oIndex: number) => {
                    const isCorrect = q.correctAnswer === opt;
@@ -282,14 +328,37 @@ const FinalQuizModule = ({ module, track, user, onQuizComplete }: { module: any,
                      <div
                       key={oIndex}
                       className={cn(
-                        "flex items-center space-x-2 rounded-md border p-3 transition-colors",
-                         showQuizResult && isCorrect && "border-green-400 bg-green-50 dark:bg-green-900/20",
-                         showQuizResult && !isCorrect && isSelected && "border-red-400 bg-red-50 dark:bg-red-900/20"
+                        "flex items-center space-x-3 rounded-lg border-2 p-4 transition-all duration-200 cursor-pointer hover:shadow-sm",
+                        !showQuizResult && "hover:border-blue-300 dark:hover:border-blue-700",
+                        !showQuizResult && isSelected && "border-blue-500 bg-blue-50 dark:bg-blue-900/20",
+                        !showQuizResult && !isSelected && "border-slate-200 dark:border-slate-700",
+                        showQuizResult && isCorrect && "border-green-500 bg-green-50 dark:bg-green-900/20 shadow-green-100 dark:shadow-green-900/20",
+                        showQuizResult && !isCorrect && isSelected && "border-red-500 bg-red-50 dark:bg-red-900/20"
                       )}
                     >
-                      <RadioGroupItem value={opt} id={`q${qIndex}-o${oIndex}`} />
-                      <Label htmlFor={`q${qIndex}-o${oIndex}`} className="font-normal cursor-pointer flex-1">{opt}</Label>
-                      {showQuizResult && isCorrect && <LucideIcons.Check className="h-5 w-5 text-green-500" />}
+                      <RadioGroupItem value={opt} id={`q${qIndex}-o${oIndex}`} className="shrink-0" />
+                      <Label 
+                        htmlFor={`q${qIndex}-o${oIndex}`} 
+                        className={cn(
+                          "font-normal cursor-pointer flex-1 text-base leading-relaxed",
+                          showQuizResult && isCorrect && "font-medium text-green-900 dark:text-green-100",
+                          showQuizResult && !isCorrect && isSelected && "text-red-900 dark:text-red-100"
+                        )}
+                      >
+                        {opt}
+                      </Label>
+                      {showQuizResult && isCorrect && (
+                        <div className="flex items-center gap-1 shrink-0">
+                          <LucideIcons.Check className="h-5 w-5 text-green-600 dark:text-green-400" />
+                          <span className="text-xs font-semibold text-green-600 dark:text-green-400">Correto</span>
+                        </div>
+                      )}
+                      {showQuizResult && !isCorrect && isSelected && (
+                        <div className="flex items-center gap-1 shrink-0">
+                          <LucideIcons.X className="h-5 w-5 text-red-600 dark:text-red-400" />
+                          <span className="text-xs font-semibold text-red-600 dark:text-red-400">Incorreto</span>
+                        </div>
+                      )}
                     </div>
                    );
                 })}
@@ -297,9 +366,37 @@ const FinalQuizModule = ({ module, track, user, onQuizComplete }: { module: any,
             </div>
           ))}
         </CardContent>
-        <CardFooter>
-          <Button type="submit" disabled={isCompleted || !allQuestionsAnswered}>
-            {isCompleted ? 'Trilha Concluída' : 'Verificar Respostas'}
+        <CardFooter className="flex flex-col gap-4 pt-6">
+          {!showQuizResult && !allQuestionsAnswered && (
+            <div className="w-full rounded-lg border-2 border-dashed border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 p-4 text-center">
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                📝 Responda todas as {totalQuestions} questões para verificar suas respostas
+              </p>
+            </div>
+          )}
+          
+          <Button 
+            type="submit" 
+            disabled={isCompleted || !allQuestionsAnswered}
+            className={cn(
+              "w-full h-12 text-base font-semibold",
+              isCompleted 
+                ? "bg-emerald-600 hover:bg-emerald-700" 
+                : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+            )}
+            size="lg"
+          >
+            {isCompleted ? (
+              <>
+                <LucideIcons.Trophy className="mr-2 h-5 w-5" />
+                Trilha Concluída
+              </>
+            ) : (
+              <>
+                <LucideIcons.CheckCircle className="mr-2 h-5 w-5" />
+                Verificar Respostas
+              </>
+            )}
           </Button>
         </CardFooter>
       </form>
