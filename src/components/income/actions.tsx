@@ -27,7 +27,6 @@ import { doc, updateDoc, deleteDoc } from "firebase/firestore"
 import { useFirestore, useUser } from "@/firebase"
 import { useToast } from "@/hooks/use-toast"
 import type { Transaction } from "@/lib/types"
-import { useRouter } from "next/navigation"
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
@@ -45,7 +44,6 @@ const DataTableRowActionsComponent = <TData,>({
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
-  const router = useRouter();
 
   const transaction = row.original as Transaction;
   
@@ -85,15 +83,13 @@ const DataTableRowActionsComponent = <TData,>({
             title: "Transação excluída",
             description: `A transação "${transaction.description}" foi removida.`,
         });
-        
-        router.refresh();
     } catch (error) {
          toast({ variant: "destructive", title: "Erro ao excluir", description: "Não foi possível remover a transação." });
     } finally {
         setIsDeleting(false);
         setIsDeleteDialogOpen(false);
     }
-  }, [user, firestore, collectionPath, transaction.id, transaction.description, toast, router]);
+  }, [user, firestore, collectionPath, transaction.id, transaction.description, toast]);
 
   return (
     <>

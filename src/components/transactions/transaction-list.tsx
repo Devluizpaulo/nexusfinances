@@ -79,8 +79,6 @@ export function TransactionList({
     setIsDeleting(true);
     try {
       await onDelete(transactionToDelete);
-      // Pequeno delay para garantir que o Firestore processou a exclusão
-      await new Promise(resolve => setTimeout(resolve, 300));
     } catch (error) {
       console.error('Error deleting transaction:', error);
     } finally {

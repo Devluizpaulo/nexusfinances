@@ -25,7 +25,6 @@ import { useState, useCallback } from "react"
 import { doc, updateDoc, deleteDoc } from "firebase/firestore"
 import { useFirestore, useUser } from "@/firebase"
 import { useToast } from "@/hooks/use-toast"
-import { useRouter } from "next/navigation"
 import type { Transaction } from "@/lib/types"
 
 interface DataTableRowActionsProps {
@@ -39,7 +38,6 @@ export function DataTableRowActions({ row, onEdit }: DataTableRowActionsProps) {
   const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
-  const router = useRouter();
 
   const transaction = row.original;
   const collectionName = 'expenses';
