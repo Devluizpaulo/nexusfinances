@@ -51,7 +51,7 @@ const formSchema = z
   .object({
     name: z.string().min(1, 'O nome é obrigatório.'),
     category: z.string().min(1, 'A categoria é obrigatória.'),
-    targetAmount: z.coerce.number().positive('O valor alvo deve ser positivo.'),
+    targetAmount: z.coerce.number().min(0.01, 'O valor alvo deve ser maior que zero.'),
     currentAmount: z.coerce.number().min(0, 'O valor inicial não pode ser negativo.').default(0),
     monthlyContribution: z.coerce.number().min(0, 'O aporte mensal não pode ser negativo.').default(0),
     targetDate: z.date().optional(),

@@ -1,4 +1,4 @@
-import { collection, serverTimestamp, Firestore, addDoc } from 'firebase/firestore';
+import { collection, serverTimestamp, type Firestore, addDoc } from 'firebase/firestore';
 
 export type LogLevel = 'info' | 'warn' | 'error';
 

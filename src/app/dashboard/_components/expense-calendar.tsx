@@ -42,7 +42,7 @@ interface DayData {
 
 const ExpenseCalendarContext = createContext<Record<string, DayData> | null>(null);
 
-const DayComponent: React.FC<DayProps> = memo(function DayComponent({ date, displayMonth }: DayProps) {
+const DayComponent = ({ date, displayMonth }: DayProps): React.JSX.Element | null => {
     const router = useRouter();
     const expensesByDay = useContext(ExpenseCalendarContext);
 
@@ -198,7 +198,7 @@ const DayComponent: React.FC<DayProps> = memo(function DayComponent({ date, disp
     }
 
     return dayContent;
-});
+};
 
 
 export function ExpenseCalendar({ expenses }: ExpenseCalendarProps) {

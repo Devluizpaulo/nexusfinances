@@ -255,7 +255,7 @@ export function RegisterHousingPaymentDialog({ isOpen, onClose, contract }: Regi
                         render={({ field }) => (
                            <FormItem>
                                 <FormControl>
-                                    <CurrencyInput value={field.value} onValueChange={field.onChange} />
+                                    <CurrencyInput value={field.value ?? 0} onValueChange={field.onChange} />
                                 </FormControl>
                                 <FormMessage className="text-xs" />
                            </FormItem>

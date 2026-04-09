@@ -523,7 +523,7 @@ function QuizQuestionField({ moduleIndex, questionIndex, removeQuestion }: { mod
             <RadioGroup onValueChange={radioField.onChange} value={radioField.value}>
               {optionFields.map((field, index) => (
                 <div key={field.id} className="flex items-center gap-2">
-                  <RadioGroupItem value={watch(`modules.${moduleIndex}.questions.${questionIndex}.options.${index}.text`)} id={`q${questionIndex}o${index}`} />
+                  <RadioGroupItem value={watch(`modules.${moduleIndex}.questions.${questionIndex}.options.${index}.text`) || ''} id={`q${questionIndex}o${index}`} />
                   <Controller
                     control={control}
                     name={`modules.${moduleIndex}.questions.${questionIndex}.options.${index}.text`}

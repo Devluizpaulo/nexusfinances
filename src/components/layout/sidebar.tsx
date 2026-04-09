@@ -1,7 +1,7 @@
 
 'use client';
-import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator, SidebarGroup, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton } from '@/components/ui/sidebar';
-import { ShieldCheck, LifeBuoy } from 'lucide-react';
+import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator, SidebarGroup, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton, SidebarContent } from '@/components/ui/sidebar';
+import { ShieldCheck, LifeBuoy, Search, Bell, Plus, Settings, LogOut, User } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '../ui/button';
@@ -10,6 +10,23 @@ import { cn } from '@/lib/utils';
 import { useUser } from '@/firebase';
 import Image from 'next/image';
 import { navSections } from '@/lib/nav-config';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const getSectionColor = (label: string) => {
+  const colors: Record<string, string> = {
+    'Dashboard': 'from-blue-500 to-cyan-400',
+    'Rendas': 'from-emerald-500 to-teal-400',
+    'Despesas': 'from-rose-500 to-orange-400',
+    'Dívidas': 'from-amber-500 to-yellow-600',
+    'Cartões': 'from-indigo-500 to-purple-400',
+    'Orçamentos': 'from-fuchsia-500 to-pink-400',
+    'Saúde': 'from-red-400 to-rose-300',
+    'Metas': 'from-sky-500 to-blue-400',
+    'Desafios': 'from-yellow-400 to-amber-500',
+    'Jornada': 'from-violet-500 to-indigo-400',
+  };
+  return colors[label] || 'from-slate-500 to-slate-400';
+};
 
 const bottomMenuItems = [
     { href: '/support', label: 'Suporte', icon: LifeBuoy },
@@ -32,130 +49,201 @@ export function AppSidebar() {
       collapsible="icon"
       className="bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900 border-r border-slate-800/50 text-slate-200 shadow-2xl"
     >
-        <SidebarHeader className="py-6 flex-shrink-0">
-            <Button
-              variant="ghost"
-              className="h-36 justify-center items-center p-4 w-full hover:bg-slate-900/70 transition-all duration-300 group"
-              asChild
-            >
-                <Link href="/dashboard">
-                    <div className="p-3 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700/50 shadow-lg group-hover:shadow-primary/20 group-hover:border-primary/30 transition-all duration-300 group-hover:scale-105">
-                        <Image 
-                          src="/images/xoplanilhas_logo.png" 
-                          alt="Logo Xô Planilhas" 
-                          width={140} 
-                          height={140}
-                          className="group-hover:brightness-110 transition-all duration-300"
-                        />
+        <SidebarHeader className="py-6 px-4 space-y-4 flex-shrink-0">
+            <div className="flex items-center justify-between group-data-[state=collapsed]:justify-center">
+                <Link href="/dashboard" className="flex items-center gap-2 group/logo outline-none">
+                    <div className="relative h-8 w-8 rounded-lg bg-primary flex items-center justify-center overflow-hidden">
+                        <Image src="/images/xoplanilhas_logo.png" alt="Logo" fill className="object-contain p-1" />
                     </div>
+                    <span className="font-bold text-lg tracking-tight group-data-[state=collapsed]:hidden bg-gradient-to-r from-slate-100 to-slate-400 bg-clip-text text-transparent">Xô Planilhas</span>
                 </Link>
-            </Button>
+                <div className="group-data-[state=collapsed]:hidden flex items-center gap-1">
+                     <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-white">
+                        <Bell className="h-4 w-4" />
+                     </Button>
+                </div>
+            </div>
+
+            {/* Quick Search Bar */}
+            <div className="group-data-[state=collapsed]:hidden relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                <input 
+                    type="text" 
+                    placeholder="Busca rápida..." 
+                    className="w-full h-10 bg-slate-900/50 border border-slate-800 rounded-xl pl-10 pr-4 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
+                />
+            </div>
         </SidebarHeader>
         
-        <SidebarMenu className="flex-1 px-2 space-y-1 overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-800/30 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-slate-700/50">
-            {navSections.map((section) => {
-                const isActiveSection = pathname === section.href || (section.href !== '/dashboard' && pathname.startsWith(section.href));
-                return (
-                    <SidebarGroup key={section.href} className="space-y-1">
-                        <SidebarMenuItem>
-                             <SidebarMenuButton 
-                                asChild 
-                                isActive={isActiveSection}
-                                tooltip={section.label} 
-                                onClick={handleMobileClick}
-                                className="h-12 text-base text-slate-400 hover:text-slate-50 hover:bg-slate-800/60 data-[active=true]:bg-gradient-to-r data-[active=true]:from-primary/20 data-[active=true]:to-transparent data-[active=true]:text-slate-50 data-[active=true]:border-l-4 data-[active=true]:border-primary data-[active=true]:shadow-lg data-[active=true]:shadow-primary/10 transition-all duration-300 rounded-lg group"
-                            >
-                                <Link href={section.href} className="flex items-center gap-3">
-                                    <div className={cn(
-                                      "p-2 rounded-lg transition-all duration-300",
-                                      isActiveSection 
-                                        ? "bg-primary/20 text-primary shadow-lg shadow-primary/20" 
-                                        : "bg-slate-800/50 text-slate-400 group-hover:bg-slate-700/60 group-hover:text-slate-200"
-                                    )}>
-                                      <section.icon className="h-5 w-5 shrink-0" />
-                                    </div>
-                                    <span className="group-data-[state=expanded]:inline-flex hidden font-semibold tracking-wide">
-                                      {section.label}
-                                    </span>
-                                </Link>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                        {isActiveSection && section.subItems && section.subItems.length > 0 && (
-                             <SidebarMenuSub className="ml-4 space-y-1 border-l-2 border-slate-800 pl-2">
-                                {section.subItems.map(subItem => (
-                                    <SidebarMenuSubItem key={subItem.href}>
-                                        <SidebarMenuSubButton
-                                          asChild
-                                          isActive={pathname === subItem.href}
-                                          onClick={handleMobileClick}
-                                          className="h-10 text-sm text-slate-500 hover:text-slate-100 hover:bg-slate-800/50 data-[active=true]:text-primary data-[active=true]:bg-primary/10 data-[active=true]:font-medium rounded-lg transition-all duration-200"
-                                        >
-                                             <Link href={subItem.href} className="flex items-center gap-2">
-                                                <subItem.icon className="h-4 w-4 shrink-0" />
-                                                <span>{subItem.label}</span>
-                                            </Link>
-                                        </SidebarMenuSubButton>
-                                    </SidebarMenuSubItem>
-                                ))}
-                            </SidebarMenuSub>
-                        )}
-                    </SidebarGroup>
-                )
-            })}
-            
-            {user?.role === 'superadmin' && (
-                <SidebarGroup className="mt-4">
-                    <SidebarMenuItem>
-                        <SidebarMenuButton
-                          asChild
-                          isActive={pathname.startsWith('/admin')}
-                          tooltip="Painel Admin"
-                          onClick={handleMobileClick}
-                          className="h-12 text-base text-slate-400 hover:text-slate-50 hover:bg-rose-900/20 data-[active=true]:bg-gradient-to-r data-[active=true]:from-rose-500/20 data-[active=true]:to-transparent data-[active=true]:text-slate-50 data-[active=true]:border-l-4 data-[active=true]:border-rose-500 data-[active=true]:shadow-lg data-[active=true]:shadow-rose-500/10 transition-all duration-300 rounded-lg group"
+        <SidebarContent className="flex-1 overflow-y-auto overflow-x-hidden pt-2 scrollbar-none [&::-webkit-scrollbar]:hidden">
+            <SidebarMenu className="px-4 space-y-2">
+                {navSections.map((section, idx) => {
+                    const isActiveSection = pathname === section.href || (section.href !== '/dashboard' && pathname.startsWith(section.href));
+                    const sectionColor = getSectionColor(section.label);
+                    
+                    return (
+                        <motion.div
+                            key={section.href}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: idx * 0.05 }}
                         >
-                            <Link href="/admin/dashboard" className="flex items-center gap-3">
-                                <div className={cn(
-                                  "p-2 rounded-lg transition-all duration-300",
-                                  pathname.startsWith('/admin')
-                                    ? "bg-rose-500/20 text-rose-400 shadow-lg shadow-rose-500/20"
-                                    : "bg-slate-800/50 text-rose-500 group-hover:bg-rose-900/20"
-                                )}>
-                                  <ShieldCheck className="h-5 w-5 shrink-0" />
-                                </div>
-                                <span className="group-data-[state=expanded]:inline-flex hidden font-semibold tracking-wide">Painel Admin</span>
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarGroup>
-            )}
-        </SidebarMenu>
+                            <SidebarGroup className="p-0">
+                                <SidebarMenuItem>
+                                     <SidebarMenuButton 
+                                        asChild 
+                                        isActive={isActiveSection}
+                                        tooltip={section.label} 
+                                        onClick={handleMobileClick}
+                                        className="h-12 w-full p-2 group transition-all duration-300 hover:bg-slate-900/50 data-[active=true]:bg-slate-900/70 rounded-xl outline-none"
+                                    >
+                                        <Link href={section.href} className="flex items-center gap-3 w-full">
+                                            <div className={cn(
+                                              "relative h-10 w-10 shrink-0 flex items-center justify-center rounded-xl transition-all duration-500 overflow-hidden",
+                                              isActiveSection 
+                                                ? `bg-gradient-to-br ${sectionColor} shadow-lg shadow-primary/20 scale-105` 
+                                                : "bg-slate-900 border border-slate-800/80 text-slate-400 group-hover:border-slate-700 group-hover:text-slate-100"
+                                            )}>
+                                              {/* Shine effect for active item */}
+                                              {isActiveSection && (
+                                                  <motion.div 
+                                                    className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent"
+                                                    animate={{ x: [-100, 100] }}
+                                                    transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                                                  />
+                                              )}
+                                              <section.icon className={cn(
+                                                "h-5 w-5 transition-all duration-300 relative z-10",
+                                                isActiveSection ? "text-white" : "group-hover:scale-110"
+                                              )} />
+                                            </div>
+                                            
+                                            <span className={cn(
+                                                "group-data-[state=expanded]:inline-flex hidden text-sm font-semibold tracking-wide transition-colors duration-300",
+                                                isActiveSection ? "text-slate-50" : "text-slate-400 group-hover:text-slate-100"
+                                            )}>
+                                              {section.label}
+                                            </span>
+
+                                            {isActiveSection && (
+                                                <motion.div 
+                                                    layoutId="activeIndicator"
+                                                    className="absolute right-0 w-1 h-6 bg-primary rounded-full blur-[1px]" 
+                                                />
+                                            )}
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                                
+                                <AnimatePresence>
+                                    {isActiveSection && section.subItems && section.subItems.length > 0 && (
+                                         <motion.div
+                                            initial={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
+                                            className="ml-6 mt-1 mb-2 border-l border-slate-800/60 flex flex-col gap-1 pl-4"
+                                         >
+                                            {section.subItems.map(subItem => (
+                                                <SidebarMenuSubItem key={subItem.href}>
+                                                    <SidebarMenuSubButton
+                                                      asChild
+                                                      isActive={pathname === subItem.href}
+                                                      onClick={handleMobileClick}
+                                                      className="h-9 text-xs text-slate-500 hover:text-slate-200 hover:bg-slate-900/30 data-[active=true]:text-primary data-[active=true]:font-medium rounded-lg transition-all duration-200"
+                                                    >
+                                                         <Link href={subItem.href} className="flex items-center gap-2">
+                                                            <subItem.icon className="h-3.5 w-3.5 shrink-0" />
+                                                            <span>{subItem.label}</span>
+                                                        </Link>
+                                                    </SidebarMenuSubButton>
+                                                </SidebarMenuSubItem>
+                                            ))}
+                                         </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </SidebarGroup>
+                        </motion.div>
+                    )
+                })}
+                
+                {user?.role === 'superadmin' && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5 }}
+                    >
+                        <SidebarGroup className="mt-4 px-4 p-0">
+                            <SidebarMenuItem>
+                                <SidebarMenuButton
+                                  asChild
+                                  isActive={pathname.startsWith('/admin')}
+                                  tooltip="Painel Admin"
+                                  onClick={handleMobileClick}
+                                  className="h-12 w-full p-2 group transition-all duration-300 hover:bg-rose-950/20 data-[active=true]:bg-rose-950/40 rounded-xl outline-none"
+                                >
+                                    <Link href="/admin/dashboard" className="flex items-center gap-3 w-full">
+                                        <div className={cn(
+                                          "relative h-10 w-10 shrink-0 flex items-center justify-center rounded-xl transition-all duration-500 overflow-hidden",
+                                          pathname.startsWith('/admin')
+                                            ? "bg-gradient-to-br from-rose-500 to-rose-600 shadow-lg shadow-rose-500/20 scale-105"
+                                            : "bg-slate-900 border border-slate-800/80 text-rose-500 group-hover:border-rose-500/50"
+                                        )}>
+                                          <ShieldCheck className={cn(
+                                            "h-5 w-5 transition-all duration-300 relative z-10",
+                                            pathname.startsWith('/admin') ? "text-white" : "group-hover:scale-110"
+                                          )} />
+                                        </div>
+                                        <span className={cn(
+                                            "group-data-[state=expanded]:inline-flex hidden text-sm font-semibold tracking-wide transition-colors duration-300",
+                                            pathname.startsWith('/admin') ? "text-slate-50" : "text-slate-400 group-hover:text-slate-100"
+                                        )}>Painel Admin</span>
+                                    </Link>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        </SidebarGroup>
+                    </motion.div>
+                )}
+            </SidebarMenu>
+        </SidebarContent>
         
-        <SidebarFooter className="px-2 pb-4 flex-shrink-0">
-            <SidebarSeparator className="bg-slate-800/50 my-2" />
-            <SidebarMenu className="space-y-1">
-                 {bottomMenuItems.map(item => (
-                     <SidebarMenuItem key={item.href}>
-                        <SidebarMenuButton
-                          asChild
-                          isActive={pathname.startsWith(item.href)}
-                          tooltip={item.label}
-                          onClick={handleMobileClick}
-                          className="h-12 text-base text-slate-500 hover:text-slate-100 hover:bg-slate-800/60 data-[active=true]:bg-gradient-to-r data-[active=true]:from-blue-500/20 data-[active=true]:to-transparent data-[active=true]:text-slate-50 data-[active=true]:border-l-4 data-[active=true]:border-blue-500 transition-all duration-300 rounded-lg group"
-                        >
-                            <Link href={item.href} className="flex items-center gap-3">
-                                <div className={cn(
-                                  "p-2 rounded-lg transition-all duration-300",
-                                  pathname.startsWith(item.href)
-                                    ? "bg-blue-500/20 text-blue-400 shadow-lg shadow-blue-500/20"
-                                    : "bg-slate-800/50 text-slate-500 group-hover:bg-slate-700/60 group-hover:text-slate-300"
-                                )}>
-                                  <item.icon className="h-5 w-5 shrink-0" />
-                                </div>
-                                <span className="group-data-[state=expanded]:inline-flex hidden font-semibold tracking-wide">{item.label}</span>
-                            </Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                 ))}
+        <SidebarFooter className="p-4 mt-auto border-t border-slate-900">
+             <SidebarMenu>
+                {/* Support and Admin as secondary links */}
+                <SidebarMenuItem>
+                    <SidebarMenuButton asChild tooltip="Apoio" className="text-slate-500 hover:text-slate-300 hover:bg-slate-900/40 h-9">
+                        <Link href="/support" className="flex items-center gap-3">
+                            <LifeBuoy className="h-4 w-4" />
+                            <span className="text-sm font-medium">Equipe de Suporte</span>
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+
+                {/* Main User Component at the bottom */}
+                <div className="mt-4 pt-4 border-t border-white/5 space-y-2">
+                    <div className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-slate-900/50 transition-colors cursor-pointer group">
+                        <div className="relative h-9 w-9 rounded-full overflow-hidden border border-slate-800 group-hover:border-primary/50 transition-colors">
+                            <Image 
+                                src={user?.photoURL || "https://picsum.photos/seed/user/200"} 
+                                alt="User" 
+                                fill 
+                                className="object-cover" 
+                            />
+                        </div>
+                        <div className="flex-1 min-w-0 group-data-[state=collapsed]:hidden">
+                            <p className="text-sm font-semibold text-slate-200 truncate">{user?.firstName || "Usuário"}</p>
+                            <p className="text-[10px] text-slate-500 font-medium truncate uppercase tracking-tight">Assinante Premium</p>
+                        </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between px-2 group-data-[state=collapsed]:hidden">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-white hover:bg-slate-900">
+                            <Settings className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10">
+                            <LogOut className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
             </SidebarMenu>
         </SidebarFooter>
     </Sidebar>

@@ -33,8 +33,15 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
+  serverExternalPackages: ['genkit', '@genkit-ai/google-genai', '@genkit-ai/next', '@genkit-ai/core', '@genkit-ai/flow'],
 };
 
 module.exports = nextConfig;
