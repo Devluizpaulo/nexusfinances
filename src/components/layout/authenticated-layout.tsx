@@ -15,6 +15,7 @@ import { useBudgetWarningNotifications } from '@/hooks/use-budget-warning-notifi
 import { useDebtOverdueNotifications } from '@/hooks/use-debt-overdue-notifications';
 import { useMonthlySummaryNotifications } from '@/hooks/use-monthly-summary-notifications';
 import { useGoalMilestoneNotifications } from '@/hooks/use-goal-milestone-notifications';
+import { CommandMenu } from '@/components/layout/command-menu';
 
 export function AuthenticatedLayout({
   children,
@@ -46,6 +47,7 @@ export function AuthenticatedLayout({
 
   return (
     <DashboardDateProvider>
+      <CommandMenu />
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>

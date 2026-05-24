@@ -28,6 +28,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { JourneyProgressCard } from '@/components/education/JourneyProgressCard';
 import { ExpenseCalendar } from './_components/expense-calendar';
 import { PremiumBackground } from '@/components/premium-effects';
+import { AICoachChat } from './_components/ai-coach-chat';
 
 
 export default function DashboardPage() {
@@ -130,6 +131,15 @@ export default function DashboardPage() {
       goals: goalData || [],
   };
 
+  const financialSummaryForAI = {
+    totalIncome,
+    totalExpenses,
+    balance,
+    savingsRate,
+    debtCount: debtData?.length || 0,
+    goalCount: goalData?.length || 0,
+  };
+
   return (
     <>
       <PremiumBackground />
@@ -165,11 +175,12 @@ export default function DashboardPage() {
           />
 
           <Tabs defaultValue="overview" className="relative">
-            <TabsList className="grid w-full grid-cols-4 bg-gradient-to-r from-slate-900/50 to-slate-800/50 border border-blue-500/20 rounded-xl p-1 backdrop-blur-xl">
-              <TabsTrigger value="overview" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg transition-all">Visão Geral</TabsTrigger>
-              <TabsTrigger value="analysis" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg transition-all">Análise Detalhada</TabsTrigger>
-              <TabsTrigger value="calendar" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg transition-all">Calendário</TabsTrigger>
-              <TabsTrigger value="journey" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg transition-all">Jornada Financeira</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-5 bg-gradient-to-r from-slate-900/50 to-slate-800/50 border border-blue-500/20 rounded-xl p-1 backdrop-blur-xl">
+              <TabsTrigger value="overview" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg transition-all text-xs sm:text-sm">Visão Geral</TabsTrigger>
+              <TabsTrigger value="analysis" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg transition-all text-xs sm:text-sm">Análise Detalhada</TabsTrigger>
+              <TabsTrigger value="calendar" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg transition-all text-xs sm:text-sm">Calendário</TabsTrigger>
+              <TabsTrigger value="journey" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg transition-all text-xs sm:text-sm">Jornada Financeira</TabsTrigger>
+              <TabsTrigger value="ai-coach" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg transition-all text-xs sm:text-sm">Conselheiro IA</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="mt-6 space-y-6">
@@ -246,6 +257,16 @@ export default function DashboardPage() {
                 transition={{ delay: 0.3 }}
               >
                 <JourneyProgressCard />
+              </motion.div>
+            </TabsContent>
+            
+            <TabsContent value="ai-coach" className="mt-6">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <AICoachChat userName={user?.firstName || 'Usuário'} financialData={financialSummaryForAI} />
               </motion.div>
             </TabsContent>
 

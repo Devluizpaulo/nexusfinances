@@ -31,6 +31,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import { GlobalAchievements } from '@/components/profile/global-achievements';
 
 
 const profileFormSchema = z.object({
@@ -207,8 +208,9 @@ export default function ProfilePage() {
       </AlertDialog>
       
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="profile">Perfil</TabsTrigger>
+          <TabsTrigger value="achievements">Conquistas</TabsTrigger>
           <TabsTrigger value="subscription">Assinatura</TabsTrigger>
           <TabsTrigger value="security">Segurança</TabsTrigger>
         </TabsList>
@@ -330,6 +332,10 @@ export default function ProfilePage() {
                 </Button>
             </CardFooter>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="achievements" className="mt-6">
+          <GlobalAchievements />
         </TabsContent>
 
         <TabsContent value="subscription" className="mt-6">

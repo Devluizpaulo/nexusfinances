@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Loader2, PlusCircle, Trash2, Sparkles, CheckCircle2, Lock, Zap, Palette, BookOpen, Settings2, ArrowLeft, X, Menu } from "lucide-react";
+import { Loader2, PlusCircle, Trash2, Sparkles, CheckCircle2, Lock, Zap, Palette, BookOpen, Settings2, ArrowLeft, X, Menu, ChevronUp, ChevronDown } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -79,6 +79,7 @@ export type TrackFormValues = z.infer<typeof trackSchema>;
 
 interface EducationTrackWizardProps {
   initialValues?: Partial<TrackFormValues>;
+  isEdit?: boolean;
   onSaved?: () => void;
   onCancel?: () => void;
 }
@@ -104,12 +105,12 @@ const LUCIDE_COMMON_ICONS = [
   "Gem",
 ];
 
-export function EducationTrackWizard({ initialValues, onSaved, onCancel }: EducationTrackWizardProps) {
+export function EducationTrackWizard({ initialValues, isEdit = !!initialValues, onSaved, onCancel }: EducationTrackWizardProps) {
   const firestore = useFirestore();
   const [isSaving, setIsSaving] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [aiTopic, setAiTopic] = useState("");
-  const [currentStep, setCurrentStep] = useState<WizardStep>("ai");
+  const [currentStep, setCurrentStep] = useState<WizardStep>(isEdit ? "basic" : "ai");
   const { toast } = useToast();
 
   const form = useForm<TrackFormValues>({
@@ -129,7 +130,7 @@ export function EducationTrackWizard({ initialValues, onSaved, onCancel }: Educa
     mode: "onChange",
   });
 
-  const { fields: moduleFields, append: appendModule, remove: removeModule } = useFieldArray({
+  const { fields: moduleFields, append: appendModule, remove: removeModule, move: moveModule } = useFieldArray({
     control: form.control,
     name: "modules",
   });
@@ -183,14 +184,22 @@ export function EducationTrackWizard({ initialValues, onSaved, onCancel }: Educa
     form.setValue("slug", slug, { shouldValidate: true });
   };
 
-  const steps: { id: WizardStep; label: string; icon: React.ReactNode; description: string }[] = [
-    { id: "ai", label: "IA", icon: <Sparkles className="h-4 w-4" />, description: "Gere com IA" },
-    { id: "basic", label: "Básico", icon: <BookOpen className="h-4 w-4" />, description: "Info. básicas" },
-    { id: "appearance", label: "Aparência", icon: <Palette className="h-4 w-4" />, description: "Design" },
-    { id: "introduction", label: "Introdução", icon: <Zap className="h-4 w-4" />, description: "Conteúdo" },
-    { id: "modules", label: "Módulos", icon: <Settings2 className="h-4 w-4" />, description: "Estrutura" },
-    { id: "review", label: "Revisar", icon: <CheckCircle2 className="h-4 w-4" />, description: "Finalizar" },
-  ];
+  const steps: { id: WizardStep; label: string; icon: React.ReactNode; description: string }[] = isEdit
+    ? [
+        { id: "basic", label: "Básico", icon: <BookOpen className="h-4 w-4" />, description: "Info. básicas" },
+        { id: "appearance", label: "Aparência", icon: <Palette className="h-4 w-4" />, description: "Design" },
+        { id: "introduction", label: "Introdução", icon: <Zap className="h-4 w-4" />, description: "Conteúdo" },
+        { id: "modules", label: "Módulos", icon: <Settings2 className="h-4 w-4" />, description: "Estrutura" },
+        { id: "review", label: "Revisar", icon: <CheckCircle2 className="h-4 w-4" />, description: "Finalizar" },
+      ]
+    : [
+        { id: "ai", label: "IA", icon: <Sparkles className="h-4 w-4" />, description: "Gere com IA" },
+        { id: "basic", label: "Básico", icon: <BookOpen className="h-4 w-4" />, description: "Info. básicas" },
+        { id: "appearance", label: "Aparência", icon: <Palette className="h-4 w-4" />, description: "Design" },
+        { id: "introduction", label: "Introdução", icon: <Zap className="h-4 w-4" />, description: "Conteúdo" },
+        { id: "modules", label: "Módulos", icon: <Settings2 className="h-4 w-4" />, description: "Estrutura" },
+        { id: "review", label: "Revisar", icon: <CheckCircle2 className="h-4 w-4" />, description: "Finalizar" },
+      ];
 
   const getCurrentStepIndex = () => steps.findIndex(s => s.id === currentStep);
   const currentStepIndex = getCurrentStepIndex();
@@ -246,8 +255,8 @@ export function EducationTrackWizard({ initialValues, onSaved, onCancel }: Educa
                 <BookOpen className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-white">Criar Nova Trilha</h1>
-                <p className="text-xs text-slate-400">Construa uma jornada de aprendizado gamificada</p>
+                <h1 className="text-lg font-bold text-white">{isEdit ? "Editar Trilha" : "Criar Nova Trilha"}</h1>
+                <p className="text-xs text-slate-400">{isEdit ? "Edite a jornada de aprendizado gamificada" : "Construa uma jornada de aprendizado gamificada"}</p>
               </div>
             </div>
             
@@ -288,7 +297,7 @@ export function EducationTrackWizard({ initialValues, onSaved, onCancel }: Educa
 
               {/* Step 2: Basic Info */}
               <StepContainer isVisible={currentStep === "basic"}>
-                <BasicInfoStep form={form} onGenerateSlug={handleGenerateSlug} />
+                <BasicInfoStep form={form} onGenerateSlug={handleGenerateSlug} isEdit={isEdit} />
               </StepContainer>
 
               {/* Step 3: Appearance */}
@@ -303,7 +312,7 @@ export function EducationTrackWizard({ initialValues, onSaved, onCancel }: Educa
 
               {/* Step 5: Modules */}
               <StepContainer isVisible={currentStep === "modules"}>
-                <ModulesStep moduleFields={moduleFields} appendModule={appendModule} removeModule={removeModule} />
+                <ModulesStep moduleFields={moduleFields} appendModule={appendModule} removeModule={removeModule} moveModule={moveModule} />
               </StepContainer>
 
               {/* Step 6: Review */}
@@ -462,9 +471,11 @@ function AIGenerationStep({
 function BasicInfoStep({
   form,
   onGenerateSlug,
+  isEdit,
 }: {
   form: ReturnType<typeof useForm<TrackFormValues>>;
   onGenerateSlug: () => void;
+  isEdit?: boolean;
 }) {
   return (
     <Card className="border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur">
@@ -502,9 +513,9 @@ function BasicInfoStep({
               <FormLabel className="text-slate-200">Slug (identificador para URL)</FormLabel>
               <div className="flex gap-2">
                 <FormControl>
-                  <Input placeholder="diagnostico-financeiro" {...field} className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400" />
+                  <Input placeholder="diagnostico-financeiro" {...field} disabled={isEdit} className="bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 disabled:opacity-50" />
                 </FormControl>
-                <Button type="button" variant="outline" onClick={onGenerateSlug} className="shrink-0 border-slate-600 hover:bg-slate-700">
+                <Button type="button" variant="outline" onClick={onGenerateSlug} disabled={isEdit} className="shrink-0 border-slate-600 hover:bg-slate-700">
                   Gerar
                 </Button>
               </div>
@@ -682,10 +693,12 @@ function ModulesStep({
   moduleFields,
   appendModule,
   removeModule,
+  moveModule,
 }: {
   moduleFields: any[];
   appendModule: (value: any) => void;
   removeModule: (index: number) => void;
+  moveModule: (from: number, to: number) => void;
 }) {
   return (
     <Card className="border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur">
@@ -717,7 +730,13 @@ function ModulesStep({
         ) : (
           <div className="space-y-3">
             {moduleFields.map((field, index) => (
-              <ModuleField key={field.id} moduleIndex={index} removeModule={removeModule} />
+              <ModuleField 
+                key={field.id} 
+                moduleIndex={index} 
+                removeModule={removeModule} 
+                moveModule={moveModule} 
+                totalModules={moduleFields.length} 
+              />
             ))}
             <Button
               type="button"
@@ -813,7 +832,17 @@ function ReviewStep({ form }: { form: ReturnType<typeof useForm<TrackFormValues>
 // MODULE FIELD (SIMPLIFIED)
 // ============================================================================
 
-function ModuleField({ moduleIndex, removeModule }: { moduleIndex: number; removeModule: (index: number) => void; }) {
+function ModuleField({ 
+  moduleIndex, 
+  removeModule, 
+  moveModule, 
+  totalModules 
+}: { 
+  moduleIndex: number; 
+  removeModule: (index: number) => void; 
+  moveModule: (from: number, to: number) => void;
+  totalModules: number;
+}) {
   const { control, watch } = useFormContext<TrackFormValues>();
   const moduleType = watch(`modules.${moduleIndex}.type`);
   const title = watch(`modules.${moduleIndex}.title`);
@@ -827,9 +856,37 @@ function ModuleField({ moduleIndex, removeModule }: { moduleIndex: number; remov
     <Card className="border bg-muted/20">
       <CardHeader className="flex-row items-center justify-between">
         <CardTitle className="text-base">Módulo {moduleIndex + 1}: {title || "Sem título"}</CardTitle>
-        <Button type="button" variant="ghost" size="sm" onClick={() => removeModule(moduleIndex)}>
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            disabled={moduleIndex === 0}
+            onClick={() => moveModule(moduleIndex, moduleIndex - 1)}
+            className="h-8 w-8 text-slate-400 hover:text-white"
+          >
+            <ChevronUp className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            disabled={moduleIndex === totalModules - 1}
+            onClick={() => moveModule(moduleIndex, moduleIndex + 1)}
+            className="h-8 w-8 text-slate-400 hover:text-white"
+          >
+            <ChevronDown className="h-4 w-4" />
+          </Button>
+          <Button 
+            type="button" 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => removeModule(moduleIndex)}
+            className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-500/10"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2">
