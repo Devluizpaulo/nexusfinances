@@ -4,111 +4,35 @@ import { motion } from 'framer-motion';
 
 export function PremiumBackground() {
   return (
-    <>
-      {/* Animated gradient orbs */}
-      <div className="fixed inset-0 -z-10 overflow-hidden">
-        {/* Main gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-blue-950/20 to-slate-950" />
-        
-        {/* Animated blobs */}
-        <motion.div
-          className="absolute -left-40 -top-40 h-80 w-80 rounded-full bg-blue-600/10 blur-3xl"
-          animate={{
-            x: [0, 50, 0],
-            y: [0, 30, 0],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            repeatType: 'reverse',
-          }}
-        />
-        
-        <motion.div
-          className="absolute -right-40 top-1/2 h-80 w-80 rounded-full bg-cyan-500/10 blur-3xl"
-          animate={{
-            x: [0, -50, 0],
-            y: [0, -30, 0],
-          }}
-          transition={{
-            duration: 25,
-            repeat: Infinity,
-            repeatType: 'reverse',
-            delay: 2,
-          }}
-        />
-        
-        <motion.div
-          className="absolute left-1/2 -bottom-40 h-80 w-80 -translate-x-1/2 rounded-full bg-blue-500/5 blur-3xl"
-          animate={{
-            y: [0, -50, 0],
-          }}
-          transition={{
-            duration: 30,
-            repeat: Infinity,
-            repeatType: 'reverse',
-            delay: 4,
-          }}
-        />
-
-        {/* Grid pattern overlay */}
-        <div 
-          className="absolute inset-0 opacity-5"
-          style={{
-            backgroundImage: 'linear-gradient(0deg, transparent 24%, rgba(79, 172, 254, .05) 25%, rgba(79, 172, 254, .05) 26%, transparent 27%, transparent 74%, rgba(79, 172, 254, .05) 75%, rgba(79, 172, 254, .05) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(79, 172, 254, .05) 25%, rgba(79, 172, 254, .05) 26%, transparent 27%, transparent 74%, rgba(79, 172, 254, .05) 75%, rgba(79, 172, 254, .05) 76%, transparent 77%, transparent)',
-            backgroundSize: '50px 50px'
-          }}
-        />
-      </div>
-    </>
-  );
-}
-
-export function FloatingElements() {
-  const elements = Array.from({ length: 6 });
-
-  return (
-    <div className="absolute inset-0 -z-5 overflow-hidden">
-      {elements.map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute h-1 w-1 rounded-full bg-blue-400/30"
-          animate={{
-            y: [0, -100, 0],
-            x: [0, Math.random() * 100 - 50, 0],
-            opacity: [0, 1, 0],
-          }}
-          transition={{
-            duration: 4 + i,
-            repeat: Infinity,
-            delay: i * 0.5,
-          }}
-          style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-          }}
-        />
-      ))}
+    <div className="fixed inset-0 -z-10 overflow-hidden bg-slate-950">
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.15),rgba(2,6,23,0.95)),radial-gradient(circle_at_20%_0%,rgba(14,165,233,0.14),transparent_32%),radial-gradient(circle_at_85%_10%,rgba(16,185,129,0.08),transparent_28%)]" />
+      <div
+        className="absolute inset-0 opacity-[0.08]"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(148,163,184,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,.35) 1px, transparent 1px)',
+          backgroundSize: '48px 48px',
+        }}
+      />
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-300/40 to-transparent" />
     </div>
   );
 }
 
-export function GlowingCard({ 
-  children, 
-  className = '' 
-}: { 
+export function FloatingElements() {
+  return null;
+}
+
+export function GlowingCard({
+  children,
+  className = '',
+}: {
   children: React.ReactNode;
   className?: string;
 }) {
   return (
-    <motion.div
-      className={`glow-border rounded-2xl ${className}`}
-      whileHover={{ scale: 1.02 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 10 }}
-    >
-      <div className="gradient-border-inner">
-        {children}
-      </div>
+    <motion.div className={`rounded-lg border border-white/10 bg-card/70 ${className}`} whileHover={{ y: -2 }}>
+      {children}
     </motion.div>
   );
 }

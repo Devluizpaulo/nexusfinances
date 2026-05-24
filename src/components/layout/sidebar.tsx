@@ -1,7 +1,7 @@
 
 'use client';
-import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator, SidebarGroup, SidebarMenuSub, SidebarMenuSubItem, SidebarMenuSubButton, SidebarContent } from '@/components/ui/sidebar';
-import { ShieldCheck, LifeBuoy, Search, Bell, Plus, Settings, LogOut, User } from 'lucide-react';
+import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarGroup, SidebarMenuSubItem, SidebarMenuSubButton, SidebarContent } from '@/components/ui/sidebar';
+import { ShieldCheck, LifeBuoy, Search, Bell, Settings, LogOut } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '../ui/button';
@@ -28,10 +28,6 @@ const getSectionColor = (label: string) => {
   return colors[label] || 'from-slate-500 to-slate-400';
 };
 
-const bottomMenuItems = [
-    { href: '/support', label: 'Suporte', icon: LifeBuoy },
-];
-
 export function AppSidebar() {
   const pathname = usePathname();
   const { isMobile, setOpenMobile } = useSidebar();
@@ -47,15 +43,15 @@ export function AppSidebar() {
     <Sidebar
       variant="sidebar"
       collapsible="icon"
-      className="bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900 border-r border-slate-800/50 text-slate-200 shadow-2xl"
+      className="border-r border-slate-800/80 bg-slate-950 text-slate-200"
     >
         <SidebarHeader className="py-6 px-4 space-y-4 flex-shrink-0">
             <div className="flex items-center justify-between group-data-[state=collapsed]:justify-center">
                 <Link href="/dashboard" className="flex items-center gap-2 group/logo outline-none">
-                    <div className="relative h-8 w-8 rounded-lg bg-primary flex items-center justify-center overflow-hidden">
+                    <div className="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg bg-primary">
                         <Image src="/images/xoplanilhas_logo.png" alt="Logo" fill className="object-contain p-1" />
                     </div>
-                    <span className="font-bold text-lg tracking-tight group-data-[state=collapsed]:hidden bg-gradient-to-r from-slate-100 to-slate-400 bg-clip-text text-transparent">Xô Planilhas</span>
+                    <span className="text-lg font-bold tracking-normal text-slate-100 group-data-[state=collapsed]:hidden">Xô Planilhas</span>
                 </Link>
                 <div className="group-data-[state=collapsed]:hidden flex items-center gap-1">
                      <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-white">
@@ -70,7 +66,7 @@ export function AppSidebar() {
                 <input 
                     type="text" 
                     placeholder="Busca rápida..." 
-                    className="w-full h-10 bg-slate-900/50 border border-slate-800 rounded-xl pl-10 pr-4 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
+                    className="h-10 w-full rounded-lg border border-slate-800 bg-slate-900/60 pl-10 pr-4 text-sm text-slate-300 transition-all focus:outline-none focus:ring-1 focus:ring-primary/50"
                 />
             </div>
         </SidebarHeader>
@@ -90,36 +86,28 @@ export function AppSidebar() {
                         >
                             <SidebarGroup className="p-0">
                                 <SidebarMenuItem>
-                                     <SidebarMenuButton 
+                                    <SidebarMenuButton 
                                         asChild 
                                         isActive={isActiveSection}
                                         tooltip={section.label} 
                                         onClick={handleMobileClick}
-                                        className="h-12 w-full p-2 group transition-all duration-300 hover:bg-slate-900/50 data-[active=true]:bg-slate-900/70 rounded-xl outline-none"
+                                        className="group h-11 w-full rounded-lg p-2 transition-all duration-200 hover:bg-slate-900/70 data-[active=true]:bg-slate-900 outline-none"
                                     >
                                         <Link href={section.href} className="flex items-center gap-3 w-full">
                                             <div className={cn(
-                                              "relative h-10 w-10 shrink-0 flex items-center justify-center rounded-xl transition-all duration-500 overflow-hidden",
+                                              "relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg transition-all duration-200",
                                               isActiveSection 
-                                                ? `bg-gradient-to-br ${sectionColor} shadow-lg shadow-primary/20 scale-105` 
+                                                ? `bg-gradient-to-br ${sectionColor} shadow-sm` 
                                                 : "bg-slate-900 border border-slate-800/80 text-slate-400 group-hover:border-slate-700 group-hover:text-slate-100"
                                             )}>
-                                              {/* Shine effect for active item */}
-                                              {isActiveSection && (
-                                                  <motion.div 
-                                                    className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent"
-                                                    animate={{ x: [-100, 100] }}
-                                                    transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                                                  />
-                                              )}
                                               <section.icon className={cn(
-                                                "h-5 w-5 transition-all duration-300 relative z-10",
+                                                "relative z-10 h-4 w-4 transition-all duration-200",
                                                 isActiveSection ? "text-white" : "group-hover:scale-110"
                                               )} />
                                             </div>
                                             
                                             <span className={cn(
-                                                "group-data-[state=expanded]:inline-flex hidden text-sm font-semibold tracking-wide transition-colors duration-300",
+                                                "hidden text-sm font-medium tracking-normal transition-colors duration-200 group-data-[state=expanded]:inline-flex",
                                                 isActiveSection ? "text-slate-50" : "text-slate-400 group-hover:text-slate-100"
                                             )}>
                                               {section.label}
@@ -128,7 +116,7 @@ export function AppSidebar() {
                                             {isActiveSection && (
                                                 <motion.div 
                                                     layoutId="activeIndicator"
-                                                    className="absolute right-0 w-1 h-6 bg-primary rounded-full blur-[1px]" 
+                                                    className="absolute right-0 h-5 w-1 rounded-full bg-primary" 
                                                 />
                                             )}
                                         </Link>
@@ -141,7 +129,7 @@ export function AppSidebar() {
                                             initial={{ opacity: 0, y: -10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, y: -10 }}
-                                            className="ml-6 mt-1 mb-2 border-l border-slate-800/60 flex flex-col gap-1 pl-4"
+                                            className="mb-2 ml-5 mt-1 flex flex-col gap-1 border-l border-slate-800/70 pl-3"
                                          >
                                             {section.subItems.map(subItem => (
                                                 <SidebarMenuSubItem key={subItem.href}>
@@ -149,7 +137,7 @@ export function AppSidebar() {
                                                       asChild
                                                       isActive={pathname === subItem.href}
                                                       onClick={handleMobileClick}
-                                                      className="h-9 text-xs text-slate-500 hover:text-slate-200 hover:bg-slate-900/30 data-[active=true]:text-primary data-[active=true]:font-medium rounded-lg transition-all duration-200"
+                                                      className="h-8 rounded-lg text-xs text-slate-500 transition-all duration-200 hover:bg-slate-900/70 hover:text-slate-200 data-[active=true]:font-medium data-[active=true]:text-primary"
                                                     >
                                                          <Link href={subItem.href} className="flex items-center gap-2">
                                                             <subItem.icon className="h-3.5 w-3.5 shrink-0" />
@@ -220,7 +208,7 @@ export function AppSidebar() {
 
                 {/* Main User Component at the bottom */}
                 <div className="mt-4 pt-4 border-t border-white/5 space-y-2">
-                    <div className="flex items-center gap-3 px-2 py-2 rounded-xl hover:bg-slate-900/50 transition-colors cursor-pointer group">
+                    <div className="group flex cursor-pointer items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-slate-900/70">
                         <div className="relative h-9 w-9 rounded-full overflow-hidden border border-slate-800 group-hover:border-primary/50 transition-colors">
                             <Image 
                                 src={user?.photoURL || "https://picsum.photos/seed/user/200"} 

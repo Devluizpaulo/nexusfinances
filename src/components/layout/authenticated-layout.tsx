@@ -52,7 +52,7 @@ export function AuthenticatedLayout({
         <AppSidebar />
         <SidebarInset>
           <Header />
-          <main className="flex-1 overflow-y-auto bg-background">
+          <main className="flex-1 overflow-y-auto bg-transparent">
             <div className="container mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
               {children}
             </div>

@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import type { Transaction, Debt, Goal } from '@/lib/types';
 import { startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { AddTransactionSheet } from '@/components/transactions/add-transaction-sheet';
@@ -21,7 +21,7 @@ import { FinancialHealthScore } from '@/components/dashboard/financial-health-sc
 import { OverdueDebtsCard } from '@/components/dashboard/overdue-debts-card';
 import { FinancialInsightsCard } from './_components/FinancialInsightsCard';
 import { KpiCard } from '@/components/dashboard/kpi-card';
-import { TrendingUp, TrendingDown, PiggyBank, Percent, HandCoins } from 'lucide-react';
+import { TrendingUp, TrendingDown, Percent, HandCoins } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -155,32 +155,19 @@ export default function DashboardPage() {
       >
         <DashboardHeader onAddIncome={() => handleOpenSheet('income')} onAddExpense={() => handleOpenSheet('expense')} onAddDebt={() => handleOpenSheet('debt')} onAddGoal={() => handleOpenSheet('goal')} />
         
-        {/* Tabs with Glassmorphism */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
           className="relative"
         >
-          {/* Glow effect behind tabs */}
-          <motion.div
-            className="absolute -inset-2 bg-gradient-to-r from-blue-600/5 via-cyan-500/5 to-blue-600/5 rounded-2xl blur-2xl -z-10"
-            animate={{
-              opacity: [0.3, 0.6, 0.3],
-            }}
-            transition={{
-              duration: 4,
-              repeat: Infinity,
-            }}
-          />
-
           <Tabs defaultValue="overview" className="relative">
-            <TabsList className="grid w-full grid-cols-5 bg-gradient-to-r from-slate-900/50 to-slate-800/50 border border-blue-500/20 rounded-xl p-1 backdrop-blur-xl">
-              <TabsTrigger value="overview" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg transition-all text-xs sm:text-sm">Visão Geral</TabsTrigger>
-              <TabsTrigger value="analysis" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg transition-all text-xs sm:text-sm">Análise Detalhada</TabsTrigger>
-              <TabsTrigger value="calendar" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg transition-all text-xs sm:text-sm">Calendário</TabsTrigger>
-              <TabsTrigger value="journey" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg transition-all text-xs sm:text-sm">Jornada Financeira</TabsTrigger>
-              <TabsTrigger value="ai-coach" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-500 data-[state=active]:text-white rounded-lg transition-all text-xs sm:text-sm">Conselheiro IA</TabsTrigger>
+            <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-lg border border-slate-800 bg-slate-950/70 p-1 backdrop-blur sm:grid-cols-5">
+              <TabsTrigger value="overview" className="rounded-md text-xs transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:text-sm">Visão Geral</TabsTrigger>
+              <TabsTrigger value="analysis" className="rounded-md text-xs transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:text-sm">Análise</TabsTrigger>
+              <TabsTrigger value="calendar" className="rounded-md text-xs transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:text-sm">Calendário</TabsTrigger>
+              <TabsTrigger value="journey" className="rounded-md text-xs transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:text-sm">Jornada</TabsTrigger>
+              <TabsTrigger value="ai-coach" className="rounded-md text-xs transition-all data-[state=active]:bg-primary data-[state=active]:text-primary-foreground sm:text-sm">IA</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="mt-6 space-y-6">
