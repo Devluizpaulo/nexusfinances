@@ -29,7 +29,17 @@ import { JourneyProgressCard } from '@/components/education/JourneyProgressCard'
 import { ExpenseCalendar } from './_components/expense-calendar';
 import { PremiumBackground } from '@/components/premium-effects';
 import { AICoachChat } from './_components/ai-coach-chat';
+import { calculateScore } from '@/lib/education-data';
 
+
+const selectStablePhrase = (phrases: string[], seed: string) => {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % phrases.length;
+  return phrases[index];
+};
 
 export default function DashboardPage() {
   const { selectedDate } = useDashboardDate();
@@ -109,6 +119,74 @@ export default function DashboardPage() {
     [incomeData, expenseData]
   );
 
+  // Microcopy Contextual Engine
+  const subtitleMessage = useMemo(() => {
+    if (!user) return 'Resumo financeiro do período selecionado';
+
+    const seed = `${selectedDate.getFullYear()}-${selectedDate.getMonth()}`;
+
+    // 1. Goal near completion (Progress >= 80% and < 100%) - Highest Priority
+    if (goalData && goalData.length > 0) {
+      const nearCompleteGoals = goalData.filter(g => {
+        if (g.targetAmount <= 0) return false;
+        const progress = g.currentAmount / g.targetAmount;
+        return progress >= 0.8 && progress < 1.0;
+      });
+
+      if (nearCompleteGoals.length > 0) {
+        const goalIndex = Math.abs(seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)) % nearCompleteGoals.length;
+        const goal = nearCompleteGoals[goalIndex];
+        const phrases = [
+          `Falta muito pouco para completar sua meta: ${goal.name}! 🚀`,
+          `Sua meta "${goal.name}" está quase lá! Continue assim! 🎯`,
+          `Você está muito perto de conquistar a meta: ${goal.name}! Quase lá! 🌟`
+        ];
+        return selectStablePhrase(phrases, seed);
+      }
+    }
+
+    // 2. Negative balance
+    if (balance < 0) {
+      const phrases = [
+        "Os gastos subiram um pouco este mês. Que tal dar uma olhada nas despesas? ⚠️",
+        "Seu balanço está ligeiramente no vermelho. Atenção aos desvios! 💸",
+        "Atenção: saídas maiores que as entradas no período. 🔍",
+        "Balanço negativo detectado. Vamos recalcular a rota? 🗺️"
+      ];
+      return selectStablePhrase(phrases, seed);
+    }
+
+    // 3. Positive balance with high savings rate
+    if (balance > 0 && savingsRate > 30) {
+      const phrases = [
+        `Seu mês está excelente! Taxa de poupança muito saudável de ${savingsRate.toFixed(0)}%. 💰`,
+        `Sensacional! Taxa de poupança em ${savingsRate.toFixed(0)}% este mês. Continue assim! 🚀`,
+        `Belo trabalho! Poupar ${savingsRate.toFixed(0)}% da sua renda é um patamar premium. 💎`
+      ];
+      return selectStablePhrase(phrases, seed);
+    }
+
+    // 4. Standard positive balance
+    if (balance > 0) {
+      const phrases = [
+        "Seu mês está saudável! 🎉",
+        "Boa organização este mês! 👍",
+        "Seu balanço continua positivo. 📈",
+        "As finanças estão sob controle por aqui. 💎",
+        "Belo progresso este mês. Mantenha o foco! 🌟"
+      ];
+      return selectStablePhrase(phrases, seed);
+    }
+
+    // 5. Default case
+    const defaultPhrases = [
+      "Acompanhe seus dados financeiros em tempo real e evolua. 📊",
+      "Que tal planejar seu próximo passo financeiro hoje? 🎯",
+      "Organize suas finanças com simplicidade e precisão. ✨"
+    ];
+    return selectStablePhrase(defaultPhrases, seed);
+  }, [user, selectedDate, goalData, balance, savingsRate]);
+
   const handleOpenSheet = useCallback((type: 'income' | 'expense' | 'debt' | 'goal') => {
     setSheetType(type);
   }, []);
@@ -131,6 +209,33 @@ export default function DashboardPage() {
       goals: goalData || [],
   };
 
+  // Pre-calculate data details for AI Coach context
+  const healthScoreVal = useMemo(() => {
+    return calculateScore(totalIncome, totalExpenses, debtData || [], goalData || [], allTransactions).score;
+  }, [totalIncome, totalExpenses, debtData, goalData, allTransactions]);
+
+  const activeGoalsData = useMemo(() => {
+    return (goalData || []).map(g => ({
+      name: g.name,
+      target: g.targetAmount,
+      current: g.currentAmount
+    }));
+  }, [goalData]);
+
+  const topExpensesData = useMemo(() => {
+    if (!expenseData || expenseData.length === 0) return [];
+    const groups: Record<string, number> = {};
+    expenseData.forEach(e => {
+      groups[e.category] = (groups[e.category] || 0) + e.amount;
+    });
+    const total = Object.values(groups).reduce((a, b) => a + b, 0);
+    return Object.entries(groups).map(([category, amount]) => ({
+      category,
+      amount,
+      percentage: total > 0 ? (amount / total) * 100 : 0
+    })).sort((a, b) => b.amount - a.amount);
+  }, [expenseData]);
+
   const financialSummaryForAI = {
     totalIncome,
     totalExpenses,
@@ -138,6 +243,9 @@ export default function DashboardPage() {
     savingsRate,
     debtCount: debtData?.length || 0,
     goalCount: goalData?.length || 0,
+    healthScore: healthScoreVal,
+    activeGoals: activeGoalsData,
+    topExpenses: topExpensesData,
   };
 
   return (
@@ -153,7 +261,13 @@ export default function DashboardPage() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <DashboardHeader onAddIncome={() => handleOpenSheet('income')} onAddExpense={() => handleOpenSheet('expense')} onAddDebt={() => handleOpenSheet('debt')} onAddGoal={() => handleOpenSheet('goal')} />
+        <DashboardHeader 
+          onAddIncome={() => handleOpenSheet('income')} 
+          onAddExpense={() => handleOpenSheet('expense')} 
+          onAddDebt={() => handleOpenSheet('debt')} 
+          onAddGoal={() => handleOpenSheet('goal')}
+          subtitle={subtitleMessage}
+        />
         
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -172,10 +286,11 @@ export default function DashboardPage() {
 
             <TabsContent value="overview" className="mt-6 space-y-6">
               <motion.div 
+                key={`kpis-${selectedDate.toISOString()}`}
                 className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, staggerChildren: 0.1 }}
+                transition={{ delay: 0.1, staggerChildren: 0.05 }}
               >
                 <KpiCard index={0} title="Receitas do Mês" value={formatCurrency(totalIncome)} icon={TrendingUp} trend={incomeTrend} />
                 <KpiCard index={1} title="Despesas do Mês" value={formatCurrency(totalExpenses)} icon={TrendingDown} trend={expenseTrend} invertTrendColor />
@@ -184,18 +299,20 @@ export default function DashboardPage() {
               </motion.div>
               
               <motion.div
+                key={`insights-${selectedDate.toISOString()}`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
+                transition={{ delay: 0.2 }}
               >
                 <FinancialInsightsCard financialData={financialDataForAI} />
               </motion.div>
 
               <motion.div 
+                key={`dashboard-layout-${selectedDate.toISOString()}`}
                 className="grid grid-cols-1 lg:grid-cols-5 gap-6"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
+                transition={{ delay: 0.3 }}
               >
                 <div className="lg:col-span-3 space-y-6">
                     <BalanceCard balance={balance} income={totalIncome} expenses={totalExpenses} />
@@ -207,9 +324,10 @@ export default function DashboardPage() {
               </motion.div>
               
               <motion.div
+                key={`debts-${selectedDate.toISOString()}`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
+                transition={{ delay: 0.4 }}
               >
                 <OverdueDebtsCard debts={debtData || []} />
               </motion.div>
@@ -217,10 +335,11 @@ export default function DashboardPage() {
 
             <TabsContent value="analysis" className="mt-6 space-y-6">
               <motion.div 
+                key={`analysis-${selectedDate.toISOString()}`}
                 className="grid grid-cols-1 lg:grid-cols-2 gap-6"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
+                transition={{ delay: 0.2 }}
               >
                 <IncomeExpenseChart transactions={allTransactions} />
                 <ExpenseCategoryChart transactions={expenseData || []} />
@@ -229,9 +348,10 @@ export default function DashboardPage() {
 
             <TabsContent value="calendar" className="mt-6">
               <motion.div
+                key={`calendar-${selectedDate.toISOString()}`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
+                transition={{ delay: 0.2 }}
               >
                 <ExpenseCalendar expenses={expenseData || []}/>
               </motion.div>

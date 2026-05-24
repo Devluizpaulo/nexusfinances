@@ -17,9 +17,10 @@ type DashboardHeaderProps = {
   onAddExpense: () => void;
   onAddDebt: () => void;
   onAddGoal: () => void;
+  subtitle?: React.ReactNode;
 };
 
-export function DashboardHeader({ onAddIncome, onAddExpense, onAddDebt, onAddGoal }: DashboardHeaderProps) {
+export function DashboardHeader({ onAddIncome, onAddExpense, onAddDebt, onAddGoal, subtitle }: DashboardHeaderProps) {
   const { user } = useUser();
   const { selectedDate, setSelectedDate } = useDashboardDate();
 
@@ -53,10 +54,22 @@ export function DashboardHeader({ onAddIncome, onAddExpense, onAddDebt, onAddGoa
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedDate, canGoNext]);
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 6 && hour < 12) {
+      return { text: firstName ? `Bom dia, ${firstName}!` : 'Bom dia!', icon: '🌅' };
+    } else if (hour >= 12 && hour < 18) {
+      return { text: firstName ? `Boa tarde, ${firstName}!` : 'Boa tarde!', icon: '☀️' };
+    } else {
+      return { text: firstName ? `Boa noite, ${firstName}!` : 'Boa noite!', icon: '🌙' };
+    }
+  };
+  const greeting = getGreeting();
+
   return (
     <div className="flex flex-col gap-4 pb-2 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-4">
-        <Avatar className="h-12 w-12 border border-slate-700 ring-2 ring-slate-900">
+        <Avatar className="h-12 w-12 border border-slate-800/80 ring-2 ring-slate-900/50">
           {user?.photoURL ? (
             <AvatarImage src={user.photoURL} alt="Avatar do usuário" />
           ) : user?.avatar ? (
@@ -70,19 +83,20 @@ export function DashboardHeader({ onAddIncome, onAddExpense, onAddDebt, onAddGoa
           )}
         </Avatar>
         <div>
-          <h1 className="text-2xl font-bold tracking-normal text-slate-50 md:text-3xl">
-            {firstName ? `Olá, ${firstName}!` : 'Olá'}
+          <h1 className="text-2xl font-bold tracking-normal text-slate-100 md:text-3xl flex items-center gap-2">
+            <span>{greeting.text}</span>
+            <span className="text-xl sm:text-2xl animate-pulse">{greeting.icon}</span>
           </h1>
-          <p className="mt-1 text-sm text-slate-400">Resumo financeiro do período selecionado</p>
+          <div className="mt-1 text-sm text-slate-400">{subtitle || 'Resumo financeiro do período selecionado'}</div>
         </div>
       </div>
 
       <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-end">
-        <div className="flex w-full items-center justify-center gap-1 rounded-lg border border-slate-800 bg-slate-950/70 p-1 backdrop-blur sm:w-auto sm:justify-start">
+        <div className="flex w-full items-center justify-center gap-1 rounded-lg border border-white/5 bg-slate-900/40 p-1 backdrop-blur-md sm:w-auto sm:justify-start">
           <Button
             size="icon"
             variant="ghost"
-            className="h-9 w-9 rounded-lg text-slate-300 transition-all duration-200 hover:bg-slate-800 hover:text-slate-100"
+            className="h-9 w-9 rounded-lg text-slate-300 transition-all duration-200 hover:bg-slate-800/40 hover:text-slate-100"
             onClick={handlePreviousMonth}
             title="Mês anterior"
           >
@@ -90,11 +104,11 @@ export function DashboardHeader({ onAddIncome, onAddExpense, onAddDebt, onAddGoa
           </Button>
           <button
             type="button"
-            className="min-w-[130px] rounded-md px-2 py-1 text-center transition-colors hover:bg-slate-900"
+            className="min-w-[130px] rounded-md px-2 py-1 text-center transition-colors hover:bg-slate-800/20"
             onClick={handleToday}
             title="Voltar para o mês atual"
           >
-            <span className="block text-sm font-bold capitalize text-slate-100">
+            <span className="block text-sm font-bold capitalize text-slate-200">
               {format(selectedDate, 'MMMM', { locale: ptBR })}
             </span>
             <span className="block text-xs text-slate-400">{format(selectedDate, 'yyyy', { locale: ptBR })}</span>
@@ -104,7 +118,7 @@ export function DashboardHeader({ onAddIncome, onAddExpense, onAddDebt, onAddGoa
             size="icon"
             variant="ghost"
             className={cn(
-              'h-9 w-9 rounded-lg text-slate-300 transition-all duration-200 hover:bg-slate-800 hover:text-slate-100',
+              'h-9 w-9 rounded-lg text-slate-300 transition-all duration-200 hover:bg-slate-800/40 hover:text-slate-100',
               !canGoNext && 'cursor-not-allowed opacity-50',
             )}
             onClick={handleNextMonth}

@@ -15,36 +15,40 @@ export function BalanceCard({ balance, income, expenses }: BalanceCardProps) {
   const isPositive = balance >= 0;
 
   return (
-    <Card className="h-full rounded-lg border-slate-800 bg-card/75 shadow-sm">
-      <CardHeader className="p-5 pb-3">
-        <div className="flex items-start justify-between gap-4">
+    <div className="card-premium h-full flex flex-col justify-between hover:shadow-lg transition-all duration-300">
+      <div>
+        <div className="flex items-start justify-between gap-4 mb-4">
           <div>
-            <CardTitle className="text-sm font-medium text-slate-400">Resumo do Período</CardTitle>
-            <CardDescription className={cn('mt-2 text-3xl font-bold tracking-normal', isPositive ? 'text-emerald-300' : 'text-rose-300')}>
+            <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Balanço do Período</h3>
+            <p className={cn(
+              'mt-2 text-3xl font-bold tracking-tight',
+              isPositive ? 'hero-gradient-text' : 'text-rose-400'
+            )}>
               {formatCurrency(balance)}
-            </CardDescription>
+            </p>
           </div>
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900 text-cyan-300">
-            <Scale className="h-5 w-5" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/5 bg-slate-900/50 text-cyan-400">
+            <Scale className="h-4.5 w-4.5" />
           </div>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-3 p-5 pt-1">
-        <div className="flex items-center justify-between rounded-lg bg-slate-950/50 px-3 py-2 text-sm">
-          <span className="inline-flex items-center gap-2 text-muted-foreground">
-            <ArrowUpCircle className="h-4 w-4 text-emerald-300" />
+      </div>
+      
+      <div className="space-y-2 mt-4">
+        <div className="flex items-center justify-between border-b border-white/5 pb-2 text-xs hover:bg-slate-800/10 px-1 rounded transition-colors duration-150">
+          <span className="inline-flex items-center gap-2 text-slate-400">
+            <ArrowUpCircle className="h-4 w-4 text-emerald-400" />
             Entradas
           </span>
-          <span className="font-semibold text-emerald-300">{formatCurrency(income)}</span>
+          <span className="font-bold text-emerald-400">{formatCurrency(income)}</span>
         </div>
-        <div className="flex items-center justify-between rounded-lg bg-slate-950/50 px-3 py-2 text-sm">
-          <span className="inline-flex items-center gap-2 text-muted-foreground">
-            <ArrowDownCircle className="h-4 w-4 text-rose-300" />
+        <div className="flex items-center justify-between pt-1 text-xs hover:bg-slate-800/10 px-1 rounded transition-colors duration-150">
+          <span className="inline-flex items-center gap-2 text-slate-400">
+            <ArrowDownCircle className="h-4 w-4 text-rose-400" />
             Saídas
           </span>
-          <span className="font-semibold text-rose-300">{formatCurrency(expenses)}</span>
+          <span className="font-bold text-rose-400">{formatCurrency(expenses)}</span>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

@@ -116,17 +116,15 @@ export function OverdueDebtsCard({ debts }: OverdueDebtsCardProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}
       >
-        <Card className="rounded-2xl border border-rose-900/60 bg-rose-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
-          <CardHeader className="flex flex-row items-center gap-4">
-            <Loader2 className="h-6 w-6 animate-spin text-rose-400" />
+        <div className="card-premium border-rose-950/40 bg-gradient-to-br from-slate-900/60 to-slate-950/80 hover:shadow-lg transition-all duration-300">
+          <div className="flex items-center gap-4">
+            <Loader2 className="h-5 w-5 animate-spin text-rose-400" />
             <div>
-              <CardTitle className="text-rose-100">Verificando pendências...</CardTitle>
-              <CardDescription className="text-rose-300">
-                Estamos buscando por parcelas vencidas.
-              </CardDescription>
+              <h3 className="text-sm font-semibold text-slate-200">Verificando pendências...</h3>
+              <p className="text-xs text-slate-400">Estamos buscando por parcelas vencidas.</p>
             </div>
-          </CardHeader>
-        </Card>
+          </div>
+        </div>
       </motion.div>
     );
   }
@@ -141,60 +139,57 @@ export function OverdueDebtsCard({ debts }: OverdueDebtsCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
     >
-      <Card className="rounded-2xl border border-rose-900/60 bg-rose-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
-        <CardHeader>
-          <div className="flex flex-row items-center justify-between gap-4 flex-wrap">
+      <div className="card-premium border-rose-950/40 bg-gradient-to-br from-slate-900/60 to-slate-950/80 hover:shadow-lg transition-all duration-300">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-row items-center justify-between gap-4 flex-wrap pb-2 border-b border-white/5">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-500/15">
-                <AlertTriangle className="h-5 w-5 text-rose-400" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-rose-500/20 bg-rose-500/5 text-rose-400">
+                <AlertTriangle className="h-4.5 w-4.5" />
               </div>
               <div>
-                <CardTitle className="text-rose-100">Atenção! Você possui pendências.</CardTitle>
-                <CardDescription className="text-rose-300">
-                  As seguintes parcelas estão vencidas e requerem sua atenção.
-                </CardDescription>
+                <h3 className="text-sm font-bold text-slate-200">Atenção! Parcelas Vencidas</h3>
+                <p className="text-xs text-slate-400">As parcelas abaixo estão vencidas e requerem atenção.</p>
               </div>
             </div>
             <Button
               asChild
               variant="outline"
               size="sm"
-              className="border-rose-700/70 text-rose-200 hover:border-rose-500/80 hover:bg-rose-900/60"
+              className="h-8 border-rose-950/60 text-rose-300 hover:border-rose-500/30 hover:bg-rose-500/10 text-xs bg-slate-900/30"
             >
-              <Link href="/debts" className="inline-flex items-center gap-2">
+              <Link href="/debts" className="inline-flex items-center gap-1.5">
                 Ver todas as dívidas
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </Button>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="w-full overflow-x-auto">
+          
+          <div className="w-full overflow-x-auto pt-1">
             <Table className="min-w-[520px]">
               <TableHeader>
-                <TableRow className="hover:bg-rose-900/30">
-                  <TableHead className="text-rose-300">Dívida</TableHead>
-                  <TableHead className="text-rose-300">Nº da Parcela</TableHead>
-                  <TableHead className="text-rose-300">Vencimento</TableHead>
-                  <TableHead className="text-right text-rose-300">Valor</TableHead>
+                <TableRow className="border-white/5 hover:bg-slate-900/20">
+                  <TableHead className="text-xs text-slate-400 h-9 py-2">Dívida</TableHead>
+                  <TableHead className="text-xs text-slate-400 h-9 py-2">Nº da Parcela</TableHead>
+                  <TableHead className="text-xs text-slate-400 h-9 py-2">Vencimento</TableHead>
+                  <TableHead className="text-right text-xs text-slate-400 h-9 py-2">Valor</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {overdueInstallments.map((installment) => (
                   <TableRow
                     key={installment.id}
-                    className="border-rose-800/60 hover:bg-rose-900/40 transition-colors"
+                    className="border-white/5 hover:bg-slate-900/30 transition-colors"
                   >
-                    <TableCell className="font-medium text-rose-100">
+                    <TableCell className="font-semibold text-xs text-slate-200 py-3">
                       {installment.debtName}
                     </TableCell>
-                    <TableCell className="text-rose-100">
+                    <TableCell className="text-xs text-slate-300 py-3">
                       {installment.installmentNumber}
                     </TableCell>
-                    <TableCell className="text-rose-100">
+                    <TableCell className="text-xs text-slate-300 py-3">
                       {format(parseISO(installment.dueDate), 'PPP', { locale: ptBR })}
                     </TableCell>
-                    <TableCell className="text-right text-rose-100 font-bold">
+                    <TableCell className="text-right text-xs text-rose-400 font-bold py-3">
                       {formatCurrency(installment.amount)}
                     </TableCell>
                   </TableRow>
@@ -202,8 +197,8 @@ export function OverdueDebtsCard({ debts }: OverdueDebtsCardProps) {
               </TableBody>
             </Table>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </motion.div>
   );
 }

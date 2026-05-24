@@ -46,49 +46,57 @@ export function IncomeExpenseChart({ transactions }: { transactions: Transaction
 
 
   return (
-    <Card className="h-full rounded-2xl border border-slate-900/60 bg-slate-950/70 p-4 sm:p-5 shadow-[0_18px_45px_-30px_rgba(15,23,42,1)]">
-      <CardHeader className="p-0 flex flex-row items-center justify-between gap-3">
-        <div>
-          <CardTitle className="text-base text-slate-200 flex items-center gap-2">
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <BarChart3 className="h-4 w-4" />
-            </span>
-            Visão Geral Mensal
-          </CardTitle>
-          <CardDescription className="mt-1 text-xs">
-            Comparativo de rendas e despesas dos últimos meses.
-          </CardDescription>
+    <div className="card-premium h-full flex flex-col justify-between hover:shadow-lg transition-all duration-300">
+      <div className="flex items-center justify-between mb-4 pb-2 border-b border-white/5">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/5 bg-slate-900/50 text-cyan-400">
+            <BarChart3 className="h-4.5 w-4.5" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-slate-200">Visão Geral Mensal</h3>
+            <p className="text-xs text-slate-400">Comparativo de rendas e despesas dos últimos meses.</p>
+          </div>
         </div>
-      </CardHeader>
-      <CardContent className="p-0 pt-4">
+      </div>
+      
+      <div className="flex-1 pt-2">
         {chartData.length === 0 ? (
-          <div className="flex h-[360px] w-full flex-col items-center justify-center text-center text-sm text-muted-foreground">
+          <div className="flex h-[320px] w-full flex-col items-center justify-center text-center text-xs text-slate-500">
             <p>Ainda não há movimentações suficientes para mostrar o gráfico.</p>
             <p className="mt-1">Comece adicionando rendas ou despesas.</p>
           </div>
         ) : (
-          <ChartContainer config={chartConfig} className="h-[360px] max-h-[420px] w-full">
+          <ChartContainer config={chartConfig} className="h-[320px] max-h-[360px] w-full">
             <BarChart data={chartData} accessibilityLayer>
-              <CartesianGrid vertical={false} />
+              <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.03)" />
               <XAxis
                 dataKey="month"
                 tickLine={false}
                 tickMargin={10}
                 axisLine={false}
-                tick={{ fontSize: 12 }}
+                tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.4)' }}
               />
               <YAxis
                 tickFormatter={(value) => `R$${Number(value) / 1000}k`}
-                tick={{ fontSize: 12 }}
+                tickLine={false}
+                axisLine={false}
+                tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.4)' }}
               />
-              <ChartTooltip content={<ChartTooltipContent formatter={(value) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value as number)} />} />
+              <ChartTooltip 
+                content={
+                  <ChartTooltipContent 
+                    className="border border-white/5 bg-slate-950/90 backdrop-blur-md text-xs rounded-lg shadow-xl"
+                    formatter={(value) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value as number)} 
+                  />
+                } 
+              />
               <ChartLegend content={<ChartLegendContent />} />
-              <Bar dataKey="income" fill="var(--color-income)" radius={4} />
-              <Bar dataKey="expenses" fill="var(--color-expenses)" radius={4} />
+              <Bar dataKey="income" fill="var(--color-income)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="expenses" fill="var(--color-expenses)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ChartContainer>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

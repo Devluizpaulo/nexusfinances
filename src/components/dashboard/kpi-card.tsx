@@ -1,7 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { type ElementType } from 'react';
 import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
+import { useCountUp } from '@/hooks/use-count-up';
 
 type KpiCardProps = {
   title: string;
@@ -13,38 +13,76 @@ type KpiCardProps = {
   index?: number;
 };
 
-export function KpiCard({ title, value, icon: Icon, description, trend, invertTrendColor = false }: KpiCardProps) {
+const parseNumericValue = (str: string): number => {
+  const isNegative = str.includes('-');
+  let cleaned = str.replace(/[^\d,.]/g, '');
+  
+  if (cleaned.includes(',') && cleaned.includes('.')) {
+    cleaned = cleaned.replace(/\./g, '').replace(/,/g, '.');
+  } else if (cleaned.includes(',')) {
+    cleaned = cleaned.replace(/,/g, '.');
+  }
+  
+  const parsed = parseFloat(cleaned);
+  if (isNaN(parsed)) return 0;
+  return isNegative ? -parsed : parsed;
+};
+
+export function KpiCard({ title, value, icon: Icon, description, trend, invertTrendColor = false, index = 0 }: KpiCardProps) {
   const hasTrend = typeof trend === 'number';
   const TrendIcon = !hasTrend || trend === 0 ? Minus : trend > 0 ? ArrowUpRight : ArrowDownRight;
   const isGoodTrend = hasTrend && trend !== 0 && ((trend > 0 && !invertTrendColor) || (trend < 0 && invertTrendColor));
 
+  // Custom colors for icon container based on KPI type
+  const iconColors = [
+    'text-emerald-400 border-emerald-500/20 bg-emerald-500/5', // Receitas
+    'text-rose-400 border-rose-500/20 bg-rose-500/5', // Despesas
+    'text-sky-400 border-sky-500/20 bg-sky-500/5', // Balanço
+    'text-purple-400 border-purple-500/20 bg-purple-500/5', // Poupança
+  ];
+  const iconColorClass = iconColors[index % iconColors.length];
+
+  // CountUp logic
+  const numericVal = parseNumericValue(value);
+  const animatedVal = useCountUp({ end: numericVal });
+
+  const displayValue = value.includes('R$')
+    ? formatCurrency(animatedVal)
+    : value.includes('%')
+    ? `${animatedVal.toFixed(0)}%`
+    : animatedVal.toLocaleString('pt-BR');
+
   return (
-    <Card className="h-full rounded-lg border-slate-800 bg-card/75 shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 p-5 pb-3">
-        <CardTitle className="text-sm font-medium text-slate-400">{title}</CardTitle>
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-cyan-300">
-          <Icon className="h-4 w-4" />
+    <div className="card-premium h-full flex flex-col justify-between hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
+      <div>
+        <div className="flex items-center justify-between gap-4 mb-4">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{title}</span>
+          <div className={cn("flex h-8 w-8 items-center justify-center rounded-lg border", iconColorClass)}>
+            <Icon className="h-4 w-4" />
+          </div>
         </div>
-      </CardHeader>
-      <CardContent className="p-5 pt-0">
-        <div className="text-2xl font-bold tracking-normal text-slate-50 md:text-3xl">{value}</div>
-        <div className="mt-3 flex min-h-6 items-center justify-between gap-3 text-xs">
-          {description ? <p className="text-slate-400">{description}</p> : <span />}
-          {hasTrend && (
-            <div
+        <div className="text-2xl font-bold tracking-tight text-slate-100 md:text-3xl font-mono">{displayValue}</div>
+      </div>
+      
+      <div className="mt-4 flex min-h-6 items-center justify-between gap-3 text-xs">
+        {description ? <p className="text-slate-400 text-[11px]">{description}</p> : <span />}
+        {hasTrend && (
+          <div className="flex items-center gap-1.5">
+            <span
               className={cn(
-                'inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-semibold',
+                'inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-bold text-[10px]',
                 trend === 0 && 'bg-slate-800 text-slate-400',
-                trend !== 0 && isGoodTrend && 'bg-emerald-500/15 text-emerald-300',
-                trend !== 0 && !isGoodTrend && 'bg-rose-500/15 text-rose-300',
+                trend !== 0 && isGoodTrend && 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+                trend !== 0 && !isGoodTrend && 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
               )}
             >
-              <TrendIcon className="h-3.5 w-3.5" />
+              <TrendIcon className="h-3 w-3" />
               {Math.abs(trend).toFixed(1)}%
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+            </span>
+            <span className="text-[10px] text-slate-500 font-medium">vs mês anterior</span>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

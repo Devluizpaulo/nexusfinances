@@ -10,6 +10,7 @@ import { askAICoach, type AICoachChatInput } from "@/ai/flows/ai-coach-chat-flow
 import { Sparkles, Send, Bot, User, Loader2, RefreshCw, Compass } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface Message {
   role: "user" | "model";
@@ -26,6 +27,9 @@ interface AICoachChatProps {
     savingsRate: number;
     debtCount: number;
     goalCount: number;
+    healthScore?: number;
+    activeGoals?: { name: string; target: number; current: number }[];
+    topExpenses?: { category: string; amount: number; percentage: number }[];
   };
 }
 
@@ -33,7 +37,7 @@ export function AICoachChat({ userName, financialData }: AICoachChatProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "model",
-      text: `Olá, **${userName}**! Eu sou o **Xô Planilhas**, seu conselheiro financeiro de bolso. 🧠💰\n\nAnalisei seus dados atuais:\n- **Balanço**: R$ ${financialData.balance.toFixed(2)}\n- **Taxa de Poupança**: ${financialData.savingsRate.toFixed(0)}%\n\nComo posso ajudar você a otimizar sua vida financeira hoje? Escolha uma sugestão abaixo ou digite sua dúvida!`,
+      text: `Olá, **${userName}**! Eu sou o **Xô Planilhas**, seu conselheiro financeiro de bolso. 🧠💰\n\nAnalisei seus dados atuais:\n- **Balanço**: R$ ${financialData.balance.toFixed(2)}\n- **Taxa de Poupança**: ${financialData.savingsRate.toFixed(0)}%${financialData.healthScore !== undefined ? `\n- **Score de Saúde**: ${financialData.healthScore} / 100` : ''}\n\nComo posso ajudar você a otimizar sua vida financeira hoje? Escolha uma sugestão abaixo ou digite sua dúvida!`,
       timestamp: new Date(),
     },
   ]);
@@ -148,7 +152,7 @@ export function AICoachChat({ userName, financialData }: AICoachChatProps) {
           return (
             <p
               key={idx}
-              className="text-sm text-slate-300"
+              className="text-xs text-slate-300"
               dangerouslySetInnerHTML={{ __html: html }}
             />
           );
@@ -158,25 +162,21 @@ export function AICoachChat({ userName, financialData }: AICoachChatProps) {
   };
 
   return (
-    <Card className="relative overflow-hidden border-blue-500/20 bg-slate-900/60 backdrop-blur-xl flex flex-col h-[600px]">
-      {/* Glow */}
-      <div className="absolute -left-10 -top-10 bg-blue-600/10 rounded-full h-40 w-40 blur-3xl -z-10" />
-      <div className="absolute -right-10 -bottom-10 bg-cyan-500/10 rounded-full h-40 w-40 blur-3xl -z-10" />
-
+    <div className="card-premium relative overflow-hidden backdrop-blur-xl flex flex-col h-[520px] hover:shadow-lg transition-all duration-300">
       {/* Header */}
-      <CardHeader className="border-b border-slate-800/80 pb-3 flex flex-row items-center justify-between">
+      <div className="border-b border-white/5 pb-3 mb-3 flex flex-row items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center text-white shadow-lg">
+          <div className="h-9 w-9 rounded-lg border border-cyan-500/20 bg-cyan-500/5 flex items-center justify-center text-cyan-400">
             <Bot className="h-5 w-5" />
           </div>
           <div>
-            <CardTitle className="text-base text-white flex items-center gap-1.5">
+            <h3 className="text-sm font-bold text-slate-200 flex items-center gap-1.5">
               Conselheiro Xô Planilhas
-              <Sparkles className="h-3.5 w-3.5 text-yellow-400 animate-pulse" />
-            </CardTitle>
-            <CardDescription className="text-xs text-slate-400">
+              <Sparkles className="h-3.5 w-3.5 text-cyan-400 animate-pulse" />
+            </h3>
+            <p className="text-xs text-slate-400">
               Perguntas e respostas orientadas por IA sobre sua saúde financeira.
-            </CardDescription>
+            </p>
           </div>
         </div>
         <Button
@@ -184,15 +184,15 @@ export function AICoachChat({ userName, financialData }: AICoachChatProps) {
           variant="ghost"
           size="icon"
           onClick={handleClearChat}
-          className="h-8 w-8 text-slate-400 hover:text-white"
+          className="h-8 w-8 text-slate-500 hover:text-slate-200"
           title="Reiniciar conversa"
         >
           <RefreshCw className="h-4 w-4" />
         </Button>
-      </CardHeader>
+      </div>
 
       {/* Message List */}
-      <CardContent className="flex-1 overflow-hidden p-4">
+      <div className="flex-1 overflow-hidden px-1 py-2">
         <ScrollArea className="h-full pr-3">
           <div className="space-y-4">
             <AnimatePresence initial={false}>
@@ -206,29 +206,28 @@ export function AICoachChat({ userName, financialData }: AICoachChatProps) {
                     className={`flex gap-3 ${isModel ? "justify-start" : "justify-end"}`}
                   >
                     {isModel && (
-                      <Avatar className="h-8 w-8 border border-blue-500/30">
-                        <AvatarImage src="" />
-                        <AvatarFallback className="bg-gradient-to-br from-blue-600 to-cyan-500 text-white">
+                      <Avatar className="h-8 w-8 border border-white/5">
+                        <AvatarFallback className="bg-slate-900/50 text-cyan-400">
                           <Bot className="h-4 w-4" />
                         </AvatarFallback>
                       </Avatar>
                     )}
                     <div
-                      className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm shadow-md ${
+                      className={cn(
+                        "max-w-[80%] rounded-2xl px-3.5 py-2.5 text-xs shadow-md border",
                         isModel
-                          ? "bg-slate-800/80 text-white rounded-tl-none border border-slate-700/30"
-                          : "bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-tr-none"
-                      }`}
+                          ? "bg-slate-900/40 text-slate-200 rounded-tl-none border-white/5"
+                          : "bg-slate-900 border-cyan-500/20 text-slate-100 rounded-tr-none"
+                      )}
                     >
                       {renderMessageContent(m.text)}
-                      <span className="text-[10px] text-slate-400 block text-right mt-1.5">
+                      <span className="text-[9px] text-slate-500 block text-right mt-1.5">
                         {m.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </span>
                     </div>
                     {!isModel && (
-                      <Avatar className="h-8 w-8 border border-slate-700">
-                        <AvatarImage src="" />
-                        <AvatarFallback className="bg-slate-700 text-slate-300">
+                      <Avatar className="h-8 w-8 border border-white/5">
+                        <AvatarFallback className="bg-slate-800 text-slate-300">
                           <User className="h-4 w-4" />
                         </AvatarFallback>
                       </Avatar>
@@ -244,31 +243,31 @@ export function AICoachChat({ userName, financialData }: AICoachChatProps) {
                 animate={{ opacity: 1, y: 0 }}
                 className="flex gap-3 justify-start"
               >
-                <Avatar className="h-8 w-8 border border-blue-500/30">
-                  <AvatarFallback className="bg-gradient-to-br from-blue-600 to-cyan-500 text-white">
+                <Avatar className="h-8 w-8 border border-white/5">
+                  <AvatarFallback className="bg-slate-900/50 text-cyan-400">
                     <Bot className="h-4 w-4" />
                   </AvatarFallback>
                 </Avatar>
-                <div className="bg-slate-800/80 text-white rounded-2xl rounded-tl-none border border-slate-700/30 px-4 py-3 flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin text-blue-400" />
-                  <span className="text-xs text-slate-300">O conselheiro está analisando seus dados...</span>
+                <div className="bg-slate-900/40 text-slate-200 rounded-2xl rounded-tl-none border border-white/5 px-3.5 py-2.5 flex items-center gap-2">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-cyan-400" />
+                  <span className="text-[10px] text-slate-400">O conselheiro está analisando seus dados...</span>
                 </div>
               </motion.div>
             )}
             <div ref={scrollRef} />
           </div>
         </ScrollArea>
-      </CardContent>
+      </div>
 
       {/* Suggestion Chips */}
       {messages.length === 1 && (
-        <div className="px-4 pb-2 flex flex-wrap gap-2">
+        <div className="pb-3 pt-1 flex flex-wrap gap-1.5">
           {suggestions.map((sug, idx) => (
             <button
               key={idx}
               type="button"
               onClick={() => handleSendMessage(sug)}
-              className="text-xs bg-slate-800/60 hover:bg-slate-700/80 border border-slate-700/50 text-slate-300 rounded-full px-3 py-1.5 transition-colors text-left"
+              className="text-[11px] bg-slate-900/60 hover:bg-slate-800 border border-white/5 text-slate-300 rounded-full px-3 py-1.5 transition-all text-left hover:border-cyan-500/20"
             >
               {sug}
             </button>
@@ -277,30 +276,28 @@ export function AICoachChat({ userName, financialData }: AICoachChatProps) {
       )}
 
       {/* Footer Input */}
-      <CardFooter className="border-t border-slate-800/80 p-4">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSendMessage(inputValue);
-          }}
-          className="flex w-full gap-2"
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSendMessage(inputValue);
+        }}
+        className="border-t border-white/5 pt-3 flex w-full gap-2"
+      >
+        <Input
+          placeholder="Pergunte ao conselheiro... (Ex: Como economizar R$ 200?)"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          disabled={isSending}
+          className="flex-1 bg-slate-900/40 border-white/5 text-xs text-white placeholder:text-slate-600 h-9"
+        />
+        <Button
+          type="submit"
+          disabled={!inputValue.trim() || isSending}
+          className="bg-gradient-to-br from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-semibold shadow-md shadow-blue-500/10 shrink-0 h-9 px-4"
         >
-          <Input
-            placeholder="Pergunte ao conselheiro... (Ex: Como economizar R$ 200?)"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            disabled={isSending}
-            className="flex-1 bg-slate-800/50 border-slate-700 text-white placeholder:text-slate-500"
-          />
-          <Button
-            type="submit"
-            disabled={!inputValue.trim() || isSending}
-            className="bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold shadow-lg shrink-0"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-        </form>
-      </CardFooter>
-    </Card>
+          <Send className="h-3.5 w-3.5" />
+        </Button>
+      </form>
+    </div>
   );
 }

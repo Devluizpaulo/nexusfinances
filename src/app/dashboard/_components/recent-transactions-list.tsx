@@ -234,106 +234,114 @@ export function RecentTransactionsList({ transactions, onAddTransaction, title =
                 </SheetContent>
             </Sheet>
 
-            <Card className="h-full rounded-xl">
-            <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                    <ListChecks className="h-5 w-5 text-primary" />
-                    {title}
-                </CardTitle>
-                <CardDescription className="mt-1 text-xs">{description}</CardDescription>
-            </CardHeader>
-            <CardContent className="p-4 pt-0">
-                <AnimatePresence>
-                    {recent.length > 0 ? (
-                        <motion.div 
-                            key="transactions"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="space-y-3"
-                        >
-                            {recent.map((t, index) => {
-                                const isIncome = t.type === 'income';
-                                return (
-                                    <motion.div 
-                                        key={t.id} 
-                                        onClick={() => handleTransactionClick(t)}
-                                        className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer group/item"
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: index * 0.05 }}
-                                        whileHover={{ x: 4 }}
-                                    >
-                                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                                            <motion.div 
-                                                className={cn(
-                                                    "flex h-8 w-8 items-center justify-center rounded-lg shrink-0 transition-all",
-                                                    isIncome 
-                                                        ? 'bg-emerald-100/80 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 group-hover/item:bg-emerald-200/80 dark:group-hover/item:bg-emerald-900/70' 
-                                                        : 'bg-red-100/80 dark:bg-red-900/50 text-red-600 dark:text-red-400 group-hover/item:bg-red-200/80 dark:group-hover/item:bg-red-900/70'
-                                                )}
-                                                whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
-                                                transition={{ duration: 0.3 }}
-                                            >
-                                                {isIncome ? <ArrowUpCircle size={18} /> : <ArrowDownCircle size={18} />}
-                                            </motion.div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="font-medium text-sm truncate">{t.description}</p>
-                                                <p className="text-xs text-muted-foreground truncate">{t.category} &bull; {format(parseISO(t.date), "dd/MM/yy", { locale: ptBR })}</p>
-                                            </div>
-                                        </div>
-                                        <motion.p 
-                                            className={cn(
-                                                "font-semibold text-sm ml-2 shrink-0",
-                                                isIncome ? 'text-emerald-400' : 'text-rose-400'
-                                            )}
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            transition={{ delay: index * 0.05 + 0.1 }}
-                                        >
-                                            {isIncome ? '+' : '-'} {formatCurrency(t.amount)}
-                                        </motion.p>
-                                    </motion.div>
-                                )
-                            })}
-                        </motion.div>
-                    ) : (
-                        <motion.div 
-                            key="empty"
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="flex flex-col items-center justify-center h-48 text-center"
-                        >
-                            <motion.div
-                                animate={{ 
-                                    y: [0, -5, 0],
-                                }}
-                                transition={{ 
-                                    duration: 2,
-                                    repeat: Infinity,
-                                    ease: "easeInOut"
-                                }}
-                            >
-                                <Wallet className="h-12 w-12 mb-3 text-slate-600" />
-                            </motion.div>
-                            <p className="font-medium text-slate-300 mb-1">Nenhum lançamento encontrado</p>
-                            <p className="text-sm text-slate-500 mb-4">Suas movimentações aparecerão aqui.</p>
-                            {onAddTransaction && (
-                                <Button 
-                                    size="sm" 
-                                    onClick={handleAddClick}
-                                    className="bg-primary/20 hover:bg-primary/30 border-primary/30 text-primary"
-                                >
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Adicionar transação
-                                </Button>
-                            )}
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </CardContent>
-        </Card>
+    <div className="card-premium h-full flex flex-col justify-between hover:shadow-lg transition-all duration-300">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/5 bg-slate-900/50 text-cyan-400">
+            <ListChecks className="h-4.5 w-4.5" />
+          </div>
+          <div>
+            <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{title}</h3>
+            <p className="text-xs text-slate-500">{description}</p>
+          </div>
+        </div>
+      </div>
+      
+      <div className="flex-1 pt-2">
+        <AnimatePresence>
+          {recent.length > 0 ? (
+            <motion.div 
+              key="transactions"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="space-y-2.5"
+            >
+              {recent.map((t, index) => {
+                const isIncome = t.type === 'income';
+                return (
+                  <motion.div 
+                    key={t.id} 
+                    onClick={() => handleTransactionClick(t)}
+                    className="flex items-center justify-between p-2 rounded-lg border border-transparent hover:border-white/5 hover:bg-slate-800/20 transition-all duration-200 cursor-pointer group/item"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    whileHover={{ x: 4 }}
+                  >
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div 
+                        className={cn(
+                          "flex h-7.5 w-7.5 items-center justify-center rounded-lg shrink-0 border transition-all",
+                          isIncome 
+                            ? 'border-emerald-500/20 bg-emerald-500/5 text-emerald-400' 
+                            : 'border-rose-500/20 bg-rose-500/5 text-rose-400'
+                        )}
+                      >
+                        {isIncome ? <ArrowUpCircle size={15} /> : <ArrowDownCircle size={15} />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-xs text-slate-200 truncate group-hover/item:text-slate-100">{t.description}</p>
+                        <p className="text-[10px] text-slate-500 truncate">{t.category} &bull; {format(parseISO(t.date), "dd/MM/yy", { locale: ptBR })}</p>
+                      </div>
+                    </div>
+                    <p 
+                      className={cn(
+                        "font-bold text-xs ml-2 shrink-0",
+                        isIncome ? 'text-emerald-400' : 'text-rose-400'
+                      )}
+                    >
+                      {isIncome ? '+' : '-'} {formatCurrency(t.amount)}
+                    </p>
+                  </motion.div>
+                )
+              })}
+            </motion.div>
+          ) : (
+            <div className="relative flex flex-col items-center justify-center h-52 text-center overflow-hidden">
+              {/* Fake background watermark list */}
+              <div className="absolute inset-0 flex flex-col gap-2 opacity-5 pointer-events-none blur-[0.5px] scale-95 origin-center">
+                {[
+                  { desc: 'Mercado Mensal', cat: 'Alimentação', amt: -342.90, isInc: false },
+                  { desc: 'Salário Principal', cat: 'Trabalho', amt: 4500.00, isInc: true },
+                  { desc: 'Mensalidade Netflix', cat: 'Lazer', amt: -55.90, isInc: false },
+                ].map((item, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-2 border border-slate-700/50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-lg bg-slate-800" />
+                      <div className="text-left">
+                        <div className="h-3 w-24 bg-slate-700 rounded mb-1" />
+                        <div className="h-2 w-16 bg-slate-800 rounded" />
+                      </div>
+                    </div>
+                    <div className="h-3 w-12 bg-slate-700 rounded" />
+                  </div>
+                ))}
+              </div>
+
+              {/* Onboarding text and CTA */}
+              <div className="relative z-10 p-4 flex flex-col items-center">
+                <div className="h-10 w-10 rounded-full bg-slate-900/80 border border-white/5 flex items-center justify-center mb-3">
+                  <Wallet className="h-5 w-5 text-slate-500" />
+                </div>
+                <p className="font-semibold text-xs text-slate-300 mb-1">Organize a bagunça</p>
+                <p className="text-[11px] text-slate-500 mb-4 max-w-[200px]">Adicione seu primeiro lançamento para ver os dados ganharem vida.</p>
+                {onAddTransaction && (
+                  <Button 
+                    size="sm" 
+                    onClick={handleAddClick}
+                    className="h-8 bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-semibold text-xs rounded-lg px-4 shadow-md shadow-blue-500/10 transition-all"
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1.5" />
+                    Adicionar lançamento
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
         </div>
     );
 }

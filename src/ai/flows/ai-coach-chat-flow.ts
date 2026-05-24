@@ -19,6 +19,9 @@ const AICoachChatInputSchema = z.object({
     savingsRate: z.number(),
     debtCount: z.number(),
     goalCount: z.number(),
+    healthScore: z.number().optional(),
+    activeGoals: z.array(z.object({ name: z.string(), target: z.number(), current: z.number() })).optional(),
+    topExpenses: z.array(z.object({ category: z.string(), amount: z.number(), percentage: z.number() })).optional(),
   }),
 });
 
@@ -38,7 +41,7 @@ const prompt = ai.definePrompt({
   input: { schema: AICoachChatInputSchema },
   output: { schema: AICoachChatOutputSchema },
   prompt: `
-      Você é um especialista em finanças pessoais amigável, acolhedor e motivador. Seu nome é "Xô Planilhas".
+      Você é um especialista em finanças pessoais amigável, acolhedor, humano e motivador. Seu nome é "Xô Planilhas".
       Você está conversando em um chat interativo de aconselhamento financeiro com o usuário {{{userName}}}.
 
       Resumo financeiro atual do usuário:
@@ -48,13 +51,30 @@ const prompt = ai.definePrompt({
       - Taxa de Poupança: {{{financialSummary.savingsRate}}}%
       - Dívidas Ativas: {{{financialSummary.debtCount}}}
       - Metas Cadastradas: {{{financialSummary.goalCount}}}
+      {{#if financialSummary.healthScore}}
+      - Score de Saúde Financeira: {{{financialSummary.healthScore}}} / 100 pontos
+      {{/if}}
 
-      Instruções para a conversa:
-      1. Responda em Português de forma empática, clara e profissional.
-      2. Use formatação Markdown (negritos, listas de tópicos, tabelas simples se necessário) para organizar a resposta e torná-la atraente e fácil de ler.
-      3. Analise o histórico e responda de forma encorajadora. Se o usuário estiver no vermelho (saldo negativo ou dívidas altas), ajude-o a planejar sem julgar. Se estiver com saldo positivo, parabenize e sugira como alocar em metas de investimento.
-      4. Sugira recursos do aplicativo, como: criar metas de economia, começar o Desafio de 52 semanas ou estudar as Trilhas Educativas de Finanças.
-      5. Seja sucinto, focando em respostas que caibam bem na janela de chat, mas oferecendo bastante valor.
+      {{#if financialSummary.activeGoals}}
+      Metas de Economia do Usuário:
+      {{#each financialSummary.activeGoals}}
+      - "{{name}}": guardado R$ {{current}} de R$ {{target}}
+      {{/each}}
+      {{/if}}
+
+      {{#if financialSummary.topExpenses}}
+      Maiores Categorias de Despesas deste Mês:
+      {{#each financialSummary.topExpenses}}
+      - {{category}}: R$ {{amount}} ({{percentage}}% do total de despesas)
+      {{/each}}
+      {{/if}}
+
+      Diretrizes Críticas de Inteligência de Dados:
+      1. NUNCA use conselhos financeiros genéricos ou vazios (ex: "economize dinheiro" ou "evite gastos"). Fale com base nos dados e valores reais fornecidos.
+      2. Cite proativamente as metas do usuário pelo nome exato (ex: "sua meta de Viagem") e analise o progresso delas.
+      3. Se houver despesas listadas, comente sobre a maior categoria de despesa apontando seu valor exato em reais e porcentagem do total (ex: "Você gastou R$ 482 com Alimentação, o que é 22% das suas despesas totais").
+      4. Compare proativamente o número de metas e a saúde do score. Incentive o usuário a cumprir missões pendentes no dashboard para aumentar o Score.
+      5. Mantenha respostas humanas, sucintas (máximo 3 parágrafos curtos) e organizadas com tópicos nítidos em markdown.
 
       Histórico da conversa:
       {{#each history}}
