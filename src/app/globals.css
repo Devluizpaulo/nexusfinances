@@ -80,6 +80,52 @@
   }
 }
 
+/* Mobile mockup gentle float — subtle, fintech-premium */
+@keyframes mobile-float {
+  0%, 100% {
+    transform: rotate(6deg) translateY(0px);
+  }
+  50% {
+    transform: rotate(6deg) translateY(-10px);
+  }
+}
+
+/* Glow breathing — ambient orbs */
+@keyframes glow-breathing {
+  0%, 100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.04);
+  }
+}
+
+/* Fade-in-up for section reveals via IntersectionObserver */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stagger fade for insight cards */
+@keyframes stagger-fade {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 @keyframes glow {
   0%, 100% {
     box-shadow: 0 0 20px rgba(79, 172, 254, 0.3), 0 0 40px rgba(79, 172, 254, 0.15);
@@ -234,5 +280,66 @@
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, rgb(96, 165, 250) 0%, rgb(34, 211, 238) 100%);
+  }
+
+  /* Mobile mockup float utility */
+  .mobile-mockup-float {
+    animation: mobile-float 5s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  /* Glow breathing utility */
+  .glow-breathing {
+    animation: glow-breathing 4s ease-in-out infinite;
+    will-change: opacity, transform;
+  }
+
+  /* Section reveal — applied via JS IntersectionObserver */
+  .section-hidden {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+
+  .section-visible {
+    animation: fade-in-up 0.7s ease-out forwards;
+  }
+
+  /* Stagger card reveal */
+  .stagger-card {
+    opacity: 0;
+  }
+
+  .stagger-card.visible {
+    animation: stagger-fade 0.5s ease-out forwards;
+  }
+
+  /* Hero gradient headline */
+  .hero-gradient-text {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 40%, #67e8f9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+/* Accessibility: respect user motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .mobile-mockup-float,
+  .glow-breathing,
+  .float,
+  .glow-primary,
+  .glow-border,
+  .gradient-text,
+  .shimmer-text {
+    animation: none !important;
+  }
+
+  .section-hidden {
+    opacity: 1;
+    transform: none;
+  }
+
+  .stagger-card {
+    opacity: 1;
   }
 }
